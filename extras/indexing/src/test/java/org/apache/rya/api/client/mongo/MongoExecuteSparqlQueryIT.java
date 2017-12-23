@@ -18,12 +18,17 @@
  */
 package org.apache.rya.api.client.mongo;
 
-import org.apache.rya.api.client.Install;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+
+import org.apache.rya.api.client.ExecuteSparqlQuery;
 import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
-import org.apache.rya.api.client.Install.InstallConfiguration;
+import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.mongodb.MongoTestBase;
 import org.junit.Test;
+import org.openrdf.model.Statement;
 
 import com.mongodb.MongoException;
 
@@ -33,12 +38,27 @@ import com.mongodb.MongoException;
 public class MongoExecuteSparqlQueryIT extends MongoTestBase {
     @Test
     public void ExecuteSparqlQuery_exec() throws MongoException, DuplicateInstanceNameException, RyaClientException {
+        // Install an instance of Rya.
         MongoConnectionDetails connectionDetails = getConnectionDetails();
-        // Install a few instances of Rya using the install command.
-        final Install install = new MongoInstall(connectionDetails, getMongoClient());
-        install.install("instanceExec", InstallConfiguration.builder().build());
-        MongoExecuteSparqlQuery executeSparql = new MongoExecuteSparqlQuery(connectionDetails, getMongoClient());
-        // TODO executeSparql.
+        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, conf.getMongoClient());
+        // install rya and load some data
+        final List<Statement> loadMe = MongoLoadStatementsIT.installAndLoad();
+        // Here comes the method to test
+        ExecuteSparqlQuery executeSparql = ryaClient.getExecuteSparqlQuery();
+        final String sparql = "SELECT * where { ?a ?b ?c }";
+        String results = executeSparql.executeSparqlQuery(conf.getMongoDBName(), sparql);
+        System.out.println(results);
+        assertTrue("result has header.", results.startsWith("Query Result:"));
+        assertTrue("result has column headings.", results.contains("a,b,c"));
+        assertTrue("result has footer.", results.contains("Retrieved 3 results in"));
+        for (Statement expect : loadMe) {
+            assertTrue("All results should contain expected subjects:",
+                            results.contains(expect.getSubject().stringValue()));
+            assertTrue("All results should contain expected predicates:",
+                            results.contains(expect.getPredicate().stringValue()));
+            assertTrue("All results should contain expected objects:",
+                            results.contains(expect.getObject().stringValue()));
+        }
     }
 
     /**

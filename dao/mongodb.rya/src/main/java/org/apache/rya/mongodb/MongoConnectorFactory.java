@@ -90,21 +90,21 @@ public class MongoConnectorFactory {
         final int port = requireNonNullInt(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT), MSG_INTRO+"Port number is required.");
         final ServerAddress server = new ServerAddress(host, port);
         // check for authentication credentials
-        if (conf.get(MongoDBRdfConfiguration.MONGO_USER) != null) {
-            final String username = conf.get(MongoDBRdfConfiguration.MONGO_USER);
-            final String dbName = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME),
-                    MSG_INTRO + MongoDBRdfConfiguration.MONGO_DB_NAME + " is null but required configuration if "
-                            + MongoDBRdfConfiguration.MONGO_USER + " is configured.");
-            final char[] pswd = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_USER_PASSWORD),
-                    MSG_INTRO + MongoDBRdfConfiguration.MONGO_USER_PASSWORD + " is null but required configuration if "
-                            + MongoDBRdfConfiguration.MONGO_USER + " is configured.").toCharArray();
-            final MongoCredential cred = MongoCredential.createCredential(username, dbName, pswd);
-            mongoClient = new MongoClient(server, Arrays.asList(cred), options2);
-
-        } else {
+//        if (false) {//conf.get(MongoDBRdfConfiguration.MONGO_USER) != null) {
+//            final String username = conf.get(MongoDBRdfConfiguration.MONGO_USER);
+//            final String dbName = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME),
+//                    MSG_INTRO + MongoDBRdfConfiguration.MONGO_DB_NAME + " is null but required configuration if "
+//                            + MongoDBRdfConfiguration.MONGO_USER + " is configured.");
+//            final char[] pswd = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_USER_PASSWORD),
+//                    MSG_INTRO + MongoDBRdfConfiguration.MONGO_USER_PASSWORD + " is null but required configuration if "
+//                            + MongoDBRdfConfiguration.MONGO_USER + " is configured.").toCharArray();
+//            final MongoCredential cred = MongoCredential.createCredential(username, dbName, pswd);
+//            mongoClient = new MongoClient(server, Arrays.asList(cred), options2);
+//
+//        } else {
             // No user was configured:
             mongoClient = new MongoClient(server, options2);
-        }
+//        }
     }
 
     /**

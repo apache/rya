@@ -59,10 +59,8 @@ public class MongoLoadStatementsFile extends MongoCommand implements LoadStateme
     /**
      * Constructs an instance of {@link MongoListInstances}.
      *
-     * @param connectionDetails
-     *            - Details to connect to the server. (not null)
-     * @param client
-     *            - Provides programmatic access to the instance of Mongo
+     * @param connectionDetails - Details to connect to the server. (not null)
+     * @param client - Provides programmatic access to the instance of Mongo
      *            that hosts Rya instance. (not null)
      */
     public MongoLoadStatementsFile(MongoConnectionDetails connectionDetails, MongoClient client) {

@@ -18,10 +18,25 @@
  */
 package org.apache.rya.api.client.mongo;
 
+import static java.util.Objects.requireNonNull;
+
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.log4j.Logger;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
+import org.apache.rya.api.client.InstanceExists;
 import org.apache.rya.api.client.LoadStatements;
 import org.apache.rya.api.client.RyaClientException;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
+import org.apache.rya.sail.config.RyaSailFactory;
 import org.openrdf.model.Statement;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.sail.SailRepository;
+import org.openrdf.repository.sail.SailRepositoryConnection;
+import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailException;
 
 import com.mongodb.MongoClient;
 
@@ -33,15 +48,53 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public class MongoLoadStatements extends MongoCommand implements LoadStatements {
+    private static final Logger log = Logger.getLogger(MongoLoadStatements.class);
+    private final InstanceExists instanceExists;
 
+    /**
+     * Constructs an instance.
+     *
+     * @param connectionDetails - Details to connect to the server. (not null)
+     * @param client - Provides programmatic access to the instance of Mongo
+     *            that hosts Rya instance. (not null)
+     */
     public MongoLoadStatements(MongoConnectionDetails connectionDetails, MongoClient client) {
         super(connectionDetails, client);
+        instanceExists = new MongoInstanceExists(connectionDetails, client);
     }
 
     @Override
     public void loadStatements(String ryaInstanceName, Iterable<? extends Statement> statements) throws InstanceDoesNotExistException, RyaClientException {
-        // TODO Auto-generated method stub
+        requireNonNull(ryaInstanceName);
+        requireNonNull(statements);
 
+        // Ensure the Rya Instance exists.
+        if (!instanceExists.exists(ryaInstanceName)) {
+            throw new InstanceDoesNotExistException(String.format("There is no Rya instance named '%s'.",
+                            ryaInstanceName));
+        }
+
+        Sail sail = null;
+        SailRepository sailRepo = null;
+        SailRepositoryConnection sailRepoConn = null;
+        // Get a Sail object that is connected to the Rya instance.
+        final MongoDBRdfConfiguration ryaConf = getMongoConnectionDetails().build(ryaInstanceName, getClient());
+        // ryaConf.setFlush(false); //Accumulo version said: RYA-327 should address this hardcoded value.
+        try {
+            sail = RyaSailFactory.getInstance(ryaConf);
+        } catch (SailException | RyaDAOException | InferenceEngineException | AccumuloException
+                        | AccumuloSecurityException e) {
+            throw new RyaClientException("While getting a sail instance.", e);
+        }
+
+        // Load the file.
+        sailRepo = new SailRepository(sail);
+        try {
+            sailRepoConn = sailRepo.getConnection();
+            sailRepoConn.add(statements);
+        } catch (RepositoryException e) {
+            throw new RyaClientException("While getting a connection and adding statements.", e);
+        }
     }
 
 }

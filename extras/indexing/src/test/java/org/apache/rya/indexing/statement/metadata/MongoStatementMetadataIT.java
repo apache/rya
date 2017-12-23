@@ -18,6 +18,8 @@
  */
 package org.apache.rya.indexing.statement.metadata;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -29,11 +31,11 @@ import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
 import org.apache.rya.mongodb.MongoTestBase;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.impl.LiteralImpl;
 import org.openrdf.model.impl.URIImpl;
@@ -50,10 +52,11 @@ import org.openrdf.sail.Sail;
 
 public class MongoStatementMetadataIT extends MongoTestBase {
 
-    private Sail sail;
-    private SailRepository repo;
-    private SailRepositoryConnection conn;
-    private MongoDBRyaDAO dao;
+//    private Sail sail;
+//    private SailRepository repo;
+//    private SailRepositoryConnection conn;
+//    private MongoDBRyaDAO dao;
+
     private final String query1 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotation; ano:Source <http://Joe>; "
             + "ano:Property <http://worksAt>; ano:Target ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }";
     private final String query2 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?a ?b ?c where {_:blankNode1 rdf:type owl:Annotation; ano:Source ?a; "
@@ -61,46 +64,66 @@ public class MongoStatementMetadataIT extends MongoTestBase {
             + "_:blankNode2 rdf:type owl:Annotation; ano:Source ?a; "
             + "ano:Property <http://talksTo>; ano:Target ?b; <http://createdBy> ?c; <http://createdOn> \'2017-01-04\'^^xsd:date }";
 
-    @Before
-    public void init() throws Exception {
-        final Set<RyaURI> propertySet = new HashSet<RyaURI>(
+    @Override
+    protected void updateConfiguration(final MongoDBRdfConfiguration conf) {
+        final Set<RyaURI> propertySet = new HashSet<>(
                 Arrays.asList(new RyaURI("http://createdBy"), new RyaURI("http://createdOn")));
         conf.setUseStatementMetadata(true);
         conf.setStatementMetadataProperties(propertySet);
-
-        sail = RyaSailFactory.getInstance(conf);
-        repo = new SailRepository(sail);
-        conn = repo.getConnection();
-
-        dao = new MongoDBRyaDAO(conf, super.getMongoClient());
-        dao.init();
     }
+
+//    @Before
+//    public void init() throws Exception {
+//        final Set<RyaURI> propertySet = new HashSet<>(
+//                Arrays.asList(new RyaURI("http://createdBy"), new RyaURI("http://createdOn")));
+//        conf.setUseStatementMetadata(true);
+//        conf.setStatementMetadataProperties(propertySet);
+
+//        sail = RyaSailFactory.getInstance(conf);
+//        repo = new SailRepository(sail);
+//        conn = repo.getConnection();
+//
+//        dao = new MongoDBRyaDAO();
+//        dao.setConf(conf);
+//        dao.init();
+//    }
 
     @Test
     public void simpleQueryWithoutBindingSet() throws Exception {
-        final StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+        Sail sail = RyaSailFactory.getInstance(conf);
+        MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        try {
+            dao.setConf(conf);
+            dao.init();
 
-        final RyaStatement statement = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
-        dao.add(statement);
+            final StatementMetadata metadata = new StatementMetadata();
+            metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
+            metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-        final TupleQueryResult result = conn.prepareTupleQuery(QueryLanguage.SPARQL, query1).evaluate();
+            final RyaStatement statement = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
+                    new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
+            dao.add(statement);
 
-        final QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("x", new LiteralImpl("CoffeeShop"));
-        bs.addBinding("y", new LiteralImpl("Joe"));
+            SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+            final TupleQueryResult result = conn.prepareTupleQuery(QueryLanguage.SPARQL, query1).evaluate();
 
-        final List<BindingSet> bsList = new ArrayList<>();
-        while (result.hasNext()) {
-            bsList.add(result.next());
+            final QueryBindingSet bs = new QueryBindingSet();
+            bs.addBinding("x", new LiteralImpl("CoffeeShop"));
+            bs.addBinding("y", new LiteralImpl("Joe"));
+
+            final List<BindingSet> bsList = new ArrayList<>();
+            while (result.hasNext()) {
+                bsList.add(result.next());
+            }
+
+            System.out.println(bsList);
+            assertEquals(1, bsList.size());
+            assertEquals(bs, bsList.get(0));
+            dao.delete(statement, conf);
+        } finally {
+//            dao.destroy();
+//            sail.shutDown();
         }
-
-        System.out.println(bsList);
-        Assert.assertEquals(1, bsList.size());
-        Assert.assertEquals(bs, bsList.get(0));
-        dao.delete(statement, conf);
     }
 
     /**

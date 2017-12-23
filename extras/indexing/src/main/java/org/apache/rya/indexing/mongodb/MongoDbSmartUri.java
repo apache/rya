@@ -39,8 +39,7 @@ import org.apache.rya.indexing.mongodb.update.RyaObjectStorage.ObjectStorageExce
 import org.apache.rya.indexing.smarturi.SmartUriAdapter;
 import org.apache.rya.indexing.smarturi.SmartUriException;
 import org.apache.rya.indexing.smarturi.SmartUriStorage;
-import org.apache.rya.mongodb.MongoConnectorFactory;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 
@@ -52,15 +51,15 @@ import com.mongodb.MongoException;
  */
 public class MongoDbSmartUri implements SmartUriStorage {
     private boolean isInit = false;
-    private final MongoDBRdfConfiguration conf;
+    private final StatefulMongoDBRdfConfiguration conf;
     private MongoClient mongoClient = null;
     private EntityStorage entityStorage;
 
     /**
      * Creates a new instance of {@link MongoDbSmartUri}.
-     * @param conf the {@link MongoDBRdfConfiguration}. (not {@code null})
+     * @param conf the {@link StatefulMongoDBRdfConfiguration}. (not {@code null})
      */
-    public MongoDbSmartUri(final MongoDBRdfConfiguration conf) {
+    public MongoDbSmartUri(final StatefulMongoDBRdfConfiguration conf) {
         this.conf = checkNotNull(conf);
     }
 
@@ -147,13 +146,9 @@ public class MongoDbSmartUri implements SmartUriStorage {
      * @throws MongoException
      * @throws EntityStorageException
      */
-    private void setupClient(final Configuration conf) throws UnknownHostException, MongoException, EntityStorageException {
-        final MongoDBRdfConfiguration mongoConf = (MongoDBRdfConfiguration) conf;
-        mongoClient = mongoConf.getMongoClient();
-        if (mongoClient == null) {
-            mongoClient = MongoConnectorFactory.getMongoClient(conf);
-        }
-        entityStorage = new MongoEntityStorage(mongoClient, mongoConf.getMongoInstance());
+    private void setupClient(final StatefulMongoDBRdfConfiguration conf) throws UnknownHostException, MongoException, EntityStorageException {
+        mongoClient = conf.getMongoClient();
+        entityStorage = new MongoEntityStorage(mongoClient, conf.getRyaInstance());
         isInit = true;
     }
 

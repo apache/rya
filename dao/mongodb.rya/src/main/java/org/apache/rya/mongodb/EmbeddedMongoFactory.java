@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -46,7 +46,7 @@ public class EmbeddedMongoFactory {
     public static EmbeddedMongoFactory newFactory() throws IOException {
         return EmbeddedMongoFactory.with(Version.Main.PRODUCTION);
     }
-    
+
     public static EmbeddedMongoFactory with(final IFeatureAwareVersion version) throws IOException {
         return new EmbeddedMongoFactory(version);
     }
@@ -56,9 +56,9 @@ public class EmbeddedMongoFactory {
 
     /**
      * Create the testing utility using the specified version of MongoDB.
-     * 
+     *
      * @param version
-     *            version of MongoDB.
+     *            - version of MongoDB.
      */
     private EmbeddedMongoFactory(final IFeatureAwareVersion version) throws IOException {
         final MongodStarter runtime = MongodStarter.getInstance(new RuntimeConfigBuilder().defaultsWithLogger(Command.MongoD, logger).build());
@@ -67,7 +67,7 @@ public class EmbeddedMongoFactory {
     }
 
     private IMongodConfig newMongodConfig(final IFeatureAwareVersion version) throws UnknownHostException, IOException {
-        Net net = new Net(findRandomOpenPortOnAllLocalInterfaces(), false);
+        final Net net = new Net(findRandomOpenPortOnAllLocalInterfaces(), false);
         return new MongodConfigBuilder().version(version).net(net).build();
     }
 
@@ -79,13 +79,22 @@ public class EmbeddedMongoFactory {
 
     /**
      * Creates a new Mongo connection.
-     * 
+     *
      * @throws MongoException
      * @throws UnknownHostException
      */
     public MongoClient newMongoClient() throws UnknownHostException, MongoException {
         return new MongoClient(new ServerAddress(mongodProcess.getConfig().net().getServerAddress(), mongodProcess.getConfig().net().getPort()));
     }
+
+    /**
+     * Gives access to the process configuration.
+     *
+     */
+    public IMongodConfig getMongoServerDetails() {
+        return mongodProcess.getConfig();
+    }
+
 
     /**
      * Cleans up the resources created by the utility.

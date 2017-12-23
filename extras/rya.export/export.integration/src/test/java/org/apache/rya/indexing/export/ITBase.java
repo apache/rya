@@ -265,7 +265,7 @@ public abstract class ITBase {
         conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
 
         conf.setMongoPort(""+port);
-        conf.setMongoInstance(hostname);
+        conf.setMongoHostname(hostname);
         conf.setMongoDBName(ryaInstanceName);
         return conf;
     }

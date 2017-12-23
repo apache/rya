@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,12 +20,14 @@ package org.apache.rya.sail.config;
 
 import static java.util.Objects.requireNonNull;
 
-import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
+import org.apache.commons.configuration.ConfigurationRuntimeException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
@@ -37,9 +39,10 @@ import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
 import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
+import org.apache.rya.mongodb.MongoSecondaryIndex;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
@@ -50,6 +53,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
+import com.mongodb.MongoException;
+import com.mongodb.ServerAddress;
 
 public class RyaSailFactory {
     private static final Logger LOG = LoggerFactory.getLogger(RyaSailFactory.class);
@@ -79,16 +85,38 @@ public class RyaSailFactory {
         Objects.requireNonNull(ryaInstance, "RyaInstance or table prefix is missing from configuration."+RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
 
         if(ConfigUtils.getUseMongo(config)) {
-            final MongoDBRdfConfiguration mongoConfig = new MongoDBRdfConfiguration(config);
-            rdfConfig = mongoConfig;
-            final MongoClient client = MongoConnectorFactory.getMongoClient(config);
+            // Get a reference to a Mongo DB configuration object.
+            final MongoDBRdfConfiguration mongoConfig = (config instanceof MongoDBRdfConfiguration) ?
+                    (MongoDBRdfConfiguration)config : new MongoDBRdfConfiguration(config);
+
+            // Create the MongoClient that will be used by the Sail object's components.
+            final MongoClient client = createMongoClient(mongoConfig);
+
+            // Add the Indexer and Optimizer names to the configuration object that are configured to be used.
+            ConfigUtils.setIndexers(mongoConfig);
+
+            // Initialize the indexer and optimizer objects that will be used within the Sail object.
+            final List<MongoSecondaryIndex> indexers = mongoConfig.getInstances(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, MongoSecondaryIndex.class);
+            // TODO Optimizers the same way. They're getting the wrong configuration somehow.
+
+            // Populate the configuration using previously stored Rya Details if this instance uses them.
             try {
-                final MongoRyaInstanceDetailsRepository ryaDetailsRepo = new MongoRyaInstanceDetailsRepository(client, mongoConfig.getCollectionName());
+                final MongoRyaInstanceDetailsRepository ryaDetailsRepo = new MongoRyaInstanceDetailsRepository(client, mongoConfig.getRyaInstance());
                 RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), mongoConfig);
             } catch (final RyaDetailsRepositoryException e) {
                LOG.info("Instance does not have a rya details collection, skipping.");
-           }
-            dao = getMongoDAO((MongoDBRdfConfiguration)rdfConfig, client);
+            }
+
+            // Set the configuration to the stateful configuration that is used to pass the constructed objects around.
+            final StatefulMongoDBRdfConfiguration statefulConfig = new StatefulMongoDBRdfConfiguration(mongoConfig, client, indexers);
+            rdfConfig = statefulConfig;
+
+            // Create the DAO that is able to interact with MongoDB.
+            final MongoDBRyaDAO mongoDao = new MongoDBRyaDAO();
+            mongoDao.setConf(statefulConfig);
+            mongoDao.init();
+            dao = mongoDao;
+
         } else {
             rdfConfig = new AccumuloRdfConfiguration(config);
             user = rdfConfig.get(ConfigUtils.CLOUDBASE_USER);
@@ -115,20 +143,39 @@ public class RyaSailFactory {
         return store;
     }
 
-    private static MongoDBRyaDAO getMongoDAO(final MongoDBRdfConfiguration config, final MongoClient client) throws RyaDAOException {
-        MongoDBRyaDAO dao = null;
-        ConfigUtils.setIndexers(config);
-        if(client != null) {
-            dao = new MongoDBRyaDAO(config, client);
-        } else {
-            try {
-                dao = new MongoDBRyaDAO(config);
-            } catch (NumberFormatException | UnknownHostException e) {
-                throw new RyaDAOException("Unable to connect to mongo at the configured location.", e);
-            }
+    /**
+     * Create a {@link MongoClient} that is connected to the configured database.
+     *
+     * @param mongoConf - Configures what will be connected to. (not null)
+     * @throws ConfigurationRuntimeException An invalid port was provided by {@code mongoConf}.
+     * @throws MongoException Couldn't connect to the MongoDB database.
+     */
+    private static MongoClient createMongoClient(final MongoDBRdfConfiguration mongoConf) throws ConfigurationRuntimeException, MongoException {
+        requireNonNull(mongoConf);
+        requireNonNull(mongoConf.getMongoHostname());
+        requireNonNull(mongoConf.getMongoPort());
+        requireNonNull(mongoConf.getMongoDBName());
+
+        // Connect to a running MongoDB server.
+        final int port;
+        try {
+            port = Integer.parseInt( mongoConf.getMongoPort() );
+        } catch(final NumberFormatException e) {
+            throw new ConfigurationRuntimeException("Port '" + mongoConf.getMongoPort() + "' must be an integer.");
         }
-        dao.init();
-        return dao;
+
+        final ServerAddress server = new ServerAddress(mongoConf.getMongoHostname(), port);
+
+        // Connect to a specific MongoDB Database if that information is provided.
+        final String username = mongoConf.getMongoUser();
+        final String database = mongoConf.getMongoDBName();
+        final String password = mongoConf.getMongoPassword();
+        if(username != null && password != null) {
+            final MongoCredential cred = MongoCredential.createCredential(username, database, password.toCharArray());
+            return new MongoClient(server, Arrays.asList(cred));
+        } else {
+            return new MongoClient(server);
+        }
     }
 
     /**
@@ -137,7 +184,7 @@ public class RyaSailFactory {
      * tables might be created when using this method.  This method does not require the {@link AccumuloRyaInstanceDetailsRepository}
      * to exist.  This is for internal use, backwards compatibility and testing purposes only.  It is recommended that
      * {@link RyaSailFactory#getAccumuloDAOWithUpdatedConfig(AccumuloRdfConfiguration)} be used for new installations of Rya.
-     * 
+     *
      * @param config - user configuration
      * @return - AccumuloRyaDAO with Indexers configured according to user's specification
      * @throws AccumuloException
@@ -155,14 +202,14 @@ public class RyaSailFactory {
         dao.init();
         return dao;
     }
-    
+
     /**
      * Creates an AccumuloRyaDAO after updating the AccumuloRdfConfiguration so that it is consistent
      * with the configuration of the RyaInstance that the user is trying to connect to.  This ensures
-     * that user configuration aligns with Rya instance configuration and prevents the creation of 
+     * that user configuration aligns with Rya instance configuration and prevents the creation of
      * new index tables based on a user's query configuration.  This method requires the {@link AccumuloRyaInstanceDetailsRepository}
      * to exist.
-     * 
+     *
      * @param config - user's query configuration
      * @return - AccumuloRyaDAO with an updated configuration that is consistent with the Rya instance configuration
      * @throws AccumuloException
@@ -170,16 +217,16 @@ public class RyaSailFactory {
      * @throws RyaDAOException
      */
     public static AccumuloRyaDAO getAccumuloDAOWithUpdatedConfig(final AccumuloRdfConfiguration config) throws AccumuloException, AccumuloSecurityException, RyaDAOException {
-        
-        String ryaInstance = config.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
+
+        final String ryaInstance = config.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
         Objects.requireNonNull(ryaInstance, "RyaInstance or table prefix is missing from configuration."+RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
-        String user = config.get(AccumuloRdfConfiguration.CLOUDBASE_USER);
-        String pswd = config.get(AccumuloRdfConfiguration.CLOUDBASE_PASSWORD);
+        final String user = config.get(AccumuloRdfConfiguration.CLOUDBASE_USER);
+        final String pswd = config.get(AccumuloRdfConfiguration.CLOUDBASE_PASSWORD);
         Objects.requireNonNull(user, "Accumulo user name is missing from configuration."+AccumuloRdfConfiguration.CLOUDBASE_USER);
         Objects.requireNonNull(pswd, "Accumulo user password is missing from configuration."+AccumuloRdfConfiguration.CLOUDBASE_PASSWORD);
         config.setTableLayoutStrategy( new TablePrefixLayoutStrategy(ryaInstance) );
         updateAccumuloConfig(config, user, pswd, ryaInstance);
-        
+
         return getAccumuloDAO(config);
     }
 
@@ -193,3 +240,61 @@ public class RyaSailFactory {
         }
     }
 }
+
+
+
+///**
+//* TODO add docs.  names for reflection
+//* @param indexers
+//*/
+//public void setMongoIndexers(final Class<? extends MongoSecondaryIndex>... indexers) {
+// final List<String> strs = Lists.newArrayList();
+// for (final Class<?> ai : indexers){
+//     strs.add(ai.getName());
+// }
+//
+// setStrings(CONF_ADDITIONAL_INDEXERS, strs.toArray(new String[]{}));
+//}
+
+///**
+//* TODO add docs. explain hack is used here. do reflection. eww.
+//* @return
+//*/
+//public List<MongoSecondaryIndex> getAdditionalIndexers() {
+// stateLock.lock();
+// try {
+//     if(indexers == null) {
+//         indexers = getInstances(CONF_ADDITIONAL_INDEXERS, MongoSecondaryIndex.class);
+//     }
+//     return indexers;
+// } finally {
+//     stateLock.unlock();
+// }
+//}
+
+//// XXX Not sure what all of this stuff is for. I'm guessing Rya Sail state stuff.
+//public void setAdditionalIndexers(final Class<? extends MongoSecondaryIndex>... indexers) {
+//  final List<String> strs = Lists.newArrayList();
+//  for (final Class<?> ai : indexers){
+//      strs.add(ai.getName());
+//  }
+//
+//  setStrings(CONF_ADDITIONAL_INDEXERS, strs.toArray(new String[]{}));
+//}
+//
+
+//conf.setStrings(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, indexList.toArray(new String[] {}));
+//conf.setStrings(RdfCloudTripleStoreConfiguration.CONF_OPTIMIZERS, optimizers.toArray(new String[] {}));
+
+//public List<MongoSecondaryIndex> getAdditionalIndexers() {
+//  return getInstances(CONF_ADDITIONAL_INDEXERS, MongoSecondaryIndex.class);
+//}
+
+//public void setMongoClient(final MongoClient client) {
+//  requireNonNull(client);
+//  this.mongoClient = client;
+//}
+//
+//public MongoClient getMongoClient() {
+//  return mongoClient;
+//}

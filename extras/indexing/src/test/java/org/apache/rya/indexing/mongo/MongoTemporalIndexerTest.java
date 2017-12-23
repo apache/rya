@@ -80,13 +80,13 @@ import info.aduna.iteration.CloseableIteration;
  *
  */
 public final class MongoTemporalIndexerTest extends MongoTestBase {
-    private MongoTemporalIndexer tIndexer;
-    private DBCollection collection;
+//    private MongoTemporalIndexer tIndexer;
+//    private DBCollection collection;
 
     private static final String URI_PROPERTY_EVENT_TIME = "Property:event:time";
     private static final String URI_PROPERTY_CIRCA = "Property:circa";
     private static final String URI_PROPERTY_AT_TIME = "Property:atTime";
-    private static final String STAT_VALUEHASH = "valuehash";
+//    private static final String STAT_VALUEHASH = "valuehash";
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
     // Assign this in setUpBeforeClass, store them in each test.
@@ -164,85 +164,110 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
 
     @Before
     public void before() throws Exception {
+//        // This is from http://linkedevents.org/ontology
+//        // and http://motools.sourceforge.net/event/event.html
+//        conf.setStrings(ConfigUtils.TEMPORAL_PREDICATES_LIST, ""
+//                + URI_PROPERTY_AT_TIME + ","
+//                + URI_PROPERTY_CIRCA + ","
+//                + URI_PROPERTY_EVENT_TIME);
+
+//        tIndexer
+//        tIndexer.setConf(conf);
+//        tIndexer.init();
+////        tIndexer.initIndexer(conf, super.getMongoClient());
+
+//        final String dbName = conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME);
+//        final DB db = super.getMongoClient().getDB(dbName);
+//        collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + tIndexer.getCollectionName());
+   }
+
+    @Override
+    protected void updateConfiguration(final MongoDBRdfConfiguration conf) {
         // This is from http://linkedevents.org/ontology
         // and http://motools.sourceforge.net/event/event.html
         conf.setStrings(ConfigUtils.TEMPORAL_PREDICATES_LIST, ""
                 + URI_PROPERTY_AT_TIME + ","
                 + URI_PROPERTY_CIRCA + ","
                 + URI_PROPERTY_EVENT_TIME);
-
-        tIndexer = new MongoTemporalIndexer();
-        tIndexer.initIndexer(conf, super.getMongoClient());
-
-        final String dbName = conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME);
-        final DB db = super.getMongoClient().getDB(dbName);
-        collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + tIndexer.getCollectionName());
-   }
+    }
 
     /**
      * Test method for {@link MongoTemporalIndexer#storeStatement(convertStatement(org.openrdf.model.Statement)}
      */
     @Test
     public void testStoreStatement() throws IOException {
-        final ValueFactory vf = new ValueFactoryImpl();
+        try(MongoTemporalIndexer tIndexer = new MongoTemporalIndexer()) {
+            tIndexer.setConf(conf);
+            tIndexer.init();
 
-        final URI pred1_atTime = vf.createURI(URI_PROPERTY_AT_TIME);
-        final URI pred2_circa = vf.createURI(URI_PROPERTY_CIRCA);
+            final ValueFactory vf = new ValueFactoryImpl();
 
-        // Should not be stored because they are not in the predicate list
-        final String validDateStringWithThirteens = "1313-12-13T13:13:13Z";
-        tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createURI("foo:subj1"), RDFS.LABEL, vf.createLiteral(validDateStringWithThirteens))));
+            final URI pred1_atTime = vf.createURI(URI_PROPERTY_AT_TIME);
+            final URI pred2_circa = vf.createURI(URI_PROPERTY_CIRCA);
 
-        final String invalidDateString = "ThisIsAnInvalidDate";
-        tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createURI("foo:subj2"), pred1_atTime, vf.createLiteral(invalidDateString))));
+            // Should not be stored because they are not in the predicate list
+            final String validDateStringWithThirteens = "1313-12-13T13:13:13Z";
+            tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createURI("foo:subj1"), RDFS.LABEL, vf.createLiteral(validDateStringWithThirteens))));
 
-        // These are different datetimes instant but from different time zones.
-        // This is an arbitrary zone, BRST=Brazil, better if not local.
-        // same as "2015-01-01T01:59:59Z"
-        final String testDate2014InBRST = "2014-12-31T23:59:59-02:00";
-        // next year, same as "2017-01-01T01:59:59Z"
-        final String testDate2016InET = "2016-12-31T20:59:59-05:00";
+            final String invalidDateString = "ThisIsAnInvalidDate";
+            tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createURI("foo:subj2"), pred1_atTime, vf.createLiteral(invalidDateString))));
 
-        // These should be stored because they are in the predicate list.
-        // BUT they will get converted to the same exact datetime in UTC.
-        final Statement s3 = new StatementImpl(vf.createURI("foo:subj3"), pred1_atTime, vf.createLiteral(testDate2014InBRST));
-        final Statement s4 = new StatementImpl(vf.createURI("foo:subj4"), pred2_circa, vf.createLiteral(testDate2016InET));
-        tIndexer.storeStatement(convertStatement(s3));
-        tIndexer.storeStatement(convertStatement(s4));
+            // These are different datetimes instant but from different time zones.
+            // This is an arbitrary zone, BRST=Brazil, better if not local.
+            // same as "2015-01-01T01:59:59Z"
+            final String testDate2014InBRST = "2014-12-31T23:59:59-02:00";
+            // next year, same as "2017-01-01T01:59:59Z"
+            final String testDate2016InET = "2016-12-31T20:59:59-05:00";
 
-        // This should not be stored because the object is not a literal
-        tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createURI("foo:subj5"), pred1_atTime, vf.createURI("in:valid"))));
+            // These should be stored because they are in the predicate list.
+            // BUT they will get converted to the same exact datetime in UTC.
+            final Statement s3 = new StatementImpl(vf.createURI("foo:subj3"), pred1_atTime, vf.createLiteral(testDate2014InBRST));
+            final Statement s4 = new StatementImpl(vf.createURI("foo:subj4"), pred2_circa, vf.createLiteral(testDate2016InET));
+            tIndexer.storeStatement(convertStatement(s3));
+            tIndexer.storeStatement(convertStatement(s4));
 
-        printTables("junit testing: Temporal entities stored in testStoreStatement");
-        assertEquals(2, tIndexer.getCollection().find().count());
+            // This should not be stored because the object is not a literal
+            tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createURI("foo:subj5"), pred1_atTime, vf.createURI("in:valid"))));
+
+            printTables(tIndexer, "junit testing: Temporal entities stored in testStoreStatement");
+            assertEquals(2, tIndexer.getCollection().find().count());
+        }
     }
 
     @Test
     public void testDelete() throws IOException, MongoException, TableNotFoundException, TableExistsException, NoSuchAlgorithmException {
-        final ValueFactory vf = new ValueFactoryImpl();
+        try(MongoTemporalIndexer tIndexer = new MongoTemporalIndexer()) {
+            tIndexer.setConf(conf);
+            tIndexer.init();
 
-        final URI pred1_atTime = vf.createURI(URI_PROPERTY_AT_TIME);
-        final URI pred2_circa = vf.createURI(URI_PROPERTY_CIRCA);
+            final ValueFactory vf = new ValueFactoryImpl();
 
-        final String testDate2014InBRST = "2014-12-31T23:59:59-02:00";
-        final String testDate2016InET = "2016-12-31T20:59:59-05:00";
+            final URI pred1_atTime = vf.createURI(URI_PROPERTY_AT_TIME);
+            final URI pred2_circa = vf.createURI(URI_PROPERTY_CIRCA);
 
-        // These should be stored because they are in the predicate list.
-        // BUT they will get converted to the same exact datetime in UTC.
-        final Statement s1 = new StatementImpl(vf.createURI("foo:subj3"), pred1_atTime, vf.createLiteral(testDate2014InBRST));
-        final Statement s2 = new StatementImpl(vf.createURI("foo:subj4"), pred2_circa, vf.createLiteral(testDate2016InET));
-        tIndexer.storeStatement(convertStatement(s1));
-        tIndexer.storeStatement(convertStatement(s2));
+            final String testDate2014InBRST = "2014-12-31T23:59:59-02:00";
+            final String testDate2016InET = "2016-12-31T20:59:59-05:00";
 
+            // These should be stored because they are in the predicate list.
+            // BUT they will get converted to the same exact datetime in UTC.
+            final Statement s1 = new StatementImpl(vf.createURI("foo:subj3"), pred1_atTime, vf.createLiteral(testDate2014InBRST));
+            final Statement s2 = new StatementImpl(vf.createURI("foo:subj4"), pred2_circa, vf.createLiteral(testDate2016InET));
+            tIndexer.storeStatement(convertStatement(s1));
+            tIndexer.storeStatement(convertStatement(s2));
 
-        printTables("junit testing: Temporal entities stored in testDelete before delete");
-        assertEquals("Number of rows stored.", 2, collection.count()); // 4 index entries per statement
+            final String dbName = conf.getMongoDBName();
+            final DB db = super.getMongoClient().getDB(dbName);
+            DBCollection collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + tIndexer.getCollectionName());
 
-        tIndexer.deleteStatement(convertStatement(s1));
-        tIndexer.deleteStatement(convertStatement(s2));
+            printTables(tIndexer, "junit testing: Temporal entities stored in testDelete before delete");
+            assertEquals("Number of rows stored.", 2, collection.count()); // 4 index entries per statement
 
-        printTables("junit testing: Temporal entities stored in testDelete after delete");
-        assertEquals("Number of rows stored after delete.", 0, collection.count());
+            tIndexer.deleteStatement(convertStatement(s1));
+            tIndexer.deleteStatement(convertStatement(s2));
+
+            printTables(tIndexer, "junit testing: Temporal entities stored in testDelete after delete");
+            assertEquals("Number of rows stored after delete.", 0, collection.count());
+        }
     }
 
     /**
@@ -254,31 +279,36 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
      */
     @Test
     public void testQueryInstantAfterInstant() throws IOException, QueryEvaluationException, TableNotFoundException, MongoException {
-        // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
-        // these should not match as they are not instances.
-        tIndexer.storeStatement(convertStatement(spo_B03_E20));
-        tIndexer.storeStatement(convertStatement(spo_B02_E30));
-        tIndexer.storeStatement(convertStatement(spo_B02_E40));
-        tIndexer.storeStatement(convertStatement(spo_B02_E31));
-        tIndexer.storeStatement(convertStatement(spo_B30_E32));
+        try(MongoTemporalIndexer tIndexer = new MongoTemporalIndexer()) {
+            tIndexer.setConf(conf);
+            tIndexer.init();
 
-        // seriesSpo[s] and seriesTs[s] are statements and instant for s seconds after the uniform time.
-        final int searchForSeconds = 4;
-        final int expectedResultCount = 9;
-        for (int s = 0; s <= searchForSeconds + expectedResultCount; s++) { // <== logic here
-            tIndexer.storeStatement(convertStatement(seriesSpo[s]));
-        }
+            // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
+            // these should not match as they are not instances.
+            tIndexer.storeStatement(convertStatement(spo_B03_E20));
+            tIndexer.storeStatement(convertStatement(spo_B02_E30));
+            tIndexer.storeStatement(convertStatement(spo_B02_E40));
+            tIndexer.storeStatement(convertStatement(spo_B02_E31));
+            tIndexer.storeStatement(convertStatement(spo_B30_E32));
 
-        CloseableIteration<Statement, QueryEvaluationException> iter;
-        iter = tIndexer.queryInstantAfterInstant(seriesTs[searchForSeconds], EMPTY_CONSTRAINTS);
-        int count = 0;
-        while (iter.hasNext()) {
-            final Statement s = iter.next();
-            final Statement nextExpectedStatement = seriesSpo[searchForSeconds + count + 1]; // <== logic here
-            assertTrue("Should match: " + nextExpectedStatement + " == " + s, nextExpectedStatement.equals(s));
-            count++;
+            // seriesSpo[s] and seriesTs[s] are statements and instant for s seconds after the uniform time.
+            final int searchForSeconds = 4;
+            final int expectedResultCount = 9;
+            for (int s = 0; s <= searchForSeconds + expectedResultCount; s++) { // <== logic here
+                tIndexer.storeStatement(convertStatement(seriesSpo[s]));
+            }
+
+            CloseableIteration<Statement, QueryEvaluationException> iter;
+            iter = tIndexer.queryInstantAfterInstant(seriesTs[searchForSeconds], EMPTY_CONSTRAINTS);
+            int count = 0;
+            while (iter.hasNext()) {
+                final Statement s = iter.next();
+                final Statement nextExpectedStatement = seriesSpo[searchForSeconds + count + 1]; // <== logic here
+                assertTrue("Should match: " + nextExpectedStatement + " == " + s, nextExpectedStatement.equals(s));
+                count++;
+            }
+            assertEquals("Should find count of rows.", expectedResultCount, count);
         }
-        assertEquals("Should find count of rows.", expectedResultCount, count);
     }
     /**
      * Test instant before a given instant.
@@ -286,32 +316,37 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
      */
     @Test
     public void testQueryInstantBeforeInstant() throws IOException, QueryEvaluationException {
-        // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
-        // these should not match as they are not instances.
-        tIndexer.storeStatement(convertStatement(spo_B03_E20));
-        tIndexer.storeStatement(convertStatement(spo_B02_E30));
-        tIndexer.storeStatement(convertStatement(spo_B02_E40));
-        tIndexer.storeStatement(convertStatement(spo_B02_E31));
-        tIndexer.storeStatement(convertStatement(spo_B30_E32));
+        try(MongoTemporalIndexer tIndexer = new MongoTemporalIndexer()) {
+            tIndexer.setConf(conf);
+            tIndexer.init();
 
-        // seriesSpo[s] and seriesTs[s] are statements and instant for s seconds after the uniform time.
-        final int searchForSeconds = 4;
-        final int expectedResultCount = 4;
-        for (int s = 0; s <= searchForSeconds + 15; s++) { // <== logic here
-            tIndexer.storeStatement(convertStatement(seriesSpo[s]));
+            // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
+            // these should not match as they are not instances.
+            tIndexer.storeStatement(convertStatement(spo_B03_E20));
+            tIndexer.storeStatement(convertStatement(spo_B02_E30));
+            tIndexer.storeStatement(convertStatement(spo_B02_E40));
+            tIndexer.storeStatement(convertStatement(spo_B02_E31));
+            tIndexer.storeStatement(convertStatement(spo_B30_E32));
+
+            // seriesSpo[s] and seriesTs[s] are statements and instant for s seconds after the uniform time.
+            final int searchForSeconds = 4;
+            final int expectedResultCount = 4;
+            for (int s = 0; s <= searchForSeconds + 15; s++) { // <== logic here
+                tIndexer.storeStatement(convertStatement(seriesSpo[s]));
+            }
+
+            CloseableIteration<Statement, QueryEvaluationException> iter;
+
+            iter = tIndexer.queryInstantBeforeInstant(seriesTs[searchForSeconds], EMPTY_CONSTRAINTS);
+            int count = 0;
+            while (iter.hasNext()) {
+                final Statement s = iter.next();
+                final Statement nextExpectedStatement = seriesSpo[count]; // <== logic here
+                assertTrue("Should match: " + nextExpectedStatement + " == " + s, nextExpectedStatement.equals(s));
+                count++;
+            }
+            assertEquals("Should find count of rows.", expectedResultCount, count);
         }
-
-        CloseableIteration<Statement, QueryEvaluationException> iter;
-
-        iter = tIndexer.queryInstantBeforeInstant(seriesTs[searchForSeconds], EMPTY_CONSTRAINTS);
-        int count = 0;
-        while (iter.hasNext()) {
-            final Statement s = iter.next();
-            final Statement nextExpectedStatement = seriesSpo[count]; // <== logic here
-            assertTrue("Should match: " + nextExpectedStatement + " == " + s, nextExpectedStatement.equals(s));
-            count++;
-        }
-        assertEquals("Should find count of rows.", expectedResultCount, count);
     }
 
     /**
@@ -320,31 +355,36 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
      */
     @Test
     public void testQueryInstantBeforeInterval() throws IOException, QueryEvaluationException {
-        // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
-        // these should not match as they are not instances.
-        tIndexer.storeStatement(convertStatement(spo_B03_E20));
-        tIndexer.storeStatement(convertStatement(spo_B02_E30));
-        tIndexer.storeStatement(convertStatement(spo_B02_E40));
-        tIndexer.storeStatement(convertStatement(spo_B02_E31));
-        tIndexer.storeStatement(convertStatement(spo_B30_E32));
+        try(MongoTemporalIndexer tIndexer = new MongoTemporalIndexer()) {
+            tIndexer.setConf(conf);
+            tIndexer.init();
 
-        // seriesSpo[s] and seriesTs[s] are statements and instants for s seconds after the uniform time.
-        final TemporalInterval searchForSeconds = tvB02_E31;
-        final int expectedResultCount = 2; // 00 and 01 seconds.
-        for (int s = 0; s <= 40; s++) { // <== logic here
-            tIndexer.storeStatement(convertStatement(seriesSpo[s]));
-        }
+            // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
+            // these should not match as they are not instances.
+            tIndexer.storeStatement(convertStatement(spo_B03_E20));
+            tIndexer.storeStatement(convertStatement(spo_B02_E30));
+            tIndexer.storeStatement(convertStatement(spo_B02_E40));
+            tIndexer.storeStatement(convertStatement(spo_B02_E31));
+            tIndexer.storeStatement(convertStatement(spo_B30_E32));
 
-        CloseableIteration<Statement, QueryEvaluationException> iter;
-        iter = tIndexer.queryInstantBeforeInterval(searchForSeconds, EMPTY_CONSTRAINTS);
-        int count = 0;
-        while (iter.hasNext()) {
-            final Statement s = iter.next();
-            final Statement nextExpectedStatement = seriesSpo[count]; // <== logic here
-            assertTrue("Should match: " + nextExpectedStatement + " == " + s, nextExpectedStatement.equals(s));
-            count++;
+            // seriesSpo[s] and seriesTs[s] are statements and instants for s seconds after the uniform time.
+            final TemporalInterval searchForSeconds = tvB02_E31;
+            final int expectedResultCount = 2; // 00 and 01 seconds.
+            for (int s = 0; s <= 40; s++) { // <== logic here
+                tIndexer.storeStatement(convertStatement(seriesSpo[s]));
+            }
+
+            CloseableIteration<Statement, QueryEvaluationException> iter;
+            iter = tIndexer.queryInstantBeforeInterval(searchForSeconds, EMPTY_CONSTRAINTS);
+            int count = 0;
+            while (iter.hasNext()) {
+                final Statement s = iter.next();
+                final Statement nextExpectedStatement = seriesSpo[count]; // <== logic here
+                assertTrue("Should match: " + nextExpectedStatement + " == " + s, nextExpectedStatement.equals(s));
+                count++;
+            }
+            assertEquals("Should find count of rows.", expectedResultCount, count);
         }
-        assertEquals("Should find count of rows.", expectedResultCount, count);
     }
 
     /**
@@ -353,32 +393,37 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
      */
     @Test
     public void testQueryInstantAfterInterval() throws IOException, QueryEvaluationException {
-        // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
-        // these should not match as they are not instances.
-        tIndexer.storeStatement(convertStatement(spo_B03_E20));
-        tIndexer.storeStatement(convertStatement(spo_B02_E30));
-        tIndexer.storeStatement(convertStatement(spo_B02_E40));
-        tIndexer.storeStatement(convertStatement(spo_B02_E31));
-        tIndexer.storeStatement(convertStatement(spo_B30_E32));
+        try(MongoTemporalIndexer tIndexer = new MongoTemporalIndexer()) {
+            tIndexer.setConf(conf);
+            tIndexer.init();
 
-        // seriesSpo[s] and seriesTs[s] are statements and instants for s seconds after the uniform time.
-        final TemporalInterval searchAfterInterval = tvB02_E31; // from 2 to 31 seconds
-        final int endingSeconds = 31;
-        final int expectedResultCount = 9; // 32,33,...,40 seconds.
-        for (int s = 0; s <= endingSeconds + expectedResultCount; s++) { // <== logic here
-            tIndexer.storeStatement(convertStatement(seriesSpo[s]));
-        }
+            // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
+            // these should not match as they are not instances.
+            tIndexer.storeStatement(convertStatement(spo_B03_E20));
+            tIndexer.storeStatement(convertStatement(spo_B02_E30));
+            tIndexer.storeStatement(convertStatement(spo_B02_E40));
+            tIndexer.storeStatement(convertStatement(spo_B02_E31));
+            tIndexer.storeStatement(convertStatement(spo_B30_E32));
 
-        CloseableIteration<Statement, QueryEvaluationException> iter;
-        iter = tIndexer.queryInstantAfterInterval(searchAfterInterval, EMPTY_CONSTRAINTS);
-        int count = 0;
-        while (iter.hasNext()) {
-            final Statement s = iter.next();
-            final Statement nextExpectedStatement = seriesSpo[count + endingSeconds + 1]; // <== logic here
-            assertTrue("Should match: " + nextExpectedStatement + " == " + s, nextExpectedStatement.equals(s));
-            count++;
+            // seriesSpo[s] and seriesTs[s] are statements and instants for s seconds after the uniform time.
+            final TemporalInterval searchAfterInterval = tvB02_E31; // from 2 to 31 seconds
+            final int endingSeconds = 31;
+            final int expectedResultCount = 9; // 32,33,...,40 seconds.
+            for (int s = 0; s <= endingSeconds + expectedResultCount; s++) { // <== logic here
+                tIndexer.storeStatement(convertStatement(seriesSpo[s]));
+            }
+
+            CloseableIteration<Statement, QueryEvaluationException> iter;
+            iter = tIndexer.queryInstantAfterInterval(searchAfterInterval, EMPTY_CONSTRAINTS);
+            int count = 0;
+            while (iter.hasNext()) {
+                final Statement s = iter.next();
+                final Statement nextExpectedStatement = seriesSpo[count + endingSeconds + 1]; // <== logic here
+                assertTrue("Should match: " + nextExpectedStatement + " == " + s, nextExpectedStatement.equals(s));
+                count++;
+            }
+            assertEquals("Should find count of rows.", expectedResultCount, count);
         }
-        assertEquals("Should find count of rows.", expectedResultCount, count);
     }
 
     /**
@@ -387,99 +432,116 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
      */
     @Test
     public void testQueryInstantInsideInterval() throws IOException, QueryEvaluationException {
-        // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
-        // these should not match as they are not instances.
-        tIndexer.storeStatement(convertStatement(spo_B03_E20));
-        tIndexer.storeStatement(convertStatement(spo_B02_E30));
-        tIndexer.storeStatement(convertStatement(spo_B02_E40));
-        tIndexer.storeStatement(convertStatement(spo_B02_E31));
-        tIndexer.storeStatement(convertStatement(spo_B30_E32));
+        try(MongoTemporalIndexer tIndexer = new MongoTemporalIndexer()) {
+            tIndexer.setConf(conf);
+            tIndexer.init();
 
-        // seriesSpo[s] and seriesTs[s] are statements and instants for s seconds after the uniform time.
-        final TemporalInterval searchInsideInterval = tvB02_E31; // from 2 to 31 seconds
-        final int beginningSeconds = 2; // <== logic here, and next few lines.
-        final int endingSeconds = 31;
-        final int expectedResultCount = endingSeconds - beginningSeconds - 1; // 3,4,...,30 seconds.
-        for (int s = 0; s <= 40; s++) {
-            tIndexer.storeStatement(convertStatement(seriesSpo[s]));
-        }
+            // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
+            // these should not match as they are not instances.
+            tIndexer.storeStatement(convertStatement(spo_B03_E20));
+            tIndexer.storeStatement(convertStatement(spo_B02_E30));
+            tIndexer.storeStatement(convertStatement(spo_B02_E40));
+            tIndexer.storeStatement(convertStatement(spo_B02_E31));
+            tIndexer.storeStatement(convertStatement(spo_B30_E32));
 
-        CloseableIteration<Statement, QueryEvaluationException> iter;
-        iter = tIndexer.queryInstantInsideInterval(searchInsideInterval, EMPTY_CONSTRAINTS);
-        int count = 0;
-        while (iter.hasNext()) {
-            final Statement s = iter.next();
-            final Statement nextExpectedStatement = seriesSpo[count + beginningSeconds + 1]; // <== logic here
-            assertTrue("Should match: " + nextExpectedStatement + " == " + s, nextExpectedStatement.equals(s));
-            count++;
+            // seriesSpo[s] and seriesTs[s] are statements and instants for s seconds after the uniform time.
+            final TemporalInterval searchInsideInterval = tvB02_E31; // from 2 to 31 seconds
+            final int beginningSeconds = 2; // <== logic here, and next few lines.
+            final int endingSeconds = 31;
+            final int expectedResultCount = endingSeconds - beginningSeconds - 1; // 3,4,...,30 seconds.
+            for (int s = 0; s <= 40; s++) {
+                tIndexer.storeStatement(convertStatement(seriesSpo[s]));
+            }
+
+            CloseableIteration<Statement, QueryEvaluationException> iter;
+            iter = tIndexer.queryInstantInsideInterval(searchInsideInterval, EMPTY_CONSTRAINTS);
+            int count = 0;
+            while (iter.hasNext()) {
+                final Statement s = iter.next();
+                final Statement nextExpectedStatement = seriesSpo[count + beginningSeconds + 1]; // <== logic here
+                assertTrue("Should match: " + nextExpectedStatement + " == " + s, nextExpectedStatement.equals(s));
+                count++;
+            }
+            assertEquals("Should find count of rows.", expectedResultCount, count);
         }
-        assertEquals("Should find count of rows.", expectedResultCount, count);
     }
+
     /**
      * Test instant is the Beginning of the given interval.
      * from the series: Instance {hasBeginning, hasEnd} Interval
      */
     @Test
     public void testQueryInstantHasBeginningInterval() throws IOException, QueryEvaluationException {
-        // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
-        // these should not match as they are not instances.
-        tIndexer.storeStatement(convertStatement(spo_B03_E20));
-        tIndexer.storeStatement(convertStatement(spo_B02_E30));
-        tIndexer.storeStatement(convertStatement(spo_B02_E40));
-        tIndexer.storeStatement(convertStatement(spo_B02_E31));
-        tIndexer.storeStatement(convertStatement(spo_B30_E32));
+        try(MongoTemporalIndexer tIndexer = new MongoTemporalIndexer()) {
+            tIndexer.setConf(conf);
+            tIndexer.init();
 
-        // seriesSpo[s] and seriesTs[s] are statements and instants for s seconds after the uniform time.
-        final TemporalInterval searchInsideInterval = tvB02_E31; // from 2 to 31 seconds
-        final int searchSeconds = 2; // <== logic here, and next few lines.
-        final int expectedResultCount = 1; // 2 seconds.
-        for (int s = 0; s <= 10; s++) {
-            tIndexer.storeStatement(convertStatement(seriesSpo[s]));
-        }
+            // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
+            // these should not match as they are not instances.
+            tIndexer.storeStatement(convertStatement(spo_B03_E20));
+            tIndexer.storeStatement(convertStatement(spo_B02_E30));
+            tIndexer.storeStatement(convertStatement(spo_B02_E40));
+            tIndexer.storeStatement(convertStatement(spo_B02_E31));
+            tIndexer.storeStatement(convertStatement(spo_B30_E32));
 
-        CloseableIteration<Statement, QueryEvaluationException> iter;
-        iter = tIndexer.queryInstantHasBeginningInterval(searchInsideInterval, EMPTY_CONSTRAINTS);
-        int count = 0;
-        while (iter.hasNext()) {
-            final Statement s = iter.next();
-            final Statement nextExpectedStatement = seriesSpo[searchSeconds]; // <== logic here
-            assertTrue("Should match: " + nextExpectedStatement + " == " + s, nextExpectedStatement.equals(s));
-            count++;
+            // seriesSpo[s] and seriesTs[s] are statements and instants for s seconds after the uniform time.
+            final TemporalInterval searchInsideInterval = tvB02_E31; // from 2 to 31 seconds
+            final int searchSeconds = 2; // <== logic here, and next few lines.
+            final int expectedResultCount = 1; // 2 seconds.
+            for (int s = 0; s <= 10; s++) {
+                tIndexer.storeStatement(convertStatement(seriesSpo[s]));
+            }
+
+            CloseableIteration<Statement, QueryEvaluationException> iter;
+            iter = tIndexer.queryInstantHasBeginningInterval(searchInsideInterval, EMPTY_CONSTRAINTS);
+            int count = 0;
+            while (iter.hasNext()) {
+                final Statement s = iter.next();
+                final Statement nextExpectedStatement = seriesSpo[searchSeconds]; // <== logic here
+                assertTrue("Should match: " + nextExpectedStatement + " == " + s, nextExpectedStatement.equals(s));
+                count++;
+            }
+            assertEquals("Should find count of rows.", expectedResultCount, count);
         }
-        assertEquals("Should find count of rows.", expectedResultCount, count);
     }
+
     /**
      * Test instant is the end of the given interval.
      * from the series: Instance {hasBeginning, hasEnd} Interval
      */
     @Test
     public void testQueryInstantHasEndInterval()  throws IOException, QueryEvaluationException {
-        // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
-        // these should not match as they are not instances.
-        tIndexer.storeStatement(convertStatement(spo_B03_E20));
-        tIndexer.storeStatement(convertStatement(spo_B02_E30));
-        tIndexer.storeStatement(convertStatement(spo_B02_E40));
-        tIndexer.storeStatement(convertStatement(spo_B02_E31));
-        tIndexer.storeStatement(convertStatement(spo_B30_E32));
+        try(MongoTemporalIndexer tIndexer = new MongoTemporalIndexer()) {
+            tIndexer.setConf(conf);
+            tIndexer.init();
 
-        // seriesSpo[s] and seriesTs[s] are statements and instants for s seconds after the uniform time.
-        final TemporalInterval searchInsideInterval = tvB02_E31; // from 2 to 31 seconds
-        final int searchSeconds = 31; // <== logic here, and next few lines.
-        final int expectedResultCount = 1; // 31 seconds.
-        for (int s = 0; s <= 40; s++) {
-            tIndexer.storeStatement(convertStatement(seriesSpo[s]));
-        }
+            // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
+            // these should not match as they are not instances.
+            tIndexer.storeStatement(convertStatement(spo_B03_E20));
+            tIndexer.storeStatement(convertStatement(spo_B02_E30));
+            tIndexer.storeStatement(convertStatement(spo_B02_E40));
+            tIndexer.storeStatement(convertStatement(spo_B02_E31));
+            tIndexer.storeStatement(convertStatement(spo_B30_E32));
 
-        CloseableIteration<Statement, QueryEvaluationException> iter;
-        iter = tIndexer.queryInstantHasEndInterval(searchInsideInterval, EMPTY_CONSTRAINTS);
-        int count = 0;
-        while (iter.hasNext()) {
-            final Statement s = iter.next();
-            final Statement nextExpectedStatement = seriesSpo[searchSeconds]; // <== logic here
-            assertTrue("Should match: " + nextExpectedStatement + " == " + s, nextExpectedStatement.equals(s));
-            count++;
+            // seriesSpo[s] and seriesTs[s] are statements and instants for s seconds after the uniform time.
+            final TemporalInterval searchInsideInterval = tvB02_E31; // from 2 to 31 seconds
+            final int searchSeconds = 31; // <== logic here, and next few lines.
+            final int expectedResultCount = 1; // 31 seconds.
+            for (int s = 0; s <= 40; s++) {
+                tIndexer.storeStatement(convertStatement(seriesSpo[s]));
+            }
+
+            CloseableIteration<Statement, QueryEvaluationException> iter;
+            iter = tIndexer.queryInstantHasEndInterval(searchInsideInterval, EMPTY_CONSTRAINTS);
+            int count = 0;
+            while (iter.hasNext()) {
+                final Statement s = iter.next();
+                final Statement nextExpectedStatement = seriesSpo[searchSeconds]; // <== logic here
+                assertTrue("Should match: " + nextExpectedStatement + " == " + s, nextExpectedStatement.equals(s));
+                count++;
+            }
+            assertEquals("Should find count of rows.", expectedResultCount, count);
         }
-        assertEquals("Should find count of rows.", expectedResultCount, count);
     }
 
     /**
@@ -492,21 +554,26 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
      */
     @Test
     public void testQueryIntervalEquals() throws IOException, QueryEvaluationException {
-        // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
-        tIndexer.storeStatement(convertStatement(spo_B03_E20));
-        tIndexer.storeStatement(convertStatement(spo_B02_E30));
-        tIndexer.storeStatement(convertStatement(spo_B02_E40));
-        tIndexer.storeStatement(convertStatement(spo_B02_E31));
-        tIndexer.storeStatement(convertStatement(spo_B30_E32));
-        tIndexer.storeStatement(convertStatement(seriesSpo[4])); // instance at 4 seconds
+        try(MongoTemporalIndexer tIndexer = new MongoTemporalIndexer()) {
+            tIndexer.setConf(conf);
+            tIndexer.init();
+
+            // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
+            tIndexer.storeStatement(convertStatement(spo_B03_E20));
+            tIndexer.storeStatement(convertStatement(spo_B02_E30));
+            tIndexer.storeStatement(convertStatement(spo_B02_E40));
+            tIndexer.storeStatement(convertStatement(spo_B02_E31));
+            tIndexer.storeStatement(convertStatement(spo_B30_E32));
+            tIndexer.storeStatement(convertStatement(seriesSpo[4])); // instance at 4 seconds
 
 
-        CloseableIteration<Statement, QueryEvaluationException> iter;
-        iter = tIndexer.queryIntervalEquals(tvB02_E40, EMPTY_CONSTRAINTS);
-        // Should be found twice:
-        assertTrue("queryIntervalEquals: spo_B02_E40 should be found, but actually returned empty results. spo_B02_E40=" + spo_B02_E40, iter.hasNext());
-        assertTrue("queryIntervalEquals: spo_B02_E40 should be found, but does not match.", spo_B02_E40.equals(iter.next()));
-        assertFalse("queryIntervalEquals: Find no more than one, but actually has more.", iter.hasNext());
+            CloseableIteration<Statement, QueryEvaluationException> iter;
+            iter = tIndexer.queryIntervalEquals(tvB02_E40, EMPTY_CONSTRAINTS);
+            // Should be found twice:
+            assertTrue("queryIntervalEquals: spo_B02_E40 should be found, but actually returned empty results. spo_B02_E40=" + spo_B02_E40, iter.hasNext());
+            assertTrue("queryIntervalEquals: spo_B02_E40 should be found, but does not match.", spo_B02_E40.equals(iter.next()));
+            assertFalse("queryIntervalEquals: Find no more than one, but actually has more.", iter.hasNext());
+        }
     }
 
     /**
@@ -518,25 +585,30 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
      */
     @Test
     public void testQueryIntervalBefore() throws IOException, QueryEvaluationException {
-        // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
-        tIndexer.storeStatement(convertStatement(spo_B00_E01));
-        tIndexer.storeStatement(convertStatement(spo_B02_E30));
-        tIndexer.storeStatement(convertStatement(spo_B02_E31));
-        tIndexer.storeStatement(convertStatement(spo_B02_E40));
-        tIndexer.storeStatement(convertStatement(spo_B03_E20));
-        // instants should be ignored.
-        tIndexer.storeStatement(convertStatement(spo_B30_E32));
-        tIndexer.storeStatement(convertStatement(seriesSpo[1])); // instance at 1 seconds
-        tIndexer.storeStatement(convertStatement(seriesSpo[2]));
-        tIndexer.storeStatement(convertStatement(seriesSpo[31]));
+        try(MongoTemporalIndexer tIndexer = new MongoTemporalIndexer()) {
+            tIndexer.setConf(conf);
+            tIndexer.init();
+
+            // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
+            tIndexer.storeStatement(convertStatement(spo_B00_E01));
+            tIndexer.storeStatement(convertStatement(spo_B02_E30));
+            tIndexer.storeStatement(convertStatement(spo_B02_E31));
+            tIndexer.storeStatement(convertStatement(spo_B02_E40));
+            tIndexer.storeStatement(convertStatement(spo_B03_E20));
+            // instants should be ignored.
+            tIndexer.storeStatement(convertStatement(spo_B30_E32));
+            tIndexer.storeStatement(convertStatement(seriesSpo[1])); // instance at 1 seconds
+            tIndexer.storeStatement(convertStatement(seriesSpo[2]));
+            tIndexer.storeStatement(convertStatement(seriesSpo[31]));
 
 
-        CloseableIteration<Statement, QueryEvaluationException> iter;
-        iter = tIndexer.queryIntervalBefore(tvB02_E31, EMPTY_CONSTRAINTS);
-        // Should be found twice:
-        assertTrue("spo_B00_E01 should be found, but actually returned empty results. spo_B00_E01=" + spo_B00_E01, iter.hasNext());
-        assertTrue("spo_B00_E01 should be found, but found another.", spo_B00_E01.equals(iter.next()));
-        assertFalse("Find no more than one, but actually has more.", iter.hasNext());
+            CloseableIteration<Statement, QueryEvaluationException> iter;
+            iter = tIndexer.queryIntervalBefore(tvB02_E31, EMPTY_CONSTRAINTS);
+            // Should be found twice:
+            assertTrue("spo_B00_E01 should be found, but actually returned empty results. spo_B00_E01=" + spo_B00_E01, iter.hasNext());
+            assertTrue("spo_B00_E01 should be found, but found another.", spo_B00_E01.equals(iter.next()));
+            assertFalse("Find no more than one, but actually has more.", iter.hasNext());
+        }
     }
 
     /**
@@ -548,29 +620,33 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
      */
     @Test
     public void testQueryIntervalAfter() throws IOException, QueryEvaluationException {
-        // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
-        tIndexer.storeStatement(convertStatement(spo_B00_E01));
-        tIndexer.storeStatement(convertStatement(spo_B02_E29)); //<- after this one.
-        tIndexer.storeStatement(convertStatement(spo_B02_E30));
-        tIndexer.storeStatement(convertStatement(spo_B02_E31));
-        tIndexer.storeStatement(convertStatement(spo_B02_E40));
-        tIndexer.storeStatement(convertStatement(spo_B03_E20));
-        tIndexer.storeStatement(convertStatement(spo_B29_E30));
-        tIndexer.storeStatement(convertStatement(spo_B30_E32));
-        // instants should be ignored.
-        tIndexer.storeStatement(convertStatement(spo_B02));
-        tIndexer.storeStatement(convertStatement(seriesSpo[1])); // instance at 1 seconds
-        tIndexer.storeStatement(convertStatement(seriesSpo[2]));
-        tIndexer.storeStatement(convertStatement(seriesSpo[31]));
+        try(MongoTemporalIndexer tIndexer = new MongoTemporalIndexer()) {
+            tIndexer.setConf(conf);
+            tIndexer.init();
 
-        CloseableIteration<Statement, QueryEvaluationException> iter;
-        iter = tIndexer.queryIntervalAfter(tvB02_E29, EMPTY_CONSTRAINTS);
-        // Should be found twice:
-        assertTrue("spo_B30_E32 should be found, but actually returned empty results. spo_B30_E32=" + spo_B30_E32, iter.hasNext());
-        final Statement s = iter.next();
-        assertTrue("spo_B30_E32 should be found, but found another. spo_B30_E32="+spo_B30_E32+", but found="+s, spo_B30_E32.equals(s));
-        assertFalse("Find no more than one, but actually has more.", iter.hasNext());
+            // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
+            tIndexer.storeStatement(convertStatement(spo_B00_E01));
+            tIndexer.storeStatement(convertStatement(spo_B02_E29)); //<- after this one.
+            tIndexer.storeStatement(convertStatement(spo_B02_E30));
+            tIndexer.storeStatement(convertStatement(spo_B02_E31));
+            tIndexer.storeStatement(convertStatement(spo_B02_E40));
+            tIndexer.storeStatement(convertStatement(spo_B03_E20));
+            tIndexer.storeStatement(convertStatement(spo_B29_E30));
+            tIndexer.storeStatement(convertStatement(spo_B30_E32));
+            // instants should be ignored.
+            tIndexer.storeStatement(convertStatement(spo_B02));
+            tIndexer.storeStatement(convertStatement(seriesSpo[1])); // instance at 1 seconds
+            tIndexer.storeStatement(convertStatement(seriesSpo[2]));
+            tIndexer.storeStatement(convertStatement(seriesSpo[31]));
 
+            CloseableIteration<Statement, QueryEvaluationException> iter;
+            iter = tIndexer.queryIntervalAfter(tvB02_E29, EMPTY_CONSTRAINTS);
+            // Should be found twice:
+            assertTrue("spo_B30_E32 should be found, but actually returned empty results. spo_B30_E32=" + spo_B30_E32, iter.hasNext());
+            final Statement s = iter.next();
+            assertTrue("spo_B30_E32 should be found, but found another. spo_B30_E32="+spo_B30_E32+", but found="+s, spo_B30_E32.equals(s));
+            assertFalse("Find no more than one, but actually has more.", iter.hasNext());
+        }
     }
 
     /**
@@ -578,65 +654,70 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
      */
     @Test
     public void testQueryWithMultiplePredicates() throws IOException, QueryEvaluationException {
-        // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
-        // these should not match as they are not instances.
-        tIndexer.storeStatement(convertStatement(spo_B03_E20));
-        tIndexer.storeStatement(convertStatement(spo_B02_E30));
-        tIndexer.storeStatement(convertStatement(spo_B02_E40));
-        tIndexer.storeStatement(convertStatement(spo_B02_E31));
-        tIndexer.storeStatement(convertStatement(spo_B30_E32));
+        try(MongoTemporalIndexer tIndexer = new MongoTemporalIndexer()) {
+            tIndexer.setConf(conf);
+            tIndexer.init();
 
-        // seriesSpo[s] and seriesTs[s] are statements and instant for s seconds after the uniform time.
-        final int searchForSeconds = 4;
-        final int expectedResultCount = 9;
-        for (int s = 0; s <= searchForSeconds + expectedResultCount; s++) { // <== logic here
-            tIndexer.storeStatement(convertStatement(seriesSpo[s]));
-        }
-        final ValueFactory vf = new ValueFactoryImpl();
-        final URI pred3_CIRCA_ = vf.createURI(URI_PROPERTY_CIRCA);  // this one to ignore.
-        final URI pred2_eventTime = vf.createURI(URI_PROPERTY_EVENT_TIME);
-        final URI pred1_atTime = vf.createURI(URI_PROPERTY_AT_TIME);
+            // tiB02_E30 read as: Begins 2 seconds, ends at 30 seconds
+            // these should not match as they are not instances.
+            tIndexer.storeStatement(convertStatement(spo_B03_E20));
+            tIndexer.storeStatement(convertStatement(spo_B02_E30));
+            tIndexer.storeStatement(convertStatement(spo_B02_E40));
+            tIndexer.storeStatement(convertStatement(spo_B02_E31));
+            tIndexer.storeStatement(convertStatement(spo_B30_E32));
 
-        // add the predicate = EventTime ; Store in an array for verification.
-        final Statement[] SeriesTs_EventTime = new Statement[expectedResultCount+1];
-        for (int s = 0; s <= searchForSeconds + expectedResultCount; s++) { // <== logic here
-            final Statement statement = new StatementImpl(vf.createURI("foo:EventTimeSubj0" + s), pred2_eventTime, vf.createLiteral(seriesTs[s].getAsReadable()));
-            tIndexer.storeStatement(convertStatement(statement));
-            if (s>searchForSeconds) {
-                SeriesTs_EventTime[s - searchForSeconds -1 ] = statement;
+            // seriesSpo[s] and seriesTs[s] are statements and instant for s seconds after the uniform time.
+            final int searchForSeconds = 4;
+            final int expectedResultCount = 9;
+            for (int s = 0; s <= searchForSeconds + expectedResultCount; s++) { // <== logic here
+                tIndexer.storeStatement(convertStatement(seriesSpo[s]));
             }
-        }
-        // add the predicate = CIRCA ; to be ignored because it is not in the constraints.
-        for (int s = 0; s <= searchForSeconds + expectedResultCount; s++) { // <== logic here
-            final Statement statement = new StatementImpl(vf.createURI("foo:CircaEventSubj0" + s), pred3_CIRCA_, vf.createLiteral(seriesTs[s].getAsReadable()));
-            tIndexer.storeStatement(convertStatement(statement));
-        }
+            final ValueFactory vf = new ValueFactoryImpl();
+            final URI pred3_CIRCA_ = vf.createURI(URI_PROPERTY_CIRCA);  // this one to ignore.
+            final URI pred2_eventTime = vf.createURI(URI_PROPERTY_EVENT_TIME);
+            final URI pred1_atTime = vf.createURI(URI_PROPERTY_AT_TIME);
 
-        CloseableIteration<Statement, QueryEvaluationException> iter;
-        final StatementConstraints constraints = new StatementConstraints();
-        constraints.setPredicates(new HashSet<URI>(Arrays.asList( pred2_eventTime,  pred1_atTime )));
-
-        iter = tIndexer.queryInstantAfterInstant(seriesTs[searchForSeconds], constraints); // EMPTY_CONSTRAINTS);//
-        int count_AtTime = 0;
-        int count_EventTime = 0;
-        while (iter.hasNext()) {
-            final Statement s = iter.next();
-            final Statement nextExpectedStatement = seriesSpo[searchForSeconds + count_AtTime + 1]; // <== logic here
-            if (s.getPredicate().equals(pred1_atTime)) {
-                assertTrue("Should match atTime: " + nextExpectedStatement + " == " + s, nextExpectedStatement.equals(s));
-                count_AtTime++;
+            // add the predicate = EventTime ; Store in an array for verification.
+            final Statement[] SeriesTs_EventTime = new Statement[expectedResultCount+1];
+            for (int s = 0; s <= searchForSeconds + expectedResultCount; s++) { // <== logic here
+                final Statement statement = new StatementImpl(vf.createURI("foo:EventTimeSubj0" + s), pred2_eventTime, vf.createLiteral(seriesTs[s].getAsReadable()));
+                tIndexer.storeStatement(convertStatement(statement));
+                if (s>searchForSeconds) {
+                    SeriesTs_EventTime[s - searchForSeconds -1 ] = statement;
+                }
             }
-            else if (s.getPredicate().equals(pred2_eventTime)) {
-                assertTrue("Should match eventTime: " + SeriesTs_EventTime[count_EventTime] + " == " + s, SeriesTs_EventTime[count_EventTime].equals(s));
-                count_EventTime++;
-            } else {
-                assertTrue("This predicate should not be returned: "+s, false);
+            // add the predicate = CIRCA ; to be ignored because it is not in the constraints.
+            for (int s = 0; s <= searchForSeconds + expectedResultCount; s++) { // <== logic here
+                final Statement statement = new StatementImpl(vf.createURI("foo:CircaEventSubj0" + s), pred3_CIRCA_, vf.createLiteral(seriesTs[s].getAsReadable()));
+                tIndexer.storeStatement(convertStatement(statement));
             }
 
-        }
+            CloseableIteration<Statement, QueryEvaluationException> iter;
+            final StatementConstraints constraints = new StatementConstraints();
+            constraints.setPredicates(new HashSet<>(Arrays.asList( pred2_eventTime,  pred1_atTime )));
 
-        assertEquals("Should find count of atTime    rows.", expectedResultCount, count_AtTime);
-        assertEquals("Should find count of eventTime rows.", expectedResultCount, count_EventTime);
+            iter = tIndexer.queryInstantAfterInstant(seriesTs[searchForSeconds], constraints); // EMPTY_CONSTRAINTS);//
+            int count_AtTime = 0;
+            int count_EventTime = 0;
+            while (iter.hasNext()) {
+                final Statement s = iter.next();
+                final Statement nextExpectedStatement = seriesSpo[searchForSeconds + count_AtTime + 1]; // <== logic here
+                if (s.getPredicate().equals(pred1_atTime)) {
+                    assertTrue("Should match atTime: " + nextExpectedStatement + " == " + s, nextExpectedStatement.equals(s));
+                    count_AtTime++;
+                }
+                else if (s.getPredicate().equals(pred2_eventTime)) {
+                    assertTrue("Should match eventTime: " + SeriesTs_EventTime[count_EventTime] + " == " + s, SeriesTs_EventTime[count_EventTime].equals(s));
+                    count_EventTime++;
+                } else {
+                    assertTrue("This predicate should not be returned: "+s, false);
+                }
+
+            }
+
+            assertEquals("Should find count of atTime    rows.", expectedResultCount, count_AtTime);
+            assertEquals("Should find count of eventTime rows.", expectedResultCount, count_EventTime);
+        }
     }
 
     /**
@@ -651,7 +732,7 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
      * @return Count of entries in the index table.
      * @throws IOException
      */
-    public void printTables(final String description) throws IOException {
+    public void printTables(MongoTemporalIndexer tIndexer, final String description) throws IOException {
         System.out.println("-- start printTables() -- " + description);
         System.out.println("Reading : " + tIndexer.getCollection().getFullName());
         final DBCursor cursor = tIndexer.getCollection().find();

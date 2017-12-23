@@ -1,6 +1,4 @@
-package org.apache.rya.indexing.mongodb;
-
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,6 +16,9 @@ package org.apache.rya.indexing.mongodb;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.mongodb;
+
+import static com.google.common.base.Preconditions.checkState;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -29,10 +30,10 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.StatementConstraints;
-import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
 import org.apache.rya.mongodb.MongoSecondaryIndex;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriter;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterConfig;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterException;
@@ -43,14 +44,12 @@ import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.query.QueryEvaluationException;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.QueryBuilder;
-import com.mongodb.ServerAddress;
 
 import info.aduna.iteration.CloseableIteration;
 
@@ -63,7 +62,7 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     private boolean isInit = false;
     private boolean flushEachUpdate = true;
-    protected Configuration conf;
+    protected StatefulMongoDBRdfConfiguration conf;
     protected MongoDBRyaDAO dao;
     protected MongoClient mongoClient;
     protected String dbName;
@@ -76,7 +75,7 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     private MongoDbBatchWriter<DBObject> mongoDbBatchWriter;
 
     protected void initCore() {
-        dbName = conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME);
+        dbName = conf.getMongoDBName();
         db = this.mongoClient.getDB(dbName);
         final String collectionName = conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + getCollectionName();
         collection = db.getCollection(collectionName);
@@ -84,7 +83,7 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
         flushEachUpdate = ((MongoDBRdfConfiguration)conf).flushEachUpdate();
 
         final MongoDbBatchWriterConfig mongoDbBatchWriterConfig = MongoDbBatchWriterUtils.getMongoDbBatchWriterConfig(conf);
-        mongoDbBatchWriter = new MongoDbBatchWriter<DBObject>(new DbCollectionType(collection), mongoDbBatchWriterConfig);
+        mongoDbBatchWriter = new MongoDbBatchWriter<>(new DbCollectionType(collection), mongoDbBatchWriterConfig);
         try {
             mongoDbBatchWriter.start();
         } catch (final MongoDbBatchWriterException e) {
@@ -97,24 +96,13 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
         this.mongoClient = client;
     }
 
-    @VisibleForTesting
-    public void initIndexer(final Configuration conf, final MongoClient client) {
-        setClient(client);
-        final ServerAddress address = client.getAddress();
-        conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE, address.getHost());
-        conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, Integer.toString(address.getPort()));
-        setConf(conf);
-        if (!isInit) {
-            init();
-            isInit = true;
-        }
-    }
-
     @Override
     public void setConf(final Configuration conf) {
-        this.conf = conf;
+        checkState(conf instanceof StatefulMongoDBRdfConfiguration,
+                "The provided Configuration must be a StatefulMongoDBRdfConfiguration, but it was " + conf.getClass().getName());
+        this.conf = (StatefulMongoDBRdfConfiguration) conf;
         if (!isInit){
-            setClient(MongoConnectorFactory.getMongoClient(conf));
+            setClient(this.conf.getMongoClient());
             init();
         }
     }

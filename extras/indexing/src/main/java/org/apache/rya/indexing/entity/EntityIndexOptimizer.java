@@ -19,6 +19,7 @@
 package org.apache.rya.indexing.entity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
@@ -35,6 +36,7 @@ import org.apache.rya.indexing.external.matching.ExternalSetProvider;
 import org.apache.rya.indexing.external.matching.QueryNodeListRater;
 import org.apache.rya.indexing.external.matching.QuerySegment;
 import org.apache.rya.indexing.external.matching.TopOfQueryFilterRelocator;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.Dataset;
 import org.openrdf.query.algebra.TupleExpr;
@@ -68,6 +70,9 @@ public class EntityIndexOptimizer extends AbstractExternalSetOptimizer<EntityQue
 
     @Override
     public void setConf(final Configuration conf) {
+        checkState(conf instanceof StatefulMongoDBRdfConfiguration,
+                "The provided Configuration must be of type StatefulMongoDBRdfConfiguration, but was "  + conf.getClass().getName());
+
         this.conf = conf;
         indexer.setConf(conf);
 

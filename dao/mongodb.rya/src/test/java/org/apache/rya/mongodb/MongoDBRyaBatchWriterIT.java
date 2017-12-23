@@ -18,6 +18,8 @@
  */
 package org.apache.rya.mongodb;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,20 +35,16 @@ import org.apache.rya.mongodb.batch.collection.MongoCollectionType;
 import org.apache.rya.mongodb.dao.MongoDBStorageStrategy;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 import org.bson.Document;
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
 import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
 
 /**
  * Integration tests for the {@link MongoDbBatchWriter}.
  */
 public class MongoDBRyaBatchWriterIT extends MongoTestBase {
-    private MongoDBRyaDAO dao;
 
     private static void setupLogging() {
         BasicConfigurator.configure();
@@ -57,14 +55,11 @@ public class MongoDBRyaBatchWriterIT extends MongoTestBase {
         setupLogging();
     }
 
-    @Before
-    public void setUp() throws Exception {
+    @Override
+    protected void updateConfiguration(final MongoDBRdfConfiguration conf) {
         conf.setBoolean("rya.mongodb.dao.flusheachupdate", false);
         conf.setInt("rya.mongodb.dao.batchwriter.size", 50_000);
         conf.setLong("rya.mongodb.dao.batchwriter.flushtime", 100L);
-
-        final MongoClient client = super.getMongoClient();
-        dao = new MongoDBRyaDAO(conf, client);
     }
 
     @Test
@@ -81,11 +76,18 @@ public class MongoDBRyaBatchWriterIT extends MongoTestBase {
         statements.add(statement(1));
         statements.add(statement(6));
 
-        dao.add(statements.iterator());
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        try {
+            dao.setConf(conf);
+            dao.init();
 
-        dao.flush();
+            dao.add(statements.iterator());
+            dao.flush();
 
-        Assert.assertEquals(6, getRyaCollection().count());
+            assertEquals(6, getRyaCollection().count());
+        } finally {
+            dao.destroy();
+        }
     }
 
     @Test
@@ -104,7 +106,7 @@ public class MongoDBRyaBatchWriterIT extends MongoTestBase {
 
         final DbCollectionType collectionType = new DbCollectionType(getRyaDbCollection());
         final MongoDbBatchWriterConfig mongoDbBatchWriterConfig = MongoDbBatchWriterUtils.getMongoDbBatchWriterConfig(conf);
-        final MongoDbBatchWriter<DBObject> mongoDbBatchWriter = new MongoDbBatchWriter<DBObject>(collectionType, mongoDbBatchWriterConfig);
+        final MongoDbBatchWriter<DBObject> mongoDbBatchWriter = new MongoDbBatchWriter<>(collectionType, mongoDbBatchWriterConfig);
 
         mongoDbBatchWriter.start();
         mongoDbBatchWriter.addObjectsToQueue(objects);
@@ -114,7 +116,7 @@ public class MongoDBRyaBatchWriterIT extends MongoTestBase {
         mongoDbBatchWriter.flush();
         Thread.sleep(1_000);
         mongoDbBatchWriter.shutdown();
-        Assert.assertEquals(4, getRyaDbCollection().count());
+        assertEquals(4, getRyaDbCollection().count());
     }
 
     @Test
@@ -133,7 +135,7 @@ public class MongoDBRyaBatchWriterIT extends MongoTestBase {
 
         final MongoCollectionType mongoCollectionType = new MongoCollectionType(getRyaCollection());
         final MongoDbBatchWriterConfig mongoDbBatchWriterConfig = MongoDbBatchWriterUtils.getMongoDbBatchWriterConfig(conf);
-        final MongoDbBatchWriter<Document> mongoDbBatchWriter = new MongoDbBatchWriter<Document>(mongoCollectionType, mongoDbBatchWriterConfig);
+        final MongoDbBatchWriter<Document> mongoDbBatchWriter = new MongoDbBatchWriter<>(mongoCollectionType, mongoDbBatchWriterConfig);
 
         mongoDbBatchWriter.start();
         mongoDbBatchWriter.addObjectsToQueue(documents);
@@ -143,7 +145,7 @@ public class MongoDBRyaBatchWriterIT extends MongoTestBase {
         mongoDbBatchWriter.flush();
         Thread.sleep(1_000);
         mongoDbBatchWriter.shutdown();
-        Assert.assertEquals(4, getRyaCollection().count());
+        assertEquals(4, getRyaCollection().count());
     }
 
     private static Document toDocument(final DBObject dbObject) {

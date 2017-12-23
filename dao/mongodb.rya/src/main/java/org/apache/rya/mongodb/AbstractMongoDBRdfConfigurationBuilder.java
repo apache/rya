@@ -59,11 +59,11 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
 
     /**
      * Sets Mongo user.
-     * 
+     *
      * @param user - user name used to connect to Mongo
      * @return specified builder for chaining method invocations
      */
-    public B setMongoUser(String user) {
+    public B setMongoUser(final String user) {
         this.user = user;
         return confBuilder();
     }
@@ -71,11 +71,11 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
     /**
      * Sets password for Mongo user specified by
      * {@link AbstractMongoDBRdfConfigurationBuilder#setMongoUser(String)}.
-     * 
+     *
      * @param password - password used to connect to Mongo
      * @return specified builder for chaining method invocations
      */
-    public B setMongoPassword(String password) {
+    public B setMongoPassword(final String password) {
         this.pass = password;
         return confBuilder();
     }
@@ -83,11 +83,11 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
     /**
      * Sets Mongo port. This parameter must be set to connect to an instance of
      * MongoDB and will default to "27017" if no value is specified.
-     * 
+     *
      * @param port - port used to connect Mongo
      * @return specified builder for chaining method invocations
      */
-    public B setMongoPort(String port) {
+    public B setMongoPort(final String port) {
         this.port = port;
         return confBuilder();
     }
@@ -95,11 +95,11 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
     /**
      * Sets Mongo host. This parameter must be set to connect to an instance of
      * MongoDB and will default to "localhost" if no value is specified.
-     * 
+     *
      * @param host - host used to connect to Mongo
      * @return specified builder for chaining method invocations
      */
-    public B setMongoHost(String host) {
+    public B setMongoHost(final String host) {
         this.host = host;
         return confBuilder();
     }
@@ -107,11 +107,11 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
     /**
      * Sets MongoDB name. This parameter must be set to connect to an instance
      * of MongoDB and will default to "rya_triples" is no value is specified.
-     * 
+     *
      * @param name - name of MongoDB to connect to
      * @return specified builder for chaining method invocations
      */
-    public B setMongoDBName(String name) {
+    public B setMongoDBName(final String name) {
         this.mongoDBName = name;
         return confBuilder();
     }
@@ -120,11 +120,11 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * Sets MongoDB Collection prefix. This parameter must be set to connect to
      * an instance of MongoDB and will default to "rya_" is no value is
      * specified.
-     * 
+     *
      * @param name - name of Collection to connect to
      * @return specified builder for chaining method invocations
      */
-    public B setMongoCollectionPrefix(String prefix) {
+    public B setMongoCollectionPrefix(final String prefix) {
         this.mongoCollectionPrefix = prefix;
         return confBuilder();
     }
@@ -132,11 +132,11 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
     /**
      * Set whether to use instance of embedded Mongo as backend for Rya
      * instance.
-     * 
+     *
      * @param useMock - indicates whether to use embedded Mongo as Rya backing
      * @return specified builder for chaining method invocations
      */
-    public B setUseMockMongo(boolean useMock) {
+    public B setUseMockMongo(final boolean useMock) {
         this.useMock = useMock;
         return confBuilder();
     }
@@ -144,21 +144,22 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
     /**
      * @return extension of {@link MongoDBRdfConfiguration} with specified parameters set
      */
+    @Override
     public C build() {
         return getConf(super.build());
     }
 
     /**
      * Assigns builder values to appropriate parameters within the {@link Configuration} object.
-     * 
+     *
      * @param conf - Configuration object
      * @return - Configuration object with parameters set
      */
-    private C getConf(C conf) {
+    private C getConf(final C conf) {
 
         conf.setUseMock(useMock);
         conf.set("sc.useMongo", "true");
-        
+
         if (user != null) {
             conf.setMongoUser(user);
         }
@@ -166,9 +167,9 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
             conf.setMongoPassword(pass);
         }
         conf.setMongoDBName(mongoDBName);
-        conf.setCollectionName(mongoCollectionPrefix);
+        conf.setRyaInstance(mongoCollectionPrefix);
         conf.setTablePrefix(mongoCollectionPrefix);
-        conf.setMongoInstance(host);
+        conf.setMongoHostname(host);
         conf.setMongoPort(port);
 
         return conf;

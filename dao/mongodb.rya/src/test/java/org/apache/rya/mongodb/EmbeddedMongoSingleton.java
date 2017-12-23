@@ -19,11 +19,15 @@
 package org.apache.rya.mongodb;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
+
+import de.flapdoodle.embed.mongo.config.IMongodConfig;
 
 /**
  * To be used for tests. Creates a singleton {@link MongoClient} to be used
@@ -31,8 +35,27 @@ import com.mongodb.MongoClient;
  * embedded mongo factory ends up orphaning processes, consuming resources.
  */
 public class EmbeddedMongoSingleton {
-    public static MongoClient getInstance() {
-        return InstanceHolder.SINGLETON.instance;
+
+    public static MongoClient getNewMongoClient() throws UnknownHostException, MongoException {
+    	final MongoClient client = InstanceHolder.SINGLETON.factory.newMongoClient();
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                try {
+                    client.close();
+                } catch (final Throwable t) {
+                    // logging frameworks will likely be shut down
+                    t.printStackTrace(System.err);
+                }
+            }
+        });
+
+        return client;
+    }
+
+    public static IMongodConfig getMongodConfig() {
+        return InstanceHolder.SINGLETON.mongodConfig;
     }
 
     private EmbeddedMongoSingleton() {
@@ -44,32 +67,14 @@ public class EmbeddedMongoSingleton {
         SINGLETON;
 
         private final Logger log;
-        private MongoClient instance;
+        private IMongodConfig mongodConfig;
+        private EmbeddedMongoFactory factory;
 
         InstanceHolder() {
             log = LoggerFactory.getLogger(EmbeddedMongoSingleton.class);
-            instance = null;
             try {
-                instance = EmbeddedMongoFactory.newFactory().newMongoClient();
-                // JUnit does not have an overall lifecycle event for tearing down
-                // this kind of resource, but shutdown hooks work alright in practice
-                // since this should only be used during testing
-
-                // The only other alternative for lifecycle management is to use a
-                // suite lifecycle to enclose the tests that need this resource.
-                // In practice this becomes unwieldy.
-                Runtime.getRuntime().addShutdownHook(new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            instance.close();
-                        } catch (final Throwable t) {
-                            // logging frameworks will likely be shut down
-                            t.printStackTrace(System.err);
-                        }
-                    }
-                });
-
+            	factory = EmbeddedMongoFactory.newFactory();
+                mongodConfig = factory.getMongoServerDetails();
             } catch (final IOException e) {
                 log.error("Unexpected error while starting mongo client", e);
             } catch (final Throwable e) {

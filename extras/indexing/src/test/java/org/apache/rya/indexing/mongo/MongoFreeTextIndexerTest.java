@@ -1,5 +1,4 @@
-package org.apache.rya.indexing.mongo;
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,6 +16,10 @@ package org.apache.rya.indexing.mongo;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.mongo;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,7 +33,6 @@ import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
 import org.apache.rya.mongodb.MongoTestBase;
-import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -44,13 +46,17 @@ import com.google.common.collect.Sets;
 
 import info.aduna.iteration.CloseableIteration;
 
+/**
+ * Integration tests the methods of {@link MongoFreeTextIndexer}.
+ */
 public class MongoFreeTextIndexerTest extends MongoTestBase {
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
     @Test
     public void testSearch() throws Exception {
         try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
-            f.initIndexer(conf, super.getMongoClient());
+            f.setConf(conf);
+            f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
 
@@ -64,17 +70,18 @@ public class MongoFreeTextIndexerTest extends MongoTestBase {
             f.storeStatement(RdfToRyaConversions.convertStatement(statement));
             f.flush();
 
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryText("asdf", EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(), getSet(f.queryText("asdf", EMPTY_CONSTRAINTS)));
 
-            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryText("new", EMPTY_CONSTRAINTS)));
-            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryText("hat new", EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(statement), getSet(f.queryText("new", EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(statement), getSet(f.queryText("hat new", EMPTY_CONSTRAINTS)));
         }
     }
 
     @Test
     public void testDelete() throws Exception {
         try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
-            f.initIndexer(conf, super.getMongoClient());
+            f.setConf(conf);
+            f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
 
@@ -100,15 +107,15 @@ public class MongoFreeTextIndexerTest extends MongoTestBase {
 
 
             f.deleteStatement(RdfToRyaConversions.convertStatement(statement1));
-            Assert.assertEquals(Sets.newHashSet(statement2), getSet(f.queryText("Do you like my new hat?", EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(statement2), getSet(f.queryText("Do you like my new hat?", EMPTY_CONSTRAINTS)));
 
             // Check that "new" didn't get deleted from the term table after "this is a new hat"
             // was deleted since "new" is still in "Do you like my new hat?"
-            Assert.assertEquals(Sets.newHashSet(statement2), getSet(f.queryText("new", EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(statement2), getSet(f.queryText("new", EMPTY_CONSTRAINTS)));
 
             f.deleteStatement(RdfToRyaConversions.convertStatement(statement2));
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryText("this is a new hat", EMPTY_CONSTRAINTS)));
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryText("Do you like my new hat?", EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(), getSet(f.queryText("this is a new hat", EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(), getSet(f.queryText("Do you like my new hat?", EMPTY_CONSTRAINTS)));
         }
     }
 
@@ -117,7 +124,8 @@ public class MongoFreeTextIndexerTest extends MongoTestBase {
         conf.setStrings(ConfigUtils.FREETEXT_PREDICATES_LIST, "pred:1,pred:2");
 
         try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
-            f.initIndexer(conf, super.getMongoClient());
+            f.setConf(conf);
+            f.init();
 
             // These should not be stored because they are not in the predicate list
             f.storeStatement(new RyaStatement(new RyaURI("foo:subj1"), new RyaURI(RDFS.LABEL.toString()), new RyaType("invalid")));
@@ -137,20 +145,21 @@ public class MongoFreeTextIndexerTest extends MongoTestBase {
 
             f.flush();
 
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryText("invalid", EMPTY_CONSTRAINTS)));
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryText("in:validURI", EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(), getSet(f.queryText("invalid", EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(), getSet(f.queryText("in:validURI", EMPTY_CONSTRAINTS)));
 
             final Set<Statement> actual = getSet(f.queryText("valid", EMPTY_CONSTRAINTS));
-            Assert.assertEquals(2, actual.size());
-            Assert.assertTrue(actual.contains(RyaToRdfConversions.convertStatement(s3)));
-            Assert.assertTrue(actual.contains(RyaToRdfConversions.convertStatement(s4)));
+            assertEquals(2, actual.size());
+            assertTrue(actual.contains(RyaToRdfConversions.convertStatement(s3)));
+            assertTrue(actual.contains(RyaToRdfConversions.convertStatement(s4)));
         }
     }
 
     @Test
     public void testContextSearch() throws Exception {
         try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
-            f.initIndexer(conf, super.getMongoClient());
+            f.setConf(conf);
+            f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
             final URI subject = new URIImpl("foo:subj");
@@ -162,16 +171,15 @@ public class MongoFreeTextIndexerTest extends MongoTestBase {
             f.storeStatement(RdfToRyaConversions.convertStatement(statement));
             f.flush();
 
-            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryText("hat", EMPTY_CONSTRAINTS)));
-            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryText("hat", new StatementConstraints().setContext(context))));
-            Assert.assertEquals(Sets.newHashSet(),
+            assertEquals(Sets.newHashSet(statement), getSet(f.queryText("hat", EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(statement), getSet(f.queryText("hat", new StatementConstraints().setContext(context))));
+            assertEquals(Sets.newHashSet(),
                     getSet(f.queryText("hat", new StatementConstraints().setContext(vf.createURI("foo:context2")))));
         }
     }
 
-
     private static <X> Set<X> getSet(final CloseableIteration<X, ?> iter) throws Exception {
-        final Set<X> set = new HashSet<X>();
+        final Set<X> set = new HashSet<>();
         while (iter.hasNext()) {
             set.add(iter.next());
         }

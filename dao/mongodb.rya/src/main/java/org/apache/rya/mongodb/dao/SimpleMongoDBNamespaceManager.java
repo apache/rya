@@ -25,7 +25,7 @@ import java.util.Map;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.openrdf.model.Namespace;
 
 import com.mongodb.BasicDBObject;
@@ -109,7 +109,7 @@ public class SimpleMongoDBNamespaceManager implements MongoDBNamespaceManager {
 	private static final String ID = "_id";
 	private static final String PREFIX = "prefix";
 	private static final String NAMESPACE = "namespace";
-	private MongoDBRdfConfiguration conf;
+	private StatefulMongoDBRdfConfiguration conf;
 	private final DBCollection nsColl;
 
 
@@ -123,15 +123,13 @@ public class SimpleMongoDBNamespaceManager implements MongoDBNamespaceManager {
 		coll.createIndex(NAMESPACE);
 	}
 
-
 	@Override
-	public void setConf(final MongoDBRdfConfiguration paramC) {
-		this.conf = paramC;
+	public void setConf(final StatefulMongoDBRdfConfiguration conf) {
+		this.conf = conf;
 	}
 
 	@Override
-	public MongoDBRdfConfiguration getConf() {
-		// TODO Auto-generated method stub
+	public StatefulMongoDBRdfConfiguration getConf() {
 		return conf;
 	}
 

@@ -191,14 +191,14 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     /**
      * @return The name of the Rya instance to connect to. (default: rya)
      */
-    public String getRyaInstance() {
+    public String getRyaInstanceName() {
         return get(MONGO_COLLECTION_PREFIX, "rya");
     }
 
     /**
      * @param name - The name of the Rya instance to connect to.
      */
-    public void setRyaInstance(final String name) {
+    public void setRyaInstanceName(final String name) {
         requireNonNull(name);
         set(MONGO_COLLECTION_PREFIX, name);
     }
@@ -207,14 +207,14 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * @return The name of the MongoDB Collection that contains Rya statements. (default: rya_triples)
      */
     public String getTriplesCollectionName() {
-        return getRyaInstance() + "_triples";
+        return getRyaInstanceName() + "_triples";
     }
 
     /**
      * @return The name of the MongoDB Collection that contains the Rya namespace. (default: rya_ns)
      */
     public String getNameSpacesCollectionName() {
-        return getRyaInstance() + "_ns";
+        return getRyaInstanceName() + "_ns";
     }
 
     /**

@@ -58,7 +58,7 @@ public class EmbeddedMongoFactory {
      * Create the testing utility using the specified version of MongoDB.
      *
      * @param version
-     *            - version of MongoDB.
+     *            version of MongoDB.
      */
     private EmbeddedMongoFactory(final IFeatureAwareVersion version) throws IOException {
         final MongodStarter runtime = MongodStarter.getInstance(new RuntimeConfigBuilder().defaultsWithLogger(Command.MongoD, logger).build());
@@ -67,7 +67,7 @@ public class EmbeddedMongoFactory {
     }
 
     private IMongodConfig newMongodConfig(final IFeatureAwareVersion version) throws UnknownHostException, IOException {
-        final Net net = new Net(findRandomOpenPortOnAllLocalInterfaces(), false);
+        Net net = new Net(findRandomOpenPortOnAllLocalInterfaces(), false);
         return new MongodConfigBuilder().version(version).net(net).build();
     }
 
@@ -94,7 +94,6 @@ public class EmbeddedMongoFactory {
     public IMongodConfig getMongoServerDetails() {
         return mongodProcess.getConfig();
     }
-
 
     /**
      * Cleans up the resources created by the utility.

@@ -23,7 +23,9 @@ import static org.apache.rya.api.RdfCloudTripleStoreConstants.NAMESPACE;
 import java.io.InputStream;
 import java.util.List;
 
-import junit.framework.TestCase;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Instance;
+import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
@@ -32,10 +34,6 @@ import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
-
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.mock.MockInstance;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Model;
 import org.openrdf.model.Resource;
@@ -61,6 +59,8 @@ import org.openrdf.repository.RepositoryResult;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.Rio;
+
+import junit.framework.TestCase;
 
 /**
  * Class RdfCloudTripleStoreConnectionTest
@@ -1086,13 +1086,14 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         Update u = conn.prepareUpdate(QueryLanguage.SPARQL, sparqlUpdate);
         u.execute();
 
-        String query = "PREFIX  ex:  <http://www.example.org/exampleDocument#>\n" +
+        String query =
+                "PREFIX  ex:  <http://www.example.org/exampleDocument#>\n" +
                 "PREFIX  voc:  <http://www.example.org/vocabulary#>\n" +
                 "PREFIX  foaf:  <http://xmlns.com/foaf/0.1/>\n" +
                 "PREFIX  rdfs:  <http://www.w3.org/2000/01/rdf-schema#>\n" +
                 "\n" +
                 "SELECT * \n" +
-//                "FROM NAMED <http://www.example.org/exampleDocument#G1>\n" +
+//              "FROM NAMED <http://www.example.org/exampleDocument#G1>\n" +
                 "WHERE\n" +
                 "{\n" +
                 "  GRAPH ex:G1\n" +

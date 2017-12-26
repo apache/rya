@@ -20,10 +20,7 @@ package org.apache.rya.mongodb;
 
 import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 
-/**
- *TODO: doc me.
- */
 public interface MongoSecondaryIndex extends RyaSecondaryIndexer{
     @Override
-	public void init();    
+	public void init();
 }

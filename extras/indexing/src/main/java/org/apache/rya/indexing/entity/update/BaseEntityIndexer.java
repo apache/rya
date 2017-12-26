@@ -75,21 +75,21 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
     private final AtomicReference<TypeStorage> types = new AtomicReference<>();
 
     @Override
-	public void init() {
-    	try {
-    		entities.set(getEntityStorage());
-    	} catch (final EntityStorageException e) {
-    		log.error("Unable to set entity storage.");
-    	}
-    	types.set(getTypeStorage());
+    public void init() {
+        try {
+            entities.set(getEntityStorage());
+        } catch (final EntityStorageException e) {
+            log.error("Unable to set entity storage.");
+        }
+        types.set(getTypeStorage());
     }
-    
+
     @Override
     public void setConf(final Configuration conf) {
         requireNonNull(conf);
-        checkArgument(conf instanceof StatefulMongoDBRdfConfiguration, 
-        		"The configuration provided must be a StatefulMongoDBRdfConfiguration, found: " 
-        	    + conf.getClass().getSimpleName());
+        checkArgument(conf instanceof StatefulMongoDBRdfConfiguration,
+                "The configuration provided must be a StatefulMongoDBRdfConfiguration, found: "
+                        + conf.getClass().getSimpleName());
         configuration.set((StatefulMongoDBRdfConfiguration) conf);
     }
 
@@ -109,7 +109,7 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
         requireNonNull(statements);
 
         final Map<RyaURI,List<RyaStatement>> groupedBySubject = statements.stream()
-            .collect(groupingBy(RyaStatement::getSubject));
+                .collect(groupingBy(RyaStatement::getSubject));
 
         for(final Entry<RyaURI, List<RyaStatement>> entry : groupedBySubject.entrySet()) {
             try {

@@ -67,7 +67,7 @@ public class StoreToStoreIT extends ITBase {
     private static TimestampPolicyMongoRyaStatementStore getParentMongo() throws Exception {
         final MongoClient mongo = getNewMongoResources(RYA_INSTANCE);
         final MongoDBRyaDAO dao = new MongoDBRyaDAO();
-        dao.setConf(new StatefulMongoDBRdfConfiguration(ITBase.getConf(mongo), mongo, new ArrayList<>()));
+        dao.setConf(new StatefulMongoDBRdfConfiguration(ITBase.getConf(mongo), mongo));
         dao.init();
         final MongoRyaStatementStore store = new MongoRyaStatementStore(mongo, RYA_INSTANCE, dao);
         final TimestampPolicyMongoRyaStatementStore timeStore = new TimestampPolicyMongoRyaStatementStore(store, currentDate, RYA_INSTANCE);
@@ -78,7 +78,7 @@ public class StoreToStoreIT extends ITBase {
     private static MongoRyaStatementStore getChildMongo() throws Exception {
         final MongoClient mongo = getNewMongoResources(RYA_INSTANCE);
         final MongoDBRyaDAO dao = new MongoDBRyaDAO();
-        dao.setConf(new StatefulMongoDBRdfConfiguration(ITBase.getConf(mongo), mongo, new ArrayList<>()));
+        dao.setConf(new StatefulMongoDBRdfConfiguration(ITBase.getConf(mongo), mongo));
         dao.init();
         final MongoRyaStatementStore store = new MongoRyaStatementStore(mongo, RYA_INSTANCE, dao);
         clients.add(mongo);

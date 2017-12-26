@@ -57,7 +57,7 @@ public class MongoGeoIndexerTest extends MongoTestBase {
     GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
 
     @Override
-	public void updateConfiguration(final MongoDBRdfConfiguration conf) {
+    public void updateConfiguration(final MongoDBRdfConfiguration conf) {
         conf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
         conf.set(OptionalConfigUtils.USE_GEO, "true");
     }
@@ -65,8 +65,8 @@ public class MongoGeoIndexerTest extends MongoTestBase {
     @Test
     public void testRestrictPredicatesSearch() throws Exception {
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-        	conf.setStrings(ConfigUtils.GEO_PREDICATES_LIST, "pred:1,pred:2");
-        	f.setConf(conf);
+            conf.setStrings(ConfigUtils.GEO_PREDICATES_LIST, "pred:1,pred:2");
+            f.setConf(conf);
             f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
@@ -106,7 +106,7 @@ public class MongoGeoIndexerTest extends MongoTestBase {
     @Test
     public void testPrimeMeridianSearch() throws Exception {
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-        	f.setConf(conf);
+            f.setConf(conf);
             f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
@@ -151,7 +151,7 @@ public class MongoGeoIndexerTest extends MongoTestBase {
     public void testDcSearch() throws Exception {
         // test a ring around dc
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-        	f.setConf(conf);
+            f.setConf(conf);
             f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
@@ -181,7 +181,7 @@ public class MongoGeoIndexerTest extends MongoTestBase {
     public void testDeleteSearch() throws Exception {
         // test a ring around dc
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-        	f.setConf(conf);
+            f.setConf(conf);
             f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
@@ -221,7 +221,7 @@ public class MongoGeoIndexerTest extends MongoTestBase {
     public void testDcSearchWithContext() throws Exception {
         // test a ring around dc
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-        	f.setConf(conf);
+            f.setConf(conf);
             f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
@@ -251,7 +251,7 @@ public class MongoGeoIndexerTest extends MongoTestBase {
     public void testDcSearchWithSubject() throws Exception {
         // test a ring around dc
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-        	f.setConf(conf);
+            f.setConf(conf);
             f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
@@ -280,7 +280,7 @@ public class MongoGeoIndexerTest extends MongoTestBase {
     public void testDcSearchWithSubjectAndContext() throws Exception {
         // test a ring around dc
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-        	f.setConf(conf);
+            f.setConf(conf);
             f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
@@ -314,7 +314,7 @@ public class MongoGeoIndexerTest extends MongoTestBase {
     public void testDcSearchWithPredicate() throws Exception {
         // test a ring around dc
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-        	f.setConf(conf);
+            f.setConf(conf);
             f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
@@ -345,7 +345,7 @@ public class MongoGeoIndexerTest extends MongoTestBase {
     public void testAntiMeridianSearch() throws Exception {
         // verify that a search works if the bounding box crosses the anti meridian
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-        	f.setConf(conf);
+            f.setConf(conf);
             f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();

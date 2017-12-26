@@ -20,7 +20,6 @@ package org.apache.rya.export.client.merge;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.ArrayList;
 import java.util.Date;
 
 import org.apache.rya.accumulo.AccumuloRyaDAO;
@@ -123,7 +122,7 @@ public class StatementStoreFactory {
     private MongoRyaStatementStore getBaseMongoStore(final String hostname, final int port, final String ryaInstanceName) throws RyaDAOException {
         final MongoClient client = new MongoClient(hostname, port);
         final MongoDBRyaDAO dao = new MongoDBRyaDAO();
-        dao.setConf(new StatefulMongoDBRdfConfiguration(MergeConfigHadoopAdapter.getMongoConfiguration(configuration), client, new ArrayList<>()));
+        dao.setConf(new StatefulMongoDBRdfConfiguration(MergeConfigHadoopAdapter.getMongoConfiguration(configuration), client));
         dao.init();
         return new MongoRyaStatementStore(client, ryaInstanceName, dao);
     }

@@ -62,9 +62,10 @@ public class MongoTestBase {
     }
 
     /**
-     * TODO doc
+     * Override this method if you would like to augment the configuration object that
+     * will be used to initialize indexers and create the mongo client prior to running a test.
      *
-     * @param conf
+     * @param conf - The configuration object that may be updated. (not null)
      */
     protected void updateConfiguration(final MongoDBRdfConfiguration conf) {
         // By default, do nothing.

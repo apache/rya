@@ -67,8 +67,8 @@ public class MongoEntityIndexIT extends MongoTestBase {
         conn.begin();
 
         try(MongoEntityIndexer indexer = new MongoEntityIndexer()) {
-        	indexer.setConf(conf);
-        	indexer.init();
+            indexer.setConf(conf);
+            indexer.init();
 
             setupTypes(indexer);
             addStatements(conn);
@@ -89,9 +89,9 @@ public class MongoEntityIndexIT extends MongoTestBase {
         conn.begin();
 
         try(MongoEntityIndexer indexer = new MongoEntityIndexer()) {
-        	indexer.setConf(conf);
-        	indexer.init();
-        	
+            indexer.setConf(conf);
+            indexer.init();
+
             setupTypes(indexer);
             addStatements(conn);
 
@@ -125,9 +125,9 @@ public class MongoEntityIndexIT extends MongoTestBase {
         conn.begin();
 
         try(MongoEntityIndexer indexer = new MongoEntityIndexer()) {
-        	indexer.setConf(conf);
-        	indexer.init();
-        	
+            indexer.setConf(conf);
+            indexer.init();
+
             setupTypes(indexer);
             addStatements(conn);
             conn.commit();
@@ -136,7 +136,7 @@ public class MongoEntityIndexIT extends MongoTestBase {
                     "<urn:george> <" + RDF.TYPE + "> <urn:person> ."+
                     "<urn:george> <urn:name> ?name . " +
                     "<urn:george> <urn:eye> ?eye . " +
-                "}";
+                    "}";
 
             final TupleQueryResult rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
             final Set<BindingSet> results = new HashSet<>();
@@ -163,31 +163,31 @@ public class MongoEntityIndexIT extends MongoTestBase {
         // Add some Types to the storage.
         final Type cat = new Type(new RyaURI("urn:cat"),
                 ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:numLegs"))
-                    .add(new RyaURI("urn:eye"))
-                    .add(new RyaURI("urn:species"))
-                    .build());
+                .add(new RyaURI("urn:numLegs"))
+                .add(new RyaURI("urn:eye"))
+                .add(new RyaURI("urn:species"))
+                .build());
 
         final Type dog = new Type(new RyaURI("urn:dog"),
                 ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:numLegs"))
-                    .add(new RyaURI("urn:eye"))
-                    .add(new RyaURI("urn:species"))
-                    .build());
+                .add(new RyaURI("urn:numLegs"))
+                .add(new RyaURI("urn:eye"))
+                .add(new RyaURI("urn:species"))
+                .build());
 
         final Type icecream = new Type(new RyaURI("urn:icecream"),
                 ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:brand"))
-                    .add(new RyaURI("urn:flavor"))
-                    .add(new RyaURI("urn:cost"))
-                    .build());
+                .add(new RyaURI("urn:brand"))
+                .add(new RyaURI("urn:flavor"))
+                .add(new RyaURI("urn:cost"))
+                .build());
 
         final Type person = new Type(new RyaURI("urn:person"),
                 ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:name"))
-                    .add(new RyaURI("urn:age"))
-                    .add(new RyaURI("urn:eye"))
-                    .build());
+                .add(new RyaURI("urn:name"))
+                .add(new RyaURI("urn:age"))
+                .add(new RyaURI("urn:eye"))
+                .build());
 
         typeStore.create(cat);
         typeStore.create(dog);

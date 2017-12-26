@@ -95,11 +95,9 @@ public class RyaSailFactory {
             // Add the Indexer and Optimizer names to the configuration object that are configured to be used.
             ConfigUtils.setIndexers(mongoConfig);
 
-            // Initialize the indexer and optimizer objects that will be used within the Sail object.
-
             // Populate the configuration using previously stored Rya Details if this instance uses them.
             try {
-                final MongoRyaInstanceDetailsRepository ryaDetailsRepo = new MongoRyaInstanceDetailsRepository(client, mongoConfig.getRyaInstance());
+                final MongoRyaInstanceDetailsRepository ryaDetailsRepo = new MongoRyaInstanceDetailsRepository(client, mongoConfig.getRyaInstanceName());
                 RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), mongoConfig);
             } catch (final RyaDetailsRepositoryException e) {
                LOG.info("Instance does not have a rya details collection, skipping.");
@@ -240,61 +238,3 @@ public class RyaSailFactory {
         }
     }
 }
-
-
-
-///**
-//* TODO add docs.  names for reflection
-//* @param indexers
-//*/
-//public void setMongoIndexers(final Class<? extends MongoSecondaryIndex>... indexers) {
-// final List<String> strs = Lists.newArrayList();
-// for (final Class<?> ai : indexers){
-//     strs.add(ai.getName());
-// }
-//
-// setStrings(CONF_ADDITIONAL_INDEXERS, strs.toArray(new String[]{}));
-//}
-
-///**
-//* TODO add docs. explain hack is used here. do reflection. eww.
-//* @return
-//*/
-//public List<MongoSecondaryIndex> getAdditionalIndexers() {
-// stateLock.lock();
-// try {
-//     if(indexers == null) {
-//         indexers = getInstances(CONF_ADDITIONAL_INDEXERS, MongoSecondaryIndex.class);
-//     }
-//     return indexers;
-// } finally {
-//     stateLock.unlock();
-// }
-//}
-
-//// XXX Not sure what all of this stuff is for. I'm guessing Rya Sail state stuff.
-//public void setAdditionalIndexers(final Class<? extends MongoSecondaryIndex>... indexers) {
-//  final List<String> strs = Lists.newArrayList();
-//  for (final Class<?> ai : indexers){
-//      strs.add(ai.getName());
-//  }
-//
-//  setStrings(CONF_ADDITIONAL_INDEXERS, strs.toArray(new String[]{}));
-//}
-//
-
-//conf.setStrings(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, indexList.toArray(new String[] {}));
-//conf.setStrings(RdfCloudTripleStoreConfiguration.CONF_OPTIMIZERS, optimizers.toArray(new String[] {}));
-
-//public List<MongoSecondaryIndex> getAdditionalIndexers() {
-//  return getInstances(CONF_ADDITIONAL_INDEXERS, MongoSecondaryIndex.class);
-//}
-
-//public void setMongoClient(final MongoClient client) {
-//  requireNonNull(client);
-//  this.mongoClient = client;
-//}
-//
-//public MongoClient getMongoClient() {
-//  return mongoClient;
-//}

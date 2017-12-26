@@ -63,7 +63,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * @param user - user name used to connect to Mongo
      * @return specified builder for chaining method invocations
      */
-    public B setMongoUser(final String user) {
+    public B setMongoUser(String user) {
         this.user = user;
         return confBuilder();
     }
@@ -75,7 +75,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * @param password - password used to connect to Mongo
      * @return specified builder for chaining method invocations
      */
-    public B setMongoPassword(final String password) {
+    public B setMongoPassword(String password) {
         this.pass = password;
         return confBuilder();
     }
@@ -87,7 +87,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * @param port - port used to connect Mongo
      * @return specified builder for chaining method invocations
      */
-    public B setMongoPort(final String port) {
+    public B setMongoPort(String port) {
         this.port = port;
         return confBuilder();
     }
@@ -99,7 +99,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * @param host - host used to connect to Mongo
      * @return specified builder for chaining method invocations
      */
-    public B setMongoHost(final String host) {
+    public B setMongoHost(String host) {
         this.host = host;
         return confBuilder();
     }
@@ -111,7 +111,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * @param name - name of MongoDB to connect to
      * @return specified builder for chaining method invocations
      */
-    public B setMongoDBName(final String name) {
+    public B setMongoDBName(String name) {
         this.mongoDBName = name;
         return confBuilder();
     }
@@ -124,7 +124,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * @param name - name of Collection to connect to
      * @return specified builder for chaining method invocations
      */
-    public B setMongoCollectionPrefix(final String prefix) {
+    public B setMongoCollectionPrefix(String prefix) {
         this.mongoCollectionPrefix = prefix;
         return confBuilder();
     }
@@ -136,7 +136,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * @param useMock - indicates whether to use embedded Mongo as Rya backing
      * @return specified builder for chaining method invocations
      */
-    public B setUseMockMongo(final boolean useMock) {
+    public B setUseMockMongo(boolean useMock) {
         this.useMock = useMock;
         return confBuilder();
     }
@@ -155,7 +155,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * @param conf - Configuration object
      * @return - Configuration object with parameters set
      */
-    private C getConf(final C conf) {
+    private C getConf(C conf) {
 
         conf.setUseMock(useMock);
         conf.set("sc.useMongo", "true");
@@ -167,7 +167,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
             conf.setMongoPassword(pass);
         }
         conf.setMongoDBName(mongoDBName);
-        conf.setRyaInstance(mongoCollectionPrefix);
+        conf.setRyaInstanceName(mongoCollectionPrefix);
         conf.setTablePrefix(mongoCollectionPrefix);
         conf.setMongoHostname(host);
         conf.setMongoPort(port);

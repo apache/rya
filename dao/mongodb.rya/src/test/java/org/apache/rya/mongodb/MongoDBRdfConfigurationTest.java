@@ -64,7 +64,7 @@ public class MongoDBRdfConfigurationTest {
         assertEquals(conf.getBoolean(".useMockInstance", false), useMock);
         assertEquals(conf.getMongoPort(), "1000");
         assertEquals(conf.getMongoDBName(), "dbname");
-        assertEquals(conf.getRyaInstance(), "prefix_");
+        assertEquals(conf.getRyaInstanceName(), "prefix_");
         assertEquals(conf.get(MongoDBRdfConfiguration.MONGO_USER), user);
         assertEquals(conf.get(MongoDBRdfConfiguration.MONGO_USER_PASSWORD), password);
 
@@ -95,7 +95,7 @@ public class MongoDBRdfConfigurationTest {
         assertEquals(conf.getBoolean(".useMockInstance", false), useMock);
         assertEquals(conf.getMongoPort(), "1000");
         assertEquals(conf.getMongoDBName(), "dbname");
-        assertEquals(conf.getRyaInstance(), "prefix_");
+        assertEquals(conf.getRyaInstanceName(), "prefix_");
         assertEquals(conf.get(MongoDBRdfConfiguration.MONGO_USER), user);
         assertEquals(conf.get(MongoDBRdfConfiguration.MONGO_USER_PASSWORD), password);
     }

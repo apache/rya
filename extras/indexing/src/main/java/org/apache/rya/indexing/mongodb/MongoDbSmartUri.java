@@ -148,7 +148,7 @@ public class MongoDbSmartUri implements SmartUriStorage {
      */
     private void setupClient(final StatefulMongoDBRdfConfiguration conf) throws UnknownHostException, MongoException, EntityStorageException {
         mongoClient = conf.getMongoClient();
-        entityStorage = new MongoEntityStorage(mongoClient, conf.getRyaInstance());
+        entityStorage = new MongoEntityStorage(mongoClient, conf.getRyaInstanceName());
         isInit = true;
     }
 

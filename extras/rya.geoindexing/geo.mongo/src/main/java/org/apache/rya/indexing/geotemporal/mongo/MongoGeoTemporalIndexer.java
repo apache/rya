@@ -92,9 +92,9 @@ public class MongoGeoTemporalIndexer extends AbstractMongoIndexer<GeoTemporalMon
     @Override
     public void setConf(final Configuration conf) {
         requireNonNull(conf);
-    	checkArgument(conf instanceof StatefulMongoDBRdfConfiguration, 
-    			"The configuration must be of type StatefulMongoDBRdfConfiguration but you provided: " 
-    		    + conf.getClass().getSimpleName());
+        checkArgument(conf instanceof StatefulMongoDBRdfConfiguration,
+                "The configuration must be of type StatefulMongoDBRdfConfiguration but you provided: "
+                        + conf.getClass().getSimpleName());
         super.conf = (StatefulMongoDBRdfConfiguration) conf;
     }
 
@@ -214,7 +214,7 @@ public class MongoGeoTemporalIndexer extends AbstractMongoIndexer<GeoTemporalMon
             return events.get();
         }
 
-        events.set(new MongoEventStorage(conf.getMongoClient(), conf.getRyaInstance()));
+        events.set(new MongoEventStorage(conf.getMongoClient(), conf.getRyaInstanceName()));
         return events.get();
     }
 }

@@ -18,6 +18,8 @@
  */
 package org.apache.rya.mongodb;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.Collection;
@@ -73,11 +75,11 @@ public class MongoDBQueryEngine implements RyaQueryEngine<StatefulMongoDBRdfConf
     public CloseableIteration<RyaStatement, RyaDAOException> query(
             final RyaStatement stmt, final StatefulMongoDBRdfConfiguration conf)
             throws RyaDAOException {
-        Preconditions.checkNotNull(stmt);
-        Preconditions.checkNotNull(conf);
+        checkNotNull(stmt);
+        checkNotNull(conf);
 
-        final Entry<RyaStatement, BindingSet> entry = new AbstractMap.SimpleEntry<>(stmt, new MapBindingSet());
-        final Collection<Entry<RyaStatement, BindingSet>> collection = Collections.singleton(entry);
+        Entry<RyaStatement, BindingSet> entry = new AbstractMap.SimpleEntry<>(stmt, new MapBindingSet());
+        Collection<Entry<RyaStatement, BindingSet>> collection = Collections.singleton(entry);
 
         return new RyaStatementCursorIterator(queryWithBindingSet(collection, conf));
     }
@@ -86,8 +88,8 @@ public class MongoDBQueryEngine implements RyaQueryEngine<StatefulMongoDBRdfConf
     public CloseableIteration<? extends Entry<RyaStatement, BindingSet>, RyaDAOException> queryWithBindingSet(
             final Collection<Entry<RyaStatement, BindingSet>> stmts,
             final StatefulMongoDBRdfConfiguration conf) throws RyaDAOException {
-        Preconditions.checkNotNull(stmts);
-        Preconditions.checkNotNull(conf);
+        checkNotNull(stmts);
+        checkNotNull(conf);
 
         final Multimap<RyaStatement, BindingSet> rangeMap = HashMultimap.create();
 
@@ -141,7 +143,7 @@ public class MongoDBQueryEngine implements RyaQueryEngine<StatefulMongoDBRdfConf
             queries.put(stmt, new MapBindingSet());
         }
 
-        final Iterator<RyaStatement> iterator = new RyaStatementCursorIterator(queryWithBindingSet(queries.entrySet(), getConf()));
+        Iterator<RyaStatement> iterator = new RyaStatementCursorIterator(queryWithBindingSet(queries.entrySet(), getConf()));
         return CloseableIterables.wrap((Iterable<RyaStatement>) () -> iterator);
     }
 

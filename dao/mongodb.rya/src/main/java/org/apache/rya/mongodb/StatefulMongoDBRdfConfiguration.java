@@ -61,7 +61,7 @@ public class StatefulMongoDBRdfConfiguration extends MongoDBRdfConfiguration {
         this.mongoClient = requireNonNull(mongoClient);
         this.indexers = requireNonNull(indexers);
     }
-    
+
     /**
      * Constructs an instance of {@link StatefulMongoDBRdfConfiguration} pre-loaded with values.
      *
@@ -75,14 +75,6 @@ public class StatefulMongoDBRdfConfiguration extends MongoDBRdfConfiguration {
     }
 
     /**
-     * TODO doc
-     * @param indexers (not null)
-     */
-    public void setIndexers(final List<MongoSecondaryIndex> indexers) {
-    	this.indexers = requireNonNull(indexers);
-    }
-    
-    /**
      * @return The {@link MongoClient} that Rya will use.
      */
     public MongoClient getMongoClient() {
@@ -90,9 +82,21 @@ public class StatefulMongoDBRdfConfiguration extends MongoDBRdfConfiguration {
     }
 
     /**
+     * @param indexers - The {@link MongoSecondaryIndex}s that Rya will use. (not null)
+     */
+    public void setIndexers(final List<MongoSecondaryIndex> indexers) {
+        this.indexers = requireNonNull(indexers);
+    }
+
+    /**
      * @return The {@link MongoSecondaryIndex}s that Rya will use.
      */
     public List<MongoSecondaryIndex> getAdditionalIndexers() {
         return indexers;
+    }
+
+    @Override
+    public MongoDBRdfConfiguration clone() {
+        return new StatefulMongoDBRdfConfiguration(this, mongoClient, indexers);
     }
 }

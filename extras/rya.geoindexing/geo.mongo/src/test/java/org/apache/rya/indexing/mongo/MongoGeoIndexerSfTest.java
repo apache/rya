@@ -126,28 +126,28 @@ public class MongoGeoIndexerSfTest extends MongoTestBase {
 
     @Test
     public void testEquals() throws Exception {
-    	try(final MongoGeoIndexer g = new MongoGeoIndexer()) {
-    		g.setConf(conf);
-    		g.init();
+        try(final MongoGeoIndexer g = new MongoGeoIndexer()) {
+            g.setConf(conf);
+            g.init();
 
-    		g.storeStatement(statement(A));
-    		g.storeStatement(statement(B));
-    		g.storeStatement(statement(C));
-    		g.storeStatement(statement(D));
-    		g.storeStatement(statement(F));
-    		g.storeStatement(statement(E));
-    		// point
-    		compare(g.queryEquals(F, EMPTY_CONSTRAINTS), F);
-    		compare(g.queryEquals(point(2, 2), EMPTY_CONSTRAINTS), EMPTY_RESULTS);
+            g.storeStatement(statement(A));
+            g.storeStatement(statement(B));
+            g.storeStatement(statement(C));
+            g.storeStatement(statement(D));
+            g.storeStatement(statement(F));
+            g.storeStatement(statement(E));
+            // point
+            compare(g.queryEquals(F, EMPTY_CONSTRAINTS), F);
+            compare(g.queryEquals(point(2, 2), EMPTY_CONSTRAINTS), EMPTY_RESULTS);
 
-    		// line
-    		compare(g.queryEquals(E, EMPTY_CONSTRAINTS), E);
-    		compare(g.queryEquals(line(2, 2, 3, 3), EMPTY_CONSTRAINTS), EMPTY_RESULTS);
+            // line
+            compare(g.queryEquals(E, EMPTY_CONSTRAINTS), E);
+            compare(g.queryEquals(line(2, 2, 3, 3), EMPTY_CONSTRAINTS), EMPTY_RESULTS);
 
-    		// poly
-    		compare(g.queryEquals(A, EMPTY_CONSTRAINTS), A);
-    		compare(g.queryEquals(poly(bbox(1, 1, 4, 5)), EMPTY_CONSTRAINTS), EMPTY_RESULTS);
-    	}
+            // poly
+            compare(g.queryEquals(A, EMPTY_CONSTRAINTS), A);
+            compare(g.queryEquals(poly(bbox(1, 1, 4, 5)), EMPTY_CONSTRAINTS), EMPTY_RESULTS);
+        }
     }
 
 //    @Test

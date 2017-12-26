@@ -40,7 +40,6 @@ import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoTestBase;
-import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -80,13 +79,10 @@ import info.aduna.iteration.CloseableIteration;
  *
  */
 public final class MongoTemporalIndexerTest extends MongoTestBase {
-//    private MongoTemporalIndexer tIndexer;
-//    private DBCollection collection;
 
     private static final String URI_PROPERTY_EVENT_TIME = "Property:event:time";
     private static final String URI_PROPERTY_CIRCA = "Property:circa";
     private static final String URI_PROPERTY_AT_TIME = "Property:atTime";
-//    private static final String STAT_VALUEHASH = "valuehash";
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
     // Assign this in setUpBeforeClass, store them in each test.
@@ -161,25 +157,6 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
             seriesSpo[i] = new StatementImpl(vf.createURI("foo:event0" + i), pred1_atTime, vf.createLiteral(seriesTs[i].getAsReadable()));
         }
     }
-
-    @Before
-    public void before() throws Exception {
-//        // This is from http://linkedevents.org/ontology
-//        // and http://motools.sourceforge.net/event/event.html
-//        conf.setStrings(ConfigUtils.TEMPORAL_PREDICATES_LIST, ""
-//                + URI_PROPERTY_AT_TIME + ","
-//                + URI_PROPERTY_CIRCA + ","
-//                + URI_PROPERTY_EVENT_TIME);
-
-//        tIndexer
-//        tIndexer.setConf(conf);
-//        tIndexer.init();
-////        tIndexer.initIndexer(conf, super.getMongoClient());
-
-//        final String dbName = conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME);
-//        final DB db = super.getMongoClient().getDB(dbName);
-//        collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + tIndexer.getCollectionName());
-   }
 
     @Override
     protected void updateConfiguration(final MongoDBRdfConfiguration conf) {

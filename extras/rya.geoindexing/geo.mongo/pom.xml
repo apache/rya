@@ -46,8 +46,8 @@
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>mongodb.rya</artifactId>
-			<type>test-jar</type>
-			<scope>test</scope>            
+            <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

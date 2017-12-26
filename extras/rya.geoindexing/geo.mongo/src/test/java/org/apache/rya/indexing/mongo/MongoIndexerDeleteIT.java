@@ -55,7 +55,7 @@ import com.vividsolutions.jts.io.WKTWriter;
 
 public class MongoIndexerDeleteIT extends MongoTestBase {
     @Override
-	public void updateConfiguration(final MongoDBRdfConfiguration conf) {
+    public void updateConfiguration(final MongoDBRdfConfiguration conf) {
         conf.setStrings(ConfigUtils.FREETEXT_PREDICATES_LIST, new String[] {RDFS.LABEL.stringValue()});
         conf.setStrings(ConfigUtils.TEMPORAL_PREDICATES_LIST, new String[] {"Property:atTime"});
         conf.setBoolean(ConfigUtils.USE_FREETEXT, true);
@@ -66,59 +66,59 @@ public class MongoIndexerDeleteIT extends MongoTestBase {
 
     @Test
     public void deleteTest() throws Exception {
-    	final Sail sail = GeoRyaSailFactory.getInstance(conf);
-    	final SailRepositoryConnection conn = new SailRepository(sail).getConnection();
-    	try {
-    		populateRya(conn);
-    		final MongoClient client = conf.getMongoClient();
-    		
-    		//The extra 1 is from the person type defined in freetext
-    		assertEquals(8, client.getDatabase(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName()).count());
-    		assertEquals(4, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_geo").count());
-    		assertEquals(1, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_temporal").count());
-    		assertEquals(2, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_freetext").count());
+        final Sail sail = GeoRyaSailFactory.getInstance(conf);
+        final SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+        try {
+            populateRya(conn);
+            final MongoClient client = conf.getMongoClient();
 
-    		//free text -- remove one from many
-    		String delete = "DELETE DATA \n" //
-    				+ "{\n"
-    				+ "  <urn:people> <http://www.w3.org/2000/01/rdf-schema#label> \"Alice Palace Hose\" "
-    				+ "}";
-    		Update update = conn.prepareUpdate(QueryLanguage.SPARQL, delete);
-    		update.execute();
+            //The extra 1 is from the person type defined in freetext
+            assertEquals(8, client.getDatabase(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName()).count());
+            assertEquals(4, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_geo").count());
+            assertEquals(1, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_temporal").count());
+            assertEquals(2, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_freetext").count());
 
-    		// temporal -- remove one from one
-    		delete = "DELETE DATA \n" //
-    				+ "{\n"
-    				+ "  <foo:time> <Property:atTime> \"0001-02-03T04:05:06Z\" "
-    				+ "}";
+            //free text -- remove one from many
+            String delete = "DELETE DATA \n" //
+                    + "{\n"
+                    + "  <urn:people> <http://www.w3.org/2000/01/rdf-schema#label> \"Alice Palace Hose\" "
+                    + "}";
+            Update update = conn.prepareUpdate(QueryLanguage.SPARQL, delete);
+            update.execute();
 
-    		update = conn.prepareUpdate(QueryLanguage.SPARQL, delete);
-    		update.execute();
+            // temporal -- remove one from one
+            delete = "DELETE DATA \n" //
+                    + "{\n"
+                    + "  <foo:time> <Property:atTime> \"0001-02-03T04:05:06Z\" "
+                    + "}";
 
-    		//geo -- remove many from many
-    		delete =
-    				"PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
-    						+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
-    						+ "DELETE \n" //
-    						+ "{\n"
-    						+ "  <urn:geo> geo:asWKT ?point \n"
-    						+ "}"
-    						+ "WHERE { \n"
-    						+ "  <urn:geo> geo:asWKT ?point .\n"
-    						+ "  FILTER(geof:sfWithin(?point, \"POLYGON((0 0, 2 0, 2 1, 0 1, 0 0))\"^^geo:wktLiteral))"
-    						+ "}";
+            update = conn.prepareUpdate(QueryLanguage.SPARQL, delete);
+            update.execute();
 
-    		update = conn.prepareUpdate(QueryLanguage.SPARQL, delete);
-    		update.execute();
+            //geo -- remove many from many
+            delete =
+                    "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
+                            + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
+                            + "DELETE \n" //
+                            + "{\n"
+                            + "  <urn:geo> geo:asWKT ?point \n"
+                            + "}"
+                            + "WHERE { \n"
+                            + "  <urn:geo> geo:asWKT ?point .\n"
+                            + "  FILTER(geof:sfWithin(?point, \"POLYGON((0 0, 2 0, 2 1, 0 1, 0 0))\"^^geo:wktLiteral))"
+                            + "}";
 
-    		assertEquals(2, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_geo").count());
-    		assertEquals(0, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_temporal").count());
-    		assertEquals(1, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_freetext").count());
-    		assertEquals(4, client.getDatabase(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName()).count());
-    	} finally {
-    		conn.close();
-    		sail.shutDown();
-    	}
+            update = conn.prepareUpdate(QueryLanguage.SPARQL, delete);
+            update.execute();
+
+            assertEquals(2, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_geo").count());
+            assertEquals(0, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_temporal").count());
+            assertEquals(1, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_freetext").count());
+            assertEquals(4, client.getDatabase(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName()).count());
+        } finally {
+            conn.close();
+            sail.shutDown();
+        }
     }
 
     private void populateRya(final SailRepositoryConnection conn) throws Exception {

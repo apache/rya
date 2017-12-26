@@ -284,8 +284,8 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
         }
 
         try {
-            final List<Class<QueryOptimizer>> optimizers = conf.getOptimizers();
-            final Class<QueryOptimizer> pcjOptimizer = conf.getPcjOptimizer();
+            final List<Class<QueryOptimizer>> optimizers = queryConf.getOptimizers();
+            final Class<QueryOptimizer> pcjOptimizer = queryConf.getPcjOptimizer();
 
             if(pcjOptimizer != null) {
                 QueryOptimizer opt = null;
@@ -304,7 +304,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
             }
 
             final ParallelEvaluationStrategyImpl strategy = new ParallelEvaluationStrategyImpl(
-                    new StoreTripleSource(conf, ryaDAO), inferenceEngine, dataset, queryConf);
+                    new StoreTripleSource(queryConf, ryaDAO), inferenceEngine, dataset, queryConf);
 
                 (new BindingAssigner()).optimize(tupleExpr, dataset, bindings);
                 (new ConstantOptimizer(strategy)).optimize(tupleExpr, dataset,

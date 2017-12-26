@@ -39,12 +39,12 @@ public class MongoEntityIndexer extends BaseEntityIndexer {
     @Override
     public EntityStorage getEntityStorage() throws EntityStorageException {
     	final StatefulMongoDBRdfConfiguration conf = super.configuration.get();
-        return new MongoEntityStorage(conf.getMongoClient(), conf.getRyaInstance());
+        return new MongoEntityStorage(conf.getMongoClient(), conf.getRyaInstanceName());
     }
 
     @Override
     public TypeStorage getTypeStorage() {
     	final StatefulMongoDBRdfConfiguration conf = super.configuration.get();
-        return new MongoTypeStorage(conf.getMongoClient(), conf.getRyaInstance());
+        return new MongoTypeStorage(conf.getMongoClient(), conf.getRyaInstanceName());
     }
 }

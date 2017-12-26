@@ -45,12 +45,13 @@ public class RyaPromptProvider extends DefaultPromptProvider {
     @Override
     public String getPrompt() {
         final ShellState state = sharedState.getShellState();
-        String instanceName = "";
-        if (state.getConnectionState() != DISCONNECTED) {
-            if (state.getStorageType().isPresent() && state.getStorageType().get() == StorageType.ACCUMULO) {
-                instanceName = state.getAccumuloDetails().get().getInstanceName();
-            } else if (state.getStorageType().isPresent() && state.getStorageType().get() == StorageType.MONGO) {
-                instanceName = state.getMongoDetails().get().getHostname();
+        // figure out the storage name: disconnected, mongo host, or Accumulo instance.
+        String storageName = "unknown";
+        if (state.getStorageType().isPresent()) {
+            if (state.getStorageType().get() == StorageType.ACCUMULO) {
+                storageName = state.getAccumuloDetails().get().getInstanceName();
+            } else if (state.getStorageType().get() == StorageType.MONGO) {
+                storageName = state.getMongoDetails().get().getHostname();
             } else {
                 throw new java.lang.IllegalStateException("Missing or unknown storage type.");
             }
@@ -59,11 +60,11 @@ public class RyaPromptProvider extends DefaultPromptProvider {
             case DISCONNECTED:
                 return "rya> ";
             case CONNECTED_TO_STORAGE:
-            return String.format("rya/%s> ", instanceName);
+            return String.format("rya/%s> ", storageName);
             case CONNECTED_TO_INSTANCE:
                 return String.format("rya/%s:%s> ",
-                        instanceName,
-                        state.getRyaInstanceName().get());
+                        storageName,
+                            state.getRyaInstanceName().or("unknown"));
             default:
                 return "rya> ";
         }

@@ -55,15 +55,16 @@ import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * TODO impl, test, doc
+ * Execute a sparql query on mongo Rya.
  */
 @DefaultAnnotation(NonNull.class)
 public class MongoExecuteSparqlQuery extends MongoCommand implements ExecuteSparqlQuery {
 
     private static final Logger log = Logger.getLogger(MongoExecuteSparqlQuery.class);
     private final InstanceExists instanceExists;
+    
     /**
-     * Constructs an instance of {@link }.
+     * Constructs an instance.
      *
      * @param connectionDetails - Details about the values that were used to create the client. (not null)
      * @param connector - Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
@@ -72,7 +73,6 @@ public class MongoExecuteSparqlQuery extends MongoCommand implements ExecuteSpar
         super(connectionDetails, client);
         instanceExists = new MongoInstanceExists(connectionDetails, client);
     }
-
     @Override
     public String executeSparqlQuery(final String ryaInstanceName, final String sparqlQuery) throws InstanceDoesNotExistException, RyaClientException {
         requireNonNull(ryaInstanceName);

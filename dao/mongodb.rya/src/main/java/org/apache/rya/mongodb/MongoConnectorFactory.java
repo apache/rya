@@ -27,6 +27,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.http.annotation.ThreadSafe;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
@@ -82,24 +83,47 @@ public class MongoConnectorFactory {
      */
     private static void createMongoClientForServer(final Configuration conf)
             throws ConfigurationRuntimeException, MongoException {
+        // Set some options to speed up the timeouts if db server isn't available
+        MongoClientOptions options2 = makeMongoClientOptions(conf);
         // Connect to a running Mongo server
         final String host = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE), MSG_INTRO+"host name is required");
         final int port = requireNonNullInt(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT), MSG_INTRO+"Port number is required.");
         final ServerAddress server = new ServerAddress(host, port);
         // check for authentication credentials
-        if (conf.get(MongoDBRdfConfiguration.MONGO_USER) != null) {
-            final String username = conf.get(MongoDBRdfConfiguration.MONGO_USER);
-            final String dbName = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME),
-                    MSG_INTRO + MongoDBRdfConfiguration.MONGO_DB_NAME + " is null but required configuration if "
-                            + MongoDBRdfConfiguration.MONGO_USER + " is configured.");
-            final char[] pswd = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_USER_PASSWORD),
-                    MSG_INTRO + MongoDBRdfConfiguration.MONGO_USER_PASSWORD + " is null but required configuration if "
-                            + MongoDBRdfConfiguration.MONGO_USER + " is configured.").toCharArray();
-            final MongoCredential cred = MongoCredential.createCredential(username, dbName, pswd);
-            mongoClient = new MongoClient(server, Arrays.asList(cred));
-        } else {
+//        if (false) {//conf.get(MongoDBRdfConfiguration.MONGO_USER) != null) {
+//            final String username = conf.get(MongoDBRdfConfiguration.MONGO_USER);
+//            final String dbName = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME),
+//                    MSG_INTRO + MongoDBRdfConfiguration.MONGO_DB_NAME + " is null but required configuration if "
+//                            + MongoDBRdfConfiguration.MONGO_USER + " is configured.");
+//            final char[] pswd = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_USER_PASSWORD),
+//                    MSG_INTRO + MongoDBRdfConfiguration.MONGO_USER_PASSWORD + " is null but required configuration if "
+//                            + MongoDBRdfConfiguration.MONGO_USER + " is configured.").toCharArray();
+//            final MongoCredential cred = MongoCredential.createCredential(username, dbName, pswd);
+//            mongoClient = new MongoClient(server, Arrays.asList(cred), options2);
+//
+//        } else {
             // No user was configured:
-            mongoClient = new MongoClient(server);
+            mongoClient = new MongoClient(server, options2);
+//        }
+    }
+
+    /**
+     * @param conf
+     *            -- Rya configutation
+     * @return Mongodb client options corresponding to conf
+     */
+    private static MongoClientOptions makeMongoClientOptions(final Configuration conf) {
+        if (conf.getBoolean("timeoutFast", false)) {
+            MongoClientOptions.Builder optionsBuilder = MongoClientOptions.builder();
+            // These are much quicker than defaults. Good for impatient humans.
+            optionsBuilder.connectTimeout(1000);
+            optionsBuilder.socketTimeout(1000);
+            optionsBuilder.serverSelectionTimeout(1000);
+            return optionsBuilder.build();
+        }
+        else {
+            // use all defaults.
+            return new MongoClientOptions.Builder().build();
         }
     }
 

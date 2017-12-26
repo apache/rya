@@ -58,7 +58,7 @@ public class EmbeddedMongoFactory {
      * Create the testing utility using the specified version of MongoDB.
      * 
      * @param version
-     *            version of MongoDB.
+     *            - version of MongoDB.
      */
     private EmbeddedMongoFactory(final IFeatureAwareVersion version) throws IOException {
         final MongodStarter runtime = MongodStarter.getInstance(new RuntimeConfigBuilder().defaultsWithLogger(Command.MongoD, logger).build());
@@ -86,6 +86,15 @@ public class EmbeddedMongoFactory {
     public MongoClient newMongoClient() throws UnknownHostException, MongoException {
         return new MongoClient(new ServerAddress(mongodProcess.getConfig().net().getServerAddress(), mongodProcess.getConfig().net().getPort()));
     }
+
+    /**
+     * Gives access to the process configuration.
+     * 
+     */
+    public IMongodConfig getMongoServerDetails() {
+        return mongodProcess.getConfig();
+    }
+
 
     /**
      * Cleans up the resources created by the utility.

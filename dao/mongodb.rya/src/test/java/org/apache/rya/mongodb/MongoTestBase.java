@@ -23,6 +23,7 @@ import org.bson.Document;
 import org.junit.After;
 import org.junit.Before;
 
+import com.google.common.base.Objects;
 import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
@@ -39,11 +40,15 @@ public class MongoTestBase {
     @Before
     public void setupTest() throws Exception {
         conf = new MongoDBRdfConfiguration( new Configuration() );
-        conf.setBoolean("sc.useMongo", true);
-        conf.setTablePrefix("test_");
-        conf.setMongoDBName("testDB");
         mongoClient = EmbeddedMongoSingleton.getInstance();
         conf.setMongoClient(mongoClient);
+        MongoConnectorFactory.getMongoClient(conf); // actually a setter.
+        conf.setBoolean("sc.useMongo", true);
+        conf.setTablePrefix("THISisNOTtheDBNAME"); // this may be not used.
+        conf.setMongoDBName("testDbRyaInstance"); // this is the Rya Instance.
+        conf.setMongoUser(Objects.firstNonNull(EmbeddedMongoSingleton.getMongodConfig().userName(), ""));
+        conf.setMongoPassword(Objects.firstNonNull(EmbeddedMongoSingleton.getMongodConfig().password(), ""));
+        conf.setMongoPort(Integer.toString(EmbeddedMongoSingleton.getMongodConfig().net().getPort()));
     }
 
     @After
@@ -58,7 +63,10 @@ public class MongoTestBase {
      * @return A {@link MongoClient} that is connected to the embedded instance of Mongo DB.
      */
     public MongoClient getMongoClient() {
-        return mongoClient;
+        MongoClient client = MongoConnectorFactory.getMongoClient(null);
+        if (client == null)
+            new Error("Connector factory returned no connection.");
+        return client;
     }
 
     /**

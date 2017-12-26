@@ -21,12 +21,11 @@ package org.apache.rya.shell;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
-import org.junit.Test;
-
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.shell.SharedShellState.ConnectionState;
 import org.apache.rya.shell.SharedShellState.ShellState;
+import org.junit.Test;
 
 /**
  * Tests the methods of {@link SharedShellState}.
@@ -57,7 +56,7 @@ public class SharedShellStateTest {
         // Verify the state.
         final ShellState expected = ShellState.builder()
                 .setConnectionState(ConnectionState.CONNECTED_TO_STORAGE)
-                .setAccumuloConnectionDetails(connectionDetails)
+                .setAccumuloDetails(connectionDetails)
                 .setConnectedCommands(connectedCommands)
                 .build();
 
@@ -92,7 +91,7 @@ public class SharedShellStateTest {
         // Verify the state.
         final ShellState expected = ShellState.builder()
                 .setConnectionState(ConnectionState.CONNECTED_TO_INSTANCE)
-                .setAccumuloConnectionDetails(connectionDetails)
+                .setAccumuloDetails(connectionDetails)
                 .setConnectedCommands(connectedCommands)
                 .setRyaInstanceName("instance")
                 .build();
@@ -118,7 +117,7 @@ public class SharedShellStateTest {
         // Verify the state.
         final ShellState expected = ShellState.builder()
                 .setConnectionState(ConnectionState.CONNECTED_TO_INSTANCE)
-                .setAccumuloConnectionDetails(connectionDetails)
+                .setAccumuloDetails(connectionDetails)
                 .setConnectedCommands(connectedCommands)
                 .setRyaInstanceName("secondInstance")
                 .build();

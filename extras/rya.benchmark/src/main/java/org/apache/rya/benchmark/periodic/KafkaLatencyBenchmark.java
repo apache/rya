@@ -172,7 +172,7 @@ public class KafkaLatencyBenchmark implements AutoCloseable {
                 + "group by ?type";
 
         logger.info("Query: {}", sparql);
-        return client.getCreatePCJ().createPCJ(options.getRyaInstance(), sparql, ImmutableSet.of(ExportStrategy.KAFKA));
+        return client.getCreatePCJ().get().createPCJ(options.getRyaInstance(), sparql, ImmutableSet.of(ExportStrategy.KAFKA));
     }
 
     private String issuePeriodicQuery(final PeriodicQueryCommand periodicOptions) throws InstanceDoesNotExistException, RyaClientException {
@@ -184,7 +184,7 @@ public class KafkaLatencyBenchmark implements AutoCloseable {
                 + "?obs <uri:hasObsType> ?type } "
                 + "group by ?type";
         logger.info("Query: {}", sparql);
-        final String queryId = client.getCreatePeriodicPCJ().createPeriodicPCJ(options.getRyaInstance(), sparql, periodicOptions.getPeriodicQueryRegistrationTopic(), options.getKafkaBootstrap());
+        final String queryId = client.getCreatePeriodicPCJ().get().createPeriodicPCJ(options.getRyaInstance(), sparql, periodicOptions.getPeriodicQueryRegistrationTopic(), options.getKafkaBootstrap());
         logger.info("Received query id: {}", queryId);
         return queryId.substring("QUERY_".length());  // remove the QUERY_ prefix.
     }

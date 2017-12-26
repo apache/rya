@@ -430,25 +430,25 @@ public class QueryIT extends RyaExportITBase {
     public void dateTimeWithin() throws Exception {
 
         final ValueFactory vf = new ValueFactoryImpl();
-        DatatypeFactory dtf = DatatypeFactory.newInstance();
+        final DatatypeFactory dtf = DatatypeFactory.newInstance();
         FunctionRegistry.getInstance().add(new DateTimeWithinPeriod());
 
         final String sparql = "PREFIX fn: <" + FN.NAMESPACE +">"
                 + "SELECT ?event ?startTime ?endTime WHERE { ?event <uri:startTime> ?startTime; <uri:endTime> ?endTime. "
                 + "FILTER(fn:dateTimeWithin(?startTime, ?endTime, 2,<" + OWLTime.HOURS_URI + "> ))}";
 
-        ZonedDateTime zTime = ZonedDateTime.now();
-        String time = zTime.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime = ZonedDateTime.now();
+        final String time = zTime.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime1 = zTime.minusHours(1);
-        String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime1 = zTime.minusHours(1);
+        final String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime2 = zTime.minusHours(2);
-        String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime2 = zTime.minusHours(2);
+        final String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
 
-        Literal lit = vf.createLiteral(dtf.newXMLGregorianCalendar(time));
-        Literal lit1 = vf.createLiteral(dtf.newXMLGregorianCalendar(time1));
-        Literal lit2 = vf.createLiteral(dtf.newXMLGregorianCalendar(time2));
+        final Literal lit = vf.createLiteral(dtf.newXMLGregorianCalendar(time));
+        final Literal lit1 = vf.createLiteral(dtf.newXMLGregorianCalendar(time1));
+        final Literal lit2 = vf.createLiteral(dtf.newXMLGregorianCalendar(time2));
 
         // Create the Statements that will be loaded into Rya.
         final Collection<Statement> statements = Sets.newHashSet(
@@ -461,7 +461,7 @@ public class QueryIT extends RyaExportITBase {
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
-        MapBindingSet bs = new MapBindingSet();
+        final MapBindingSet bs = new MapBindingSet();
         bs.addBinding("event", vf.createURI("uri:event1"));
         bs.addBinding("startTime", lit);
         bs.addBinding("endTime", lit1);
@@ -475,21 +475,21 @@ public class QueryIT extends RyaExportITBase {
     public void dateTimeWithinNow() throws Exception {
 
         final ValueFactory vf = new ValueFactoryImpl();
-        DatatypeFactory dtf = DatatypeFactory.newInstance();
+        final DatatypeFactory dtf = DatatypeFactory.newInstance();
         FunctionRegistry.getInstance().add(new DateTimeWithinPeriod());
 
         final String sparql = "PREFIX fn: <" + FN.NAMESPACE +">"
                 + "SELECT ?event ?startTime WHERE { ?event <uri:startTime> ?startTime. "
                 + "FILTER(fn:dateTimeWithin(?startTime, NOW(), 15, <" + OWLTime.SECONDS_URI + "> ))}";
 
-        ZonedDateTime zTime = ZonedDateTime.now();
-        String time = zTime.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime = ZonedDateTime.now();
+        final String time = zTime.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime1 = zTime.minusSeconds(30);
-        String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime1 = zTime.minusSeconds(30);
+        final String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
 
-        Literal lit = vf.createLiteral(dtf.newXMLGregorianCalendar(time));
-        Literal lit1 = vf.createLiteral(dtf.newXMLGregorianCalendar(time1));
+        final Literal lit = vf.createLiteral(dtf.newXMLGregorianCalendar(time));
+        final Literal lit1 = vf.createLiteral(dtf.newXMLGregorianCalendar(time1));
 
         // Create the Statements that will be loaded into Rya.
         final Collection<Statement> statements = Sets.newHashSet(
@@ -500,7 +500,7 @@ public class QueryIT extends RyaExportITBase {
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
-        MapBindingSet bs = new MapBindingSet();
+        final MapBindingSet bs = new MapBindingSet();
         bs.addBinding("event", vf.createURI("uri:event1"));
         bs.addBinding("startTime", lit);
         expectedResults.add(bs);
@@ -513,7 +513,7 @@ public class QueryIT extends RyaExportITBase {
 
     @Test
     public void periodicQueryTestWithoutAggregation() throws Exception {
-        String query = "prefix function: <http://org.apache.rya/function#> " // n
+        final String query = "prefix function: <http://org.apache.rya/function#> " // n
                 + "prefix time: <http://www.w3.org/2006/time#> " // n
                 + "select ?id where {" // n
                 + "Filter(function:periodic(?time, 2, .5, time:hours)) " // n
@@ -523,20 +523,20 @@ public class QueryIT extends RyaExportITBase {
         // Create the Statements that will be loaded into Rya.
         final ValueFactory vf = new ValueFactoryImpl();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
-        ZonedDateTime time = ZonedDateTime.now();
-        long currentTime = time.toInstant().toEpochMilli();
+        final ZonedDateTime time = ZonedDateTime.now();
+        final long currentTime = time.toInstant().toEpochMilli();
 
-        ZonedDateTime zTime1 = time.minusMinutes(30);
-        String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime1 = time.minusMinutes(30);
+        final String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime2 = zTime1.minusMinutes(30);
-        String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime2 = zTime1.minusMinutes(30);
+        final String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime3 = zTime2.minusMinutes(30);
-        String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime3 = zTime2.minusMinutes(30);
+        final String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime4 = zTime3.minusMinutes(30);
-        String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime4 = zTime3.minusMinutes(30);
+        final String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
                 vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
@@ -555,8 +555,8 @@ public class QueryIT extends RyaExportITBase {
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
-        long period = 1800000;
-        long binId = (currentTime / period) * period;
+        final long period = 1800000;
+        final long binId = (currentTime / period) * period;
 
         MapBindingSet bs = new MapBindingSet();
         bs.addBinding("id", vf.createLiteral("id_1", XMLSchema.STRING));
@@ -614,7 +614,7 @@ public class QueryIT extends RyaExportITBase {
 
     @Test
     public void periodicQueryTestWithAggregation() throws Exception {
-        String query = "prefix function: <http://org.apache.rya/function#> " // n
+        final String query = "prefix function: <http://org.apache.rya/function#> " // n
                 + "prefix time: <http://www.w3.org/2006/time#> " // n
                 + "select (count(?obs) as ?total) where {" // n
                 + "Filter(function:periodic(?time, 2, .5, time:hours)) " // n
@@ -624,20 +624,20 @@ public class QueryIT extends RyaExportITBase {
         // Create the Statements that will be loaded into Rya.
         final ValueFactory vf = new ValueFactoryImpl();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
-        ZonedDateTime time = ZonedDateTime.now();
-        long currentTime = time.toInstant().toEpochMilli();
+        final ZonedDateTime time = ZonedDateTime.now();
+        final long currentTime = time.toInstant().toEpochMilli();
 
-        ZonedDateTime zTime1 = time.minusMinutes(30);
-        String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime1 = time.minusMinutes(30);
+        final String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime2 = zTime1.minusMinutes(30);
-        String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime2 = zTime1.minusMinutes(30);
+        final String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime3 = zTime2.minusMinutes(30);
-        String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime3 = zTime2.minusMinutes(30);
+        final String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime4 = zTime3.minusMinutes(30);
-        String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime4 = zTime3.minusMinutes(30);
+        final String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
                 vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
@@ -656,8 +656,8 @@ public class QueryIT extends RyaExportITBase {
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
-        long period = 1800000;
-        long binId = (currentTime / period) * period;
+        final long period = 1800000;
+        final long binId = (currentTime / period) * period;
 
         MapBindingSet bs = new MapBindingSet();
         bs.addBinding("total", vf.createLiteral("4", XMLSchema.INTEGER));
@@ -685,7 +685,7 @@ public class QueryIT extends RyaExportITBase {
 
     @Test
     public void periodicQueryTestWithAggregationAndGroupBy() throws Exception {
-        String query = "prefix function: <http://org.apache.rya/function#> " // n
+        final String query = "prefix function: <http://org.apache.rya/function#> " // n
                 + "prefix time: <http://www.w3.org/2006/time#> " // n
                 + "select ?id (count(?obs) as ?total) where {" // n
                 + "Filter(function:periodic(?time, 2, .5, time:hours)) " // n
@@ -695,20 +695,20 @@ public class QueryIT extends RyaExportITBase {
         // Create the Statements that will be loaded into Rya.
         final ValueFactory vf = new ValueFactoryImpl();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
-        ZonedDateTime time = ZonedDateTime.now();
-        long currentTime = time.toInstant().toEpochMilli();
+        final ZonedDateTime time = ZonedDateTime.now();
+        final long currentTime = time.toInstant().toEpochMilli();
 
-        ZonedDateTime zTime1 = time.minusMinutes(30);
-        String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime1 = time.minusMinutes(30);
+        final String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime2 = zTime1.minusMinutes(30);
-        String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime2 = zTime1.minusMinutes(30);
+        final String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime3 = zTime2.minusMinutes(30);
-        String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime3 = zTime2.minusMinutes(30);
+        final String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime4 = zTime3.minusMinutes(30);
-        String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime4 = zTime3.minusMinutes(30);
+        final String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
                 vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
@@ -733,8 +733,8 @@ public class QueryIT extends RyaExportITBase {
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
-        long period = 1800000;
-        long binId = (currentTime / period) * period;
+        final long period = 1800000;
+        final long binId = (currentTime / period) * period;
 
         MapBindingSet bs = new MapBindingSet();
         bs.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
@@ -803,7 +803,7 @@ public class QueryIT extends RyaExportITBase {
 
     @Test
     public void nestedPeriodicQueryTestWithAggregationAndGroupBy() throws Exception {
-        String query = "prefix function: <http://org.apache.rya/function#> " // n
+        final String query = "prefix function: <http://org.apache.rya/function#> " // n
                 + "prefix time: <http://www.w3.org/2006/time#> " // n
                 + "select ?location ?total "
                 + "where { Filter(?total > 1) {"
@@ -815,20 +815,20 @@ public class QueryIT extends RyaExportITBase {
         // Create the Statements that will be loaded into Rya.
         final ValueFactory vf = new ValueFactoryImpl();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
-        ZonedDateTime time = ZonedDateTime.now();
-        long currentTime = time.toInstant().toEpochMilli();
+        final ZonedDateTime time = ZonedDateTime.now();
+        final long currentTime = time.toInstant().toEpochMilli();
 
-        ZonedDateTime zTime1 = time.minusMinutes(30);
-        String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime1 = time.minusMinutes(30);
+        final String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime2 = zTime1.minusMinutes(30);
-        String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime2 = zTime1.minusMinutes(30);
+        final String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime3 = zTime2.minusMinutes(30);
-        String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime3 = zTime2.minusMinutes(30);
+        final String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime4 = zTime3.minusMinutes(30);
-        String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime4 = zTime3.minusMinutes(30);
+        final String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
                 vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
@@ -853,8 +853,8 @@ public class QueryIT extends RyaExportITBase {
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
-        long period = 1800000;
-        long binId = (currentTime / period) * period;
+        final long period = 1800000;
+        final long binId = (currentTime / period) * period;
 
         MapBindingSet bs = new MapBindingSet();
         bs.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
@@ -881,7 +881,7 @@ public class QueryIT extends RyaExportITBase {
 
     @Test
     public void nestedJoinPeriodicQueryWithAggregationAndGroupBy() throws Exception {
-        String query = "prefix function: <http://org.apache.rya/function#> " // n
+        final String query = "prefix function: <http://org.apache.rya/function#> " // n
                 + "prefix time: <http://www.w3.org/2006/time#> " // n
                 + "select ?location ?total ?population "
                 + "where { Filter(?total > 1)"
@@ -894,20 +894,20 @@ public class QueryIT extends RyaExportITBase {
         // Create the Statements that will be loaded into Rya.
         final ValueFactory vf = new ValueFactoryImpl();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
-        ZonedDateTime time = ZonedDateTime.now();
-        long currentTime = time.toInstant().toEpochMilli();
+        final ZonedDateTime time = ZonedDateTime.now();
+        final long currentTime = time.toInstant().toEpochMilli();
 
-        ZonedDateTime zTime1 = time.minusMinutes(30);
-        String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime1 = time.minusMinutes(30);
+        final String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime2 = zTime1.minusMinutes(30);
-        String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime2 = zTime1.minusMinutes(30);
+        final String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime3 = zTime2.minusMinutes(30);
-        String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime3 = zTime2.minusMinutes(30);
+        final String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
 
-        ZonedDateTime zTime4 = zTime3.minusMinutes(30);
-        String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
+        final ZonedDateTime zTime4 = zTime3.minusMinutes(30);
+        final String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
                 vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
@@ -934,8 +934,8 @@ public class QueryIT extends RyaExportITBase {
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
-        long period = 1800000;
-        long binId = (currentTime / period) * period;
+        final long period = 1800000;
+        final long binId = (currentTime / period) * period;
 
         MapBindingSet bs = new MapBindingSet();
         bs.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
@@ -965,7 +965,7 @@ public class QueryIT extends RyaExportITBase {
 
     @Test(expected= UnsupportedQueryException.class)
     public void nestedConstructPeriodicQueryWithAggregationAndGroupBy() throws Exception {
-        String query = "prefix function: <http://org.apache.rya/function#> " // n
+        final String query = "prefix function: <http://org.apache.rya/function#> " // n
                 + "prefix time: <http://www.w3.org/2006/time#> " // n
                 + "construct{?location a <uri:highObservationArea> } "
                 + "where { Filter(?total > 1)"
@@ -984,7 +984,7 @@ public class QueryIT extends RyaExportITBase {
     }
 
     public void runTest(final String sparql, final Collection<Statement> statements, final Collection<BindingSet> expectedResults,
-            ExportStrategy strategy) throws Exception {
+            final ExportStrategy strategy) throws Exception {
         requireNonNull(sparql);
         requireNonNull(statements);
         requireNonNull(expectedResults);
@@ -996,7 +996,7 @@ public class QueryIT extends RyaExportITBase {
 
         switch (strategy) {
         case RYA:
-            ryaClient.getCreatePCJ().createPCJ(getRyaInstanceName(), sparql);
+            ryaClient.getCreatePCJ().get().createPCJ(getRyaInstanceName(), sparql);
             addStatementsAndWait(statements);
             // Fetch the value that is stored within the PCJ table.
             try (final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, getRyaInstanceName())) {
@@ -1008,8 +1008,8 @@ public class QueryIT extends RyaExportITBase {
 
             break;
         case PERIODIC:
-            PeriodicQueryResultStorage periodicStorage = new AccumuloPeriodicQueryResultStorage(accumuloConn, getRyaInstanceName());
-            String periodicId = periodicStorage.createPeriodicQuery(sparql);
+            final PeriodicQueryResultStorage periodicStorage = new AccumuloPeriodicQueryResultStorage(accumuloConn, getRyaInstanceName());
+            final String periodicId = periodicStorage.createPeriodicQuery(sparql);
             try (FluoClient fluo = new FluoClientImpl(super.getFluoConfiguration())) {
                 new CreateFluoPcj().createPcj(periodicId, sparql, Sets.newHashSet(ExportStrategy.PERIODIC), fluo);
             }

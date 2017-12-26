@@ -185,7 +185,7 @@ public class KafkaExportITBase extends AccumuloExportITBase {
             // Shutdown the repo.
             if(ryaSailRepo != null) {ryaSailRepo.shutDown();}
             if(dao != null ) {dao.destroy();}
-        } catch (Exception e) {
+        } catch (final Exception e) {
             System.out.println("Encountered the following Exception when shutting down Rya: " + e.getMessage());
         }
     }
@@ -342,7 +342,7 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         final RyaClient ryaClient = AccumuloRyaClientFactory.build(new AccumuloConnectionDetails(ACCUMULO_USER,
                 ACCUMULO_PASSWORD.toCharArray(), accInstance.getInstanceName(), accInstance.getZooKeepers()), accumuloConn);
 
-        final String pcjId = ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql, Sets.newHashSet(ExportStrategy.KAFKA));
+        final String pcjId = ryaClient.getCreatePCJ().get().createPCJ(RYA_INSTANCE_NAME, sparql, Sets.newHashSet(ExportStrategy.KAFKA));
 
         loadData(statements);
 

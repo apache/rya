@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoClient;
 
+import de.flapdoodle.embed.mongo.config.IMongodConfig;
+
 /**
  * To be used for tests. Creates a singleton {@link MongoClient} to be used
  * throughout all of the MongoDB related tests. Without the singleton, the
@@ -33,6 +35,10 @@ import com.mongodb.MongoClient;
 public class EmbeddedMongoSingleton {
     public static MongoClient getInstance() {
         return InstanceHolder.SINGLETON.instance;
+    }
+
+    public static IMongodConfig getMongodConfig() {
+        return InstanceHolder.SINGLETON.mongodConfig;
     }
 
     private EmbeddedMongoSingleton() {
@@ -45,12 +51,14 @@ public class EmbeddedMongoSingleton {
 
         private final Logger log;
         private MongoClient instance;
-
+        private IMongodConfig mongodConfig;
         InstanceHolder() {
             log = LoggerFactory.getLogger(EmbeddedMongoSingleton.class);
             instance = null;
             try {
-                instance = EmbeddedMongoFactory.newFactory().newMongoClient();
+                EmbeddedMongoFactory factory = EmbeddedMongoFactory.newFactory();
+                instance = factory.newMongoClient();
+                mongodConfig = factory.getMongoServerDetails();
                 // JUnit does not have an overall lifecycle event for tearing down
                 // this kind of resource, but shutdown hooks work alright in practice
                 // since this should only be used during testing

@@ -24,9 +24,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
@@ -44,6 +41,9 @@ import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Serializes configuration details for use in Mongo.
@@ -182,15 +182,17 @@ public class MongoDetailsAdapter {
     private static PCJIndexDetails.Builder getPCJIndexDetails(final BasicDBObject basicObj) {
         final BasicDBObject pcjIndexDBO = (BasicDBObject) basicObj.get(PCJ_DETAILS_KEY);
 
-        final PCJIndexDetails.Builder pcjBuilder = PCJIndexDetails.builder()
-            .setEnabled(pcjIndexDBO.getBoolean(PCJ_ENABLED_KEY))
-            .setFluoDetails(new FluoDetails(pcjIndexDBO.getString(PCJ_FLUO_KEY)));
-
-        final BasicDBList pcjs = (BasicDBList) pcjIndexDBO.get(PCJ_PCJS_KEY);
-        if(pcjs != null) {
-            for(int ii = 0; ii < pcjs.size(); ii++) {
-                final BasicDBObject pcj = (BasicDBObject) pcjs.get(ii);
-                pcjBuilder.addPCJDetails( toPCJDetails(pcj) );
+        final PCJIndexDetails.Builder pcjBuilder = PCJIndexDetails.builder();
+        if (!pcjIndexDBO.getBoolean(PCJ_ENABLED_KEY)) {
+            pcjBuilder.setEnabled(false);
+        } else {
+            pcjBuilder.setEnabled(true).setFluoDetails(new FluoDetails(pcjIndexDBO.getString(PCJ_FLUO_KEY)));
+            final BasicDBList pcjs = (BasicDBList) pcjIndexDBO.get(PCJ_PCJS_KEY);
+            if (pcjs != null) {
+                for (int ii = 0; ii < pcjs.size(); ii++) {
+                    final BasicDBObject pcj = (BasicDBObject) pcjs.get(ii);
+                    pcjBuilder.addPCJDetails(toPCJDetails(pcj));
+                }
             }
         }
         return pcjBuilder;

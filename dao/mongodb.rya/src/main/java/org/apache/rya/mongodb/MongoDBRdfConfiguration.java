@@ -59,18 +59,18 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      *
      * <br>
      * <ul>
-     * <li>"mongo.auths" - String of Mongo authorizations.  Empty auths used by default.
+     * <li>"mongo.auths" - String of Mongo authorizations. Empty auths used by default.
      * <li>"mongo.visibilities" - String of Mongo visibilities assigned to ingested triples.
-     * <li>"mongo.user" - Mongo user.  Empty by default.
-     * <li>"mongo.password" - Mongo password.  Empty by default.
-     * <li>"mongo.host" - Mongo host.  Default host is "localhost"
-     * <li>"mongo.port" - Mongo port.  Default port is "27017".
-     * <li>"mongo.db.name" - Name of MongoDB.  Default name is "rya_triples".
-     * <li>"mongo.collection.prefix" - Mongo collection prefix. Default is "rya_".
-     * <li>"mongo.rya.prefix" - Prefix for Mongo Rya instance.  Same as value of "mongo.collection.prefix".
+     * <li>"mongo.user" - Mongo user. Empty by default.
+     * <li>"mongo.password" - Mongo password. Empty by default.
+     * <li>"mongo.host" - Mongo host. Default host is "localhost"
+     * <li>"mongo.port" - Mongo port. Default port is "27017".
+     * <li>"mongo.db.name" - Name of Mongo DB. The Rya instance name is this. Same as "mongo.collection.prefix" (always?, or by default?)
+     * <li>"mongo.collection.prefix" - Mongo collection prefix. Default is "rya_". Example "rya_triples" for SPO.
+     * <li>"mongo.rya.prefix" - Prefix for Mongo Rya instance. Same as value of "mongo.collection.prefix".
      * <li>"use.mock" - Use a Embedded Mongo instance as back-end for Rya instance. False by default.
-     * <li>"use.display.plan" - Display query plan during evaluation. Useful for debugging.  True by default.
-     * <li>"use.inference" - Use backward chaining inference during query.  False by default.
+     * <li>"use.display.plan" - Display query plan during evaluation. Useful for debugging. True by default.
+     * <li>"use.inference" - Use backward chaining inference during query. False by default.
      * </ul>
      * <br>
      *
@@ -137,8 +137,10 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     }
 
     /**
-     * Sets Mongo Collection name
-     * @param name - name of Mongo Collection to connect to
+     * Sets Mongo Collection name -- same as Rya Instance
+     * 
+     * @param name
+     *            - name of Mongo Collection to connect to
      */
     public void setCollectionName(final String name) {
         Preconditions.checkNotNull(name);

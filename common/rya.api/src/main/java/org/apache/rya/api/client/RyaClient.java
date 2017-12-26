@@ -20,6 +20,8 @@ package org.apache.rya.api.client;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Optional;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import net.jcip.annotations.Immutable;
@@ -32,17 +34,17 @@ import net.jcip.annotations.Immutable;
 public class RyaClient {
     // Administrative functions.
     private final Install install;
-    private final CreatePCJ createPcj;
-    private final DeletePCJ deletePcj;
-    private final CreatePeriodicPCJ createPeriodicPcj;
-    private final DeletePeriodicPCJ deletePeriodicPcj;
-    private final ListIncrementalQueries listIncrementalQueries;
-    private final BatchUpdatePCJ bactchUpdatePCJ;
+    private final Optional<CreatePCJ> createPcj;
+    private final Optional<DeletePCJ> deletePcj;
+    private final Optional<CreatePeriodicPCJ> createPeriodicPcj;
+    private final Optional<DeletePeriodicPCJ> deletePeriodicPcj;
+    private final Optional<ListIncrementalQueries> listIncrementalQueries;
+    private final Optional<BatchUpdatePCJ> bactchUpdatePCJ;
     private final GetInstanceDetails getInstanceDetails;
     private final InstanceExists instanceExists;
     private final ListInstances listInstances;
-    private final AddUser addUser;
-    private final RemoveUser removeUser;
+    private final Optional<AddUser> addUser;
+    private final Optional<RemoveUser> removeUser;
     private final Uninstall uninstall;
     private final LoadStatements loadStatements;
     private final LoadStatementsFile loadStatementsFile;
@@ -53,17 +55,17 @@ public class RyaClient {
      */
     public RyaClient(
             final Install install,
-            final CreatePCJ createPcj,
-            final DeletePCJ deletePcj,
-            final CreatePeriodicPCJ createPeriodicPcj,
-            final DeletePeriodicPCJ deletePeriodicPcj,
-            final ListIncrementalQueries listIncrementalQueries,
-            final BatchUpdatePCJ batchUpdatePcj,
+            final Optional<CreatePCJ> createPcj,
+            final Optional<DeletePCJ> deletePcj,
+            final Optional<CreatePeriodicPCJ> createPeriodicPcj,
+            final Optional<DeletePeriodicPCJ> deletePeriodicPcj,
+            final Optional<ListIncrementalQueries> listIncrementalQueries,
+            final Optional<BatchUpdatePCJ> batchUpdatePcj,
             final GetInstanceDetails getInstanceDetails,
             final InstanceExists instanceExists,
             final ListInstances listInstances,
-            final AddUser addUser,
-            final RemoveUser removeUser,
+            final Optional<AddUser> addUser,
+            final Optional<RemoveUser> removeUser,
             final Uninstall uninstall,
             final LoadStatements loadStatements,
             final LoadStatementsFile loadStatementsFile,
@@ -71,9 +73,9 @@ public class RyaClient {
         this.install = requireNonNull(install);
         this.createPcj = requireNonNull(createPcj);
         this.deletePcj = requireNonNull(deletePcj);
-        this.createPeriodicPcj = createPeriodicPcj;
-        this.deletePeriodicPcj = deletePeriodicPcj;
-        this.listIncrementalQueries = listIncrementalQueries;
+        this.createPeriodicPcj = requireNonNull(createPeriodicPcj);
+        this.deletePeriodicPcj = requireNonNull(deletePeriodicPcj);
+        this.listIncrementalQueries = requireNonNull(listIncrementalQueries);
         this.bactchUpdatePCJ = requireNonNull(batchUpdatePcj);
         this.getInstanceDetails = requireNonNull(getInstanceDetails);
         this.instanceExists = requireNonNull(instanceExists);
@@ -81,9 +83,9 @@ public class RyaClient {
         this.addUser = requireNonNull(addUser);
         this.removeUser = requireNonNull(removeUser);
         this.uninstall = requireNonNull(uninstall);
-        this.loadStatements = requireNonNull(loadStatements);
-        this.loadStatementsFile = requireNonNull(loadStatementsFile);
-        this.executeSparqlQuery = requireNonNull(executeSparqlQuery);
+        this.loadStatements = loadStatements;
+        this.loadStatementsFile = loadStatementsFile;
+        this.executeSparqlQuery = executeSparqlQuery;
     }
 
     /**
@@ -97,7 +99,7 @@ public class RyaClient {
      * @return An instance of {@link CreatePCJ} that is connected to a Rya storage
      *   if the Rya instance supports PCJ indexing.
      */
-    public CreatePCJ getCreatePCJ() {
+    public Optional<CreatePCJ> getCreatePCJ() {
         return createPcj;
     }
 
@@ -105,21 +107,21 @@ public class RyaClient {
      * @return An instance of {@link DeletePCJ} that is connected to a Rya storage
      *   if the Rya instance supports PCJ indexing.
      */
-    public DeletePCJ getDeletePCJ() {
+    public Optional<DeletePCJ> getDeletePCJ() {
         return deletePcj;
     }
 
     /**
      * @return An instance of {@link CreatePeridodicPCJ} that is connected to a Rya Periodic Storage
      */
-    public CreatePeriodicPCJ getCreatePeriodicPCJ() {
+    public Optional<CreatePeriodicPCJ> getCreatePeriodicPCJ() {
         return createPeriodicPcj;
     }
 
     /**
      * @return An instance of {@link DeletePeriodicPCJ} that is connected to a Rya Periodic Storage
      */
-    public DeletePeriodicPCJ getDeletePeriodicPCJ() {
+    public Optional<DeletePeriodicPCJ> getDeletePeriodicPCJ() {
         return deletePeriodicPcj;
     }
 
@@ -127,7 +129,7 @@ public class RyaClient {
      * @return An instance of {@link ListIncrementalQueries} for displaying queries that are incrementallly
      * maintained by the Rya instance
      */
-    public ListIncrementalQueries getListIncrementalQueries() {
+    public Optional<ListIncrementalQueries> getListIncrementalQueries() {
         return listIncrementalQueries;
     }
 
@@ -135,7 +137,7 @@ public class RyaClient {
      * @return An instance of {@link BatchUpdatePCJ} that is connect to a Rya storage
      *   if the Rya instance supports PCJ indexing.
      */
-    public BatchUpdatePCJ getBatchUpdatePCJ() {
+    public Optional<BatchUpdatePCJ> getBatchUpdatePCJ() {
         return bactchUpdatePCJ;
     }
 
@@ -163,14 +165,14 @@ public class RyaClient {
     /**
      * @return An instance of {@link AddUser} that is connected to a Rya storage.
      */
-    public AddUser getAddUser() {
+    public Optional<AddUser> getAddUser() {
         return addUser;
     }
 
     /**
      * @return An instance of {@link DeleteUser} that is connected to a Rya storage.
      */
-    public RemoveUser getRemoveUser() {
+    public Optional<RemoveUser> getRemoveUser() {
         return removeUser;
     }
 

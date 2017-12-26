@@ -18,9 +18,6 @@
  */
 package org.apache.rya.indexing.entity.update.mongo;
 
-import static com.google.common.base.Preconditions.checkState;
-
-import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
@@ -30,8 +27,6 @@ import org.apache.rya.indexing.entity.update.BaseEntityIndexer;
 import org.apache.rya.indexing.entity.update.EntityIndexer;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 
-import com.mongodb.MongoClient;
-
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -40,42 +35,16 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public class MongoEntityIndexer extends BaseEntityIndexer {
-    private MongoClient client;
 
     @Override
-    public EntityStorage getEntityStorage(final Configuration conf) throws EntityStorageException {
-        checkState(conf instanceof StatefulMongoDBRdfConfiguration,
-                "The provided Configuration must be of type StatefulMongoDBRdfConfiguration, but was "  + conf.getClass().getName());
-
-        final StatefulMongoDBRdfConfiguration mongoConf = (StatefulMongoDBRdfConfiguration) conf;
-        if (client == null) {
-            client = mongoConf.getMongoClient();
-        }
-        final String ryaInstanceName = mongoConf.getMongoDBName();
-        return new MongoEntityStorage(client, ryaInstanceName);
+    public EntityStorage getEntityStorage() throws EntityStorageException {
+    	final StatefulMongoDBRdfConfiguration conf = super.configuration.get();
+        return new MongoEntityStorage(conf.getMongoClient(), conf.getRyaInstance());
     }
 
     @Override
-    public TypeStorage getTypeStorage(final Configuration conf) {
-        checkState(conf instanceof StatefulMongoDBRdfConfiguration,
-                "The provided Configuration must be of type StatefulMongoDBRdfConfiguration, but was "  + conf.getClass().getName());
-
-        final StatefulMongoDBRdfConfiguration mongoConf = (StatefulMongoDBRdfConfiguration) conf;
-        if (client == null) {
-            client = mongoConf.getMongoClient();
-        }
-        final String ryaInstanceName = mongoConf.getMongoDBName();
-        return new MongoTypeStorage(client, ryaInstanceName);
-    }
-
-
-    @Override
-    public void init() {
-        //nothing to init.
-    }
-
-    @Override
-    public void setClient(final MongoClient client) {
-        this.client = client;
+    public TypeStorage getTypeStorage() {
+    	final StatefulMongoDBRdfConfiguration conf = super.configuration.get();
+        return new MongoTypeStorage(conf.getMongoClient(), conf.getRyaInstance());
     }
 }

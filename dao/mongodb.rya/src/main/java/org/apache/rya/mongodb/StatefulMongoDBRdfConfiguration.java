@@ -20,6 +20,7 @@ package org.apache.rya.mongodb;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
@@ -43,9 +44,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 public class StatefulMongoDBRdfConfiguration extends MongoDBRdfConfiguration {
 
     private final MongoClient mongoClient;
-    private final List<MongoSecondaryIndex> indexers;
-    // TODO optimizers? They're causing problems because they aren't getting this configuration object
-    //      like the indexers do.
+    private List<MongoSecondaryIndex> indexers;
 
     /**
      * Constructs an instance of {@link StatefulMongoDBRdfConfiguration} pre-loaded with values.
@@ -62,7 +61,27 @@ public class StatefulMongoDBRdfConfiguration extends MongoDBRdfConfiguration {
         this.mongoClient = requireNonNull(mongoClient);
         this.indexers = requireNonNull(indexers);
     }
+    
+    /**
+     * Constructs an instance of {@link StatefulMongoDBRdfConfiguration} pre-loaded with values.
+     *
+     * @param other - The values that will be cloned into the constructed object. (not null)
+     * @param mongoClient - The {@link MongoClient} that Rya will use. (not null)
+     */
+    public StatefulMongoDBRdfConfiguration(
+            final Configuration other,
+            final MongoClient mongoClient) {
+        this(other, mongoClient, new ArrayList<>());
+    }
 
+    /**
+     * TODO doc
+     * @param indexers (not null)
+     */
+    public void setIndexers(final List<MongoSecondaryIndex> indexers) {
+    	this.indexers = requireNonNull(indexers);
+    }
+    
     /**
      * @return The {@link MongoClient} that Rya will use.
      */

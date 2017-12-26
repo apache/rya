@@ -103,7 +103,6 @@ public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfigurati
         secondaryIndexers = conf.getAdditionalIndexers();
         for(final MongoSecondaryIndex index: secondaryIndexers) {
             index.setConf(conf);
-            index.setClient(conf.getMongoClient());
         }
 
         db = mongoClient.getDB(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));

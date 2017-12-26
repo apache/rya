@@ -44,7 +44,7 @@ public class GeoTemporalOptimizer extends AbstractExternalSetOptimizer<EventQuer
         indexer = factory.getIndexer(conf);
 
         //conf here does not matter since EventStorage has already been set in the indexer.
-        provider = new GeoTemporalIndexSetProvider(indexer.getEventStorage(conf));
+        provider = new GeoTemporalIndexSetProvider(indexer.getEventStorage());
     }
 
     @Override

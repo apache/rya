@@ -45,35 +45,35 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
-public class GeoTemporalTestBase {
+public class GeoTemporalTestUtils {
     private static final GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
 
     /**
      * Make an uniform instant with given seconds.
      */
-    protected static TemporalInstant makeInstant(final int secondsMakeMeUnique) {
+    public static TemporalInstant makeInstant(final int secondsMakeMeUnique) {
         return new TemporalInstantRfc3339(2015, 12, 30, 12, 00, secondsMakeMeUnique);
     }
 
-    protected static Polygon poly(final double[] arr) {
+    public static Polygon poly(final double[] arr) {
         final LinearRing r1 = gf.createLinearRing(new PackedCoordinateSequence.Double(arr, 2));
         final Polygon p1 = gf.createPolygon(r1, new LinearRing[] {});
         return p1;
     }
 
-    protected static Point point(final double x, final double y) {
+    public static Point point(final double x, final double y) {
         return gf.createPoint(new Coordinate(x, y));
     }
 
-    protected static LineString line(final double x1, final double y1, final double x2, final double y2) {
+    public static LineString line(final double x1, final double y1, final double x2, final double y2) {
         return new LineString(new PackedCoordinateSequence.Double(new double[] { x1, y1, x2, y2 }, 2), gf);
     }
 
-    protected static double[] bbox(final double x1, final double y1, final double x2, final double y2) {
+    public static double[] bbox(final double x1, final double y1, final double x2, final double y2) {
         return new double[] { x1, y1, x1, y2, x2, y2, x2, y1, x1, y1 };
     }
 
-    protected void assertEqualMongo(final Object expected, final Object actual) throws ComparisonFailure {
+    public static void assertEqualMongo(final Object expected, final Object actual) throws ComparisonFailure {
         try {
             assertEquals(expected, actual);
         } catch(final Throwable e) {
@@ -81,19 +81,19 @@ public class GeoTemporalTestBase {
         }
     }
 
-    public List<FunctionCall> getFilters(final String query) throws Exception {
+    public static List<FunctionCall> getFilters(final String query) throws Exception {
         final FunctionCallCollector collector = new FunctionCallCollector();
         new SPARQLParser().parseQuery(query, null).getTupleExpr().visit(collector);
         return collector.getTupleExpr();
     }
 
-    public List<StatementPattern> getSps(final String query) throws Exception {
+    public static List<StatementPattern> getSps(final String query) throws Exception {
         final StatementPatternCollector collector = new StatementPatternCollector();
         new SPARQLParser().parseQuery(query, null).getTupleExpr().visit(collector);
         return collector.getStatementPatterns();
     }
 
-    public QuerySegment<EventQueryNode> getQueryNode(final String query) throws Exception {
+    public static QuerySegment<EventQueryNode> getQueryNode(final String query) throws Exception {
         final List<QueryModelNode> exprs = getNodes(query);
         final QuerySegment<EventQueryNode> node = Mockito.mock(QuerySegment.class);
         //provider only cares about Ordered nodes.

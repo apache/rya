@@ -2,12 +2,6 @@ package org.apache.rya.rdftriplestore;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.sail.SailConnection;
-import org.openrdf.sail.SailException;
-import org.openrdf.sail.helpers.SailBase;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -37,6 +31,11 @@ import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
 import org.apache.rya.rdftriplestore.provenance.ProvenanceCollector;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.sail.SailConnection;
+import org.openrdf.sail.SailException;
+import org.openrdf.sail.helpers.SailBase;
 
 public class RdfCloudTripleStore extends SailBase {
 
@@ -53,7 +52,7 @@ public class RdfCloudTripleStore extends SailBase {
 
     @Override
     protected SailConnection getConnectionInternal() throws SailException {
-        return new RdfCloudTripleStoreConnection(this, conf.clone(), vf);
+        return new RdfCloudTripleStoreConnection(this, conf, vf);
     }
 
     @Override

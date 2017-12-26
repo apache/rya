@@ -75,10 +75,11 @@ public class EntityIndexOptimizer extends AbstractExternalSetOptimizer<EntityQue
 
         this.conf = conf;
         indexer.setConf(conf);
+        indexer.init();
 
-        typeStorage = indexer.getTypeStorage(conf);
+        typeStorage = indexer.getTypeStorage();
         try {
-            entityStorage = indexer.getEntityStorage(conf);
+            entityStorage = indexer.getEntityStorage();
         } catch (final EntityStorageException e) {
             log.error("Error getting entity storage", e);
         }

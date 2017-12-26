@@ -19,13 +19,11 @@
 package org.apache.rya.indexing.geotemporal;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.indexing.GeoEnabledFilterFunctionOptimizer;
-import org.apache.rya.indexing.GeoIndexer;
-import org.apache.rya.indexing.GeoIndexerType;
-import org.apache.rya.indexing.GeoTemporalIndexerType;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoSecondaryIndex;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Factory for retrieving a {@link GeoTemporalIndexer} based on a provided {@link Configuration}.
@@ -38,17 +36,16 @@ public class GeoTemporalIndexerFactory {
      */
     public GeoTemporalIndexer getIndexer(final Configuration conf) {
         if(ConfigUtils.getUseMongo(conf)) {
-            final MongoDBRdfConfiguration config = new MongoDBRdfConfiguration(conf);
-            for(final MongoSecondaryIndex index : config.getAdditionalIndexers()) {
+        	Preconditions.checkArgument(conf instanceof StatefulMongoDBRdfConfiguration, 
+        			"The configuration provided must be a StatefulMongoDBRdfConfiguration, found: " + conf.getClass().getSimpleName());
+            final StatefulMongoDBRdfConfiguration statefulConf = (StatefulMongoDBRdfConfiguration) conf;
+            for(final MongoSecondaryIndex index : statefulConf.getAdditionalIndexers()) {
                 if(index instanceof GeoTemporalIndexer) {
                     return (GeoTemporalIndexer) index;
                 }
             }
-            /* Created a  MongoGeoTemporalIndexer */
-            final GeoTemporalIndexer index = GeoEnabledFilterFunctionOptimizer.instantiate(GeoTemporalIndexerType.MONGO_GEO_TEMPORAL.getGeoTemporalIndexerClassString(), GeoTemporalIndexer.class);
-            index.setConf(conf);
-            index.init();
-            return index;
+            
+            throw new IllegalStateException("Geo Temporal Indexing is not turned on. Check configuration.");
         } else {
             //TODO: add Accumulo here.
             return null;

@@ -96,8 +96,6 @@ public class RyaSailFactory {
             ConfigUtils.setIndexers(mongoConfig);
 
             // Initialize the indexer and optimizer objects that will be used within the Sail object.
-            final List<MongoSecondaryIndex> indexers = mongoConfig.getInstances(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, MongoSecondaryIndex.class);
-            // TODO Optimizers the same way. They're getting the wrong configuration somehow.
 
             // Populate the configuration using previously stored Rya Details if this instance uses them.
             try {
@@ -108,7 +106,9 @@ public class RyaSailFactory {
             }
 
             // Set the configuration to the stateful configuration that is used to pass the constructed objects around.
-            final StatefulMongoDBRdfConfiguration statefulConfig = new StatefulMongoDBRdfConfiguration(mongoConfig, client, indexers);
+            final StatefulMongoDBRdfConfiguration statefulConfig = new StatefulMongoDBRdfConfiguration(mongoConfig, client);
+            final List<MongoSecondaryIndex> indexers = statefulConfig.getInstances(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, MongoSecondaryIndex.class);
+            statefulConfig.setIndexers(indexers);
             rdfConfig = statefulConfig;
 
             // Create the DAO that is able to interact with MongoDB.

@@ -58,8 +58,8 @@ import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
 import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
 
+import de.flapdoodle.embed.mongo.config.IMongoConfig;
 import info.aduna.iteration.Iterations;
 
 
@@ -295,12 +295,12 @@ public class MongoRyaDirectExample {
             .setUseMockMongo(USE_MOCK).setUseInference(USE_INFER).setAuths("U");
 
         if (USE_MOCK) {
-            final MongoClient c = EmbeddedMongoFactory.newFactory().newMongoClient();
-            final ServerAddress address = c.getAddress();
-            final String url = address.getHost();
-            final String port = Integer.toString(address.getPort());
-            c.close();
-            builder.setMongoHost(url).setMongoPort(port);
+        	final EmbeddedMongoFactory factory = EmbeddedMongoFactory.newFactory();
+            final MongoClient c = factory.newMongoClient();
+            final IMongoConfig connectionConfig = factory.getMongoServerDetails();
+            //c.close();
+            builder.setMongoHost(connectionConfig.net().getServerAddress().getHostAddress())
+            	   .setMongoPort(connectionConfig.net().getPort() + "");
         } else {
             // User name and password must be filled in:
             builder = builder.setMongoUser(MONGO_USER)

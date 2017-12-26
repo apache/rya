@@ -28,7 +28,7 @@ import org.apache.rya.indexing.IndexingFunctionRegistry;
 import org.apache.rya.indexing.IndexingFunctionRegistry.FUNCTION_TYPE;
 import org.apache.rya.indexing.geotemporal.GeoTemporalIndexer.GeoPolicy;
 import org.apache.rya.indexing.geotemporal.GeoTemporalIndexer.TemporalPolicy;
-import org.apache.rya.indexing.geotemporal.GeoTemporalTestBase;
+import org.apache.rya.indexing.geotemporal.GeoTemporalTestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.Resource;
@@ -56,7 +56,7 @@ import com.mongodb.util.JSON;
  * @see TemporalPolicy Temporal Filter Functions
  * @see GeoPolicy Geo Filter Functions
  */
-public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
+public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestUtils {
     private GeoTemporalMongoDBStorageStrategy adapter;
     @Before
     public void setup() {

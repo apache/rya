@@ -1,6 +1,4 @@
-package org.apache.rya.indexing;
-
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,7 +16,7 @@ package org.apache.rya.indexing;
  * specific language governing permissions and limitations
  * under the License.
  */
-
+package org.apache.rya.indexing;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -43,11 +41,10 @@ import org.apache.rya.indexing.accumulo.geo.GeoParseUtils;
 import org.apache.rya.indexing.accumulo.geo.GeoTupleSet;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
 import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
-import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
-import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
+import org.apache.rya.mongodb.MongoSecondaryIndex;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
-import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.model.impl.ValueFactoryImpl;
@@ -103,12 +100,16 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
         if (!init) {
 			if (ConfigUtils.getUseMongo(conf)) {
 				// create a new MongoGeoIndexer() without having it at compile time.
-				geoIndexer = instantiate(GeoIndexerType.MONGO_DB.getGeoIndexerClassString(), GeoIndexer.class);
-				geoIndexer.setConf(conf);
-				freeTextIndexer = new MongoFreeTextIndexer();
-				freeTextIndexer.setConf(conf);
-				temporalIndexer = new MongoTemporalIndexer();
-				temporalIndexer.setConf(conf);
+				StatefulMongoDBRdfConfiguration stateConf = (StatefulMongoDBRdfConfiguration) conf;
+            	for(final MongoSecondaryIndex indexer : stateConf.getAdditionalIndexers()) {
+        			if(indexer instanceof FreeTextIndexer) {
+        				freeTextIndexer = (FreeTextIndexer) indexer;
+        			} else if(indexer instanceof TemporalIndexer) {
+        				temporalIndexer = (TemporalIndexer) indexer;
+        			} else if(indexer instanceof GeoIndexer) {
+        				geoIndexer = (GeoIndexer) indexer;
+        			}
+            	}
 			} else {
 				GeoIndexerType geoIndexerType = OptionalConfigUtils.getGeoIndexerType(conf);
 				if (geoIndexerType == GeoIndexerType.UNSPECIFIED) {

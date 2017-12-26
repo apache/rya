@@ -41,6 +41,7 @@ import org.apache.rya.export.client.merge.VisibilityStatementMerger;
 import org.apache.rya.export.mongo.MongoRyaStatementStore;
 import org.apache.rya.export.mongo.policy.TimestampPolicyMongoRyaStatementStore;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -65,7 +66,9 @@ public class StoreToStoreIT extends ITBase {
 
     private static TimestampPolicyMongoRyaStatementStore getParentMongo() throws Exception {
         final MongoClient mongo = getNewMongoResources(RYA_INSTANCE);
-        final MongoDBRyaDAO dao = new MongoDBRyaDAO(ITBase.getConf(mongo), mongo);
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        dao.setConf(new StatefulMongoDBRdfConfiguration(ITBase.getConf(mongo), mongo, new ArrayList<>()));
+        dao.init();
         final MongoRyaStatementStore store = new MongoRyaStatementStore(mongo, RYA_INSTANCE, dao);
         final TimestampPolicyMongoRyaStatementStore timeStore = new TimestampPolicyMongoRyaStatementStore(store, currentDate, RYA_INSTANCE);
         clients.add(mongo);
@@ -74,7 +77,9 @@ public class StoreToStoreIT extends ITBase {
 
     private static MongoRyaStatementStore getChildMongo() throws Exception {
         final MongoClient mongo = getNewMongoResources(RYA_INSTANCE);
-        final MongoDBRyaDAO dao = new MongoDBRyaDAO(ITBase.getConf(mongo), mongo);
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        dao.setConf(new StatefulMongoDBRdfConfiguration(ITBase.getConf(mongo), mongo, new ArrayList<>()));
+        dao.init();
         final MongoRyaStatementStore store = new MongoRyaStatementStore(mongo, RYA_INSTANCE, dao);
         clients.add(mongo);
         return store;

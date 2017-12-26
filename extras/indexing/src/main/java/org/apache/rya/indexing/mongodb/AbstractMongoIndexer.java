@@ -76,6 +76,7 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     protected void initCore() {
         dbName = conf.getMongoDBName();
+        this.mongoClient = conf.getMongoClient();
         db = this.mongoClient.getDB(dbName);
         final String collectionName = conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + getCollectionName();
         collection = db.getCollection(collectionName);
@@ -92,19 +93,10 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     }
 
     @Override
-    public void setClient(final MongoClient client){
-        this.mongoClient = client;
-    }
-
-    @Override
     public void setConf(final Configuration conf) {
         checkState(conf instanceof StatefulMongoDBRdfConfiguration,
                 "The provided Configuration must be a StatefulMongoDBRdfConfiguration, but it was " + conf.getClass().getName());
         this.conf = (StatefulMongoDBRdfConfiguration) conf;
-        if (!isInit){
-            setClient(this.conf.getMongoClient());
-            init();
-        }
     }
 
     @Override

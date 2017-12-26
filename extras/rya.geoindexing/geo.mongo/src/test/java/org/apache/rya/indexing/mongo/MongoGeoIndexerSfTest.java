@@ -19,6 +19,10 @@ package org.apache.rya.indexing.mongo;
  */
 
 import static org.apache.rya.indexing.GeoIndexingTestUtils.getSet;
+import static org.apache.rya.indexing.geotemporal.GeoTemporalTestUtils.bbox;
+import static org.apache.rya.indexing.geotemporal.GeoTemporalTestUtils.line;
+import static org.apache.rya.indexing.geotemporal.GeoTemporalTestUtils.point;
+import static org.apache.rya.indexing.geotemporal.GeoTemporalTestUtils.poly;
 
 import java.util.Map;
 import java.util.Set;
@@ -29,11 +33,11 @@ import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
 import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.MongoTestBase;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -46,21 +50,16 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.geom.PrecisionModel;
 
 import info.aduna.iteration.CloseableIteration;
 
 /**
  * Tests all of the "simple functions" of the geoindexer.
  */
-public class MongoGeoIndexerSfTest extends MongoITBase {
-    private static GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
-    private static MongoGeoIndexer g;
-
+public class MongoGeoIndexerSfTest extends MongoTestBase {
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
     // Here is the landscape:
@@ -99,19 +98,10 @@ public class MongoGeoIndexerSfTest extends MongoITBase {
         names.put(F, "F");
     }
 
-    @Before
-    public void before() throws Exception {
+    @Override
+	public void updateConfiguration(final MongoDBRdfConfiguration conf) {
         conf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
         conf.set(OptionalConfigUtils.USE_GEO, "true");
-
-        g = new MongoGeoIndexer();
-        g.initIndexer(conf, super.getMongoClient());
-        g.storeStatement(statement(A));
-        g.storeStatement(statement(B));
-        g.storeStatement(statement(C));
-        g.storeStatement(statement(D));
-        g.storeStatement(statement(F));
-        g.storeStatement(statement(E));
     }
 
     private static RyaStatement statement(final Geometry geo) {
@@ -136,18 +126,28 @@ public class MongoGeoIndexerSfTest extends MongoITBase {
 
     @Test
     public void testEquals() throws Exception {
-        // point
-        compare(g.queryEquals(F, EMPTY_CONSTRAINTS), F);
-        compare(g.queryEquals(point(2, 2), EMPTY_CONSTRAINTS), EMPTY_RESULTS);
+    	try(final MongoGeoIndexer g = new MongoGeoIndexer()) {
+    		g.setConf(conf);
+    		g.init();
 
-        // line
-        compare(g.queryEquals(E, EMPTY_CONSTRAINTS), E);
-        compare(g.queryEquals(line(2, 2, 3, 3), EMPTY_CONSTRAINTS), EMPTY_RESULTS);
+    		g.storeStatement(statement(A));
+    		g.storeStatement(statement(B));
+    		g.storeStatement(statement(C));
+    		g.storeStatement(statement(D));
+    		g.storeStatement(statement(F));
+    		g.storeStatement(statement(E));
+    		// point
+    		compare(g.queryEquals(F, EMPTY_CONSTRAINTS), F);
+    		compare(g.queryEquals(point(2, 2), EMPTY_CONSTRAINTS), EMPTY_RESULTS);
 
-        // poly
-        compare(g.queryEquals(A, EMPTY_CONSTRAINTS), A);
-        compare(g.queryEquals(poly(bbox(1, 1, 4, 5)), EMPTY_CONSTRAINTS), EMPTY_RESULTS);
+    		// line
+    		compare(g.queryEquals(E, EMPTY_CONSTRAINTS), E);
+    		compare(g.queryEquals(line(2, 2, 3, 3), EMPTY_CONSTRAINTS), EMPTY_RESULTS);
 
+    		// poly
+    		compare(g.queryEquals(A, EMPTY_CONSTRAINTS), A);
+    		compare(g.queryEquals(poly(bbox(1, 1, 4, 5)), EMPTY_CONSTRAINTS), EMPTY_RESULTS);
+    	}
     }
 
 //    @Test
@@ -163,19 +163,19 @@ public class MongoGeoIndexerSfTest extends MongoITBase {
 //        compare(g.queryDisjoint(B, EMPTY_CONSTRAINTS), C, D, F, E);
 //    }
 
-    @Test
-    public void testIntersectsPoint() throws Exception {
+//    @Test
+//    public void testIntersectsPoint() throws Exception {
         // This seems like a bug
         // compare(g.queryIntersects(F, EMPTY_CONSTRAINTS), A, F);
         // compare(g.queryIntersects(F, EMPTY_CONSTRAINTS), EMPTY_RESULTS);
-    }
-
-    @Test
-    public void testIntersectsLine() throws Exception {
+//    }
+//
+//    @Test
+//    public void testIntersectsLine() throws Exception {
         // This seems like a bug
         // compare(g.queryIntersects(E, EMPTY_CONSTRAINTS), A, E);
         // compare(g.queryIntersects(E, EMPTY_CONSTRAINTS), EMPTY_RESULTS);
-    }
+//    }
 
 //    @Test
 //    public void testIntersectsPoly() throws Exception {
@@ -202,10 +202,10 @@ public class MongoGeoIndexerSfTest extends MongoITBase {
 //        compare(g.queryCrosses(F, EMPTY_CONSTRAINTS), EMPTY_RESULTS);
 //    }
 
-    @Test
-    public void testCrossesLine() throws Exception {
+//    @Test
+//    public void testCrossesLine() throws Exception {
         // compare(g.queryCrosses(E, EMPTY_CONSTRAINTS), A);
-    }
+//    }
 
 //    @Test
 //    public void testCrossesPoly() throws Exception {
@@ -229,30 +229,30 @@ public class MongoGeoIndexerSfTest extends MongoITBase {
 //        compare(g.queryContains(F, EMPTY_CONSTRAINTS), A, F);
 //    }
 
-    @Test
-    public void testContainsLine() throws Exception {
+//    @Test
+//    public void testContainsLine() throws Exception {
         // compare(g.queryContains(E, EMPTY_CONSTRAINTS), E);
-    }
+//    }
 
 //    @Test
 //    public void testContainsPoly() throws Exception {
 //        compare(g.queryContains(A, EMPTY_CONSTRAINTS), A);
 //        compare(g.queryContains(B, EMPTY_CONSTRAINTS), A, B);
 //    }
-
-    @Test
-    public void testOverlapsPoint() throws Exception {
+//
+//    @Test
+//    public void testOverlapsPoint() throws Exception {
         // compare(g.queryOverlaps(F, EMPTY_CONSTRAINTS), F);
         // You cannot have overlapping points
         // compare(g.queryOverlaps(F, EMPTY_CONSTRAINTS), EMPTY_RESULTS);
-    }
+//    }
 
-    @Test
-    public void testOverlapsLine() throws Exception {
+//    @Test
+//    public void testOverlapsLine() throws Exception {
         // compare(g.queryOverlaps(E, EMPTY_CONSTRAINTS), A, E);
         // You cannot have overlapping lines
         // compare(g.queryOverlaps(E, EMPTY_CONSTRAINTS), EMPTY_RESULTS);
-    }
+//    }
 
 //    @Test
 //    public void testOverlapsPoly() throws Exception {

@@ -1,6 +1,4 @@
-package org.apache.rya.indexing.mongo;
-
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,11 +16,12 @@ package org.apache.rya.indexing.mongo;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
+package org.apache.rya.indexing.mongo;
 
 import static org.apache.rya.api.resolver.RdfToRyaConversions.convertStatement;
 import static org.apache.rya.indexing.GeoIndexingTestUtils.getSet;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.Set;
@@ -30,11 +29,10 @@ import java.util.Set;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
 import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
-import org.junit.Assert;
-import org.junit.Before;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.MongoTestBase;
 import org.junit.Test;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -54,21 +52,22 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
-public class MongoGeoIndexerTest extends MongoITBase {
+public class MongoGeoIndexerTest extends MongoTestBase {
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
     GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
 
-    @Before
-    public void before() throws Exception {
+    @Override
+	public void updateConfiguration(final MongoDBRdfConfiguration conf) {
         conf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
         conf.set(OptionalConfigUtils.USE_GEO, "true");
     }
 
     @Test
     public void testRestrictPredicatesSearch() throws Exception {
-        conf.setStrings(ConfigUtils.GEO_PREDICATES_LIST, "pred:1,pred:2");
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, super.getMongoClient());
+        	conf.setStrings(ConfigUtils.GEO_PREDICATES_LIST, "pred:1,pred:2");
+        	f.setConf(conf);
+            f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
 
@@ -98,16 +97,17 @@ public class MongoGeoIndexerTest extends MongoITBase {
             f.flush();
 
             final Set<Statement> actual = getSet(f.queryEquals(point, EMPTY_CONSTRAINTS));
-            Assert.assertEquals(2, actual.size());
-            Assert.assertTrue(actual.contains(s3));
-            Assert.assertTrue(actual.contains(s4));
+            assertEquals(2, actual.size());
+            assertTrue(actual.contains(s3));
+            assertTrue(actual.contains(s4));
         }
     }
 
     @Test
     public void testPrimeMeridianSearch() throws Exception {
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, super.getMongoClient());
+        	f.setConf(conf);
+            f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -131,19 +131,19 @@ public class MongoGeoIndexerTest extends MongoITBase {
             final Polygon p2 = gf.createPolygon(r2, new LinearRing[] {});
             final Polygon p3 = gf.createPolygon(r3, new LinearRing[] {});
 
-            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p1, EMPTY_CONSTRAINTS)));
-            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p2, EMPTY_CONSTRAINTS)));
-            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p3, EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p1, EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p2, EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p3, EMPTY_CONSTRAINTS)));
 
             // Test a ring with a hole in it
             final Polygon p3m2 = gf.createPolygon(r3, new LinearRing[] { r2 });
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(p3m2, EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(), getSet(f.queryWithin(p3m2, EMPTY_CONSTRAINTS)));
 
             // test a ring outside the point
             final double[] OUT = { 3, 3, 1, 3, 1, 1, 3, 1, 3, 3 };
             final LinearRing rOut = gf.createLinearRing(new PackedCoordinateSequence.Double(OUT, 2));
             final Polygon pOut = gf.createPolygon(rOut, new LinearRing[] {});
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(pOut, EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(), getSet(f.queryWithin(pOut, EMPTY_CONSTRAINTS)));
         }
     }
 
@@ -151,7 +151,8 @@ public class MongoGeoIndexerTest extends MongoITBase {
     public void testDcSearch() throws Exception {
         // test a ring around dc
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, super.getMongoClient());
+        	f.setConf(conf);
+            f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -166,13 +167,13 @@ public class MongoGeoIndexerTest extends MongoITBase {
             final double[] IN = { -78, 39, -77, 39, -77, 38, -78, 38, -78, 39 };
             final LinearRing r1 = gf.createLinearRing(new PackedCoordinateSequence.Double(IN, 2));
             final Polygon p1 = gf.createPolygon(r1, new LinearRing[] {});
-            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p1, EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p1, EMPTY_CONSTRAINTS)));
 
             // test a ring outside the point
             final double[] OUT = { -77, 39, -76, 39, -76, 38, -77, 38, -77, 39 };
             final LinearRing rOut = gf.createLinearRing(new PackedCoordinateSequence.Double(OUT, 2));
             final Polygon pOut = gf.createPolygon(rOut, new LinearRing[] {});
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(pOut, EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(), getSet(f.queryWithin(pOut, EMPTY_CONSTRAINTS)));
         }
     }
 
@@ -180,7 +181,8 @@ public class MongoGeoIndexerTest extends MongoITBase {
     public void testDeleteSearch() throws Exception {
         // test a ring around dc
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, super.getMongoClient());
+        	f.setConf(conf);
+            f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -198,20 +200,20 @@ public class MongoGeoIndexerTest extends MongoITBase {
             final double[] in = { -78, 39, -77, 39, -77, 38, -78, 38, -78, 39 };
             final LinearRing r1 = gf.createLinearRing(new PackedCoordinateSequence.Double(in, 2));
             final Polygon p1 = gf.createPolygon(r1, new LinearRing[] {});
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(p1, EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(), getSet(f.queryWithin(p1, EMPTY_CONSTRAINTS)));
 
             // test a ring that the point would be outside of if not deleted
             final double[] out = { -77, 39, -76, 39, -76, 38, -77, 38, -77, 39 };
             final LinearRing rOut = gf.createLinearRing(new PackedCoordinateSequence.Double(out, 2));
             final Polygon pOut = gf.createPolygon(rOut, new LinearRing[] {});
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(pOut, EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(), getSet(f.queryWithin(pOut, EMPTY_CONSTRAINTS)));
 
             // test a ring for the whole world and make sure the point is gone
             // Geomesa is a little sensitive around lon 180, so we only go to 179
             final double[] world = { -180, 90, 179, 90, 179, -90, -180, -90, -180, 90 };
             final LinearRing rWorld = gf.createLinearRing(new PackedCoordinateSequence.Double(world, 2));
             final Polygon pWorld = gf.createPolygon(rWorld, new LinearRing[] {});
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(pWorld, EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(), getSet(f.queryWithin(pWorld, EMPTY_CONSTRAINTS)));
         }
     }
 
@@ -219,7 +221,8 @@ public class MongoGeoIndexerTest extends MongoITBase {
     public void testDcSearchWithContext() throws Exception {
         // test a ring around dc
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, super.getMongoClient());
+        	f.setConf(conf);
+            f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -236,10 +239,10 @@ public class MongoGeoIndexerTest extends MongoITBase {
             final Polygon p1 = gf.createPolygon(r1, new LinearRing[] {});
 
             // query with correct context
-            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p1, new StatementConstraints().setContext(context))));
+            assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p1, new StatementConstraints().setContext(context))));
 
             // query with wrong context
-            Assert.assertEquals(Sets.newHashSet(),
+            assertEquals(Sets.newHashSet(),
                     getSet(f.queryWithin(p1, new StatementConstraints().setContext(vf.createURI("foo:context2")))));
         }
     }
@@ -248,7 +251,8 @@ public class MongoGeoIndexerTest extends MongoITBase {
     public void testDcSearchWithSubject() throws Exception {
         // test a ring around dc
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, super.getMongoClient());
+        	f.setConf(conf);
+            f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -265,10 +269,10 @@ public class MongoGeoIndexerTest extends MongoITBase {
             final Polygon p1 = gf.createPolygon(r1, new LinearRing[] {});
 
             // query with correct subject
-            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p1, new StatementConstraints().setSubject(subject))));
+            assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p1, new StatementConstraints().setSubject(subject))));
 
             // query with wrong subject
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(p1, new StatementConstraints().setSubject(vf.createURI("foo:subj2")))));
+            assertEquals(Sets.newHashSet(), getSet(f.queryWithin(p1, new StatementConstraints().setSubject(vf.createURI("foo:subj2")))));
         }
     }
 
@@ -276,7 +280,8 @@ public class MongoGeoIndexerTest extends MongoITBase {
     public void testDcSearchWithSubjectAndContext() throws Exception {
         // test a ring around dc
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, super.getMongoClient());
+        	f.setConf(conf);
+            f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -293,15 +298,15 @@ public class MongoGeoIndexerTest extends MongoITBase {
             final Polygon p1 = gf.createPolygon(r1, new LinearRing[] {});
 
             // query with correct context subject
-            Assert.assertEquals(Sets.newHashSet(statement),
+            assertEquals(Sets.newHashSet(statement),
                     getSet(f.queryWithin(p1, new StatementConstraints().setContext(context).setSubject(subject))));
 
             // query with wrong context
-            Assert.assertEquals(Sets.newHashSet(),
+            assertEquals(Sets.newHashSet(),
                     getSet(f.queryWithin(p1, new StatementConstraints().setContext(vf.createURI("foo:context2")))));
 
             // query with wrong subject
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(p1, new StatementConstraints().setSubject(vf.createURI("foo:subj2")))));
+            assertEquals(Sets.newHashSet(), getSet(f.queryWithin(p1, new StatementConstraints().setSubject(vf.createURI("foo:subj2")))));
         }
     }
 
@@ -309,7 +314,8 @@ public class MongoGeoIndexerTest extends MongoITBase {
     public void testDcSearchWithPredicate() throws Exception {
         // test a ring around dc
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, super.getMongoClient());
+        	f.setConf(conf);
+            f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -326,11 +332,11 @@ public class MongoGeoIndexerTest extends MongoITBase {
             final Polygon p1 = gf.createPolygon(r1, new LinearRing[] {});
 
             // query with correct Predicate
-            Assert.assertEquals(Sets.newHashSet(statement),
+            assertEquals(Sets.newHashSet(statement),
                     getSet(f.queryWithin(p1, new StatementConstraints().setPredicates(Collections.singleton(predicate)))));
 
             // query with wrong predicate
-            Assert.assertEquals(Sets.newHashSet(),
+            assertEquals(Sets.newHashSet(),
                     getSet(f.queryWithin(p1, new StatementConstraints().setPredicates(Collections.singleton(vf.createURI("other:pred"))))));
         }
     }
@@ -339,7 +345,8 @@ public class MongoGeoIndexerTest extends MongoITBase {
     public void testAntiMeridianSearch() throws Exception {
         // verify that a search works if the bounding box crosses the anti meridian
         try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, super.getMongoClient());
+        	f.setConf(conf);
+            f.init();
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource context = vf.createURI("foo:context");
@@ -364,7 +371,7 @@ public class MongoGeoIndexerTest extends MongoITBase {
 
             final Polygon p1 = gf.createPolygon(r1, new LinearRing[] {});
 
-            Assert.assertEquals(Sets.newHashSet(statementEast, statementWest), getSet(f.queryWithin(p1, EMPTY_CONSTRAINTS)));
+            assertEquals(Sets.newHashSet(statementEast, statementWest), getSet(f.queryWithin(p1, EMPTY_CONSTRAINTS)));
         }
     }
 }

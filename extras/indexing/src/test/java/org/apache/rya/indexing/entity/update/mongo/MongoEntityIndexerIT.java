@@ -33,7 +33,6 @@ import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.mongo.MongoEntityStorage;
 import org.apache.rya.indexing.entity.storage.mongo.MongoTypeStorage;
 import org.apache.rya.mongodb.MongoTestBase;
-import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.XMLSchema;
@@ -46,226 +45,238 @@ import com.google.common.collect.Sets;
  */
 public class MongoEntityIndexerIT extends MongoTestBase {
 
-    private static final String RYA_INSTANCE_NAME = "testDB";
+	private static final Type PERSON_TYPE =
+			new Type(new RyaURI("urn:person"),
+					ImmutableSet.<RyaURI>builder()
+					.add(new RyaURI("urn:name"))
+					.add(new RyaURI("urn:age"))
+					.add(new RyaURI("urn:eye"))
+					.build());
 
-    private static final Type PERSON_TYPE =
-            new Type(new RyaURI("urn:person"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:name"))
-                    .add(new RyaURI("urn:age"))
-                    .add(new RyaURI("urn:eye"))
-                    .build());
+	private static final Type EMPLOYEE_TYPE =
+			new Type(new RyaURI("urn:employee"),
+					ImmutableSet.<RyaURI>builder()
+					.add(new RyaURI("urn:name"))
+					.add(new RyaURI("urn:hoursPerWeek"))
+					.build());
 
-    private static final Type EMPLOYEE_TYPE =
-            new Type(new RyaURI("urn:employee"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:name"))
-                    .add(new RyaURI("urn:hoursPerWeek"))
-                    .build());
+	@Test
+	public void addStatement_setsType() throws Exception {
+		try(MongoEntityIndexer indexer = new MongoEntityIndexer()) {
+			indexer.setConf(conf);
+			indexer.init();
+			// Load a type into the TypeStorage.
+			final TypeStorage types = new MongoTypeStorage(getMongoClient(), conf.getRyaInstance());
+			types.create(PERSON_TYPE);
 
-    private MongoEntityIndexer indexer;
+			// Index a RyaStatement that will create an Entity with an explicit type.
+			final RyaStatement statement = new RyaStatement(new RyaURI("urn:SSN/111-11-1111"), new RyaURI( RDF.TYPE.toString() ), new RyaType(XMLSchema.ANYURI, "urn:person"));
+			indexer.storeStatement(statement);
 
-    @Before
-    public void setup() {
-        indexer = new MongoEntityIndexer();
-        indexer.setClient(getMongoClient());
-        indexer.setConf(conf);
-        indexer.init();
-    }
+			// Fetch the Entity from storage and ensure it looks correct.
+			final EntityStorage entities = new MongoEntityStorage(getMongoClient(), conf.getRyaInstance());
+			final Entity entity = entities.get(new RyaURI("urn:SSN/111-11-1111")).get();
 
-    @Test
-    public void addStatement_setsType() throws Exception {
-        // Load a type into the TypeStorage.
-        final TypeStorage types = new MongoTypeStorage(getMongoClient(), RYA_INSTANCE_NAME);
-        types.create(PERSON_TYPE);
+			final Entity expected = Entity.builder()
+					.setSubject(new RyaURI("urn:SSN/111-11-1111"))
+					.setExplicitType(new RyaURI("urn:person"))
+					.build();
 
-        // Index a RyaStatement that will create an Entity with an explicit type.
-        final RyaStatement statement = new RyaStatement(new RyaURI("urn:SSN/111-11-1111"), new RyaURI( RDF.TYPE.toString() ), new RyaType(XMLSchema.ANYURI, "urn:person"));
-        indexer.storeStatement(statement);
+			assertEquals(expected, entity);
+		}
+	}
 
-        // Fetch the Entity from storage and ensure it looks correct.
-        final EntityStorage entities = new MongoEntityStorage(getMongoClient(), RYA_INSTANCE_NAME);
-        final Entity entity = entities.get(new RyaURI("urn:SSN/111-11-1111")).get();
+	@Test
+	public void addStatement_setsProperty() throws Exception {
+		try(MongoEntityIndexer indexer = new MongoEntityIndexer()) {
+			indexer.setConf(conf);
+			indexer.init();
+			// Load the types into the TypeStorage.
+			final TypeStorage types = new MongoTypeStorage(getMongoClient(), conf.getRyaInstance());
+			types.create(PERSON_TYPE);
+			types.create(EMPLOYEE_TYPE);
 
-        final Entity expected = Entity.builder()
-                .setSubject(new RyaURI("urn:SSN/111-11-1111"))
-                .setExplicitType(new RyaURI("urn:person"))
-                .build();
+			// Index a RyaStatement that will create an Entity with two implicit types.
+			final RyaStatement statement = new RyaStatement(new RyaURI("urn:SSN/111-11-1111"), new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice"));
+			indexer.storeStatement(statement);
 
-        assertEquals(expected, entity);
-    }
+			// Fetch the Entity from storage and ensure it looks correct.
+			final EntityStorage entities = new MongoEntityStorage(getMongoClient(), conf.getRyaInstance());
+			final Entity entity = entities.get(new RyaURI("urn:SSN/111-11-1111")).get();
 
-    @Test
-    public void addStatement_setsProperty() throws Exception {
-        // Load the types into the TypeStorage.
-        final TypeStorage types = new MongoTypeStorage(getMongoClient(), RYA_INSTANCE_NAME);
-        types.create(PERSON_TYPE);
-        types.create(EMPLOYEE_TYPE);
+			final Entity expected = Entity.builder()
+					.setSubject(new RyaURI("urn:SSN/111-11-1111"))
+					.setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
+					.setProperty(new RyaURI("urn:employee"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
+					.build();
 
-        // Index a RyaStatement that will create an Entity with two implicit types.
-        final RyaStatement statement = new RyaStatement(new RyaURI("urn:SSN/111-11-1111"), new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice"));
-        indexer.storeStatement(statement);
+			assertEquals(expected, entity);
+		}
+	}
 
-        // Fetch the Entity from storage and ensure it looks correct.
-        final EntityStorage entities = new MongoEntityStorage(getMongoClient(), RYA_INSTANCE_NAME);
-        final Entity entity = entities.get(new RyaURI("urn:SSN/111-11-1111")).get();
+	@Test
+	public void addStatement_manyUpdates() throws Exception {
+		try(MongoEntityIndexer indexer = new MongoEntityIndexer()) {
+			indexer.setConf(conf);
+			indexer.init();
+			// Load the types into the TypeStorage.
+			final TypeStorage types = new MongoTypeStorage(getMongoClient(), conf.getRyaInstance());
+			types.create(PERSON_TYPE);
+			types.create(EMPLOYEE_TYPE);
 
-        final Entity expected = Entity.builder()
-                .setSubject(new RyaURI("urn:SSN/111-11-1111"))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
-                .setProperty(new RyaURI("urn:employee"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
-                .build();
+			// Index a bunch of RyaStatements.
+			final RyaURI aliceSSN = new RyaURI("urn:SSN/111-11-1111");
+			indexer.storeStatement(new RyaStatement(aliceSSN, new RyaURI( RDF.TYPE.toString() ), new RyaType(XMLSchema.ANYURI, "urn:person")));
+			indexer.storeStatement(new RyaStatement(aliceSSN, new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")));
+			indexer.storeStatement(new RyaStatement(aliceSSN, new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")));
+			indexer.storeStatement(new RyaStatement(aliceSSN, new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")));
 
-        assertEquals(expected, entity);
-    }
+			// Fetch the Entity from storage and ensure it looks correct.
+			final EntityStorage entities = new MongoEntityStorage(getMongoClient(), conf.getRyaInstance());
+			final Entity entity = entities.get(new RyaURI("urn:SSN/111-11-1111")).get();
 
-    @Test
-    public void addStatement_manyUpdates() throws Exception {
-        // Load the types into the TypeStorage.
-        final TypeStorage types = new MongoTypeStorage(getMongoClient(), RYA_INSTANCE_NAME);
-        types.create(PERSON_TYPE);
-        types.create(EMPLOYEE_TYPE);
+			final Entity expected = Entity.builder()
+					.setSubject(aliceSSN)
+					.setExplicitType(new RyaURI("urn:person"))
+					.setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
+					.setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
+					.setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
+					.setProperty(new RyaURI("urn:employee"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
+					.setVersion( entity.getVersion() )
+					.build();
 
-        // Index a bunch of RyaStatements.
-        final RyaURI aliceSSN = new RyaURI("urn:SSN/111-11-1111");
-        indexer.storeStatement(new RyaStatement(aliceSSN, new RyaURI( RDF.TYPE.toString() ), new RyaType(XMLSchema.ANYURI, "urn:person")));
-        indexer.storeStatement(new RyaStatement(aliceSSN, new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")));
-        indexer.storeStatement(new RyaStatement(aliceSSN, new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")));
-        indexer.storeStatement(new RyaStatement(aliceSSN, new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")));
+			assertEquals(expected, entity);
+		}
+	}
 
-        // Fetch the Entity from storage and ensure it looks correct.
-        final EntityStorage entities = new MongoEntityStorage(getMongoClient(), RYA_INSTANCE_NAME);
-        final Entity entity = entities.get(new RyaURI("urn:SSN/111-11-1111")).get();
+	@Test
+	public void addStatements() throws Exception {
+		try(MongoEntityIndexer indexer = new MongoEntityIndexer()) {
+			indexer.setConf(conf);
+			indexer.init();
+			// Load the types into the TypeStorage.
+			final TypeStorage types = new MongoTypeStorage(getMongoClient(), conf.getRyaInstance());
+			types.create(PERSON_TYPE);
+			types.create(EMPLOYEE_TYPE);
 
-        final Entity expected = Entity.builder()
-                .setSubject(aliceSSN)
-                .setExplicitType(new RyaURI("urn:person"))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
-                .setProperty(new RyaURI("urn:employee"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
-                .setVersion( entity.getVersion() )
-                .build();
+			// Index a bunch of RyaStatements.
+			final RyaURI aliceSSN = new RyaURI("urn:SSN/111-11-1111");
+			final RyaURI bobSSN = new RyaURI("urn:SSN/222-22-2222");
 
-        assertEquals(expected, entity);
-    }
+			indexer.storeStatements(Sets.newHashSet(
+					new RyaStatement(aliceSSN, new RyaURI( RDF.TYPE.toString() ), new RyaType(XMLSchema.ANYURI, "urn:person")),
+					new RyaStatement(aliceSSN, new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")),
+					new RyaStatement(aliceSSN, new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")),
+					new RyaStatement(aliceSSN, new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")),
 
-    @Test
-    public void addStatements() throws Exception {
-        // Load the types into the TypeStorage.
-        final TypeStorage types = new MongoTypeStorage(getMongoClient(), RYA_INSTANCE_NAME);
-        types.create(PERSON_TYPE);
-        types.create(EMPLOYEE_TYPE);
+					new RyaStatement(bobSSN, new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Bob")),
+					new RyaStatement(bobSSN, new RyaURI("urn:hoursPerWeek"), new RyaType(XMLSchema.INT, "40")),
+					new RyaStatement(bobSSN, new RyaURI( RDF.TYPE.toString() ), new RyaType(XMLSchema.ANYURI, "urn:employee"))));
 
-        // Index a bunch of RyaStatements.
-        final RyaURI aliceSSN = new RyaURI("urn:SSN/111-11-1111");
-        final RyaURI bobSSN = new RyaURI("urn:SSN/222-22-2222");
+			// Fetch the Entity from storage and ensure it looks correct.
+			final EntityStorage entities = new MongoEntityStorage(getMongoClient(), conf.getRyaInstance());
 
-        indexer.storeStatements(Sets.newHashSet(
-                new RyaStatement(aliceSSN, new RyaURI( RDF.TYPE.toString() ), new RyaType(XMLSchema.ANYURI, "urn:person")),
-                new RyaStatement(aliceSSN, new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")),
-                new RyaStatement(aliceSSN, new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")),
-                new RyaStatement(aliceSSN, new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")),
+			final Entity alice = entities.get(aliceSSN).get();
+			final Entity bob = entities.get(bobSSN).get();
+			final Set<Entity> storedEntities = Sets.newHashSet(alice, bob);
 
-                new RyaStatement(bobSSN, new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Bob")),
-                new RyaStatement(bobSSN, new RyaURI("urn:hoursPerWeek"), new RyaType(XMLSchema.INT, "40")),
-                new RyaStatement(bobSSN, new RyaURI( RDF.TYPE.toString() ), new RyaType(XMLSchema.ANYURI, "urn:employee"))));
+			final Entity expectedAlice = Entity.builder()
+					.setSubject(aliceSSN)
+					.setExplicitType(new RyaURI("urn:person"))
+					.setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
+					.setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
+					.setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
+					.setProperty(new RyaURI("urn:employee"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
+					.setVersion( alice.getVersion() )
+					.build();
+			final Entity expectedBob = Entity.builder()
+					.setSubject(bobSSN)
+					.setExplicitType(new RyaURI("urn:employee"))
+					.setProperty(new RyaURI("urn:employee"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Bob")))
+					.setProperty(new RyaURI("urn:employee"), new Property(new RyaURI("urn:hoursPerWeek"), new RyaType(XMLSchema.INT, "40")))
+					.setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Bob")))
+					.setVersion( bob.getVersion() )
+					.build();
+			final Set<Entity> expected = Sets.newHashSet(expectedAlice, expectedBob);
 
-        // Fetch the Entity from storage and ensure it looks correct.
-        final EntityStorage entities = new MongoEntityStorage(getMongoClient(), RYA_INSTANCE_NAME);
+			assertEquals(expected, storedEntities);
+		}
+	}
 
-        final Entity alice = entities.get(aliceSSN).get();
-        final Entity bob = entities.get(bobSSN).get();
-        final Set<Entity> storedEntities = Sets.newHashSet(alice, bob);
+	@Test
+	public void deleteStatement_deletesType() throws Exception {
+		try(MongoEntityIndexer indexer = new MongoEntityIndexer()) {
+			indexer.setConf(conf);
+			indexer.init();
+			// Load the type into the TypeStorage.
+			final TypeStorage types = new MongoTypeStorage(getMongoClient(), conf.getRyaInstance());
+			types.create(PERSON_TYPE);
+			types.create(EMPLOYEE_TYPE);
 
-        final Entity expectedAlice = Entity.builder()
-                .setSubject(aliceSSN)
-                .setExplicitType(new RyaURI("urn:person"))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
-                .setProperty(new RyaURI("urn:employee"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
-                .setVersion( alice.getVersion() )
-                .build();
-        final Entity expectedBob = Entity.builder()
-                .setSubject(bobSSN)
-                .setExplicitType(new RyaURI("urn:employee"))
-                .setProperty(new RyaURI("urn:employee"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Bob")))
-                .setProperty(new RyaURI("urn:employee"), new Property(new RyaURI("urn:hoursPerWeek"), new RyaType(XMLSchema.INT, "40")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Bob")))
-                .setVersion( bob.getVersion() )
-                .build();
-        final Set<Entity> expected = Sets.newHashSet(expectedAlice, expectedBob);
+			// Index a bunch of RyaStatements.
+			final RyaURI aliceSSN = new RyaURI("urn:SSN/111-11-1111");
 
-        assertEquals(expected, storedEntities);
-    }
+			indexer.storeStatements(Sets.newHashSet(
+					new RyaStatement(aliceSSN, new RyaURI( RDF.TYPE.toString() ), new RyaType(XMLSchema.ANYURI, "urn:person")),
+					new RyaStatement(aliceSSN, new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")),
+					new RyaStatement(aliceSSN, new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")),
+					new RyaStatement(aliceSSN, new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue"))));
 
-    @Test
-    public void deleteStatement_deletesType() throws Exception {
-        // Load the type into the TypeStorage.
-        final TypeStorage types = new MongoTypeStorage(getMongoClient(), RYA_INSTANCE_NAME);
-        types.create(PERSON_TYPE);
-        types.create(EMPLOYEE_TYPE);
+			// Remove the explicit type from Alice.
+			indexer.deleteStatement(new RyaStatement(aliceSSN, new RyaURI( RDF.TYPE.toString() ), new RyaType(XMLSchema.ANYURI, "urn:person")));
 
-        // Index a bunch of RyaStatements.
-        final RyaURI aliceSSN = new RyaURI("urn:SSN/111-11-1111");
+			// Fetch the Entity from storage and ensure it looks correct.
+			final EntityStorage entities = new MongoEntityStorage(getMongoClient(), conf.getRyaInstance());
+			final Entity entity = entities.get(new RyaURI("urn:SSN/111-11-1111")).get();
 
-        indexer.storeStatements(Sets.newHashSet(
-                new RyaStatement(aliceSSN, new RyaURI( RDF.TYPE.toString() ), new RyaType(XMLSchema.ANYURI, "urn:person")),
-                new RyaStatement(aliceSSN, new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")),
-                new RyaStatement(aliceSSN, new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")),
-                new RyaStatement(aliceSSN, new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue"))));
+			final Entity expected = Entity.builder()
+					.setSubject(aliceSSN)
+					.setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
+					.setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
+					.setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
+					.setProperty(new RyaURI("urn:employee"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
+					.setVersion( entity.getVersion() )
+					.build();
 
-        // Remove the explicit type from Alice.
-        indexer.deleteStatement(new RyaStatement(aliceSSN, new RyaURI( RDF.TYPE.toString() ), new RyaType(XMLSchema.ANYURI, "urn:person")));
+			assertEquals(expected, entity);
+		}
+	}
 
-        // Fetch the Entity from storage and ensure it looks correct.
-        final EntityStorage entities = new MongoEntityStorage(getMongoClient(), RYA_INSTANCE_NAME);
-        final Entity entity = entities.get(new RyaURI("urn:SSN/111-11-1111")).get();
+	@Test
+	public void deleteStatement_deletesProperty() throws Exception {
+		try(MongoEntityIndexer indexer = new MongoEntityIndexer()) {
+			indexer.setConf(conf);
+			indexer.init();
+			// Load the type into the TypeStorage.
+			final TypeStorage types = new MongoTypeStorage(getMongoClient(), conf.getRyaInstance());
+			types.create(PERSON_TYPE);
+			types.create(EMPLOYEE_TYPE);
 
-        final Entity expected = Entity.builder()
-                .setSubject(aliceSSN)
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
-                .setProperty(new RyaURI("urn:employee"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
-                .setVersion( entity.getVersion() )
-                .build();
+			// Index a bunch of RyaStatements.
+			final RyaURI aliceSSN = new RyaURI("urn:SSN/111-11-1111");
 
-        assertEquals(expected, entity);
-    }
+			indexer.storeStatements(Sets.newHashSet(
+					new RyaStatement(aliceSSN, new RyaURI( RDF.TYPE.toString() ), new RyaType(XMLSchema.ANYURI, "urn:person")),
+					new RyaStatement(aliceSSN, new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")),
+					new RyaStatement(aliceSSN, new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")),
+					new RyaStatement(aliceSSN, new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue"))));
 
-    @Test
-    public void deleteStatement_deletesProperty() throws Exception {
-        // Load the type into the TypeStorage.
-        final TypeStorage types = new MongoTypeStorage(getMongoClient(), RYA_INSTANCE_NAME);
-        types.create(PERSON_TYPE);
-        types.create(EMPLOYEE_TYPE);
+			// Remove the name property from Alice.
+			indexer.deleteStatement(new RyaStatement(aliceSSN, new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")));
 
-        // Index a bunch of RyaStatements.
-        final RyaURI aliceSSN = new RyaURI("urn:SSN/111-11-1111");
+			// Fetch the Entity from storage and ensure it looks correct.
+			final EntityStorage entities = new MongoEntityStorage(getMongoClient(), conf.getRyaInstance());
+			final Entity entity = entities.get(new RyaURI("urn:SSN/111-11-1111")).get();
 
-        indexer.storeStatements(Sets.newHashSet(
-                new RyaStatement(aliceSSN, new RyaURI( RDF.TYPE.toString() ), new RyaType(XMLSchema.ANYURI, "urn:person")),
-                new RyaStatement(aliceSSN, new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")),
-                new RyaStatement(aliceSSN, new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")),
-                new RyaStatement(aliceSSN, new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue"))));
+			final Entity expected = Entity.builder()
+					.setSubject(aliceSSN)
+					.setExplicitType(new RyaURI("urn:person"))
+					.setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
+					.setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
+					.setVersion( entity.getVersion() )
+					.build();
 
-        // Remove the name property from Alice.
-        indexer.deleteStatement(new RyaStatement(aliceSSN, new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")));
-
-        // Fetch the Entity from storage and ensure it looks correct.
-        final EntityStorage entities = new MongoEntityStorage(getMongoClient(), RYA_INSTANCE_NAME);
-        final Entity entity = entities.get(new RyaURI("urn:SSN/111-11-1111")).get();
-
-        final Entity expected = Entity.builder()
-                .setSubject(aliceSSN)
-                .setExplicitType(new RyaURI("urn:person"))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
-                .setVersion( entity.getVersion() )
-                .build();
-
-        assertEquals(expected, entity);
-    }
+			assertEquals(expected, entity);
+		}
+	}
 }

@@ -36,7 +36,7 @@ import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 
-public class GeoTemporalProviderTest extends GeoTemporalTestBase {
+public class GeoTemporalProviderTest extends GeoTemporalTestUtils {
     private static final String URI_PROPERTY_AT_TIME = "Property:atTime";
     private GeoTemporalIndexSetProvider provider;
     private EventStorage events;

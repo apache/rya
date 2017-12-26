@@ -27,12 +27,10 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.domain.StatementMetadata;
-import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataNode;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
 import org.apache.rya.mongodb.MongoTestBase;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,7 +38,6 @@ import org.openrdf.model.impl.LiteralImpl;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.algebra.evaluation.QueryBindingSet;
@@ -51,307 +48,321 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
 import info.aduna.iteration.CloseableIteration;
 
 public class MongoStatementMetadataNodeTest extends MongoTestBase {
-    private MongoDBRyaDAO dao;
-    private final String query = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotation; ano:Source <http://Joe>; "
-            + "ano:Property <http://worksAt>; ano:Target ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }";
-    private final String query2 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotation; ano:Source ?x; "
-            + "ano:Property <http://worksAt>; ano:Target ?y; <http://createdBy> ?x; <http://createdOn> \'2017-01-04\'^^xsd:date }";
+	private final String query = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotation; ano:Source <http://Joe>; "
+			+ "ano:Property <http://worksAt>; ano:Target ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }";
+	private final String query2 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotation; ano:Source ?x; "
+			+ "ano:Property <http://worksAt>; ano:Target ?y; <http://createdBy> ?x; <http://createdOn> \'2017-01-04\'^^xsd:date }";
 
-    @Before
-    public void init() throws Exception {
-        final Set<RyaURI> propertySet = new HashSet<RyaURI>(Arrays.asList(new RyaURI("http://createdBy"), new RyaURI("http://createdOn")));
-        conf.setUseStatementMetadata(true);
-        conf.setStatementMetadataProperties(propertySet);
-        
-        dao = new MongoDBRyaDAO(conf, super.getMongoClient());
-        dao.init();
-    }
+	@Before
+	public void init() throws Exception {
+		final Set<RyaURI> propertySet = new HashSet<RyaURI>(Arrays.asList(new RyaURI("http://createdBy"), new RyaURI("http://createdOn")));
+		conf.setUseStatementMetadata(true);
+		conf.setStatementMetadataProperties(propertySet);
+	}
 
-    @Test
-    public void simpleQueryWithoutBindingSet()
-            throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
-        StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+	@Test
+	public void simpleQueryWithoutBindingSet() throws Exception {
+		MongoDBRyaDAO dao = new MongoDBRyaDAO();
+		try {
+			dao.setConf(conf);
+			dao.init();
+			StatementMetadata metadata = new StatementMetadata();
+			metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
+			metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-        RyaStatement statement = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
-        dao.add(statement);
+			RyaStatement statement = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
+					new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
+			dao.add(statement);
 
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery pq = parser.parseQuery(query, null);
-        List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
+			SPARQLParser parser = new SPARQLParser();
+			ParsedQuery pq = parser.parseQuery(query, null);
+			List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
 
-        StatementMetadataNode<?> node = new StatementMetadataNode<>(spList, conf);
-        CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(new QueryBindingSet());
+			StatementMetadataNode<?> node = new StatementMetadataNode<>(spList, conf);
+			CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(new QueryBindingSet());
 
-        QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("x", new LiteralImpl("CoffeeShop"));
-        bs.addBinding("y", new LiteralImpl("Joe"));
+			QueryBindingSet bs = new QueryBindingSet();
+			bs.addBinding("x", new LiteralImpl("CoffeeShop"));
+			bs.addBinding("y", new LiteralImpl("Joe"));
 
-        List<BindingSet> bsList = new ArrayList<>();
-        while (iteration.hasNext()) {
-            bsList.add(iteration.next());
-        }
+			List<BindingSet> bsList = new ArrayList<>();
+			while (iteration.hasNext()) {
+				bsList.add(iteration.next());
+			}
 
-        Assert.assertEquals(1, bsList.size());
-        Assert.assertEquals(bs, bsList.get(0));
-        dao.delete(statement, conf);
-    }
+			Assert.assertEquals(1, bsList.size());
+			Assert.assertEquals(bs, bsList.get(0));
+			dao.delete(statement, conf);
+		} finally {
+			dao.destroy();
+		}
+	}
 
-    /**
-     * Tests if results are filtered correctly using the metadata properties. In
-     * this case, the date for the ingested RyaStatement differs from the date
-     * specified in the query.
-     * 
-     * @throws MalformedQueryException
-     * @throws QueryEvaluationException
-     * @throws RyaDAOException
-     */
-    @Test
-    public void simpleQueryWithoutBindingSetInvalidProperty()
-            throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
-        StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Doug"));
-        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-15"));
+	/**
+	 * Tests if results are filtered correctly using the metadata properties. In
+	 * this case, the date for the ingested RyaStatement differs from the date
+	 * specified in the query.
+	 */
+	@Test
+	public void simpleQueryWithoutBindingSetInvalidProperty() throws Exception {
+		MongoDBRyaDAO dao = new MongoDBRyaDAO();
+		try {
+			dao.setConf(conf);
+			dao.init();	
 
-        RyaStatement statement = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
-        dao.add(statement);
+			StatementMetadata metadata = new StatementMetadata();
+			metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Doug"));
+			metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-15"));
 
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery pq = parser.parseQuery(query, null);
-        List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
-        StatementMetadataNode<MongoDBRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
-        CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(new QueryBindingSet());
+			RyaStatement statement = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
+					new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
+			dao.add(statement);
 
-        List<BindingSet> bsList = new ArrayList<>();
-        while (iteration.hasNext()) {
-            bsList.add(iteration.next());
-        }
-        Assert.assertEquals(0, bsList.size());
-        dao.delete(statement, conf);
-    }
+			SPARQLParser parser = new SPARQLParser();
+			ParsedQuery pq = parser.parseQuery(query, null);
+			List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
+			StatementMetadataNode<MongoDBRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
+			CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(new QueryBindingSet());
 
-    @Test
-    public void simpleQueryWithBindingSet() throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
+			List<BindingSet> bsList = new ArrayList<>();
+			while (iteration.hasNext()) {
+				bsList.add(iteration.next());
+			}
+			Assert.assertEquals(0, bsList.size());
+			dao.delete(statement, conf);
+		} finally {
+			dao.destroy();
+		}
+	}
 
-        StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+	@Test
+	public void simpleQueryWithBindingSet() throws Exception {
+		MongoDBRyaDAO dao = new MongoDBRyaDAO();
+		try {
+			dao.setConf(conf);
+			dao.init();
+			StatementMetadata metadata = new StatementMetadata();
+			metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
+			metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
-        RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata);
-        dao.add(statement1);
-        dao.add(statement2);
+			RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
+					new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
+			RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
+					new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata);
+			dao.add(statement1);
+			dao.add(statement2);
 
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery pq = parser.parseQuery(query, null);
-        List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
-        StatementMetadataNode<MongoDBRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
+			SPARQLParser parser = new SPARQLParser();
+			ParsedQuery pq = parser.parseQuery(query, null);
+			List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
+			StatementMetadataNode<MongoDBRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
 
-        QueryBindingSet bsConstraint = new QueryBindingSet();
-        bsConstraint.addBinding("x", new LiteralImpl("CoffeeShop"));
-        bsConstraint.addBinding("z", new LiteralImpl("Virginia"));
+			QueryBindingSet bsConstraint = new QueryBindingSet();
+			bsConstraint.addBinding("x", new LiteralImpl("CoffeeShop"));
+			bsConstraint.addBinding("z", new LiteralImpl("Virginia"));
 
-        CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsConstraint);
+			CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsConstraint);
 
-        QueryBindingSet expected = new QueryBindingSet();
-        expected.addBinding("x", new LiteralImpl("CoffeeShop"));
-        expected.addBinding("y", new LiteralImpl("Joe"));
-        expected.addBinding("z", new LiteralImpl("Virginia"));
+			QueryBindingSet expected = new QueryBindingSet();
+			expected.addBinding("x", new LiteralImpl("CoffeeShop"));
+			expected.addBinding("y", new LiteralImpl("Joe"));
+			expected.addBinding("z", new LiteralImpl("Virginia"));
 
-        List<BindingSet> bsList = new ArrayList<>();
-        while (iteration.hasNext()) {
-            bsList.add(iteration.next());
-        }
+			List<BindingSet> bsList = new ArrayList<>();
+			while (iteration.hasNext()) {
+				bsList.add(iteration.next());
+			}
 
-        Assert.assertEquals(1, bsList.size());
-        Assert.assertEquals(expected, bsList.get(0));
+			Assert.assertEquals(1, bsList.size());
+			Assert.assertEquals(expected, bsList.get(0));
 
-        dao.delete(statement1, conf);
-        dao.delete(statement2, conf);
-    }
+			dao.delete(statement1, conf);
+			dao.delete(statement2, conf);
+		} finally {
+			dao.destroy();
+		}
+	}
 
-    /**
-     * Tests to see if correct result is passed back when a metadata statement
-     * is joined with a StatementPattern statement (i.e. a common variable
-     * appears in a StatementPattern statement and a metadata statement).
-     * StatementPattern statements have either rdf:subject, rdf:predicate, or
-     * rdf:object as the predicate while a metadata statement is any statement
-     * in the reified query whose predicate is not rdf:type and not a
-     * StatementPattern predicate.
-     * 
-     * @throws MalformedQueryException
-     * @throws QueryEvaluationException
-     * @throws RyaDAOException
-     */
-    @Test
-    public void simpleQueryWithBindingSetJoinPropertyToSubject()
-            throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
+	/**
+	 * Tests to see if correct result is passed back when a metadata statement
+	 * is joined with a StatementPattern statement (i.e. a common variable
+	 * appears in a StatementPattern statement and a metadata statement).
+	 * StatementPattern statements have either rdf:subject, rdf:predicate, or
+	 * rdf:object as the predicate while a metadata statement is any statement
+	 * in the reified query whose predicate is not rdf:type and not a
+	 * StatementPattern predicate.
+	 */
+	@Test
+	public void simpleQueryWithBindingSetJoinPropertyToSubject() throws Exception {
+		MongoDBRyaDAO dao = new MongoDBRyaDAO();
+		try {
+			dao.setConf(conf);
+			dao.init();
+			StatementMetadata metadata = new StatementMetadata();
+			metadata.addMetadata(new RyaURI("http://createdBy"), new RyaURI("http://Joe"));
+			metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-        StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaURI("http://Joe"));
-        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+			RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
+					new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
+			RyaStatement statement2 = new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://worksAt"),
+					new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata);
+			dao.add(statement1);
+			dao.add(statement2);
 
-        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
-        RyaStatement statement2 = new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://worksAt"),
-                new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata);
-        dao.add(statement1);
-        dao.add(statement2);
+			SPARQLParser parser = new SPARQLParser();
+			ParsedQuery pq = parser.parseQuery(query2, null);
+			List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
+			StatementMetadataNode<MongoDBRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
 
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery pq = parser.parseQuery(query2, null);
-        List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
-        StatementMetadataNode<MongoDBRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
+			List<BindingSet> bsCollection = new ArrayList<>();
+			QueryBindingSet bsConstraint1 = new QueryBindingSet();
+			bsConstraint1.addBinding("y", new LiteralImpl("CoffeeShop"));
+			bsConstraint1.addBinding("z", new LiteralImpl("Virginia"));
 
-        List<BindingSet> bsCollection = new ArrayList<>();
-        QueryBindingSet bsConstraint1 = new QueryBindingSet();
-        bsConstraint1.addBinding("y", new LiteralImpl("CoffeeShop"));
-        bsConstraint1.addBinding("z", new LiteralImpl("Virginia"));
+			QueryBindingSet bsConstraint2 = new QueryBindingSet();
+			bsConstraint2.addBinding("y", new LiteralImpl("HardwareStore"));
+			bsConstraint2.addBinding("z", new LiteralImpl("Maryland"));
+			bsCollection.add(bsConstraint1);
+			bsCollection.add(bsConstraint2);
 
-        QueryBindingSet bsConstraint2 = new QueryBindingSet();
-        bsConstraint2.addBinding("y", new LiteralImpl("HardwareStore"));
-        bsConstraint2.addBinding("z", new LiteralImpl("Maryland"));
-        bsCollection.add(bsConstraint1);
-        bsCollection.add(bsConstraint2);
+			CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsCollection);
 
-        CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsCollection);
+			QueryBindingSet expected = new QueryBindingSet();
+			expected.addBinding("y", new LiteralImpl("CoffeeShop"));
+			expected.addBinding("x", new URIImpl("http://Joe"));
+			expected.addBinding("z", new LiteralImpl("Virginia"));
 
-        QueryBindingSet expected = new QueryBindingSet();
-        expected.addBinding("y", new LiteralImpl("CoffeeShop"));
-        expected.addBinding("x", new URIImpl("http://Joe"));
-        expected.addBinding("z", new LiteralImpl("Virginia"));
+			List<BindingSet> bsList = new ArrayList<>();
+			while (iteration.hasNext()) {
+				bsList.add(iteration.next());
+			}
 
-        List<BindingSet> bsList = new ArrayList<>();
-        while (iteration.hasNext()) {
-            bsList.add(iteration.next());
-        }
+			Assert.assertEquals(1, bsList.size());
+			Assert.assertEquals(expected, bsList.get(0));
 
-        Assert.assertEquals(1, bsList.size());
-        Assert.assertEquals(expected, bsList.get(0));
+			dao.delete(statement1, conf);
+			dao.delete(statement2, conf);
+		} finally {
+			dao.destroy();
+		}
+	}
 
-        dao.delete(statement1, conf);
-        dao.delete(statement2, conf);
-    }
+	/**
+	 * Tests if the StatementMetadataNode joins BindingSet correctly for
+	 * variables appearing in metadata statements. In this case, the metadata
+	 * statements are (_:blankNode <http://createdOn 2017-01-04 ) and
+	 * (_:blankNode <http://createdBy> ?y). The variable ?y appears as the
+	 * object in the above metadata statement and its values are joined to the
+	 * constraint BindingSets in the example below.
+	 */
+	@Test
+	public void simpleQueryWithBindingSetJoinOnProperty() throws Exception {
+		MongoDBRyaDAO dao = new MongoDBRyaDAO();
+		try {
+			dao.setConf(conf);
+			dao.init();
+			StatementMetadata metadata = new StatementMetadata();
+			metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
+			metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-    /**
-     * Tests if the StatementMetadataNode joins BindingSet correctly for
-     * variables appearing in metadata statements. In this case, the metadata
-     * statements are (_:blankNode <http://createdOn 2017-01-04 ) and
-     * (_:blankNode <http://createdBy> ?y). The variable ?y appears as the
-     * object in the above metadata statement and its values are joined to the
-     * constraint BindingSets in the example below.
-     * 
-     * @throws MalformedQueryException
-     * @throws QueryEvaluationException
-     * @throws RyaDAOException
-     */
-    @Test
-    public void simpleQueryWithBindingSetJoinOnProperty()
-            throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
+			RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
+					new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
+			dao.add(statement1);
 
-        StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+			SPARQLParser parser = new SPARQLParser();
+			ParsedQuery pq = parser.parseQuery(query, null);
+			List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
+			StatementMetadataNode<MongoDBRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
 
-        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
-        dao.add(statement1);
+			QueryBindingSet bsConstraint = new QueryBindingSet();
+			bsConstraint.addBinding("x", new LiteralImpl("CoffeeShop"));
+			bsConstraint.addBinding("y", new LiteralImpl("Doug"));
 
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery pq = parser.parseQuery(query, null);
-        List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
-        StatementMetadataNode<MongoDBRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
+			CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsConstraint);
 
-        QueryBindingSet bsConstraint = new QueryBindingSet();
-        bsConstraint.addBinding("x", new LiteralImpl("CoffeeShop"));
-        bsConstraint.addBinding("y", new LiteralImpl("Doug"));
+			List<BindingSet> bsList = new ArrayList<>();
+			while (iteration.hasNext()) {
+				bsList.add(iteration.next());
+			}
 
-        CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsConstraint);
+			Assert.assertEquals(0, bsList.size());
+			dao.delete(statement1, conf);
+		} finally {
+			dao.destroy();
+		}
+	}
 
-        List<BindingSet> bsList = new ArrayList<>();
-        while (iteration.hasNext()) {
-            bsList.add(iteration.next());
-        }
+	/**
+	 * Tests if StatementMetadataNode joins BindingSet values correctly for
+	 * variables appearing as the object in one of the StatementPattern
+	 * statements (in the case ?x appears as the Object in the statement
+	 * _:blankNode rdf:object ?x). StatementPattern statements have either
+	 * rdf:subject, rdf:predicate, or rdf:object as the predicate.
+	 */
+	@Test
+	public void simpleQueryWithBindingSetCollection() throws Exception {
+		MongoDBRyaDAO dao = new MongoDBRyaDAO();
+		try {
+			dao.setConf(conf);
+			dao.init();
+			StatementMetadata metadata = new StatementMetadata();
+			metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
+			metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-        Assert.assertEquals(0, bsList.size());
-        dao.delete(statement1, conf);
-    }
+			RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
+					new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
+			RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
+					new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata);
+			dao.add(statement1);
+			dao.add(statement2);
 
-    /**
-     * Tests if StatementMetadataNode joins BindingSet values correctly for
-     * variables appearing as the object in one of the StatementPattern
-     * statements (in the case ?x appears as the Object in the statement
-     * _:blankNode rdf:object ?x). StatementPattern statements have either
-     * rdf:subject, rdf:predicate, or rdf:object as the predicate.
-     * 
-     * @throws MalformedQueryException
-     * @throws QueryEvaluationException
-     * @throws RyaDAOException
-     */
-    @Test
-    public void simpleQueryWithBindingSetCollection()
-            throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
+			SPARQLParser parser = new SPARQLParser();
+			ParsedQuery pq = parser.parseQuery(query, null);
+			List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
+			StatementMetadataNode<MongoDBRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
 
-        StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+			List<BindingSet> bsCollection = new ArrayList<>();
+			QueryBindingSet bsConstraint1 = new QueryBindingSet();
+			bsConstraint1.addBinding("x", new LiteralImpl("CoffeeShop"));
+			bsConstraint1.addBinding("z", new LiteralImpl("Virginia"));
 
-        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
-        RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata);
-        dao.add(statement1);
-        dao.add(statement2);
+			QueryBindingSet bsConstraint2 = new QueryBindingSet();
+			bsConstraint2.addBinding("x", new LiteralImpl("HardwareStore"));
+			bsConstraint2.addBinding("z", new LiteralImpl("Maryland"));
 
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery pq = parser.parseQuery(query, null);
-        List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
-        StatementMetadataNode<MongoDBRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
+			QueryBindingSet bsConstraint3 = new QueryBindingSet();
+			bsConstraint3.addBinding("x", new LiteralImpl("BurgerShack"));
+			bsConstraint3.addBinding("z", new LiteralImpl("Delaware"));
+			bsCollection.add(bsConstraint1);
+			bsCollection.add(bsConstraint2);
+			bsCollection.add(bsConstraint3);
 
-        List<BindingSet> bsCollection = new ArrayList<>();
-        QueryBindingSet bsConstraint1 = new QueryBindingSet();
-        bsConstraint1.addBinding("x", new LiteralImpl("CoffeeShop"));
-        bsConstraint1.addBinding("z", new LiteralImpl("Virginia"));
+			CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsCollection);
 
-        QueryBindingSet bsConstraint2 = new QueryBindingSet();
-        bsConstraint2.addBinding("x", new LiteralImpl("HardwareStore"));
-        bsConstraint2.addBinding("z", new LiteralImpl("Maryland"));
+			Set<BindingSet> expected = new HashSet<>();
+			QueryBindingSet expected1 = new QueryBindingSet();
+			expected1.addBinding("x", new LiteralImpl("CoffeeShop"));
+			expected1.addBinding("y", new LiteralImpl("Joe"));
+			expected1.addBinding("z", new LiteralImpl("Virginia"));
 
-        QueryBindingSet bsConstraint3 = new QueryBindingSet();
-        bsConstraint3.addBinding("x", new LiteralImpl("BurgerShack"));
-        bsConstraint3.addBinding("z", new LiteralImpl("Delaware"));
-        bsCollection.add(bsConstraint1);
-        bsCollection.add(bsConstraint2);
-        bsCollection.add(bsConstraint3);
+			QueryBindingSet expected2 = new QueryBindingSet();
+			expected2.addBinding("x", new LiteralImpl("HardwareStore"));
+			expected2.addBinding("y", new LiteralImpl("Joe"));
+			expected2.addBinding("z", new LiteralImpl("Maryland"));
+			expected.add(expected1);
+			expected.add(expected2);
 
-        CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsCollection);
+			Set<BindingSet> bsSet = new HashSet<>();
+			while (iteration.hasNext()) {
+				bsSet.add(iteration.next());
+			}
 
-        Set<BindingSet> expected = new HashSet<>();
-        QueryBindingSet expected1 = new QueryBindingSet();
-        expected1.addBinding("x", new LiteralImpl("CoffeeShop"));
-        expected1.addBinding("y", new LiteralImpl("Joe"));
-        expected1.addBinding("z", new LiteralImpl("Virginia"));
+			Assert.assertEquals(expected, bsSet);
 
-        QueryBindingSet expected2 = new QueryBindingSet();
-        expected2.addBinding("x", new LiteralImpl("HardwareStore"));
-        expected2.addBinding("y", new LiteralImpl("Joe"));
-        expected2.addBinding("z", new LiteralImpl("Maryland"));
-        expected.add(expected1);
-        expected.add(expected2);
-
-        Set<BindingSet> bsSet = new HashSet<>();
-        while (iteration.hasNext()) {
-            bsSet.add(iteration.next());
-        }
-
-        Assert.assertEquals(expected, bsSet);
-
-        dao.delete(statement1, conf);
-        dao.delete(statement2, conf);
-    }
+			dao.delete(statement1, conf);
+			dao.delete(statement2, conf);
+		} finally {
+			dao.destroy();
+		}
+	}
 }

@@ -20,6 +20,7 @@ package org.apache.rya.export.client.merge;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import org.apache.rya.accumulo.AccumuloRyaDAO;
@@ -37,8 +38,8 @@ import org.apache.rya.export.api.store.RyaStatementStore;
 import org.apache.rya.export.client.conf.MergeConfigHadoopAdapter;
 import org.apache.rya.export.mongo.MongoRyaStatementStore;
 import org.apache.rya.export.mongo.policy.TimestampPolicyMongoRyaStatementStore;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 
 import com.mongodb.MongoClient;
 
@@ -121,7 +122,9 @@ public class StatementStoreFactory {
 
     private MongoRyaStatementStore getBaseMongoStore(final String hostname, final int port, final String ryaInstanceName) throws RyaDAOException {
         final MongoClient client = new MongoClient(hostname, port);
-        final MongoDBRyaDAO dao = new MongoDBRyaDAO(new MongoDBRdfConfiguration(MergeConfigHadoopAdapter.getMongoConfiguration(configuration)), client);
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        dao.setConf(new StatefulMongoDBRdfConfiguration(MergeConfigHadoopAdapter.getMongoConfiguration(configuration), client, new ArrayList<>()));
+        dao.init();
         return new MongoRyaStatementStore(client, ryaInstanceName, dao);
     }
 

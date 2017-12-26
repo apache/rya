@@ -18,6 +18,7 @@
  */
 package org.apache.rya.indexing.geotemporal.mongo;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.Objects.requireNonNull;
 
@@ -43,8 +44,7 @@ import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
 import org.apache.rya.indexing.mongodb.IndexingException;
 import org.apache.rya.indexing.mongodb.geo.GmlParser;
-import org.apache.rya.mongodb.MongoConnectorFactory;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.joda.time.DateTime;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -77,12 +77,13 @@ public class MongoGeoTemporalIndexer extends AbstractMongoIndexer<GeoTemporalMon
     private static final Logger LOG = Logger.getLogger(MongoGeoTemporalIndexer.class);
     public static final String GEO_TEMPORAL_COLLECTION = "geo_temporal";
 
-    private final AtomicReference<MongoDBRdfConfiguration> configuration = new AtomicReference<>();
     private final AtomicReference<EventStorage> events = new AtomicReference<>();
 
     @Override
     public void init() {
         initCore();
+        events.set(getEventStorage());
+
         predicates = ConfigUtils.getGeoPredicates(conf);
         predicates.addAll(ConfigUtils.getTemporalPredicates(conf));
         storageStrategy = new GeoTemporalMongoDBStorageStrategy();
@@ -91,10 +92,10 @@ public class MongoGeoTemporalIndexer extends AbstractMongoIndexer<GeoTemporalMon
     @Override
     public void setConf(final Configuration conf) {
         requireNonNull(conf);
-        events.set(null);
-        events.set(getEventStorage(conf));
-        super.conf = conf;
-        configuration.set(new MongoDBRdfConfiguration(conf));
+    	checkArgument(conf instanceof StatefulMongoDBRdfConfiguration, 
+    			"The configuration must be of type StatefulMongoDBRdfConfiguration but you provided: " 
+    		    + conf.getClass().getSimpleName());
+        super.conf = (StatefulMongoDBRdfConfiguration) conf;
     }
 
     @Override
@@ -206,22 +207,14 @@ public class MongoGeoTemporalIndexer extends AbstractMongoIndexer<GeoTemporalMon
     }
 
     @Override
-    public EventStorage getEventStorage(final Configuration conf) {
+    public EventStorage getEventStorage() {
         requireNonNull(conf);
 
         if(events.get() != null) {
             return events.get();
         }
 
-
-        final MongoDBRdfConfiguration mongoConf = new MongoDBRdfConfiguration(conf);
-        mongoClient = mongoConf.getMongoClient();
-        configuration.set(mongoConf);
-        if (mongoClient == null) {
-            mongoClient = MongoConnectorFactory.getMongoClient(conf);
-        }
-        final String ryaInstanceName = mongoConf.getMongoDBName();
-        events.set(new MongoEventStorage(mongoClient, ryaInstanceName));
+        events.set(new MongoEventStorage(conf.getMongoClient(), conf.getRyaInstance()));
         return events.get();
     }
 }

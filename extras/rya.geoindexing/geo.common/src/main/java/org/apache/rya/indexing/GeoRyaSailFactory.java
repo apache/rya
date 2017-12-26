@@ -20,25 +20,17 @@ package org.apache.rya.indexing;
 
 import static java.util.Objects.requireNonNull;
 
-import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.commons.configuration.ConfigurationRuntimeException;
 import org.apache.hadoop.conf.Configuration;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.mongodb.MongoClient;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import org.apache.rya.api.instance.RyaDetailsToConfiguration;
@@ -47,14 +39,24 @@ import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
-import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
+import org.apache.rya.mongodb.MongoSecondaryIndex;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
+import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
+import com.mongodb.MongoException;
+import com.mongodb.ServerAddress;
 
 public class GeoRyaSailFactory {
     private static final Logger LOG = LoggerFactory.getLogger(GeoRyaSailFactory.class);
@@ -84,16 +86,36 @@ public class GeoRyaSailFactory {
         Objects.requireNonNull(ryaInstance, "RyaInstance or table prefix is missing from configuration."+RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
 
         if(ConfigUtils.getUseMongo(config)) {
-            final MongoDBRdfConfiguration mongoConfig = new MongoDBRdfConfiguration(config);
-            rdfConfig = mongoConfig;
-            final MongoClient client = MongoConnectorFactory.getMongoClient(config);
+        	// Get a reference to a Mongo DB configuration object.
+            final MongoDBRdfConfiguration mongoConfig = (config instanceof MongoDBRdfConfiguration) ?
+                    (MongoDBRdfConfiguration)config : new MongoDBRdfConfiguration(config);
+
+            // Create the MongoClient that will be used by the Sail object's components.
+            final MongoClient client = createMongoClient(mongoConfig);
+            
+            // Add the Indexer and Optimizer names to the configuration object that are configured to be used.
+            OptionalConfigUtils.setIndexers(mongoConfig);
+            
+            // Initialize the indexer and optimizer objects that will be used within the Sail object.
+            final List<MongoSecondaryIndex> indexers = mongoConfig.getInstances(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, MongoSecondaryIndex.class);
+
+            // Populate the configuration using previously stored Rya Details if this instance uses them.
             try {
-                final MongoRyaInstanceDetailsRepository ryaDetailsRepo = new MongoRyaInstanceDetailsRepository(client, mongoConfig.getCollectionName());
+                final MongoRyaInstanceDetailsRepository ryaDetailsRepo = new MongoRyaInstanceDetailsRepository(client, mongoConfig.getRyaInstance());
                 RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), mongoConfig);
             } catch (final RyaDetailsRepositoryException e) {
                 LOG.info("Instance does not have a rya details collection, skipping.");
             }
-            dao = getMongoDAO((MongoDBRdfConfiguration)rdfConfig, client);
+
+            // Set the configuration to the stateful configuration that is used to pass the constructed objects around.
+            final StatefulMongoDBRdfConfiguration statefulConfig = new StatefulMongoDBRdfConfiguration(mongoConfig, client, indexers);
+            rdfConfig = statefulConfig;
+
+            // Create the DAO that is able to interact with MongoDB.
+            final MongoDBRyaDAO mongoDao = new MongoDBRyaDAO();
+            mongoDao.setConf(statefulConfig);
+            mongoDao.init();
+            dao = mongoDao;
         } else {
             rdfConfig = new AccumuloRdfConfiguration(config);
             user = rdfConfig.get(ConfigUtils.CLOUDBASE_USER);
@@ -120,20 +142,39 @@ public class GeoRyaSailFactory {
         return store;
     }
 
-    private static MongoDBRyaDAO getMongoDAO(final MongoDBRdfConfiguration config, final MongoClient client) throws RyaDAOException {
-        MongoDBRyaDAO dao = null;
-        OptionalConfigUtils.setIndexers(config);
-        if(client != null) {
-            dao = new MongoDBRyaDAO(config, client);
-        } else {
-            try {
-                dao = new MongoDBRyaDAO(config);
-            } catch (NumberFormatException | UnknownHostException e) {
-                throw new RyaDAOException("Unable to connect to mongo at the configured location.", e);
-            }
+    /**
+     * Create a {@link MongoClient} that is connected to the configured database.
+     *
+     * @param mongoConf - Configures what will be connected to. (not null)
+     * @throws ConfigurationRuntimeException An invalid port was provided by {@code mongoConf}.
+     * @throws MongoException Couldn't connect to the MongoDB database.
+     */
+    private static MongoClient createMongoClient(final MongoDBRdfConfiguration mongoConf) throws ConfigurationRuntimeException, MongoException {
+        requireNonNull(mongoConf);
+        requireNonNull(mongoConf.getMongoHostname());
+        requireNonNull(mongoConf.getMongoPort());
+        requireNonNull(mongoConf.getMongoDBName());
+
+        // Connect to a running MongoDB server.
+        final int port;
+        try {
+            port = Integer.parseInt( mongoConf.getMongoPort() );
+        } catch(final NumberFormatException e) {
+            throw new ConfigurationRuntimeException("Port '" + mongoConf.getMongoPort() + "' must be an integer.");
         }
-        dao.init();
-        return dao;
+
+        final ServerAddress server = new ServerAddress(mongoConf.getMongoHostname(), port);
+
+        // Connect to a specific MongoDB Database if that information is provided.
+        final String username = mongoConf.getMongoUser();
+        final String database = mongoConf.getMongoDBName();
+        final String password = mongoConf.getMongoPassword();
+        if(username != null && password != null) {
+            final MongoCredential cred = MongoCredential.createCredential(username, database, password.toCharArray());
+            return new MongoClient(server, Arrays.asList(cred));
+        } else {
+            return new MongoClient(server);
+        }
     }
 
     private static AccumuloRyaDAO getAccumuloDAO(final AccumuloRdfConfiguration config) throws AccumuloException, AccumuloSecurityException, RyaDAOException {

@@ -20,9 +20,11 @@ package org.apache.rya.api.client.mongo;
 
 import static java.util.Objects.requireNonNull;
 
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import java.util.Optional;
+
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 
 import com.mongodb.MongoClient;
 
@@ -35,26 +37,26 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 @DefaultAnnotation(NonNull.class)
 public class MongoConnectionDetails {
 
-    private final String username;
-    private final char[] userPass;
+    private final Optional<String> username;
+    private final Optional<char[]> userPass;
     private final String hostname;
     private final int port;
 
     /**
      * Constructs an instance of {@link MongoConnectionDetails}.
      *
-     * @param username - The username that was used to establish the connection. (not null)
-     * @param password - The password that was used to establish the connection. (not null)
+     * @param username - The username that was used to establish the connection.
+     * @param password - The password that was used to establish the connection.
      * @param hostname - The hostname of the Mongo DB that was connected to. (not null)
      * @param port - The port of the Mongo DB that was connected to.
      */
     public MongoConnectionDetails( //
-                    final String username, //
-                    final char[] userPass, //
-                    final String hostname, //
-                    final int port) {
-        this.username = requireNonNull(username);
-        this.userPass = requireNonNull(userPass);
+            final String username, //
+            final char[] userPass, //
+            final String hostname, //
+            final int port) {
+        this.username = Optional.ofNullable(username);
+        this.userPass = Optional.ofNullable(userPass);
         this.hostname = requireNonNull(hostname);
         this.port = port;
     }
@@ -98,24 +100,21 @@ public class MongoConnectionDetails {
         return build(ryaInstanceName, null);
     }
 
-    public MongoDBRdfConfiguration build(final String ryaInstanceName, final MongoClient mongoClient) {
+    public StatefulMongoDBRdfConfiguration build(final String ryaInstanceName, final MongoClient mongoClient) {
         // Note, we don't use the MongoDBRdfConfigurationBuilder here because it explicitly sets
         // authorizations and visibilities to an empty string if they are not set on the builder.
         // If they are null in the MongoRdfConfiguration object, it may do the right thing.
         final MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration();
         conf.setBoolean(ConfigUtils.USE_MONGO, true);
-        conf.setMongoInstance(hostname);
+        conf.setMongoHostname(hostname);
         conf.setMongoPort("" + port);
         // conf.setMongoUser(username);
         // conf.setMongoPassword(new String(userPass));
         conf.setMongoDBName(ryaInstanceName);
 
         // Both of these are ways to configure the collection prefixes.
-        conf.setCollectionName("rya");
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya");
-        if (mongoClient != null) {
-            conf.setMongoClient(mongoClient);
-        }
-        return conf;
+        //TODO these should not be explicitly set
+        conf.setTablePrefix("rya");
+        return new StatefulMongoDBRdfConfiguration(conf, mongoClient);
     }
 }

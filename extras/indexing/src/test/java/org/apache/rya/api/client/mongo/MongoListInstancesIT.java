@@ -61,9 +61,9 @@ public class MongoListInstancesIT extends MongoTestBase {
      */
     private MongoConnectionDetails getConnectionDetails() {//
         return new MongoConnectionDetails(
-                        conf.getMongoUser(),
-                        conf.getMongoPassword().toCharArray(),
-                        conf.getMongoInstance(),
-                        Integer.parseInt(conf.getMongoPort()));
+                conf.getMongoUser(),
+                null,//conf.getMongoPassword().toCharArray(),
+                conf.getMongoHostname(),
+                Integer.parseInt(conf.getMongoPort()));
     }
 }

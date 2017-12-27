@@ -38,8 +38,8 @@ import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryExce
 import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,16 +94,16 @@ public class MongoInstall extends MongoCommand implements Install {
         } catch (final AlreadyInitializedException e) {
             // This can only happen if somebody else installs an instance of Rya with the name between the check and now.
             throw new DuplicateInstanceNameException("An instance of Rya has already been installed to this Rya storage "//
-                            + "with the name '" + instanceName//
-                            + "'. Try again with a different name.");
+                    + "with the name '" + instanceName//
+                    + "'. Try again with a different name.");
         } catch (final RyaDetailsRepositoryException e) {
             throw new RyaClientException("The RyaDetails couldn't be initialized. Details: " + e.getMessage(), e);
         }
 
         // Initialize the rest of the tables used by the Rya instance.
-        final MongoDBRdfConfiguration ryaConfig = makeRyaConfig(getMongoConnectionDetails(), details);
+        final StatefulMongoDBRdfConfiguration ryaConfig = makeRyaConfig(getMongoConnectionDetails(), details, getClient());
         try {
-            final MongoDBRyaDAO ryaDao = new MongoDBRyaDAO(ryaConfig, getClient());
+            final MongoDBRyaDAO ryaDao = new MongoDBRyaDAO();
             ryaDao.setConf(ryaConfig);
 
             final TablePrefixLayoutStrategy tls = new TablePrefixLayoutStrategy();
@@ -113,7 +113,7 @@ public class MongoInstall extends MongoCommand implements Install {
             ryaDao.init();
         } catch (final RyaDAOException e) {
             throw new RyaClientException("Could not initialize all of the tables for the new Rya instance. " //
-                            + "This instance may be left in a bad state.", e);
+                    + "This instance may be left in a bad state.", e);
         }
     }
 
@@ -174,11 +174,13 @@ public class MongoInstall extends MongoCommand implements Install {
      *
      * @param connectionDetails - Indicates how to connect to Mongo. (not null)
      * @param ryaDetails - Indicates what needs to be installed. (not null)
+     * @param mongoClient
      * @return A Rya Configuration object that can be used to perform the install.
      */
-    private static MongoDBRdfConfiguration makeRyaConfig(final MongoConnectionDetails connectionDetails, final RyaDetails ryaDetails) {
+    private static StatefulMongoDBRdfConfiguration makeRyaConfig(final MongoConnectionDetails connectionDetails, final RyaDetails ryaDetails, final MongoClient mongoClient) {
         // Start with a configuration that is built using the connection details.
-        final MongoDBRdfConfiguration conf = connectionDetails.build(ryaDetails.getRyaInstanceName());
+
+        final StatefulMongoDBRdfConfiguration conf = connectionDetails.build(ryaDetails.getRyaInstanceName(), mongoClient);
 
         // The Mongo implementation of Rya does not currently support PCJs.
         if(ryaDetails.getPCJIndexDetails().isEnabled()) {

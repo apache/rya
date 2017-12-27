@@ -49,7 +49,7 @@ public class MongoInstallIT extends MongoTestBase {
         final MongoConnectionDetails connectionDetails = getConnectionDetails();
 
         // Check that the instance does not exist.
-        final InstanceExists instanceExists = new MongoInstanceExists(connectionDetails, this.getMongoClient());
+        final InstanceExists instanceExists = new MongoInstanceExists(connectionDetails, getMongoClient());
         assertFalse(instanceExists.exists(ryaInstance));
 
         // Install an instance of Rya with all the valid options turned on.
@@ -71,7 +71,7 @@ public class MongoInstallIT extends MongoTestBase {
         final List<String> expected = Arrays.asList(INSTANCE_DETAILS_COLLECTION_NAME, "rya_triples");
         int count = 0;
         final List<String> found = new ArrayList<>();
-        for (final String collection : this.getMongoClient().getDatabase(conf.getMongoDBName()).listCollectionNames()) {
+        for (final String collection : getMongoClient().getDatabase(conf.getMongoDBName()).listCollectionNames()) {
             count += expected.contains(collection) ? 1 : 0;
             found.add( collection );
         }
@@ -82,12 +82,12 @@ public class MongoInstallIT extends MongoTestBase {
     @Test(expected = DuplicateInstanceNameException.class)
     public void install_alreadyExists() throws DuplicateInstanceNameException, RyaClientException {
         // Install an instance of Rya.
-        final String instanceName = conf.getCollectionName();
+        final String instanceName = conf.getRyaInstanceName();
         final InstallConfiguration installConfig = InstallConfiguration.builder().build();
 
         final MongoConnectionDetails connectionDetails = getConnectionDetails();
 
-        final Install install = new MongoInstall(connectionDetails, this.getMongoClient());
+        final Install install = new MongoInstall(connectionDetails, getMongoClient());
         install.install(instanceName, installConfig);
 
         // Install it again throws expected error.
@@ -96,9 +96,9 @@ public class MongoInstallIT extends MongoTestBase {
 
     private MongoConnectionDetails getConnectionDetails() {
         return new MongoConnectionDetails(
-                        conf.getMongoUser(),
-                        conf.getMongoPassword().toCharArray(),
-                        conf.getMongoInstance(),
-                        Integer.parseInt(conf.getMongoPort()));
+                conf.getMongoUser(),
+                null,//conf.getMongoPassword().toCharArray(),
+                conf.getMongoHostname(),
+                Integer.parseInt(conf.getMongoPort()));
     }
 }

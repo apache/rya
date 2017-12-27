@@ -50,60 +50,60 @@ public class MongoDetailsAdapterTest {
     public void ryaDetailsToMongoTest() {
         // Convert the Details into a Mongo DB OBject.
         final RyaDetails details = RyaDetails.builder()
-            .setRyaInstanceName("test")
-            .setRyaVersion("1")
-            .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
-          //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(true))
-            .setPCJIndexDetails(
-                PCJIndexDetails.builder()
-                .setEnabled(true)
-                .setFluoDetails(new FluoDetails("fluo"))
-                .addPCJDetails(
-                        PCJDetails.builder()
-                        .setId("pcj_0")
-                        .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                        .setLastUpdateTime(new Date(0L)))
-                .addPCJDetails(
-                        PCJDetails.builder()
-                        .setId("pcj_1")
-                        .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                        .setLastUpdateTime(new Date(1L))))
-            .setTemporalIndexDetails(new TemporalIndexDetails(true))
-            .setFreeTextDetails(new FreeTextIndexDetails(true))
-            .setProspectorDetails(new ProspectorDetails(Optional.fromNullable(new Date(0L))))
-            .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.fromNullable(new Date(1L))))
-            .build();
+                .setRyaInstanceName("test")
+                .setRyaVersion("1")
+                .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
+                //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(true))
+                .setPCJIndexDetails(
+                        PCJIndexDetails.builder()
+                        .setEnabled(true)
+                        .setFluoDetails(new FluoDetails("fluo"))
+                        .addPCJDetails(
+                                PCJDetails.builder()
+                                .setId("pcj_0")
+                                .setUpdateStrategy(PCJUpdateStrategy.BATCH)
+                                .setLastUpdateTime(new Date(0L)))
+                        .addPCJDetails(
+                                PCJDetails.builder()
+                                .setId("pcj_1")
+                                .setUpdateStrategy(PCJUpdateStrategy.BATCH)
+                                .setLastUpdateTime(new Date(1L))))
+                .setTemporalIndexDetails(new TemporalIndexDetails(true))
+                .setFreeTextDetails(new FreeTextIndexDetails(true))
+                .setProspectorDetails(new ProspectorDetails(Optional.fromNullable(new Date(0L))))
+                .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.fromNullable(new Date(1L))))
+                .build();
 
         final BasicDBObject actual = MongoDetailsAdapter.toDBObject(details);
 
         // Ensure it matches the expected object.
         final DBObject expected = (DBObject) JSON.parse(
-            "{ "
-            + "instanceName : \"test\","
-            + "version : \"1\","
-            + "entityCentricDetails : true,"
-          //RYA-215            + "geoDetails : true,"
-            + "pcjDetails : {"
-            +    "enabled : true ,"
-            +    "fluoName : \"fluo\","
-            +    "pcjs : [ "
-            +       "{"
-            +          "id : \"pcj_0\","
-            +          "updateStrategy : \"BATCH\","
-            +          "lastUpdate : { $date : \"1970-01-01T00:00:00.000Z\"}"
-            +       "},"
-            +       "{"
-            +          "id : \"pcj_1\","
-            +          "updateStrategy : \"BATCH\","
-            +          "lastUpdate : { $date : \"1970-01-01T00:00:00.001Z\"}"
-            +       "}]"
-            + "},"
-            + "temporalDetails : true,"
-            + "freeTextDetails : true,"
-            + "prospectorDetails : { $date : \"1970-01-01T00:00:00.000Z\"},"
-            + "joinSelectivitiyDetails : { $date : \"1970-01-01T00:00:00.001Z\"}"
-          + "}"
-        );
+                "{ "
+                        + "instanceName : \"test\","
+                        + "version : \"1\","
+                        + "entityCentricDetails : true,"
+                        //RYA-215            + "geoDetails : true,"
+                        + "pcjDetails : {"
+                        +    "enabled : true ,"
+                        +    "fluoName : \"fluo\","
+                        +    "pcjs : [ "
+                        +       "{"
+                        +          "id : \"pcj_0\","
+                        +          "updateStrategy : \"BATCH\","
+                        +          "lastUpdate : { $date : \"1970-01-01T00:00:00.000Z\"}"
+                        +       "},"
+                        +       "{"
+                        +          "id : \"pcj_1\","
+                        +          "updateStrategy : \"BATCH\","
+                        +          "lastUpdate : { $date : \"1970-01-01T00:00:00.001Z\"}"
+                        +       "}]"
+                        + "},"
+                        + "temporalDetails : true,"
+                        + "freeTextDetails : true,"
+                        + "prospectorDetails : { $date : \"1970-01-01T00:00:00.000Z\"},"
+                        + "joinSelectivitiyDetails : { $date : \"1970-01-01T00:00:00.001Z\"}"
+                        + "}"
+                );
 
         assertEquals(expected.toString(), actual.toString());
     }
@@ -112,60 +112,60 @@ public class MongoDetailsAdapterTest {
     public void mongoToRyaDetailsTest() throws MalformedRyaDetailsException {
         // Convert the Mongo object into a RyaDetails.
         final BasicDBObject mongo = (BasicDBObject) JSON.parse(
-            "{ "
-            + "instanceName : \"test\","
-            + "version : \"1\","
-            + "entityCentricDetails : true,"
-          //RYA-215            + "geoDetails : true,"
-            + "pcjDetails : {"
-            +    "enabled : true ,"
-            +    "fluoName : \"fluo\","
-            +    "pcjs : [ "
-            +       "{"
-            +          "id : \"pcj_0\","
-            +          "updateStrategy : \"BATCH\","
-            +          "lastUpdate : { $date : \"1970-01-01T00:00:00.000Z\"}"
-            +       "},"
-            +       "{"
-            +          "id : \"pcj_1\","
-            +          "updateStrategy : \"BATCH\","
-            +          "lastUpdate : { $date : \"1970-01-01T00:00:00.001Z\"}"
-            +       "}]"
-            + "},"
-            + "temporalDetails : true,"
-            + "freeTextDetails : true,"
-            + "prospectorDetails : { $date : \"1970-01-01T00:00:00.000Z\"},"
-            + "joinSelectivitiyDetails : { $date : \"1970-01-01T00:00:00.001Z\"}"
-          + "}"
-        );
+                "{ "
+                        + "instanceName : \"test\","
+                        + "version : \"1\","
+                        + "entityCentricDetails : true,"
+                        //RYA-215            + "geoDetails : true,"
+                        + "pcjDetails : {"
+                        +    "enabled : true ,"
+                        +    "fluoName : \"fluo\","
+                        +    "pcjs : [ "
+                        +       "{"
+                        +          "id : \"pcj_0\","
+                        +          "updateStrategy : \"BATCH\","
+                        +          "lastUpdate : { $date : \"1970-01-01T00:00:00.000Z\"}"
+                        +       "},"
+                        +       "{"
+                        +          "id : \"pcj_1\","
+                        +          "updateStrategy : \"BATCH\","
+                        +          "lastUpdate : { $date : \"1970-01-01T00:00:00.001Z\"}"
+                        +       "}]"
+                        + "},"
+                        + "temporalDetails : true,"
+                        + "freeTextDetails : true,"
+                        + "prospectorDetails : { $date : \"1970-01-01T00:00:00.000Z\"},"
+                        + "joinSelectivitiyDetails : { $date : \"1970-01-01T00:00:00.001Z\"}"
+                        + "}"
+                );
 
         final RyaDetails actual = MongoDetailsAdapter.toRyaDetails(mongo);
 
         // Ensure it matches the expected object.
         final RyaDetails expected = RyaDetails.builder()
-            .setRyaInstanceName("test")
-            .setRyaVersion("1")
-            .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
-          //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(true))
-            .setPCJIndexDetails(
-                PCJIndexDetails.builder()
-                    .setEnabled(true)
-                    .setFluoDetails(new FluoDetails("fluo"))
-                    .addPCJDetails(
-                        PCJDetails.builder()
-                            .setId("pcj_0")
-                            .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                            .setLastUpdateTime(new Date(0L)))
-                    .addPCJDetails(
-                            PCJDetails.builder()
+                .setRyaInstanceName("test")
+                .setRyaVersion("1")
+                .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
+                //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(true))
+                .setPCJIndexDetails(
+                        PCJIndexDetails.builder()
+                        .setEnabled(true)
+                        .setFluoDetails(new FluoDetails("fluo"))
+                        .addPCJDetails(
+                                PCJDetails.builder()
+                                .setId("pcj_0")
+                                .setUpdateStrategy(PCJUpdateStrategy.BATCH)
+                                .setLastUpdateTime(new Date(0L)))
+                        .addPCJDetails(
+                                PCJDetails.builder()
                                 .setId("pcj_1")
                                 .setUpdateStrategy(PCJUpdateStrategy.BATCH)
                                 .setLastUpdateTime(new Date(1L))))
-            .setTemporalIndexDetails(new TemporalIndexDetails(true))
-            .setFreeTextDetails(new FreeTextIndexDetails(true))
-            .setProspectorDetails(new ProspectorDetails(Optional.<Date>fromNullable(new Date(0L))))
-            .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>fromNullable(new Date(1L))))
-            .build();
+                .setTemporalIndexDetails(new TemporalIndexDetails(true))
+                .setFreeTextDetails(new FreeTextIndexDetails(true))
+                .setProspectorDetails(new ProspectorDetails(Optional.<Date>fromNullable(new Date(0L))))
+                .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>fromNullable(new Date(1L))))
+                .build();
 
         assertEquals(expected, actual);
     }
@@ -175,46 +175,40 @@ public class MongoDetailsAdapterTest {
         // Convert the Mongo object into a RyaDetails.
         final BasicDBObject mongo = (BasicDBObject) JSON.parse(
                 "{ "
-                + "instanceName : \"test\","
-                + "version : \"1\","
-                + "entityCentricDetails : true,"
-              //RYA-215                + "geoDetails : false,"
-                + "pcjDetails : {"
-                +    "enabled : false,"
-                +    "fluoName : \"fluo\","
-                +    "pcjs : [ "
-                +       "{"
-                +          "id : \"pcj_1\","
-                +       "}"
-                +    "]"
-                + "},"
-                + "temporalDetails : false,"
-                + "freeTextDetails : true,"
-                + "prospectorDetails : null,"
-                + "joinSelectivitiyDetails : null"
-              + "}"
-            );
+                        + "instanceName : \"test\","
+                        + "version : \"1\","
+                        + "entityCentricDetails : true,"
+                        //RYA-215                + "geoDetails : false,"
+                        + "pcjDetails : {"
+                        +    "enabled : false,"
+                        +    "pcjs : [ "
+                        +       "{"
+                        +          "id : \"pcj_1\","
+                        +       "}"
+                        +    "]"
+                        + "},"
+                        + "temporalDetails : false,"
+                        + "freeTextDetails : true,"
+                        + "prospectorDetails : null,"
+                        + "joinSelectivitiyDetails : null"
+                        + "}"
+                );
         final RyaDetails actual = MongoDetailsAdapter.toRyaDetails(mongo);
 
         // Ensure it matches the expected object.
         final RyaDetails expected = RyaDetails.builder()
-            .setRyaInstanceName("test")
-            .setRyaVersion("1")
-            .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
-          //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(false))
-            .setPCJIndexDetails(
-                    PCJIndexDetails.builder()
-                    .setEnabled(false)
-                    .setFluoDetails(new FluoDetails("fluo"))
-                    .addPCJDetails(
-                        PCJDetails.builder()
-                            .setId("pcj_1")
-                            .setLastUpdateTime(null)))
-            .setTemporalIndexDetails(new TemporalIndexDetails(false))
-            .setFreeTextDetails(new FreeTextIndexDetails(true))
-            .setProspectorDetails(new ProspectorDetails(Optional.<Date>absent()))
-            .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>absent()))
-            .build();
+                .setRyaInstanceName("test")
+                .setRyaVersion("1")
+                .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
+                //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(false))
+                .setPCJIndexDetails(
+                        PCJIndexDetails.builder()
+                        .setEnabled(false))
+                .setTemporalIndexDetails(new TemporalIndexDetails(false))
+                .setFreeTextDetails(new FreeTextIndexDetails(true))
+                .setProspectorDetails(new ProspectorDetails(Optional.<Date>absent()))
+                .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>absent()))
+                .build();
 
         assertEquals(expected, actual);
     }
@@ -223,38 +217,38 @@ public class MongoDetailsAdapterTest {
     public void absentOptionalToMongoTest() {
         // Convert the Details into a Mongo DB OBject.
         final RyaDetails details = RyaDetails.builder()
-            .setRyaInstanceName("test")
-            .setRyaVersion("1")
-            .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
-          //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(false))
-            .setPCJIndexDetails(
-                PCJIndexDetails.builder()
-                    .setEnabled(true)
-                    .setFluoDetails(new FluoDetails("fluo")))
-            .setTemporalIndexDetails(new TemporalIndexDetails(false))
-            .setFreeTextDetails(new FreeTextIndexDetails(true))
-            .setProspectorDetails(new ProspectorDetails(Optional.<Date>absent()))
-            .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>absent()))
-            .build();
+                .setRyaInstanceName("test")
+                .setRyaVersion("1")
+                .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
+                //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(false))
+                .setPCJIndexDetails(
+                        PCJIndexDetails.builder()
+                        .setEnabled(true)
+                        .setFluoDetails(new FluoDetails("fluo")))
+                .setTemporalIndexDetails(new TemporalIndexDetails(false))
+                .setFreeTextDetails(new FreeTextIndexDetails(true))
+                .setProspectorDetails(new ProspectorDetails(Optional.<Date>absent()))
+                .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>absent()))
+                .build();
 
         final DBObject actual = MongoDetailsAdapter.toDBObject(details);
 
         // Ensure it matches the expected object.
         final BasicDBObject expected = (BasicDBObject) JSON.parse(
                 "{ "
-                + "instanceName : \"test\","
-                + "version : \"1\","
-                + "entityCentricDetails : true,"
-              //RYA-215                + "geoDetails : false,"
-                + "pcjDetails : {"
-                +    "enabled : true,"
-                +    "fluoName : \"fluo\","
-                +    "pcjs : [ ]"
-                + "},"
-                + "temporalDetails : false,"
-                + "freeTextDetails : true"
-              + "}"
-            );
+                        + "instanceName : \"test\","
+                        + "version : \"1\","
+                        + "entityCentricDetails : true,"
+                        //RYA-215                + "geoDetails : false,"
+                        + "pcjDetails : {"
+                        +    "enabled : true,"
+                        +    "fluoName : \"fluo\","
+                        +    "pcjs : [ ]"
+                        + "},"
+                        + "temporalDetails : false,"
+                        + "freeTextDetails : true"
+                        + "}"
+                );
         assertEquals(expected, actual);
     }
 

@@ -59,11 +59,11 @@ public class MongoGetInstanceDetailsIT extends MongoTestBase {
                 .setEnablePcjIndex(true)
                 .build();
 
-        final Install install = new MongoInstall(getConnectionDetails(), this.getMongoClient());
+        final Install install = new MongoInstall(getConnectionDetails(), getMongoClient());
         install.install(instanceName, installConfig);
 
         // Verify the correct details were persisted.
-        final GetInstanceDetails getInstanceDetails = new MongoGetInstanceDetails(getConnectionDetails(), this.getMongoClient());
+        final GetInstanceDetails getInstanceDetails = new MongoGetInstanceDetails(getConnectionDetails(), getMongoClient());
         final Optional<RyaDetails> details = getInstanceDetails.getDetails(instanceName);
 
         final RyaDetails expectedDetails = RyaDetails.builder()
@@ -82,7 +82,7 @@ public class MongoGetInstanceDetailsIT extends MongoTestBase {
                 // PCJJ Index is not supported, so it flips to false.
                 .setPCJIndexDetails(
                         PCJIndexDetails.builder()
-                            .setEnabled(false))
+                        .setEnabled(false))
 
                 .setProspectorDetails( new ProspectorDetails(Optional.<Date>absent()) )
                 .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.<Date>absent()) )
@@ -102,10 +102,10 @@ public class MongoGetInstanceDetailsIT extends MongoTestBase {
         // Mimic a pre-details rya install.
         final String instanceName = "instance_name";
 
-        this.getMongoClient().getDatabase(instanceName).createCollection("rya_triples");
+        getMongoClient().getDatabase(instanceName).createCollection("rya_triples");
 
         // Verify that the operation returns empty.
-        final GetInstanceDetails getInstanceDetails = new MongoGetInstanceDetails(getConnectionDetails(), this.getMongoClient());
+        final GetInstanceDetails getInstanceDetails = new MongoGetInstanceDetails(getConnectionDetails(), getMongoClient());
         final Optional<RyaDetails> details = getInstanceDetails.getDetails(instanceName);
         assertFalse( details.isPresent() );
     }
@@ -114,9 +114,9 @@ public class MongoGetInstanceDetailsIT extends MongoTestBase {
      * @return copy from conf to MongoConnectionDetails
      */
     private MongoConnectionDetails getConnectionDetails() {
-        return new MongoConnectionDetails(conf.getMongoUser(), 
-                        conf.getMongoPassword().toCharArray(), 
-                        conf.getMongoInstance(), 
-                        Integer.parseInt(conf.getMongoPort()));
+        return new MongoConnectionDetails(conf.getMongoUser(),
+                null,//conf.getMongoPassword().toCharArray(),
+                conf.getMongoHostname(),
+                Integer.parseInt(conf.getMongoPort()));
     }
 }

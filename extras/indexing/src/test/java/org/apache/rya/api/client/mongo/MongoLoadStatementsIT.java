@@ -52,7 +52,7 @@ public class MongoLoadStatementsIT extends MongoTestBase {
 
     /**
      * Pass a list of statements to our loadStatement class.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -63,9 +63,9 @@ public class MongoLoadStatementsIT extends MongoTestBase {
         final MongoCursor<Document> triplesIterator = getRyaCollection().find().iterator();
         final ValueFactory vf = new ValueFactoryImpl();
         while (triplesIterator.hasNext()) {
-            Document triple = triplesIterator.next();
+            final Document triple = triplesIterator.next();
             stmtResults.add(vf.createStatement(vf.createURI(triple.getString("subject")), vf.createURI(triple.getString(
-                            "predicate")), vf.createURI(triple.getString("object"))));
+                    "predicate")), vf.createURI(triple.getString("object"))));
         }
         stmtResults.sort(((stmt1, stmt2) -> stmt1.getSubject().toString().compareTo(stmt2.getSubject().toString())));
         assertEquals("Expect all rows to be read.", 3, getRyaCollection().count());
@@ -75,48 +75,48 @@ public class MongoLoadStatementsIT extends MongoTestBase {
     /**
      * @return some data to load
      */
-    private static List<Statement> makeTestStatements() {
+    private List<Statement> makeTestStatements() {
         final List<Statement> loadMe = new ArrayList<>();
         final ValueFactory vf = new ValueFactoryImpl();
 
         loadMe.add(vf.createStatement(vf.createURI("http://example#alice"), vf.createURI("http://example#talksTo"), vf
-                        .createURI("http://example#bob")));
+                .createURI("http://example#bob")));
         loadMe.add(vf.createStatement(vf.createURI("http://example#bob"), vf.createURI("http://example#talksTo"), vf
-                        .createURI("http://example#charlie")));
+                .createURI("http://example#charlie")));
         loadMe.add(vf.createStatement(vf.createURI("http://example#charlie"), vf.createURI("http://example#likes"), vf
-                        .createURI("http://example#icecream")));
+                .createURI("http://example#icecream")));
         return loadMe;
     }
 
-    public static List<Statement> installAndLoad() throws DuplicateInstanceNameException, RyaClientException {
+    private List<Statement> installAndLoad() throws DuplicateInstanceNameException, RyaClientException {
         // first install rya
         final InstallConfiguration installConfig = InstallConfiguration.builder()
-                        .setEnableTableHashPrefix(false)
-                        .setEnableEntityCentricIndex(false)
-                        .setEnableFreeTextIndex(false)
-                        .setEnableTemporalIndex(false)
-                        .setEnablePcjIndex(false)
-                        .setEnableGeoIndex(false)
-                        .build();
-        MongoConnectionDetails connectionDetails = getConnectionDetails();
+                .setEnableTableHashPrefix(false)
+                .setEnableEntityCentricIndex(false)
+                .setEnableFreeTextIndex(false)
+                .setEnableTemporalIndex(false)
+                .setEnablePcjIndex(false)
+                .setEnableGeoIndex(false)
+                .build();
+        final MongoConnectionDetails connectionDetails = getConnectionDetails();
         final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, conf.getMongoClient());
         final Install install = ryaClient.getInstall();
         install.install(conf.getMongoDBName(), installConfig);
         // next, load data
         final List<Statement> loadMe = makeTestStatements();
         ryaClient.getLoadStatements().loadStatements(
-                        conf.getMongoDBName(),
-                        loadMe);
+                conf.getMongoDBName(),
+                loadMe);
         return loadMe;
     }
     /**
      * @return copy from conf to MongoConnectionDetails
      */
-    private static MongoConnectionDetails getConnectionDetails() {
+    private MongoConnectionDetails getConnectionDetails() {
         return new MongoConnectionDetails(
-                        conf.getMongoUser(),
-                        conf.getMongoPassword().toCharArray(),
-                        conf.getMongoInstance(),
-                        Integer.parseInt(conf.getMongoPort()));
+                conf.getMongoUser(),
+                null,//conf.getMongoPassword().toCharArray(),
+                conf.getMongoHostname(),
+                Integer.parseInt(conf.getMongoPort()));
     }
 }

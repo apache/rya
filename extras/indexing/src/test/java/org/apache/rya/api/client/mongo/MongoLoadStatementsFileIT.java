@@ -53,23 +53,23 @@ public class MongoLoadStatementsFileIT extends MongoTestBase {
     public void loadTurtleFile() throws Exception {
         // Install an instance of Rya.
         final InstallConfiguration installConfig = InstallConfiguration.builder()
-                        .setEnableTableHashPrefix(false)
-                        .setEnableEntityCentricIndex(false)
-                        .setEnableFreeTextIndex(false)
-                        .setEnableTemporalIndex(false)
-                        .setEnablePcjIndex(false)
-                        .setEnableGeoIndex(false)
-                        .build();
-        MongoConnectionDetails connectionDetails = getConnectionDetails();
+                .setEnableTableHashPrefix(false)
+                .setEnableEntityCentricIndex(false)
+                .setEnableFreeTextIndex(false)
+                .setEnableTemporalIndex(false)
+                .setEnablePcjIndex(false)
+                .setEnableGeoIndex(false)
+                .build();
+        final MongoConnectionDetails connectionDetails = getConnectionDetails();
         final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, conf.getMongoClient());
         final Install install = ryaClient.getInstall();
         install.install(conf.getMongoDBName(), installConfig);
 
         // Load the test statement file.
         ryaClient.getLoadStatementsFile().loadStatements(
-                        conf.getMongoDBName(),
-                        Paths.get("src/test/resources/example.ttl"),
-                        RDFFormat.TURTLE);
+                conf.getMongoDBName(),
+                Paths.get("src/test/resources/example.ttl"),
+                RDFFormat.TURTLE);
 
         // Verify that the statements were loaded.
         final ValueFactory vf = new ValueFactoryImpl();
@@ -80,10 +80,10 @@ public class MongoLoadStatementsFileIT extends MongoTestBase {
         expected.add(vf.createStatement(vf.createURI("http://example#charlie"), vf.createURI("http://example#likes"), vf.createURI("http://example#icecream")));
 
         final List<Statement> statements = new ArrayList<>();
-        MongoCursor<Document> x = getRyaCollection().find().iterator();
+        final MongoCursor<Document> x = getRyaCollection().find().iterator();
         System.out.println("getRyaCollection().count()=" + getRyaCollection().count());
         while (x.hasNext()) {
-            Document y = x.next();
+            final Document y = x.next();
             statements.add(vf.createStatement(vf.createURI(y.getString("subject")), vf.createURI(y.getString("predicate")), vf.createURI(y.getString("object"))));
         }
         assertEquals("Expect all rows to be read.", 3, getRyaCollection().count());
@@ -99,9 +99,9 @@ public class MongoLoadStatementsFileIT extends MongoTestBase {
      */
     private MongoConnectionDetails getConnectionDetails() {
         return new MongoConnectionDetails(
-                        conf.getMongoUser(),
-                        conf.getMongoPassword().toCharArray(),
-                        conf.getMongoInstance(),
-                        Integer.parseInt(conf.getMongoPort()));
+                conf.getMongoUser(),
+                null,//conf.getMongoPassword().toCharArray(),
+                conf.getMongoHostname(),
+                Integer.parseInt(conf.getMongoPort()));
     }
 }

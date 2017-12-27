@@ -20,15 +20,20 @@ package org.apache.rya.api.client.mongo;
 
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.rya.api.client.ExecuteSparqlQuery;
+import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
+import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.mongodb.MongoTestBase;
 import org.junit.Test;
 import org.openrdf.model.Statement;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.ValueFactoryImpl;
 
 import com.mongodb.MongoException;
 
@@ -39,26 +44,64 @@ public class MongoExecuteSparqlQueryIT extends MongoTestBase {
     @Test
     public void ExecuteSparqlQuery_exec() throws MongoException, DuplicateInstanceNameException, RyaClientException {
         // Install an instance of Rya.
-        MongoConnectionDetails connectionDetails = getConnectionDetails();
+        final MongoConnectionDetails connectionDetails = getConnectionDetails();
         final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, conf.getMongoClient());
         // install rya and load some data
-        final List<Statement> loadMe = MongoLoadStatementsIT.installAndLoad();
+        final List<Statement> loadMe = installAndLoad();
         // Here comes the method to test
-        ExecuteSparqlQuery executeSparql = ryaClient.getExecuteSparqlQuery();
+        final ExecuteSparqlQuery executeSparql = ryaClient.getExecuteSparqlQuery();
         final String sparql = "SELECT * where { ?a ?b ?c }";
-        String results = executeSparql.executeSparqlQuery(conf.getMongoDBName(), sparql);
+        final String results = executeSparql.executeSparqlQuery(conf.getMongoDBName(), sparql);
         System.out.println(results);
         assertTrue("result has header.", results.startsWith("Query Result:"));
         assertTrue("result has column headings.", results.contains("a,b,c"));
         assertTrue("result has footer.", results.contains("Retrieved 3 results in"));
-        for (Statement expect : loadMe) {
+        for (final Statement expect : loadMe) {
             assertTrue("All results should contain expected subjects:",
-                            results.contains(expect.getSubject().stringValue()));
+                    results.contains(expect.getSubject().stringValue()));
             assertTrue("All results should contain expected predicates:",
-                            results.contains(expect.getPredicate().stringValue()));
+                    results.contains(expect.getPredicate().stringValue()));
             assertTrue("All results should contain expected objects:",
-                            results.contains(expect.getObject().stringValue()));
+                    results.contains(expect.getObject().stringValue()));
         }
+    }
+
+    private List<Statement> installAndLoad() throws DuplicateInstanceNameException, RyaClientException {
+        // first install rya
+        final InstallConfiguration installConfig = InstallConfiguration.builder()
+                .setEnableTableHashPrefix(false)
+                .setEnableEntityCentricIndex(false)
+                .setEnableFreeTextIndex(false)
+                .setEnableTemporalIndex(false)
+                .setEnablePcjIndex(false)
+                .setEnableGeoIndex(false)
+                .build();
+        final MongoConnectionDetails connectionDetails = getConnectionDetails();
+        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, conf.getMongoClient());
+        final Install install = ryaClient.getInstall();
+        install.install(conf.getMongoDBName(), installConfig);
+        // next, load data
+        final List<Statement> loadMe = makeTestStatements();
+        ryaClient.getLoadStatements().loadStatements(
+                conf.getMongoDBName(),
+                loadMe);
+        return loadMe;
+    }
+
+    /**
+     * @return some data to load
+     */
+    private List<Statement> makeTestStatements() {
+        final List<Statement> loadMe = new ArrayList<>();
+        final ValueFactory vf = new ValueFactoryImpl();
+
+        loadMe.add(vf.createStatement(vf.createURI("http://example#alice"), vf.createURI("http://example#talksTo"), vf
+                .createURI("http://example#bob")));
+        loadMe.add(vf.createStatement(vf.createURI("http://example#bob"), vf.createURI("http://example#talksTo"), vf
+                .createURI("http://example#charlie")));
+        loadMe.add(vf.createStatement(vf.createURI("http://example#charlie"), vf.createURI("http://example#likes"), vf
+                .createURI("http://example#icecream")));
+        return loadMe;
     }
 
     /**
@@ -66,10 +109,10 @@ public class MongoExecuteSparqlQueryIT extends MongoTestBase {
      */
     private MongoConnectionDetails getConnectionDetails() {
         return new MongoConnectionDetails(
-                        conf.getMongoUser(),
-                        conf.getMongoPassword().toCharArray(),
-                        conf.getMongoInstance(),
-                        Integer.parseInt(conf.getMongoPort()));
+                conf.getMongoUser(),
+                null,//conf.getMongoPassword().toCharArray(),
+                conf.getMongoHostname(),
+                Integer.parseInt(conf.getMongoPort()));
 
     }
 }

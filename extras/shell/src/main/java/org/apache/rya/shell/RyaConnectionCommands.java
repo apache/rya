@@ -33,7 +33,6 @@ import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
 import org.apache.rya.api.client.mongo.MongoConnectionDetails;
 import org.apache.rya.api.client.mongo.MongoRyaClientFactory;
-import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.shell.SharedShellState.ConnectionState;
 import org.apache.rya.shell.SharedShellState.StorageType;
@@ -47,7 +46,10 @@ import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
 
 /**
  * Spring Shell commands that manage the connection that is used by the shell.
@@ -73,7 +75,7 @@ public class RyaConnectionCommands implements CommandMarker {
      */
     @Autowired
     public RyaConnectionCommands(final SharedShellState state, final PasswordPrompt passwordPrompt) {
-        this.sharedState = requireNonNull( state );
+        sharedState = requireNonNull( state );
         this.passwordPrompt = requireNonNull(passwordPrompt);
     }
 
@@ -90,11 +92,11 @@ public class RyaConnectionCommands implements CommandMarker {
     @CliAvailabilityIndicator({CONNECT_INSTANCE_CMD})
     public boolean isConnectToInstanceAvailable() {
         switch(sharedState.getShellState().getConnectionState()) {
-            case CONNECTED_TO_STORAGE:
-            case CONNECTED_TO_INSTANCE:
-                return true;
-            default:
-                return false;
+        case CONNECTED_TO_STORAGE:
+        case CONNECTED_TO_INSTANCE:
+            return true;
+        default:
+            return false;
         }
     }
 
@@ -113,22 +115,22 @@ public class RyaConnectionCommands implements CommandMarker {
 
         // Create a print out based on what it is connected to.
         switch(storageType.get()) {
-            case ACCUMULO:
-                final AccumuloConnectionDetails accDetails = sharedState.getShellState().getAccumuloDetails().get();
-                return "The shell is connected to an instance of Accumulo using the following parameters:\n" +
-                    "    Username: " + accDetails.getUsername() + "\n" +
-                    "    Instance Name: " + accDetails.getInstanceName() + "\n" +
-                    "    Zookeepers: " + accDetails.getZookeepers();
+        case ACCUMULO:
+            final AccumuloConnectionDetails accDetails = sharedState.getShellState().getAccumuloDetails().get();
+            return "The shell is connected to an instance of Accumulo using the following parameters:\n" +
+            "    Username: " + accDetails.getUsername() + "\n" +
+            "    Instance Name: " + accDetails.getInstanceName() + "\n" +
+            "    Zookeepers: " + accDetails.getZookeepers();
 
-            case MONGO:
-                final MongoConnectionDetails mongoDetails = sharedState.getShellState().getMongoDetails().get();
-                return "The shell is connected to an instance of MongoDB using the following parameters:\n" +
-                    "    Hostname: "  + mongoDetails.getHostname() + "\n" +
-                    "    Port: " + mongoDetails.getPort() + "\n"; 
-                    //+"    Username:" + mongoDetails.getUsername();
+        case MONGO:
+            final MongoConnectionDetails mongoDetails = sharedState.getShellState().getMongoDetails().get();
+            return "The shell is connected to an instance of MongoDB using the following parameters:\n" +
+            "    Hostname: "  + mongoDetails.getHostname() + "\n" +
+            "    Port: " + mongoDetails.getPort() + "\n";
+            //+"    Username:" + mongoDetails.getUsername();
 
-            default:
-                throw new RuntimeException("Unrecognized StorageType: " + storageType.get());
+        default:
+            throw new RuntimeException("Unrecognized StorageType: " + storageType.get());
         }
     }
 
@@ -161,7 +163,7 @@ public class RyaConnectionCommands implements CommandMarker {
 
     @CliCommand(value = CONNECT_MONGO_CMD, help = "Connect the shell to an instance of MongoDB.")
     public String connectToMongo(
-            @CliOption(key = {"username"}, mandatory = true, help = "The username that will be used to connect to MongoDB.")
+            @CliOption(key = {"username"}, mandatory = false, help = "The username that will be used to connect to MongoDB.")
             final String username,
             @CliOption(key= {"hostname"}, mandatory = true, help = "The hostname of the MongoDB that will be connected to.")
             final String hostname,
@@ -170,23 +172,32 @@ public class RyaConnectionCommands implements CommandMarker {
 
         // Prompt the user for their password.
         try {
-            final char[] password = passwordPrompt.getPassword();
-
             // Set up a configuration file that connects to the specified Mongo DB.
             final MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration();
-            conf.setMongoInstance(hostname);
+            final MongoClient client;
+            conf.setMongoHostname(hostname);
             conf.setMongoPort(port);
-            conf.setMongoUser(username);
-            conf.setMongoPassword(new String(password));
+
+            final char[] password;
+            if(username != null) {
+                password = passwordPrompt.getPassword();
+                conf.setMongoUser(username);
+                conf.setMongoPassword(new String(password));
+                final ServerAddress addr = new ServerAddress(hostname, Integer.parseInt(port));
+                final MongoCredential creds = MongoCredential.createPlainCredential(username, "$external", password);
+                client = new MongoClient(addr, Lists.newArrayList(creds));
+            } else {
+                password = null;
+                client = new MongoClient(hostname, Integer.parseInt(port));
+            }
 
             // Create the singleton instance of Mongo that will be used through out the application.
-            final MongoClient client = MongoConnectorFactory.getMongoClient(conf);
 
             // Make sure the client is closed at shutdown.
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
                 public void run() {
-                    MongoConnectorFactory.closeMongoClient();
+                    client.close();
                 }
             });
 

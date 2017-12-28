@@ -28,6 +28,7 @@ import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.client.mongo.MongoConnectionDetails;
 
 import com.google.common.base.Optional;
+import com.mongodb.MongoClient;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -222,6 +223,7 @@ public class SharedShellState {
         private final Optional<StorageType> storageType;
         private final Optional<AccumuloConnectionDetails> accumuloDetails;
         private final Optional<MongoConnectionDetails> mongoDetails;
+        private final Optional<MongoClient> mongoAdminClient;
         private final Optional<RyaClient> connectedCommands;
 
         // Instance specific values.
@@ -232,12 +234,14 @@ public class SharedShellState {
                 final Optional<StorageType> storageType,
                 final Optional<AccumuloConnectionDetails> accumuloDetails,
                 final Optional<MongoConnectionDetails> mongoDetails,
+                final Optional<MongoClient> mongoAdminClient,
                 final Optional<RyaClient> connectedCommands,
                 final Optional<String> instanceName) {
             this.connectionState = requireNonNull(connectionState);
             this.storageType = requireNonNull(storageType);
             this.accumuloDetails = requireNonNull(accumuloDetails);
             this.mongoDetails = requireNonNull(mongoDetails);
+            this.mongoAdminClient = requireNonNull(mongoAdminClient);
             this.connectedCommands = requireNonNull(connectedCommands);
             this.instanceName = requireNonNull(instanceName);
         }
@@ -272,6 +276,13 @@ public class SharedShellState {
          */
         public Optional<MongoConnectionDetails> getMongoDetails() {
             return mongoDetails;
+        }
+
+        /**
+         * @return The Mongo Client that is used to perform administrative tasks while connected to Mongo DB.
+         */
+        public Optional<MongoClient> getMongoAdminClient() {
+            return mongoAdminClient;
         }
 
         /**
@@ -340,6 +351,7 @@ public class SharedShellState {
             private StorageType storageType;
             private AccumuloConnectionDetails accumuloDetails;
             private MongoConnectionDetails mongoDetails;
+            private MongoClient mongoAdminClient;
             private RyaClient connectedCommands;
 
             // Instance specific values.
@@ -361,6 +373,7 @@ public class SharedShellState {
                 this.storageType = shellState.getStorageType().orNull();
                 this.accumuloDetails = shellState.getAccumuloDetails().orNull();
                 this.mongoDetails = shellState.getMongoDetails().orNull();
+                this.mongoAdminClient = shellState.getMongoAdminClient().orNull();
                 this.connectedCommands = shellState.getConnectedCommands().orNull();
                 this.instanceName = shellState.getRyaInstanceName().orNull();
             }
@@ -403,6 +416,16 @@ public class SharedShellState {
             }
 
             /**
+             * @param mongoAdminClient - The Mongo Client that is used to perform administrative tasks while
+             *   connected to Mongo DB.
+             * @return This {@link Builder} so that method invocations may be chained.
+             */
+            public Builder setMongoAdminClient(@Nullable final MongoClient mongoAdminClient) {
+                this.mongoAdminClient = mongoAdminClient;
+                return this;
+            }
+
+            /**
              * @param connectedCommands - The {@link RyaClient} to use when a command on the shell is issued.
              * @return This {@link Builder} so that method invocations may be chained.
              */
@@ -429,6 +452,7 @@ public class SharedShellState {
                         Optional.fromNullable(storageType),
                         Optional.fromNullable(accumuloDetails),
                         Optional.fromNullable(mongoDetails),
+                        Optional.fromNullable(mongoAdminClient),
                         Optional.fromNullable(connectedCommands),
                         Optional.fromNullable(instanceName));
             }

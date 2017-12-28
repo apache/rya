@@ -121,7 +121,7 @@ public class RyaConnectionCommands implements CommandMarker {
         case MONGO:
             final MongoConnectionDetails mongoDetails = sharedState.getShellState().getMongoDetails().get();
 
-            StringBuilder message = new StringBuilder()
+            final StringBuilder message = new StringBuilder()
                     .append("The shell is connected to an instance of MongoDB using the following parameters:\\n")
                     .append("    Hostname: "  + mongoDetails.getHostname() + "\n")
                     .append("    Port: " + mongoDetails.getPort() + "\n");
@@ -189,7 +189,7 @@ public class RyaConnectionCommands implements CommandMarker {
                     Optional.ofNullable(password));
 
             // Connect to a MongoDB server. TODO Figure out how to provide auth info?
-            MongoClient adminClient = new MongoClient(hostname, Integer.parseInt(port));
+            final MongoClient adminClient = new MongoClient(hostname, Integer.parseInt(port));
 
             // Make sure the client is closed at shutdown.
             Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -215,13 +215,7 @@ public class RyaConnectionCommands implements CommandMarker {
             @CliOption(key = {"instance"}, mandatory = true, help = "The name of the Rya instance the shell will interact with.")
             final String instance) {
         try {
-            // TODO When you are connected to mongo db, then connecting to an instance may require
-            //      a username/password. this is because each Database has its own credentials, so
-            //      every rya instance likewise has their own credentials.
-
             final InstanceExists instanceExists = sharedState.getShellState().getConnectedCommands().get().getInstanceExists();
-
-            // TODO gracefully fail if that version doen't support it. maybe the list command should go ahead
 
             // Make sure the requested instance exists.
             if(!instanceExists.exists(instance)) {
@@ -237,6 +231,13 @@ public class RyaConnectionCommands implements CommandMarker {
 
     @CliCommand(value = DISCONNECT_COMMAND_NAME_CMD, help = "Disconnect the shell's Rya storage connection (Accumulo).")
     public void disconnect() {
+        // If connected to Mongo, there is a client that needs to be closed.
+        final com.google.common.base.Optional<MongoClient> mongoAdminClient = sharedState.getShellState().getMongoAdminClient();
+        if(mongoAdminClient.isPresent()) {
+            mongoAdminClient.get().close();
+        }
+
+        // Update the shared state to disconnected.
         sharedState.disconnected();
     }
 }

@@ -36,6 +36,8 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -45,12 +47,13 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public class MongoLoadStatements implements LoadStatements {
+    private static final Logger log = LoggerFactory.getLogger(MongoLoadStatements.class);
 
     private final MongoConnectionDetails connectionDetails;
     private final InstanceExists instanceExists;
 
     /**
-     * Constructs an instance.
+     * Constructs an instance of {@link MongoLoadStatements}.
      *
      * @param connectionDetails - Details to connect to the server. (not null)
      * @param instanceExists - The interactor used to check if a Rya instance exists. (not null)
@@ -71,24 +74,40 @@ public class MongoLoadStatements implements LoadStatements {
         }
 
         Sail sail = null;
-        SailRepository sailRepo = null;
         SailRepositoryConnection sailRepoConn = null;
-
-        // Get a Sail object that is connected to the Rya instance.
-        final MongoDBRdfConfiguration ryaConf = connectionDetails.build(ryaInstanceName);
         try {
+            // Get a Sail object that is connected to the Rya instance.
+            final MongoDBRdfConfiguration ryaConf = connectionDetails.build(ryaInstanceName);
             sail = RyaSailFactory.getInstance(ryaConf);
-        } catch (SailException | RyaDAOException | InferenceEngineException | AccumuloException | AccumuloSecurityException e) {
-            throw new RyaClientException("Could not load statements into Rya because of a problem while creating the Sail object.", e);
-        }
 
-        // Load the file.
-        sailRepo = new SailRepository(sail);
-        try {
+            final SailRepository sailRepo = new SailRepository(sail);
+            sailRepoConn = sailRepo.getConnection();
+
+            // Load the statements.
             sailRepoConn = sailRepo.getConnection();
             sailRepoConn.add(statements);
+
+        } catch (SailException | RyaDAOException | InferenceEngineException | AccumuloException | AccumuloSecurityException e) {
+            throw new RyaClientException("Could not load statements into Rya because of a problem while creating the Sail object.", e);
         } catch (final RepositoryException e) {
-            throw new RyaClientException("While getting a connection and adding statements.", e);
+            throw new RyaClientException("Could not load the statements into Rya.", e);
+        } finally {
+            // Close the resources that were opened.
+            if(sailRepoConn != null) {
+                try {
+                    sailRepoConn.close();
+                } catch (final RepositoryException e) {
+                    log.error("Couldn't close the SailRepositoryConnection object.", e);
+                }
+            }
+
+            if(sail != null) {
+                try {
+                    sail.shutDown();
+                } catch (final SailException e) {
+                    log.error("Couldn't close the Sail object.", e);
+                }
+            }
         }
     }
 }

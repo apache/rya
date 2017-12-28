@@ -40,6 +40,8 @@ import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParseException;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -49,6 +51,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public class MongoLoadStatementsFile implements LoadStatementsFile {
+    private static final Logger log = LoggerFactory.getLogger(MongoLoadStatementsFile.class);
 
     private final MongoConnectionDetails connectionDetails;
     private final InstanceExists instanceExists;
@@ -78,23 +81,39 @@ public class MongoLoadStatementsFile implements LoadStatementsFile {
         }
 
         Sail sail = null;
-        SailRepository sailRepo = null;
         SailRepositoryConnection sailRepoConn = null;
-        // Get a Sail object that is connected to the Rya instance.
-        final MongoDBRdfConfiguration ryaConf = connectionDetails.build(ryaInstanceName);
         try {
+            // Get a Sail object that is connected to the Rya instance.
+            final MongoDBRdfConfiguration ryaConf = connectionDetails.build(ryaInstanceName);
             sail = RyaSailFactory.getInstance(ryaConf);
-        } catch (SailException | RyaDAOException | InferenceEngineException | AccumuloException | AccumuloSecurityException e) {
-            throw new RyaClientException("While getting a sail instance.", e);
-        }
 
-        // Load the file.
-        sailRepo = new SailRepository(sail);
-        try {
+            final SailRepository sailRepo = new SailRepository(sail);
             sailRepoConn = sailRepo.getConnection();
+
+            // Load the file.
             sailRepoConn.add(statementsFile.toFile(), null, format);
+
+        } catch (SailException | RyaDAOException | InferenceEngineException | AccumuloException | AccumuloSecurityException e) {
+            throw new RyaClientException("Could not load statements into Rya because of a problem while creating the Sail object.", e);
         } catch (RDFParseException | RepositoryException | IOException e) {
-            throw new RyaClientException("While getting a connection and adding statements from a file.", e);
+            throw new RyaClientException("Could not load the statements into Rya.", e);
+        } finally {
+            // Close the resources that were opened.
+            if(sailRepoConn != null) {
+                try {
+                    sailRepoConn.close();
+                } catch (final RepositoryException e) {
+                    log.error("Couldn't close the SailRepositoryConnection object.", e);
+                }
+            }
+
+            if(sail != null) {
+                try {
+                    sail.shutDown();
+                } catch (final SailException e) {
+                    log.error("Couldn't close the Sail object.", e);
+                }
+            }
         }
     }
 }

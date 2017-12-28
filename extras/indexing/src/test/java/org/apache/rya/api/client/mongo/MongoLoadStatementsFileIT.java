@@ -21,8 +21,8 @@ package org.apache.rya.api.client.mongo;
 import static org.junit.Assert.assertEquals;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.Install.InstallConfiguration;
@@ -63,30 +63,36 @@ public class MongoLoadStatementsFileIT extends MongoTestBase {
         final MongoConnectionDetails connectionDetails = getConnectionDetails();
         final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, getMongoClient());
         final Install install = ryaClient.getInstall();
-        install.install(conf.getMongoDBName(), installConfig);
+        install.install(conf.getRyaInstanceName(), installConfig);
 
         // Load the test statement file.
         ryaClient.getLoadStatementsFile().loadStatements(
-                conf.getMongoDBName(),
+                conf.getRyaInstanceName(),
                 Paths.get("src/test/resources/example.ttl"),
                 RDFFormat.TURTLE);
 
         // Verify that the statements were loaded.
         final ValueFactory vf = new ValueFactoryImpl();
 
-        final List<Statement> expected = new ArrayList<>();
+        final Set<Statement> expected = new HashSet<>();
         expected.add(vf.createStatement(vf.createURI("http://example#alice"), vf.createURI("http://example#talksTo"), vf.createURI("http://example#bob")));
         expected.add(vf.createStatement(vf.createURI("http://example#bob"), vf.createURI("http://example#talksTo"), vf.createURI("http://example#charlie")));
         expected.add(vf.createStatement(vf.createURI("http://example#charlie"), vf.createURI("http://example#likes"), vf.createURI("http://example#icecream")));
 
-        final List<Statement> statements = new ArrayList<>();
-        final MongoCursor<Document> x = getRyaCollection().find().iterator();
-        while (x.hasNext()) {
-            final Document y = x.next();
-            statements.add(vf.createStatement(vf.createURI(y.getString("subject")), vf.createURI(y.getString("predicate")), vf.createURI(y.getString("object"))));
+        final Set<Statement> statements = new HashSet<>();
+        final MongoCursor<Document> triplesIterator = getMongoClient()
+                .getDatabase( conf.getRyaInstanceName() )
+                .getCollection( conf.getTriplesCollectionName() )
+                .find().iterator();
+        while (triplesIterator.hasNext()) {
+            final Document triple = triplesIterator.next();
+            statements.add(vf.createStatement(
+                    vf.createURI(triple.getString("subject")),
+                    vf.createURI(triple.getString("predicate")),
+                    vf.createURI(triple.getString("object"))));
         }
-        assertEquals("Expect all rows to be read.", 3, getRyaCollection().count());
-        assertEquals("All rows in DB should match expected rows:", expected, statements);
+
+        assertEquals(expected, statements);
     }
 
     private MongoConnectionDetails getConnectionDetails() {

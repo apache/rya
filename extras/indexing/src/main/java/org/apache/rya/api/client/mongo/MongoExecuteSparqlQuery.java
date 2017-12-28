@@ -47,6 +47,8 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -56,12 +58,13 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public class MongoExecuteSparqlQuery implements ExecuteSparqlQuery {
+    private static final Logger log = LoggerFactory.getLogger(MongoExecuteSparqlQuery.class);
 
     private final MongoConnectionDetails connectionDetails;
     private final InstanceExists instanceExists;
 
     /**
-     * Constructs an instance.
+     * Constructs an instance of {@link MongoExecuteSparqlQuery}.
      *
      * @param connectionDetails - Details to connect to the server. (not null)
      * @param instanceExists - The interactor used to check if a Rya instance exists. (not null)
@@ -72,32 +75,25 @@ public class MongoExecuteSparqlQuery implements ExecuteSparqlQuery {
         this.connectionDetails = requireNonNull(connectionDetails);
         this.instanceExists = requireNonNull(instanceExists);
     }
+
     @Override
     public String executeSparqlQuery(final String ryaInstanceName, final String sparqlQuery) throws InstanceDoesNotExistException, RyaClientException {
-        requireNonNull(ryaInstanceName);
-        requireNonNull(sparqlQuery);
         requireNonNull(ryaInstanceName);
         requireNonNull(sparqlQuery);
 
         // Ensure the Rya Instance exists.
         if (!instanceExists.exists(ryaInstanceName)) {
-            throw new InstanceDoesNotExistException(String.format("There is no Rya instance named '%s'.",
-                            ryaInstanceName));
-        }
-        Sail sail = null;
-        SailRepository sailRepo = null;
-        SailRepositoryConnection sailRepoConn = null;
-        // Get a Sail object that is connected to the Rya instance.
-        final MongoDBRdfConfiguration ryaConf = connectionDetails.build(ryaInstanceName);
-        try {
-            sail = RyaSailFactory.getInstance(ryaConf);
-        } catch (SailException | RyaDAOException | InferenceEngineException | AccumuloException | AccumuloSecurityException e) {
-            throw new RyaClientException("While getting a sail instance.", e);
+            throw new InstanceDoesNotExistException(String.format("There is no Rya instance named '%s'.", ryaInstanceName));
         }
 
-        // Load the file.
-        sailRepo = new SailRepository(sail);
+        Sail sail = null;
+        SailRepositoryConnection sailRepoConn = null;
         try {
+            // Get a Sail object that is connected to the Rya instance.
+            final MongoDBRdfConfiguration ryaConf = connectionDetails.build(ryaInstanceName);
+            sail = RyaSailFactory.getInstance(ryaConf);
+
+            final SailRepository sailRepo = new SailRepository(sail);
             sailRepoConn = sailRepo.getConnection();
 
             // Execute the query.
@@ -106,26 +102,37 @@ public class MongoExecuteSparqlQuery implements ExecuteSparqlQuery {
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
             final CountingSPARQLResultsCSVWriter handler = new CountingSPARQLResultsCSVWriter(baos);
             tupleQuery.evaluate(handler);
-            final StringBuilder sb = new StringBuilder();
+            final long end = System.currentTimeMillis();
 
-            final String newline = "\n";
-            sb.append("Query Result:").append(newline);
-            sb.append(new String(baos.toByteArray(), StandardCharsets.UTF_8));
+            // Format and return the result of the query.
+            final String queryResult = new String(baos.toByteArray(), StandardCharsets.UTF_8);
+            final String queryDuration = new DecimalFormat("0.0##").format((end - start) / 1000.0);
 
-            final String seconds = new DecimalFormat("0.0##").format((System.currentTimeMillis() - start) / 1000.0);
-            sb.append("Retrieved ").append(handler.getCount()).append(" results in ").append(seconds).append(" seconds.");
+            return "Query Result:\n" +
+                    queryResult +
+                    "Retrieved " + handler.getCount() + " results in " + queryDuration + " seconds.";
 
-            return sb.toString();
+        } catch (SailException | RyaDAOException | InferenceEngineException | AccumuloException | AccumuloSecurityException e) {
+            throw new RyaClientException("Could not create the Sail object used to query the RYA instance.", e);
+        } catch (final MalformedQueryException | QueryEvaluationException | TupleQueryResultHandlerException | RepositoryException e) {
+            throw new RyaClientException("Could not execute the SPARQL query.", e);
+        }  finally {
+            // Close the resources that were opened.
+            if(sailRepoConn != null) {
+                try {
+                    sailRepoConn.close();
+                } catch (final RepositoryException e) {
+                    log.error("Couldn't close the SailRepositoryConnection object.", e);
+                }
+            }
 
-        } catch (final MalformedQueryException e) {
-            throw new RyaClientException("There was a problem parsing the supplied query.", e);
-        } catch (final QueryEvaluationException | TupleQueryResultHandlerException e) {
-            throw new RyaClientException("There was a problem evaluating the supplied query.", e);
-        } catch (final RepositoryException e) {
-            throw new RyaClientException("There was a problem executing the query against the Rya instance named "
-                            + ryaInstanceName + ".", e);
-        } finally {
-            // close anything?
+            if(sail != null) {
+                try {
+                    sail.shutDown();
+                } catch (final SailException e) {
+                    log.error("Couldn't close the Sail object.", e);
+                }
+            }
         }
     }
 

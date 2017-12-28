@@ -20,15 +20,12 @@ package org.apache.rya.api.client.mongo;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
-import org.apache.rya.api.client.Install;
-import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
 import org.apache.rya.api.client.RyaClient;
-import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.mongodb.MongoTestBase;
 import org.bson.Document;
 import org.junit.Test;
@@ -43,9 +40,10 @@ import com.mongodb.client.MongoCursor;
  */
 public class MongoLoadStatementsIT extends MongoTestBase {
 
+    private static final ValueFactory VF = new ValueFactoryImpl();
+
     @Test(expected = InstanceDoesNotExistException.class)
     public void instanceDoesNotExist() throws Exception {
-        org.apache.log4j.BasicConfigurator.configure();
         final RyaClient ryaClient = MongoRyaClientFactory.build(getConnectionDetails(), getMongoClient());
         // Skip the install step to create error causing situation.
         ryaClient.getLoadStatements().loadStatements(getConnectionDetails().getHostname(), makeTestStatements());
@@ -55,40 +53,11 @@ public class MongoLoadStatementsIT extends MongoTestBase {
      * Pass a list of statements to our loadStatement class.
      */
     @Test
-    public void loadTurtleFile() throws Exception {
+    public void loadStatements() throws Exception {
         // Install an instance of Rya.
-        final List<Statement> loadMe = installAndLoad();
-        final List<Statement> stmtResults = new ArrayList<>();
-        final MongoCursor<Document> triplesIterator = getRyaCollection().find().iterator();
-        final ValueFactory vf = new ValueFactoryImpl();
-        while (triplesIterator.hasNext()) {
-            final Document triple = triplesIterator.next();
-            stmtResults.add(vf.createStatement(vf.createURI(triple.getString("subject")), vf.createURI(triple.getString(
-                    "predicate")), vf.createURI(triple.getString("object"))));
-        }
-        stmtResults.sort(((stmt1, stmt2) -> stmt1.getSubject().toString().compareTo(stmt2.getSubject().toString())));
-        assertEquals("Expect all rows to be read.", 3, getRyaCollection().count());
-        assertEquals("All rows in DB should match expected rows:", loadMe, stmtResults);
-    }
+        final MongoConnectionDetails connectionDetails = getConnectionDetails();
+        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, getMongoClient());
 
-    /**
-     * @return some data to load
-     */
-    private List<Statement> makeTestStatements() {
-        final List<Statement> loadMe = new ArrayList<>();
-        final ValueFactory vf = new ValueFactoryImpl();
-
-        loadMe.add(vf.createStatement(vf.createURI("http://example#alice"), vf.createURI("http://example#talksTo"), vf
-                .createURI("http://example#bob")));
-        loadMe.add(vf.createStatement(vf.createURI("http://example#bob"), vf.createURI("http://example#talksTo"), vf
-                .createURI("http://example#charlie")));
-        loadMe.add(vf.createStatement(vf.createURI("http://example#charlie"), vf.createURI("http://example#likes"), vf
-                .createURI("http://example#icecream")));
-        return loadMe;
-    }
-
-    private List<Statement> installAndLoad() throws DuplicateInstanceNameException, RyaClientException {
-        // first install rya
         final InstallConfiguration installConfig = InstallConfiguration.builder()
                 .setEnableTableHashPrefix(false)
                 .setEnableEntityCentricIndex(false)
@@ -97,16 +66,50 @@ public class MongoLoadStatementsIT extends MongoTestBase {
                 .setEnablePcjIndex(false)
                 .setEnableGeoIndex(false)
                 .build();
-        final MongoConnectionDetails connectionDetails = getConnectionDetails();
-        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, getMongoClient());
-        final Install install = ryaClient.getInstall();
-        install.install(conf.getMongoDBName(), installConfig);
-        // next, load data
-        final List<Statement> loadMe = makeTestStatements();
-        ryaClient.getLoadStatements().loadStatements(
-                conf.getMongoDBName(),
-                loadMe);
-        return loadMe;
+        ryaClient.getInstall().install(conf.getRyaInstanceName(), installConfig);
+
+        // Create the statements that will be loaded.
+        final Set<Statement> statements = makeTestStatements();
+
+        // Load them.
+        ryaClient.getLoadStatements().loadStatements(conf.getRyaInstanceName(), statements);
+
+        // Fetch the statements that have been stored in Mongo DB.
+        final Set<Statement> stmtResults = new HashSet<>();
+        final MongoCursor<Document> triplesIterator = getMongoClient()
+                .getDatabase( conf.getRyaInstanceName() )
+                .getCollection( conf.getTriplesCollectionName() )
+                .find().iterator();
+
+        while (triplesIterator.hasNext()) {
+            final Document triple = triplesIterator.next();
+            stmtResults.add(VF.createStatement(
+                    VF.createURI(triple.getString("subject")),
+                    VF.createURI(triple.getString("predicate")),
+                    VF.createURI(triple.getString("object"))));
+        }
+
+        // Show the discovered statements match the original statements.
+        assertEquals(statements, stmtResults);
+    }
+
+    public Set<Statement> makeTestStatements() {
+        final Set<Statement> statements = new HashSet<>();
+        statements.add(VF.createStatement(
+                    VF.createURI("http://example#alice"),
+                    VF.createURI("http://example#talksTo"),
+                    VF.createURI("http://example#bob")));
+        statements.add(
+                VF.createStatement(
+                    VF.createURI("http://example#bob"),
+                    VF.createURI("http://example#talksTo"),
+                    VF.createURI("http://example#charlie")));
+        statements.add(
+                VF.createStatement(
+                    VF.createURI("http://example#charlie"),
+                    VF.createURI("http://example#likes"),
+                    VF.createURI("http://example#icecream")));
+        return statements;
     }
 
     private MongoConnectionDetails getConnectionDetails() {

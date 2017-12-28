@@ -25,7 +25,6 @@ import java.nio.file.Path;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.log4j.Logger;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
 import org.apache.rya.api.client.InstanceExists;
 import org.apache.rya.api.client.LoadStatementsFile;
@@ -42,8 +41,6 @@ import org.openrdf.rio.RDFParseException;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
 
-import com.mongodb.MongoClient;
-
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -51,25 +48,26 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * An Mongo implementation of the {@link LoadStatementsFile} command.
  */
 @DefaultAnnotation(NonNull.class)
-public class MongoLoadStatementsFile extends MongoCommand implements LoadStatementsFile {
-    private static final Logger log = Logger.getLogger(MongoLoadStatementsFile.class);
+public class MongoLoadStatementsFile implements LoadStatementsFile {
 
+    private final MongoConnectionDetails connectionDetails;
     private final InstanceExists instanceExists;
 
     /**
      * Constructs an instance of {@link MongoListInstances}.
      *
      * @param connectionDetails - Details to connect to the server. (not null)
-     * @param client - Provides programmatic access to the instance of Mongo
-     *            that hosts Rya instance. (not null)
+     * @param instanceExists - The interactor used to check if a Rya instance exists. (not null)
      */
-    public MongoLoadStatementsFile(MongoConnectionDetails connectionDetails, MongoClient client) {
-        super(connectionDetails, client);
-        instanceExists = new MongoInstanceExists(connectionDetails, client);
+    public MongoLoadStatementsFile(
+            final MongoConnectionDetails connectionDetails,
+            final MongoInstanceExists instanceExists) {
+        this.connectionDetails = requireNonNull(connectionDetails);
+        this.instanceExists = requireNonNull(instanceExists);
     }
 
     @Override
-    public void loadStatements(String ryaInstanceName, Path statementsFile, RDFFormat format) throws InstanceDoesNotExistException, RyaClientException {
+    public void loadStatements(final String ryaInstanceName, final Path statementsFile, final RDFFormat format) throws InstanceDoesNotExistException, RyaClientException {
         requireNonNull(ryaInstanceName);
         requireNonNull(statementsFile);
         requireNonNull(format);
@@ -83,8 +81,7 @@ public class MongoLoadStatementsFile extends MongoCommand implements LoadStateme
         SailRepository sailRepo = null;
         SailRepositoryConnection sailRepoConn = null;
         // Get a Sail object that is connected to the Rya instance.
-        final MongoDBRdfConfiguration ryaConf = getMongoConnectionDetails().build(ryaInstanceName, getClient());
-        // ryaConf.setFlush(false); //Accumulo version said: RYA-327 should address this hardcoded value.
+        final MongoDBRdfConfiguration ryaConf = connectionDetails.build(ryaInstanceName);
         try {
             sail = RyaSailFactory.getInstance(ryaConf);
         } catch (SailException | RyaDAOException | InferenceEngineException | AccumuloException | AccumuloSecurityException e) {

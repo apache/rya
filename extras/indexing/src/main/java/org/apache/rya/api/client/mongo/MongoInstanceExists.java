@@ -31,22 +31,23 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * An Mongo implementation of the {@link InstanceExists} command.
  */
 @DefaultAnnotation(NonNull.class)
-public class MongoInstanceExists extends MongoCommand implements InstanceExists {
+public class MongoInstanceExists implements InstanceExists {
+
+    private final MongoClient adminClient;
 
     /**
      * Constructs an insatnce of {@link MongoInstanceExists}.
      *
-     * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
-     * @param connector - Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
+     * @param adminClient - Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
      */
-    public MongoInstanceExists(final MongoConnectionDetails connectionDetails, final MongoClient client) {
-        super(connectionDetails, client);
+    public MongoInstanceExists(final MongoClient adminClient) {
+        this.adminClient = requireNonNull(adminClient);
     }
 
     @Override
     public boolean exists(final String instanceName) {
         requireNonNull( instanceName );
-        for(final String dbName : getClient().listDatabaseNames()) {
+        for(final String dbName : adminClient.listDatabaseNames()) {
             if(dbName.equals(instanceName)) {
                 return true;
             }

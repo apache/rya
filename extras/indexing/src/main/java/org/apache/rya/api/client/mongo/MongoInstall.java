@@ -22,6 +22,8 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Date;
 
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.InstanceExists;
 import org.apache.rya.api.client.RyaClientException;
@@ -35,12 +37,14 @@ import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import org.apache.rya.api.instance.RyaDetailsRepository;
 import org.apache.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
-import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.mongodb.MongoDBRyaDAO;
-import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
+import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
+import org.apache.rya.sail.config.RyaSailFactory;
+import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,35 +56,43 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * An Mongo implementation of the {@link Install} command.
- * Note about the scheme:
- * the Rya instance is used as the mongoDBName.
- * the Rya triples, instance details, and Rya indexes each get their own collection.
- * the triples collection name is always constant: "rya_triples" (or? ryaInstance+"_triples")
- * This means that each Mongo DB can have only one Rya instance.
- * A Collection corresponds to an Accumulo table.
+ * </p>
+ * Notes about the scheme:
+ * <ul>
+ *   <li>The Rya instance name is used as the DB name in Mongo.</li>
+ *   <li>The Rya triples, instance details, and Rya indexes each get their own collection.</li>
+ *   <li>Each Mongo DB can have only one Rya instance.</li>
+ * </ul>
  */
 @DefaultAnnotation(NonNull.class)
-public class MongoInstall extends MongoCommand implements Install {
+public class MongoInstall implements Install {
 
     private static final Logger log = LoggerFactory.getLogger(MongoInstall.class);
 
+    private final MongoConnectionDetails connectionDetails;
+    private final MongoClient adminClient;
     private final InstanceExists instanceExists;
 
     /**
      * Constructs an instance of {@link MongoInstall}.
      *
-     * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
-     * @param connector - Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
+     * @param connectionDetails - Details to connect to the server. (not null)
+     * @param adminClient - Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
+     * @param instanceExists - The interactor used to check if a Rya instance exists. (not null)
      */
-    public MongoInstall(final MongoConnectionDetails connectionDetails, final MongoClient client) {
-        super(connectionDetails, client);
-        instanceExists = new MongoInstanceExists(connectionDetails, client);
+    public MongoInstall(
+            final MongoConnectionDetails connectionDetails,
+            final MongoClient adminClient,
+            final MongoInstanceExists instanceExists) {
+        this.connectionDetails = requireNonNull(connectionDetails);
+        this.adminClient = requireNonNull(adminClient);
+        this.instanceExists = requireNonNull(instanceExists);
     }
 
     @Override
     public void install(final String instanceName, final InstallConfiguration installConfig) throws DuplicateInstanceNameException, RyaClientException {
-        requireNonNull(instanceName, "instanceName required.");
-        requireNonNull(installConfig, "installConfig required.");
+        requireNonNull(instanceName);
+        requireNonNull(installConfig);
 
         // Check to see if a Rya instance has already been installed with this name.
         if (instanceExists.exists(instanceName)) {
@@ -88,32 +100,28 @@ public class MongoInstall extends MongoCommand implements Install {
         }
 
         // Initialize the Rya Details table.
-        RyaDetails details;
+        final RyaDetails ryaDetails;
         try {
-            details = initializeRyaDetails(instanceName, installConfig);
+            ryaDetails = initializeRyaDetails(instanceName, installConfig);
         } catch (final AlreadyInitializedException e) {
             // This can only happen if somebody else installs an instance of Rya with the name between the check and now.
-            throw new DuplicateInstanceNameException("An instance of Rya has already been installed to this Rya storage "//
-                    + "with the name '" + instanceName//
-                    + "'. Try again with a different name.");
+            throw new DuplicateInstanceNameException(
+                    "An instance of Rya has already been installed to this Rya storage " +
+                    "with the name '" + instanceName + "'. Try again with a different name.");
         } catch (final RyaDetailsRepositoryException e) {
             throw new RyaClientException("The RyaDetails couldn't be initialized. Details: " + e.getMessage(), e);
         }
 
-        // Initialize the rest of the tables used by the Rya instance.
-        final StatefulMongoDBRdfConfiguration ryaConfig = makeRyaConfig(getMongoConnectionDetails(), details, getClient());
+        // Initialize the rest of the collections used by the Rya instance.
+        final MongoDBRdfConfiguration ryaConfig = makeRyaConfig(connectionDetails, ryaDetails);
         try {
-            final MongoDBRyaDAO ryaDao = new MongoDBRyaDAO();
-            ryaDao.setConf(ryaConfig);
-
-            final TablePrefixLayoutStrategy tls = new TablePrefixLayoutStrategy();
-            tls.setTablePrefix(instanceName);
-            ryaConfig.setTableLayoutStrategy(tls);
-
-            ryaDao.init();
-        } catch (final RyaDAOException e) {
-            throw new RyaClientException("Could not initialize all of the tables for the new Rya instance. " //
-                    + "This instance may be left in a bad state.", e);
+            final Sail ryaSail = RyaSailFactory.getInstance(ryaConfig);
+            ryaSail.shutDown();
+        } catch (final AccumuloException | AccumuloSecurityException | RyaDAOException | InferenceEngineException e) {
+            throw new RyaClientException("Could not initialize all of the tables for the new Rya instance. " +
+                    "This instance may be left in a bad state.", e);
+        } catch (final SailException e) {
+            throw new RyaClientException("Problem shutting down the Sail object used to install Rya.", e);
         }
     }
 
@@ -137,7 +145,7 @@ public class MongoInstall extends MongoCommand implements Install {
     private RyaDetails initializeRyaDetails(
             final String instanceName,
             final InstallConfiguration installConfig) throws AlreadyInitializedException, RyaDetailsRepositoryException {
-        final RyaDetailsRepository detailsRepo = new MongoRyaInstanceDetailsRepository(getClient(), instanceName);
+        final RyaDetailsRepository detailsRepo = new MongoRyaInstanceDetailsRepository(adminClient, instanceName);
 
         // Build the PCJ Index details. [not supported in mongo]
         final PCJIndexDetails.Builder pcjDetailsBuilder = PCJIndexDetails.builder().setEnabled(false);
@@ -152,7 +160,7 @@ public class MongoInstall extends MongoCommand implements Install {
                 .setTemporalIndexDetails(new TemporalIndexDetails(installConfig.isTemporalIndexEnabled()))
                 .setFreeTextDetails(new FreeTextIndexDetails(installConfig.isFreeTextIndexEnabled()))//
 
-                // Entity centric indexing is not supported in Mongo Db.
+                // Entity centric indexing is not supported in Mongo DB.
                 .setEntityCentricIndexDetails(new EntityCentricIndexDetails(false))
 
                 .setPCJIndexDetails(pcjDetailsBuilder)
@@ -174,13 +182,14 @@ public class MongoInstall extends MongoCommand implements Install {
      *
      * @param connectionDetails - Indicates how to connect to Mongo. (not null)
      * @param ryaDetails - Indicates what needs to be installed. (not null)
-     * @param mongoClient
      * @return A Rya Configuration object that can be used to perform the install.
      */
-    private static StatefulMongoDBRdfConfiguration makeRyaConfig(final MongoConnectionDetails connectionDetails, final RyaDetails ryaDetails, final MongoClient mongoClient) {
+    private static MongoDBRdfConfiguration makeRyaConfig(
+            final MongoConnectionDetails connectionDetails,
+            final RyaDetails ryaDetails) {
         // Start with a configuration that is built using the connection details.
 
-        final StatefulMongoDBRdfConfiguration conf = connectionDetails.build(ryaDetails.getRyaInstanceName(), mongoClient);
+        final MongoDBRdfConfiguration conf = connectionDetails.build(ryaDetails.getRyaInstanceName());
 
         // The Mongo implementation of Rya does not currently support PCJs.
         if(ryaDetails.getPCJIndexDetails().isEnabled()) {

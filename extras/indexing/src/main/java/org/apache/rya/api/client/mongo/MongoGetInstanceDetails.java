@@ -40,19 +40,20 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * An Mongo implementation of the {@link GetInstanceDetails} command.
  */
 @DefaultAnnotation(NonNull.class)
-public class MongoGetInstanceDetails extends MongoCommand implements GetInstanceDetails {
+public class MongoGetInstanceDetails implements GetInstanceDetails {
 
+    private final MongoClient adminClient;
     private final InstanceExists instanceExists;
 
     /**
      * Constructs an instance of {@link MongoGetInstanceDetails}.
      *
-     * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
-     * @param connector - Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
+     * @param adminClient - Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
+     * @param instanceExists - The interactor used to check if a Rya instance exists. (not null)
      */
-    public MongoGetInstanceDetails(final MongoConnectionDetails connectionDetails, final MongoClient client) {
-        super(connectionDetails, client);
-        instanceExists = new MongoInstanceExists(connectionDetails, client);
+    public MongoGetInstanceDetails(final MongoClient adminClient, MongoInstanceExists instanceExists) {
+        this.adminClient = requireNonNull(adminClient);
+        this.instanceExists = requireNonNull(instanceExists);
     }
 
     @Override
@@ -65,7 +66,7 @@ public class MongoGetInstanceDetails extends MongoCommand implements GetInstance
         }
 
         // If the instance has details, then return them.
-        final RyaDetailsRepository detailsRepo = new MongoRyaInstanceDetailsRepository(getClient(), ryaInstanceName);
+        final RyaDetailsRepository detailsRepo = new MongoRyaInstanceDetailsRepository(adminClient, ryaInstanceName);
         try {
             return Optional.of(detailsRepo.getRyaInstanceDetails());
         } catch (final NotInitializedException e) {

@@ -22,6 +22,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 import java.nio.CharBuffer;
+import java.util.Optional;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -33,7 +34,6 @@ import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
 import org.apache.rya.api.client.mongo.MongoConnectionDetails;
 import org.apache.rya.api.client.mongo.MongoRyaClientFactory;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.shell.SharedShellState.ConnectionState;
 import org.apache.rya.shell.SharedShellState.StorageType;
 import org.apache.rya.shell.util.ConnectorFactory;
@@ -45,11 +45,7 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
 import com.mongodb.MongoClient;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
 
 /**
  * Spring Shell commands that manage the connection that is used by the shell.
@@ -108,7 +104,7 @@ public class RyaConnectionCommands implements CommandMarker {
     @CliCommand(value = PRINT_CONNECTION_DETAILS_CMD, help = "Print information about the Shell's Rya storage connection.")
     public String printConnectionDetails() {
         // Check to see if the shell is connected to any storages.
-        final Optional<StorageType> storageType = sharedState.getShellState().getStorageType();
+        final com.google.common.base.Optional<StorageType> storageType = sharedState.getShellState().getStorageType();
         if(!storageType.isPresent()) {
             return "The shell is not connected to anything.";
         }
@@ -124,10 +120,17 @@ public class RyaConnectionCommands implements CommandMarker {
 
         case MONGO:
             final MongoConnectionDetails mongoDetails = sharedState.getShellState().getMongoDetails().get();
-            return "The shell is connected to an instance of MongoDB using the following parameters:\n" +
-            "    Hostname: "  + mongoDetails.getHostname() + "\n" +
-            "    Port: " + mongoDetails.getPort() + "\n";
-            //+"    Username:" + mongoDetails.getUsername();
+
+            StringBuilder message = new StringBuilder()
+                    .append("The shell is connected to an instance of MongoDB using the following parameters:\\n")
+                    .append("    Hostname: "  + mongoDetails.getHostname() + "\n")
+                    .append("    Port: " + mongoDetails.getPort() + "\n");
+
+            if(mongoDetails.getUsername().isPresent()) {
+                message.append("    Username:" + mongoDetails.getUsername().get());
+            }
+
+            return message.toString();
 
         default:
             throw new RuntimeException("Unrecognized StorageType: " + storageType.get());
@@ -163,47 +166,41 @@ public class RyaConnectionCommands implements CommandMarker {
 
     @CliCommand(value = CONNECT_MONGO_CMD, help = "Connect the shell to an instance of MongoDB.")
     public String connectToMongo(
-            @CliOption(key = {"username"}, mandatory = false, help = "The username that will be used to connect to MongoDB.")
+            @CliOption(key = {"username"}, mandatory = false, help =
+                "The username that will be used to connect to MongoDB when performing administrative tasks.")
             final String username,
             @CliOption(key= {"hostname"}, mandatory = true, help = "The hostname of the MongoDB that will be connected to.")
             final String hostname,
             @CliOption(key= {"port"}, mandatory = true, help = "The port of the MongoDB that will be connected to.")
             final String port) {
 
-        // Prompt the user for their password.
         try {
-            // Set up a configuration file that connects to the specified Mongo DB.
-            final MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration();
-            final MongoClient client;
-            conf.setMongoHostname(hostname);
-            conf.setMongoPort(port);
-
-            final char[] password;
+            // If a username was provided, then prompt for a password.
+            char[] password = null;
             if(username != null) {
                 password = passwordPrompt.getPassword();
-                conf.setMongoUser(username);
-                conf.setMongoPassword(new String(password));
-                final ServerAddress addr = new ServerAddress(hostname, Integer.parseInt(port));
-                final MongoCredential creds = MongoCredential.createPlainCredential(username, "$external", password);
-                client = new MongoClient(addr, Lists.newArrayList(creds));
-            } else {
-                password = null;
-                client = new MongoClient(hostname, Integer.parseInt(port));
             }
 
-            // Create the singleton instance of Mongo that will be used through out the application.
+            // Create the Mongo Connection Details that describe the Mongo DB Server we are interacting with.
+            final MongoConnectionDetails connectionDetails = new MongoConnectionDetails(
+                    hostname,
+                    Integer.parseInt(port),
+                    Optional.ofNullable(username),
+                    Optional.ofNullable(password));
+
+            // Connect to a MongoDB server. TODO Figure out how to provide auth info?
+            MongoClient adminClient = new MongoClient(hostname, Integer.parseInt(port));
 
             // Make sure the client is closed at shutdown.
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
                 public void run() {
-                    client.close();
+                    adminClient.close();
                 }
             });
 
             // Initialize the connected to Mongo shared state.
-            final MongoConnectionDetails connectionDetails = new MongoConnectionDetails(username, password, hostname, Integer.parseInt(port));
-            final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, client);
+            final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, adminClient);
             sharedState.connectedToMongo(connectionDetails, ryaClient);
 
         } catch (final IOException e) {
@@ -218,6 +215,10 @@ public class RyaConnectionCommands implements CommandMarker {
             @CliOption(key = {"instance"}, mandatory = true, help = "The name of the Rya instance the shell will interact with.")
             final String instance) {
         try {
+            // TODO When you are connected to mongo db, then connecting to an instance may require
+            //      a username/password. this is because each Database has its own credentials, so
+            //      every rya instance likewise has their own credentials.
+
             final InstanceExists instanceExists = sharedState.getShellState().getConnectedCommands().get().getInstanceExists();
 
             // TODO gracefully fail if that version doen't support it. maybe the list command should go ahead

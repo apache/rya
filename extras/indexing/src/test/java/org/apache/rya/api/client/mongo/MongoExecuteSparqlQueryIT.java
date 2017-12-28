@@ -45,7 +45,7 @@ public class MongoExecuteSparqlQueryIT extends MongoTestBase {
     public void ExecuteSparqlQuery_exec() throws MongoException, DuplicateInstanceNameException, RyaClientException {
         // Install an instance of Rya.
         final MongoConnectionDetails connectionDetails = getConnectionDetails();
-        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, conf.getMongoClient());
+        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, getMongoClient());
         // install rya and load some data
         final List<Statement> loadMe = installAndLoad();
         // Here comes the method to test
@@ -77,7 +77,7 @@ public class MongoExecuteSparqlQueryIT extends MongoTestBase {
                 .setEnableGeoIndex(false)
                 .build();
         final MongoConnectionDetails connectionDetails = getConnectionDetails();
-        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, conf.getMongoClient());
+        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, getMongoClient());
         final Install install = ryaClient.getInstall();
         install.install(conf.getMongoDBName(), installConfig);
         // next, load data
@@ -104,15 +104,15 @@ public class MongoExecuteSparqlQueryIT extends MongoTestBase {
         return loadMe;
     }
 
-    /**
-     * @return copy from conf to MongoConnectionDetails
-     */
     private MongoConnectionDetails getConnectionDetails() {
-        return new MongoConnectionDetails(
-                conf.getMongoUser(),
-                null,//conf.getMongoPassword().toCharArray(),
-                conf.getMongoHostname(),
-                Integer.parseInt(conf.getMongoPort()));
+        final java.util.Optional<char[]> password = conf.getMongoPassword() != null ?
+                java.util.Optional.of(conf.getMongoPassword().toCharArray()) :
+                    java.util.Optional.empty();
 
+        return new MongoConnectionDetails(
+                conf.getMongoHostname(),
+                Integer.parseInt(conf.getMongoPort()),
+                java.util.Optional.ofNullable(conf.getMongoUser()),
+                password);
     }
 }

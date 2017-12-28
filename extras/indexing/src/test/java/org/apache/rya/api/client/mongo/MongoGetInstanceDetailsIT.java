@@ -28,6 +28,7 @@ import org.apache.rya.api.client.GetInstanceDetails;
 import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
+import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
@@ -59,11 +60,12 @@ public class MongoGetInstanceDetailsIT extends MongoTestBase {
                 .setEnablePcjIndex(true)
                 .build();
 
-        final Install install = new MongoInstall(getConnectionDetails(), getMongoClient());
+        final RyaClient ryaClient = MongoRyaClientFactory.build(getConnectionDetails(), getMongoClient());
+        final Install install = ryaClient.getInstall();
         install.install(instanceName, installConfig);
 
         // Verify the correct details were persisted.
-        final GetInstanceDetails getInstanceDetails = new MongoGetInstanceDetails(getConnectionDetails(), getMongoClient());
+        final GetInstanceDetails getInstanceDetails = ryaClient.getGetInstanceDetails();
         final Optional<RyaDetails> details = getInstanceDetails.getDetails(instanceName);
 
         final RyaDetails expectedDetails = RyaDetails.builder()
@@ -93,7 +95,8 @@ public class MongoGetInstanceDetailsIT extends MongoTestBase {
 
     @Test(expected = InstanceDoesNotExistException.class)
     public void getDetails_instanceDoesNotExist() throws MongoException, RyaClientException {
-        final GetInstanceDetails getInstanceDetails = new MongoGetInstanceDetails(getConnectionDetails(), conf.getMongoClient());
+        final RyaClient ryaClient = MongoRyaClientFactory.build(getConnectionDetails(), getMongoClient());
+        final GetInstanceDetails getInstanceDetails = ryaClient.getGetInstanceDetails();
         getInstanceDetails.getDetails("instance_name");
     }
 
@@ -105,18 +108,21 @@ public class MongoGetInstanceDetailsIT extends MongoTestBase {
         getMongoClient().getDatabase(instanceName).createCollection("rya_triples");
 
         // Verify that the operation returns empty.
-        final GetInstanceDetails getInstanceDetails = new MongoGetInstanceDetails(getConnectionDetails(), getMongoClient());
+        final RyaClient ryaClient = MongoRyaClientFactory.build(getConnectionDetails(), getMongoClient());
+        final GetInstanceDetails getInstanceDetails = ryaClient.getGetInstanceDetails();
         final Optional<RyaDetails> details = getInstanceDetails.getDetails(instanceName);
         assertFalse( details.isPresent() );
     }
 
-    /**
-     * @return copy from conf to MongoConnectionDetails
-     */
     private MongoConnectionDetails getConnectionDetails() {
-        return new MongoConnectionDetails(conf.getMongoUser(),
-                null,//conf.getMongoPassword().toCharArray(),
+        final java.util.Optional<char[]> password = conf.getMongoPassword() != null ?
+                java.util.Optional.of(conf.getMongoPassword().toCharArray()) :
+                    java.util.Optional.empty();
+
+        return new MongoConnectionDetails(
                 conf.getMongoHostname(),
-                Integer.parseInt(conf.getMongoPort()));
+                Integer.parseInt(conf.getMongoPort()),
+                java.util.Optional.ofNullable(conf.getMongoUser()),
+                password);
     }
 }

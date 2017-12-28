@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
@@ -49,7 +50,7 @@ public class MongoInstallIT extends MongoTestBase {
         final MongoConnectionDetails connectionDetails = getConnectionDetails();
 
         // Check that the instance does not exist.
-        final InstanceExists instanceExists = new MongoInstanceExists(connectionDetails, getMongoClient());
+        final InstanceExists instanceExists = new MongoInstanceExists(getMongoClient());
         assertFalse(instanceExists.exists(ryaInstance));
 
         // Install an instance of Rya with all the valid options turned on.
@@ -59,9 +60,8 @@ public class MongoInstallIT extends MongoTestBase {
                 .setEnableTemporalIndex(true)
                 .build();
 
-        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, conf.getMongoClient());
+        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, getMongoClient());
         final Install install = ryaClient.getInstall();
-        assertTrue("ryaClient should give mongoInstall", install instanceof MongoInstall);
         install.install(ryaInstance, installConfig);
 
         // Check that the instance exists.
@@ -87,7 +87,8 @@ public class MongoInstallIT extends MongoTestBase {
 
         final MongoConnectionDetails connectionDetails = getConnectionDetails();
 
-        final Install install = new MongoInstall(connectionDetails, getMongoClient());
+        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, getMongoClient());
+        final Install install = ryaClient.getInstall();
         install.install(instanceName, installConfig);
 
         // Install it again throws expected error.
@@ -95,10 +96,14 @@ public class MongoInstallIT extends MongoTestBase {
     }
 
     private MongoConnectionDetails getConnectionDetails() {
+        final Optional<char[]> password = conf.getMongoPassword() != null ?
+                Optional.of(conf.getMongoPassword().toCharArray()) :
+                    Optional.empty();
+
         return new MongoConnectionDetails(
-                conf.getMongoUser(),
-                null,//conf.getMongoPassword().toCharArray(),
                 conf.getMongoHostname(),
-                Integer.parseInt(conf.getMongoPort()));
+                Integer.parseInt(conf.getMongoPort()),
+                Optional.ofNullable(conf.getMongoUser()),
+                password);
     }
 }

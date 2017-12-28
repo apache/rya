@@ -42,18 +42,17 @@ import com.mongodb.client.MongoCursor;
  * Integration tests the methods of {@link MongoLoadStatements}.
  */
 public class MongoLoadStatementsIT extends MongoTestBase {
+
     @Test(expected = InstanceDoesNotExistException.class)
     public void instanceDoesNotExist() throws Exception {
         org.apache.log4j.BasicConfigurator.configure();
-        final RyaClient ryaClient = MongoRyaClientFactory.build(getConnectionDetails(), conf.getMongoClient());
+        final RyaClient ryaClient = MongoRyaClientFactory.build(getConnectionDetails(), getMongoClient());
         // Skip the install step to create error causing situation.
         ryaClient.getLoadStatements().loadStatements(getConnectionDetails().getHostname(), makeTestStatements());
     }
 
     /**
      * Pass a list of statements to our loadStatement class.
-     *
-     * @throws Exception
      */
     @Test
     public void loadTurtleFile() throws Exception {
@@ -99,7 +98,7 @@ public class MongoLoadStatementsIT extends MongoTestBase {
                 .setEnableGeoIndex(false)
                 .build();
         final MongoConnectionDetails connectionDetails = getConnectionDetails();
-        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, conf.getMongoClient());
+        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, getMongoClient());
         final Install install = ryaClient.getInstall();
         install.install(conf.getMongoDBName(), installConfig);
         // next, load data
@@ -109,14 +108,16 @@ public class MongoLoadStatementsIT extends MongoTestBase {
                 loadMe);
         return loadMe;
     }
-    /**
-     * @return copy from conf to MongoConnectionDetails
-     */
+
     private MongoConnectionDetails getConnectionDetails() {
+        final java.util.Optional<char[]> password = conf.getMongoPassword() != null ?
+                java.util.Optional.of(conf.getMongoPassword().toCharArray()) :
+                    java.util.Optional.empty();
+
         return new MongoConnectionDetails(
-                conf.getMongoUser(),
-                null,//conf.getMongoPassword().toCharArray(),
                 conf.getMongoHostname(),
-                Integer.parseInt(conf.getMongoPort()));
+                Integer.parseInt(conf.getMongoPort()),
+                java.util.Optional.ofNullable(conf.getMongoUser()),
+                password);
     }
 }

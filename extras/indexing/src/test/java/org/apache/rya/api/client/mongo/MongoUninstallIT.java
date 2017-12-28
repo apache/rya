@@ -21,10 +21,13 @@ package org.apache.rya.api.client.mongo;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Optional;
+
 import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
 import org.apache.rya.api.client.InstanceExists;
+import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.client.Uninstall;
 import org.apache.rya.mongodb.MongoTestBase;
@@ -43,15 +46,16 @@ public class MongoUninstallIT extends MongoTestBase {
         final String instanceName = "testInstance_";
         final InstallConfiguration installConfig = InstallConfiguration.builder().setEnableTableHashPrefix(true).setEnableEntityCentricIndex(true).setEnableFreeTextIndex(true).setEnableTemporalIndex(true).setEnablePcjIndex(true).setEnableGeoIndex(true).setFluoPcjAppName("fluo_app_name").build();
 
-        final Install install = new MongoInstall(getConnectionDetails(), conf.getMongoClient());
+        final RyaClient ryaClient = MongoRyaClientFactory.build(getConnectionDetails(), getMongoClient());
+        final Install install = ryaClient.getInstall();
         install.install(instanceName, installConfig);
 
         // Show that the instance exists.
-        final InstanceExists instanceExists = new MongoInstanceExists(getConnectionDetails(), conf.getMongoClient());
+        final InstanceExists instanceExists = ryaClient.getInstanceExists();
         assertTrue( instanceExists.exists(instanceName) );
 
         // Uninstall the instance
-        final Uninstall uninstall = new MongoUninstall(getConnectionDetails(), conf.getMongoClient());
+        final Uninstall uninstall = ryaClient.getUninstall();
         uninstall.uninstall(instanceName);
 
         // Check that the instance no longer exists.
@@ -64,18 +68,20 @@ public class MongoUninstallIT extends MongoTestBase {
         final String instanceName = "testInstance_";
 
         // Uninstall the instance
-        final Uninstall uninstall = new MongoUninstall(getConnectionDetails(), conf.getMongoClient());
+        final RyaClient ryaClient = MongoRyaClientFactory.build(getConnectionDetails(), getMongoClient());
+        final Uninstall uninstall = ryaClient.getUninstall();
         uninstall.uninstall(instanceName);
     }
 
-    /**
-     * @return copy from conf to MongoConnectionDetails
-     */
-    private MongoConnectionDetails getConnectionDetails() {//
+    private MongoConnectionDetails getConnectionDetails() {
+        final Optional<char[]> password = conf.getMongoPassword() != null ?
+                Optional.of(conf.getMongoPassword().toCharArray()) :
+                    Optional.empty();
+
         return new MongoConnectionDetails(
-                conf.getMongoUser(),
-                null,//conf.getMongoPassword().toCharArray(),
                 conf.getMongoHostname(),
-                Integer.parseInt(conf.getMongoPort()));
+                Integer.parseInt(conf.getMongoPort()),
+                Optional.ofNullable(conf.getMongoUser()),
+                password);
     }
 }

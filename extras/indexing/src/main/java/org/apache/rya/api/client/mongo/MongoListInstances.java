@@ -18,6 +18,8 @@
  */
 package org.apache.rya.api.client.mongo;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,25 +36,25 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * An Mongo implementation of the {@link ListInstances} command.
  */
 @DefaultAnnotation(NonNull.class)
-public class MongoListInstances extends MongoCommand implements ListInstances {
+public class MongoListInstances implements ListInstances {
+
+    private final MongoClient adminClient;
+
     /**
      * Constructs an instance of {@link MongoListInstances}.
      *
-     * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
-     * @param connector - Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
+     * @param adminClient - Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
      */
-    public MongoListInstances(final MongoConnectionDetails connectionDetails, final MongoClient client) {
-        super(connectionDetails, client);
+    public MongoListInstances(final MongoClient adminClient) {
+        this.adminClient = requireNonNull(adminClient);
     }
 
     @Override
     public List<String> listInstances() throws RyaClientException {
-        final MongoClient client = super.getClient();
-
         // Each database that contains an instance details collection is a Rya Instance.
         final List<String> ryaInstances = new ArrayList<>();
-        for (final String db : getClient().listDatabaseNames()) {
-            for(final String collection : client.getDatabase(db).listCollectionNames()) {
+        for (final String db : adminClient.listDatabaseNames()) {
+            for(final String collection : adminClient.getDatabase(db).listCollectionNames()) {
                 if (collection.equals(MongoRyaInstanceDetailsRepository.INSTANCE_DETAILS_COLLECTION_NAME)) {
                     ryaInstances.add(db);
                     break;

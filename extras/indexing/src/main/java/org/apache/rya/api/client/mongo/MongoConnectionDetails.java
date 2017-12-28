@@ -24,9 +24,6 @@ import java.util.Optional;
 
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
-
-import com.mongodb.MongoClient;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -38,42 +35,30 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 public class MongoConnectionDetails {
 
     private final Optional<String> username;
-    private final Optional<char[]> userPass;
+    private final Optional<char[]> password;
     private final String hostname;
     private final int port;
 
     /**
      * Constructs an instance of {@link MongoConnectionDetails}.
      *
-     * @param username - The username that was used to establish the connection.
-     * @param password - The password that was used to establish the connection.
      * @param hostname - The hostname of the Mongo DB that was connected to. (not null)
      * @param port - The port of the Mongo DB that was connected to.
+     * @param username - The username that was used to establish the connection
+     *   when performing administrative operations. (not null)
+     * @param password - The password that was used to establish the connection
+     *   when performing administrative operations. (not null)
      */
-    public MongoConnectionDetails( //
-            final String username, //
-            final char[] userPass, //
-            final String hostname, //
-            final int port) {
-        this.username = Optional.ofNullable(username);
-        this.userPass = Optional.ofNullable(userPass);
+    public MongoConnectionDetails(
+            final String hostname,
+            final int port,
+            final Optional<String> username,
+            final Optional<char[]> password) {
         this.hostname = requireNonNull(hostname);
         this.port = port;
+        this.username = requireNonNull(username);
+        this.password = requireNonNull(password);
     }
-
-    // /**
-    // * @return The username that was used to establish the connection.
-    // */
-    // public String getUsername() {
-    // return this.username;
-    // }
-    //
-    // /**
-    // * @return The password that was used to establish the connection.
-    // */
-    // public char[] getPassword() {
-    // return this.userPass;
-    // }
 
     /**
      * @return The hostname of the Mongo DB that was connected to.
@@ -89,18 +74,27 @@ public class MongoConnectionDetails {
         return port;
     }
 
+     /**
+      * @return The username that was used to establish the connection when performing administrative operations.
+      */
+     public Optional<String> getUsername() {
+         return this.username;
+     }
+
+     /**
+      * @return The password that was used to establish the connection when performing administrative operations.
+      */
+     public Optional<char[]> getPassword() {
+         return password;
+     }
+
     /**
      * Create a {@link MongoDBRdfConfiguration} that is using this object's values.
      *
-     * @param ryaInstanceName
-     *            - The Rya instance to connect to.
+     * @param ryaInstanceName - The Rya instance to connect to. (not null)
      * @return Constructs a new {@link MongoDBRdfConfiguration} object with values from this object.
      */
     public MongoDBRdfConfiguration build(final String ryaInstanceName) {
-        return build(ryaInstanceName, null);
-    }
-
-    public StatefulMongoDBRdfConfiguration build(final String ryaInstanceName, final MongoClient mongoClient) {
         // Note, we don't use the MongoDBRdfConfigurationBuilder here because it explicitly sets
         // authorizations and visibilities to an empty string if they are not set on the builder.
         // If they are null in the MongoRdfConfiguration object, it may do the right thing.
@@ -108,13 +102,19 @@ public class MongoConnectionDetails {
         conf.setBoolean(ConfigUtils.USE_MONGO, true);
         conf.setMongoHostname(hostname);
         conf.setMongoPort("" + port);
-        // conf.setMongoUser(username);
-        // conf.setMongoPassword(new String(userPass));
         conf.setMongoDBName(ryaInstanceName);
+
+        if(username.isPresent()) {
+            conf.setMongoUser(username.get());
+        }
+
+        if(password.isPresent()) {
+            conf.setMongoPassword( new String(password.get()) );
+        }
 
         // Both of these are ways to configure the collection prefixes.
         //TODO these should not be explicitly set
         conf.setTablePrefix("rya");
-        return new StatefulMongoDBRdfConfiguration(conf, mongoClient);
+        return conf;
     }
 }

@@ -45,7 +45,7 @@ public class MongoLoadStatementsFileIT extends MongoTestBase {
     @Test(expected = InstanceDoesNotExistException.class)
     public void instanceDoesNotExist() throws Exception {
         org.apache.log4j.BasicConfigurator.configure();
-        final RyaClient ryaClient = MongoRyaClientFactory.build(getConnectionDetails(), conf.getMongoClient());
+        final RyaClient ryaClient = MongoRyaClientFactory.build(getConnectionDetails(), getMongoClient());
         ryaClient.getLoadStatementsFile().loadStatements(getConnectionDetails().getHostname(), Paths.get("src/test/resources/example.ttl"), RDFFormat.TURTLE);
     }
 
@@ -61,7 +61,7 @@ public class MongoLoadStatementsFileIT extends MongoTestBase {
                 .setEnableGeoIndex(false)
                 .build();
         final MongoConnectionDetails connectionDetails = getConnectionDetails();
-        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, conf.getMongoClient());
+        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, getMongoClient());
         final Install install = ryaClient.getInstall();
         install.install(conf.getMongoDBName(), installConfig);
 
@@ -81,7 +81,6 @@ public class MongoLoadStatementsFileIT extends MongoTestBase {
 
         final List<Statement> statements = new ArrayList<>();
         final MongoCursor<Document> x = getRyaCollection().find().iterator();
-        System.out.println("getRyaCollection().count()=" + getRyaCollection().count());
         while (x.hasNext()) {
             final Document y = x.next();
             statements.add(vf.createStatement(vf.createURI(y.getString("subject")), vf.createURI(y.getString("predicate")), vf.createURI(y.getString("object"))));
@@ -90,18 +89,15 @@ public class MongoLoadStatementsFileIT extends MongoTestBase {
         assertEquals("All rows in DB should match expected rows:", expected, statements);
     }
 
-    private boolean isRyaMetadataStatement(final ValueFactory vf, final Statement statement) {
-        return statement.getPredicate().equals(vf.createURI("urn:org.apache.rya/2012/05#version")) || statement.getPredicate().equals(vf.createURI("urn:org.apache.rya/2012/05#rts"));
-    }
-
-    /**
-     * @return copy from conf to MongoConnectionDetails
-     */
     private MongoConnectionDetails getConnectionDetails() {
+        final java.util.Optional<char[]> password = conf.getMongoPassword() != null ?
+                java.util.Optional.of(conf.getMongoPassword().toCharArray()) :
+                    java.util.Optional.empty();
+
         return new MongoConnectionDetails(
-                conf.getMongoUser(),
-                null,//conf.getMongoPassword().toCharArray(),
                 conf.getMongoHostname(),
-                Integer.parseInt(conf.getMongoPort()));
+                Integer.parseInt(conf.getMongoPort()),
+                java.util.Optional.ofNullable(conf.getMongoUser()),
+                password);
     }
 }

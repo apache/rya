@@ -21,6 +21,8 @@ package org.apache.rya.shell;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
+import java.util.Optional;
+
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.client.mongo.MongoConnectionDetails;
@@ -66,7 +68,8 @@ public class RyaPromptProviderTest {
         // Create a shared state that is connected to a storage, but not a rya instance.
         final SharedShellState sharedState = new SharedShellState();
 
-        final MongoConnectionDetails connectionDetails = new MongoConnectionDetails("username", new char[] {}, "testMongoHost", 999);
+        final MongoConnectionDetails connectionDetails =
+                new MongoConnectionDetails("testMongoHost", 999, Optional.of("username"), Optional.of(new char[] {}));
         sharedState.connectedToMongo(connectionDetails, mock(RyaClient.class));
 
         // Create a prompt.

@@ -41,32 +41,34 @@ public class MongoRyaClientFactory {
      * Rya that is hosted by a MongoDB server.
      *
      * @param connectionDetails - Details about the values that were used to connect to Mongo DB. (not null)
-     * @param mongoClient - The MongoDB client the commands will use. (not null)
+     * @param adminClient - The MongoDB client the administrative commands will use. (not null)
      * @return The initialized commands.
      */
     public static RyaClient build(
             final MongoConnectionDetails connectionDetails,
-            final MongoClient mongoClient) {
+            final MongoClient adminClient) {
         requireNonNull(connectionDetails);
-        requireNonNull(mongoClient);
+        requireNonNull(adminClient);
 
         // Build the RyaCommands option with the initialized commands.
+        final MongoInstanceExists instanceExists = new MongoInstanceExists(adminClient);
+
         return new RyaClient(
-                new MongoInstall(connectionDetails, mongoClient),
+                new MongoInstall(connectionDetails, adminClient, instanceExists),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                new MongoGetInstanceDetails(connectionDetails, mongoClient),
-                new MongoInstanceExists(connectionDetails, mongoClient),
-                new MongoListInstances(connectionDetails, mongoClient),
+                new MongoGetInstanceDetails(adminClient, instanceExists),
+                instanceExists,
+                new MongoListInstances(adminClient),
                 Optional.empty(),
                 Optional.empty(),
-                new MongoUninstall(connectionDetails, mongoClient),
-                new MongoLoadStatements(connectionDetails, mongoClient),
-                new MongoLoadStatementsFile(connectionDetails, mongoClient),
-                new MongoExecuteSparqlQuery(connectionDetails, mongoClient));
+                new MongoUninstall(adminClient, instanceExists),
+                new MongoLoadStatements(connectionDetails, instanceExists),
+                new MongoLoadStatementsFile(connectionDetails, instanceExists),
+                new MongoExecuteSparqlQuery(connectionDetails, instanceExists));
     }
 }

@@ -22,7 +22,6 @@ import static java.util.Objects.requireNonNull;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.log4j.Logger;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
 import org.apache.rya.api.client.InstanceExists;
 import org.apache.rya.api.client.LoadStatements;
@@ -38,8 +37,6 @@ import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
 
-import com.mongodb.MongoClient;
-
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -47,44 +44,42 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * An Mongo implementation of the {@link LoadStatements} command.
  */
 @DefaultAnnotation(NonNull.class)
-public class MongoLoadStatements extends MongoCommand implements LoadStatements {
-    private static final Logger log = Logger.getLogger(MongoLoadStatements.class);
+public class MongoLoadStatements implements LoadStatements {
+
+    private final MongoConnectionDetails connectionDetails;
     private final InstanceExists instanceExists;
 
     /**
      * Constructs an instance.
      *
      * @param connectionDetails - Details to connect to the server. (not null)
-     * @param client - Provides programmatic access to the instance of Mongo
-     *            that hosts Rya instance. (not null)
+     * @param instanceExists - The interactor used to check if a Rya instance exists. (not null)
      */
-    public MongoLoadStatements(MongoConnectionDetails connectionDetails, MongoClient client) {
-        super(connectionDetails, client);
-        instanceExists = new MongoInstanceExists(connectionDetails, client);
+    public MongoLoadStatements(final MongoConnectionDetails connectionDetails, final MongoInstanceExists instanceExists) {
+        this.connectionDetails = requireNonNull(connectionDetails);
+        this.instanceExists = requireNonNull(instanceExists);
     }
 
     @Override
-    public void loadStatements(String ryaInstanceName, Iterable<? extends Statement> statements) throws InstanceDoesNotExistException, RyaClientException {
+    public void loadStatements(final String ryaInstanceName, final Iterable<? extends Statement> statements) throws InstanceDoesNotExistException, RyaClientException {
         requireNonNull(ryaInstanceName);
         requireNonNull(statements);
 
         // Ensure the Rya Instance exists.
         if (!instanceExists.exists(ryaInstanceName)) {
-            throw new InstanceDoesNotExistException(String.format("There is no Rya instance named '%s'.",
-                            ryaInstanceName));
+            throw new InstanceDoesNotExistException(String.format("There is no Rya instance named '%s'.", ryaInstanceName));
         }
 
         Sail sail = null;
         SailRepository sailRepo = null;
         SailRepositoryConnection sailRepoConn = null;
+
         // Get a Sail object that is connected to the Rya instance.
-        final MongoDBRdfConfiguration ryaConf = getMongoConnectionDetails().build(ryaInstanceName, getClient());
-        // ryaConf.setFlush(false); //Accumulo version said: RYA-327 should address this hardcoded value.
+        final MongoDBRdfConfiguration ryaConf = connectionDetails.build(ryaInstanceName);
         try {
             sail = RyaSailFactory.getInstance(ryaConf);
-        } catch (SailException | RyaDAOException | InferenceEngineException | AccumuloException
-                        | AccumuloSecurityException e) {
-            throw new RyaClientException("While getting a sail instance.", e);
+        } catch (SailException | RyaDAOException | InferenceEngineException | AccumuloException | AccumuloSecurityException e) {
+            throw new RyaClientException("Could not load statements into Rya because of a problem while creating the Sail object.", e);
         }
 
         // Load the file.
@@ -92,9 +87,8 @@ public class MongoLoadStatements extends MongoCommand implements LoadStatements 
         try {
             sailRepoConn = sailRepo.getConnection();
             sailRepoConn.add(statements);
-        } catch (RepositoryException e) {
+        } catch (final RepositoryException e) {
             throw new RyaClientException("While getting a connection and adding statements.", e);
         }
     }
-
 }

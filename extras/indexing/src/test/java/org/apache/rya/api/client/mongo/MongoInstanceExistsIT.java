@@ -43,7 +43,7 @@ public class MongoInstanceExistsIT extends MongoTestBase {
         client.getDatabase(instanceName).createCollection(MongoRyaInstanceDetailsRepository.INSTANCE_DETAILS_COLLECTION_NAME);
 
         // Verify the command reports the instance exists.
-        final MongoInstanceExists instanceExists = new MongoInstanceExists(getConnectionDetails(), client);
+        final MongoInstanceExists instanceExists = new MongoInstanceExists(getMongoClient());
         assertTrue( instanceExists.exists(instanceName) );
     }
 
@@ -56,25 +56,14 @@ public class MongoInstanceExistsIT extends MongoTestBase {
         client.getDatabase(instanceName).createCollection("rya_triples");
 
         // Verify the command reports the instance exists.
-        final MongoInstanceExists instanceExists = new MongoInstanceExists(getConnectionDetails(), client);
+        final MongoInstanceExists instanceExists = new MongoInstanceExists(getMongoClient());
         assertTrue( instanceExists.exists(instanceName) );
     }
 
     @Test
     public void doesNotExist() throws MongoException {
         // Verify the command reports the instance does not exists.
-        final MongoInstanceExists instanceExists = new MongoInstanceExists(getConnectionDetails(), getMongoClient());
+        final MongoInstanceExists instanceExists = new MongoInstanceExists(getMongoClient());
         assertFalse( instanceExists.exists("some_instance") );
-    }
-
-    /**
-     * @return copy from conf to MongoConnectionDetails
-     */
-    private MongoConnectionDetails getConnectionDetails() {//
-        return new MongoConnectionDetails(
-                conf.getMongoUser(),
-                null,//conf.getMongoPassword().toCharArray(),
-                conf.getMongoHostname(),
-                Integer.parseInt(conf.getMongoPort()));
     }
 }

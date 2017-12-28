@@ -22,11 +22,13 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.ListInstances;
+import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.mongodb.MongoTestBase;
 import org.junit.Test;
@@ -42,13 +44,14 @@ public class MongoListInstancesIT extends MongoTestBase {
     @Test
     public void listInstances_hasRyaDetailsTable() throws MongoException, DuplicateInstanceNameException, RyaClientException {
         // Install a few instances of Rya using the install command.
-        final Install install = new MongoInstall(getConnectionDetails(), getMongoClient());
+        final RyaClient ryaClient = MongoRyaClientFactory.build(getConnectionDetails(), getMongoClient());
+        final Install install = ryaClient.getInstall();
         install.install("instance1_", InstallConfiguration.builder().build());
         install.install("instance2_", InstallConfiguration.builder().build());
         install.install("instance3_", InstallConfiguration.builder().build());
 
         // Fetch the list and verify it matches what is expected.
-        final ListInstances listInstances = new MongoListInstances(getConnectionDetails(), getMongoClient());
+        final ListInstances listInstances = new MongoListInstances(getMongoClient());
         final List<String> instances = listInstances.listInstances();
         Collections.sort(instances);
 
@@ -56,14 +59,15 @@ public class MongoListInstancesIT extends MongoTestBase {
         assertEquals(expected, instances);
     }
 
-    /**
-     * @return copy from conf to MongoConnectionDetails
-     */
-    private MongoConnectionDetails getConnectionDetails() {//
+    private MongoConnectionDetails getConnectionDetails() {
+        final Optional<char[]> password = conf.getMongoPassword() != null ?
+                Optional.of(conf.getMongoPassword().toCharArray()) :
+                    Optional.empty();
+
         return new MongoConnectionDetails(
-                conf.getMongoUser(),
-                null,//conf.getMongoPassword().toCharArray(),
                 conf.getMongoHostname(),
-                Integer.parseInt(conf.getMongoPort()));
+                Integer.parseInt(conf.getMongoPort()),
+                Optional.ofNullable(conf.getMongoUser()),
+                password);
     }
 }

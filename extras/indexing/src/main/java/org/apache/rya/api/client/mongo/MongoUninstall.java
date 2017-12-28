@@ -18,6 +18,8 @@
  */
 package org.apache.rya.api.client.mongo;
 
+import static java.util.Objects.requireNonNull;
+
 import org.apache.rya.api.client.InstanceDoesNotExistException;
 import org.apache.rya.api.client.InstanceExists;
 import org.apache.rya.api.client.RyaClientException;
@@ -33,19 +35,20 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * An Mongo implementation of the {@link Uninstall} command.
  */
 @DefaultAnnotation(NonNull.class)
-public class MongoUninstall extends MongoCommand implements Uninstall {
+public class MongoUninstall implements Uninstall {
 
+    private final MongoClient adminClient;
     private final InstanceExists instanceExists;
 
     /**
      * Constructs an instance of {@link MongoUninstall}.
      *
-     * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
-     * @param connector - Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
+     * @param adminClient- Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
+     * @param instanceExists - The interactor used to check if a Rya instance exists. (not null)
      */
-    public MongoUninstall(final MongoConnectionDetails connectionDetails, final MongoClient client) {
-        super(connectionDetails, client);
-        instanceExists = new MongoInstanceExists(connectionDetails, client);
+    public MongoUninstall(final MongoClient adminClient, final MongoInstanceExists instanceExists) {
+        this.adminClient = requireNonNull(adminClient);
+        this.instanceExists = requireNonNull(instanceExists);
     }
 
     @Override
@@ -54,7 +57,7 @@ public class MongoUninstall extends MongoCommand implements Uninstall {
             if (!instanceExists.exists(ryaInstanceName)) {
                 throw new InstanceDoesNotExistException("The database '" + ryaInstanceName + "' does not exist.");
             }
-            getClient().dropDatabase(ryaInstanceName);
+            adminClient.dropDatabase(ryaInstanceName);
         } catch (final MongoException e) {
             throw new RyaClientException("Failed to uninstall '" + ryaInstanceName + "' " + e.getLocalizedMessage(), e);
         }

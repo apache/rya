@@ -30,7 +30,7 @@ import org.apache.rya.api.client.InstanceExists;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.client.Uninstall;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Test;
 
 import com.mongodb.MongoException;
@@ -38,7 +38,7 @@ import com.mongodb.MongoException;
 /**
  * Integration tests the methods of {@link MongoUninstall}.
  */
-public class MongoUninstallIT extends MongoTestBase {
+public class MongoUninstallIT extends MongoITBase {
 
     @Test
     public void uninstall() throws MongoException, RyaClientException {

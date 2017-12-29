@@ -28,7 +28,7 @@ import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.model.ValueFactory;
@@ -39,7 +39,7 @@ import com.mongodb.MongoException;
 /**
  * Integration tests the methods of {@link }.
  */
-public class MongoExecuteSparqlQueryIT extends MongoTestBase {
+public class MongoExecuteSparqlQueryIT extends MongoITBase {
 
     @Test
     public void ExecuteSparqlQuery_exec() throws MongoException, DuplicateInstanceNameException, RyaClientException {

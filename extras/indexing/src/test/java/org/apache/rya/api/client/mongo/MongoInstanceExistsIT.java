@@ -22,7 +22,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
 import org.junit.Test;
 
@@ -32,7 +32,7 @@ import com.mongodb.MongoException;
 /**
  * Integration tests the methods of {@link MongoInstanceExistsExists}.
  */
-public class MongoInstanceExistsIT extends MongoTestBase {
+public class MongoInstanceExistsIT extends MongoITBase {
 
     @Test
     public void exists_ryaDetailsTable() throws MongoException, TableExistsException {

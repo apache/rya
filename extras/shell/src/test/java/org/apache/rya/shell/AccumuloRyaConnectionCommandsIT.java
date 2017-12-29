@@ -40,7 +40,7 @@ import org.springframework.shell.core.JLineShellComponent;
 /**
  * Integration tests the methods of {@link RyaConnectionCommands}.
  */
-public class RyaConnectionCommandsIT extends RyaShellITBase {
+public class AccumuloRyaConnectionCommandsIT extends RyaShellAccumuloITBase {
 
     @Test
     public void connectAccumulo() throws IOException {
@@ -54,54 +54,6 @@ public class RyaConnectionCommandsIT extends RyaShellITBase {
         when(mockPrompt.getPassword()).thenReturn("password".toCharArray());
 
         // Execute the connect command.
-        final String cmd =
-                RyaConnectionCommands.CONNECT_ACCUMULO_CMD + " " +
-                        "--username root " +
-                        "--instanceName " + cluster.getInstanceName() + " "+
-                        "--zookeepers " + cluster.getZooKeepers();
-
-        final CommandResult connectResult = shell.executeCommand(cmd);
-
-        // Ensure the connection was successful.
-        assertTrue( connectResult.isSuccess() );
-    }
-
-    @Test
-    public void connectMongo() throws IOException {
-        // FIXME create mongo client/server here
-        final Bootstrap bootstrap = getTestBootstrap();
-        final JLineShellComponent shell = getTestShell();
-
-        // Mock the user entering the correct password.
-        final ApplicationContext context = bootstrap.getApplicationContext();
-        final PasswordPrompt mockPrompt = context.getBean(PasswordPrompt.class);
-        when(mockPrompt.getPassword()).thenReturn("password".toCharArray());
-
-        // Execute the connect command.
-        final String cmd =
-                        RyaConnectionCommands.CONNECT_MONGO_CMD + " " +
-                                        "--username root " +
-                                        "--hostname " + "localhost" + " " +
-                                        "--port " + "999";
-
-        final CommandResult connectResult = shell.executeCommand(cmd);
-
-        // Ensure the connection was successful.
-        assertTrue(connectResult.isSuccess());
-    }
-
-    @Test
-    public void connectAccumulo_noAuths() throws IOException {
-        final MiniAccumuloCluster cluster = getCluster();
-        final Bootstrap bootstrap = getTestBootstrap();
-        final JLineShellComponent shell = getTestShell();
-
-        // Mock the user entering the correct password.
-        final ApplicationContext context = bootstrap.getApplicationContext();
-        final PasswordPrompt mockPrompt = context.getBean( PasswordPrompt.class );
-        when(mockPrompt.getPassword()).thenReturn("password".toCharArray());
-
-        // Execute the command
         final String cmd =
                 RyaConnectionCommands.CONNECT_ACCUMULO_CMD + " " +
                         "--username root " +
@@ -270,28 +222,5 @@ public class RyaConnectionCommandsIT extends RyaShellITBase {
         // Disconnect from it.
         final CommandResult disconnectResult = shell.executeCommand( RyaConnectionCommands.DISCONNECT_COMMAND_NAME_CMD );
         assertTrue( disconnectResult.isSuccess() );
-    }
-
-    @Test
-    public void connectMongo_noAuths() throws IOException {
-        // FIXME make Mongo connection here
-        final Bootstrap bootstrap = getTestBootstrap();
-        final JLineShellComponent shell = getTestShell();
-    
-        // Mock the user entering the correct password.
-        final ApplicationContext context = bootstrap.getApplicationContext();
-        final PasswordPrompt mockPrompt = context.getBean( PasswordPrompt.class );
-        when(mockPrompt.getPassword()).thenReturn("password".toCharArray());
-    
-        // Execute the command
-        final String cmd = RyaConnectionCommands.CONNECT_MONGO_CMD + " " +
-                                        "--username root " +
-                                        "--hostname " + "localhost" + " " +
-                        "--port " + "999"; // FIXME
-
-        final CommandResult connectResult = shell.executeCommand(cmd);
-    
-        // Ensure the connection was successful.
-        assertTrue( connectResult.isSuccess() );
     }
 }

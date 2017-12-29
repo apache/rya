@@ -26,7 +26,7 @@ import java.util.Set;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
 import org.apache.rya.api.client.RyaClient;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.bson.Document;
 import org.junit.Test;
 import org.openrdf.model.Statement;
@@ -38,7 +38,7 @@ import com.mongodb.client.MongoCursor;
 /**
  * Integration tests the methods of {@link MongoLoadStatements}.
  */
-public class MongoLoadStatementsIT extends MongoTestBase {
+public class MongoLoadStatementsIT extends MongoITBase {
 
     private static final ValueFactory VF = new ValueFactoryImpl();
 

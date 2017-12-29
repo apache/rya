@@ -88,11 +88,11 @@ public class RyaConnectionCommands implements CommandMarker {
     @CliAvailabilityIndicator({CONNECT_INSTANCE_CMD})
     public boolean isConnectToInstanceAvailable() {
         switch(sharedState.getShellState().getConnectionState()) {
-        case CONNECTED_TO_STORAGE:
-        case CONNECTED_TO_INSTANCE:
-            return true;
-        default:
-            return false;
+            case CONNECTED_TO_STORAGE:
+            case CONNECTED_TO_INSTANCE:
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -122,12 +122,12 @@ public class RyaConnectionCommands implements CommandMarker {
             final MongoConnectionDetails mongoDetails = sharedState.getShellState().getMongoDetails().get();
 
             final StringBuilder message = new StringBuilder()
-                    .append("The shell is connected to an instance of MongoDB using the following parameters:\\n")
+                    .append("The shell is connected to an instance of MongoDB using the following parameters:\n")
                     .append("    Hostname: "  + mongoDetails.getHostname() + "\n")
                     .append("    Port: " + mongoDetails.getPort() + "\n");
 
             if(mongoDetails.getUsername().isPresent()) {
-                message.append("    Username:" + mongoDetails.getUsername().get());
+                message.append("    Username: " + mongoDetails.getUsername().get() + "\n");
             }
 
             return message.toString();

@@ -22,27 +22,16 @@ import java.io.IOException;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.minicluster.MiniAccumuloCluster;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.rya.accumulo.MiniAccumuloSingleton;
-import org.apache.rya.accumulo.RyaTestInstanceRule;
-import org.apache.zookeeper.ClientCnxn;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.JLineShellComponent;
 
-import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
-
 /**
- * All Rya Shell integration tests should extend this one. It provides startup
- * and shutdown hooks for a Mini Accumulo Cluster when you start and stop testing.
- * It also creates a new shell to test with between each test.
+ * All Rya Shell integration tests should extend this one if they are testing against Mongo DB.
  */
-public class RyaShellITBase {
+public class RyaShellMongoITBase extends MongoITBase {
 
     /**
      * The bootstrap that was used to initialize the Shell that will be tested.
@@ -53,14 +42,6 @@ public class RyaShellITBase {
      * The shell that will be tested.
      */
     private JLineShellComponent shell;
-
-    @Rule
-    public RyaTestInstanceRule testInstance = new RyaTestInstanceRule(false);
-
-    @BeforeClass
-    public static void killLoudLogs() {
-        Logger.getLogger(ClientCnxn.class).setLevel(Level.ERROR);
-    }
 
     @Before
     public void startShell() throws IOException, InterruptedException, AccumuloException, AccumuloSecurityException {
@@ -87,16 +68,4 @@ public class RyaShellITBase {
     public JLineShellComponent getTestShell() {
         return shell;
     }
-
-    /**
-     * @return The cluster that is hosting the test.
-     */
-    public MiniAccumuloCluster getCluster() {
-        return MiniAccumuloSingleton.getInstance().getCluster();
-    }
-
-    public String getInstanceName() {
-        return testInstance.getRyaInstanceName();
-    }
-
 }

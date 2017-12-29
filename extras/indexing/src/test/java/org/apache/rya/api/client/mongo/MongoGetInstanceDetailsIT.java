@@ -37,7 +37,7 @@ import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Test;
 
 import com.google.common.base.Optional;
@@ -46,7 +46,7 @@ import com.mongodb.MongoException;
 /**
  * Tests the methods of {@link MongoGetInstanceDetails}.
  */
-public class MongoGetInstanceDetailsIT extends MongoTestBase {
+public class MongoGetInstanceDetailsIT extends MongoITBase {
 
     @Test
     public void getDetails() throws MongoException, RyaClientException {

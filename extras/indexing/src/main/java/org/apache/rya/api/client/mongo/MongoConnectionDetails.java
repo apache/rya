@@ -112,8 +112,7 @@ public class MongoConnectionDetails {
             conf.setMongoPassword( new String(password.get()) );
         }
 
-        // Both of these are ways to configure the collection prefixes.
-        //TODO these should not be explicitly set
+        // Default to having a table prefix of "rya", otherwise the app doesn't work for some reason.
         conf.setTablePrefix("rya");
         return conf;
     }

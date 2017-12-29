@@ -18,12 +18,20 @@
  */
 package org.apache.rya.shell.util;
 
+import static com.google.common.base.Preconditions.checkState;
+import static java.util.Objects.requireNonNull;
+
 import java.io.IOException;
 
 import org.apache.rya.api.client.Install.InstallConfiguration;
+import org.apache.rya.shell.SharedShellState;
+import org.apache.rya.shell.SharedShellState.StorageType;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.base.Optional;
 
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import jline.console.ConsoleReader;
 
 /**
@@ -43,7 +51,7 @@ public interface InstallPrompt {
     /**
      * Prompt the user for which features of Rya they want enabled.
      *
-     * @param instanceName - The Rya instance name.
+     * @param instanceName - The Rya instance name. (not null)
      * @return The value they entered.
      * @throws IOException There was a problem reading the values.
      */
@@ -53,6 +61,8 @@ public interface InstallPrompt {
      * Prompt the user asking them if they are sure they would like to do the
      * install.
      *
+     * @param instanceName - The Rya instance name. (not null)
+     * @param installConfig - The configuration that will be presented to the user. (not null)
      * @return The value they entered.
      * @throws IOException There was a problem reading the value.
      */
@@ -60,8 +70,13 @@ public interface InstallPrompt {
 
     /**
      * Prompts a user for install information using a JLine {@link ConsoleReader}.
+     * The prompt it uses depends on the storage that is connected to.
      */
-    public static class JLineAccumuloInstallPrompt extends JLinePrompt implements InstallPrompt {
+    @DefaultAnnotation(NonNull.class)
+    public static class JLineInstallPropmpt extends JLinePrompt implements InstallPrompt {
+
+        @Autowired
+        private SharedShellState sharedShellState;
 
         @Override
         public String promptInstanceName() throws IOException {
@@ -72,6 +87,48 @@ public interface InstallPrompt {
 
         @Override
         public InstallConfiguration promptInstallConfiguration(final String instanceName) throws IOException {
+            final Optional<StorageType> storageType = sharedShellState.getShellState().getStorageType();
+            checkState(storageType.isPresent(), "The shell must be connected to a storage to use the install prompt.");
+
+            switch(sharedShellState.getShellState().getStorageType().get()) {
+                case ACCUMULO:
+                    return promptAccumuloConfig(instanceName);
+
+                case MONGO:
+                    return promptMongoConfig(instanceName);
+
+                default:
+                    throw new IllegalStateException("Unsupported storage type: " + storageType.get());
+            }
+        }
+
+        @Override
+        public boolean promptVerified(final String instanceName, final InstallConfiguration installConfig) throws IOException {
+            final Optional<StorageType> storageType = sharedShellState.getShellState().getStorageType();
+            checkState(storageType.isPresent(), "The shell must be connected to a storage to use the install prompt.");
+
+            switch(sharedShellState.getShellState().getStorageType().get()) {
+                case ACCUMULO:
+                    return promptAccumuloVerified(instanceName, installConfig);
+
+                case MONGO:
+                    return promptMongoVerified(instanceName, installConfig);
+
+                default:
+                    throw new IllegalStateException("Unsupported storage type: " + storageType.get());
+            }
+        }
+
+        /**
+         * Prompt the user for which Accumulo specific features of Rya they want enabled.
+         *
+         * @param instanceName - The Rya instance name. (not null)
+         * @return The value they entered.
+         * @throws IOException There was a problem reading the values.
+         */
+        private InstallConfiguration promptAccumuloConfig(final String instanceName) throws IOException {
+            requireNonNull(instanceName);
+
             final InstallConfiguration.Builder builder = InstallConfiguration.builder();
 
             String prompt = makeFieldPrompt("Use Shard Balancing (improves streamed input write speeds)", false);
@@ -86,9 +143,9 @@ public interface InstallPrompt {
             final boolean enableFreeTextIndexing = promptBoolean(prompt, Optional.of(true));
             builder.setEnableFreeTextIndex( enableFreeTextIndexing );
 
-            prompt = makeFieldPrompt("Use Geospatial Indexing", true);
-            final boolean enableGeoIndexing = promptBoolean(prompt, Optional.of(true));
-            builder.setEnableGeoIndex( enableGeoIndexing );
+// RYA-215            prompt = makeFieldPrompt("Use Geospatial Indexing", true);
+//            final boolean enableGeoIndexing = promptBoolean(prompt, Optional.of(true));
+//            builder.setEnableGeoIndex( enableGeoIndexing );
 
             prompt = makeFieldPrompt("Use Temporal Indexing", true);
             final boolean useTemporalIndexing = promptBoolean(prompt, Optional.of(true));
@@ -111,8 +168,19 @@ public interface InstallPrompt {
             return builder.build();
         }
 
-        @Override
-        public boolean promptVerified(final String instanceName, final InstallConfiguration installConfig) throws IOException {
+        /**
+         * Prompt the user asking them if they are sure they would like to do the
+         * install.
+         *
+         * @param instanceName - The Rya instance name. (not null)
+         * @param installConfig - The configuration that will be presented to the user. (not null)
+         * @return The value they entered.
+         * @throws IOException There was a problem reading the value.
+         */
+        private boolean promptAccumuloVerified(final String instanceName, final InstallConfiguration installConfig)  throws IOException {
+            requireNonNull(instanceName);
+            requireNonNull(installConfig);
+
             final ConsoleReader reader = getReader();
             reader.println();
             reader.println("A Rya instance will be installed using the following values:");
@@ -120,7 +188,7 @@ public interface InstallPrompt {
             reader.println("   Use Shard Balancing: " + installConfig.isTableHashPrefixEnabled());
             reader.println("   Use Entity Centric Indexing: " + installConfig.isEntityCentrixIndexEnabled());
             reader.println("   Use Free Text Indexing: " + installConfig.isFreeTextIndexEnabled());
-            reader.println("   Use Geospatial Indexing: " + installConfig.isGeoIndexEnabled());
+// RYA-215            reader.println("   Use Geospatial Indexing: " + installConfig.isGeoIndexEnabled());
             reader.println("   Use Temporal Indexing: " + installConfig.isTemporalIndexEnabled());
             reader.println("   Use Precomputed Join Indexing: " + installConfig.isPcjIndexEnabled());
             if(installConfig.isPcjIndexEnabled()) {
@@ -131,6 +199,53 @@ public interface InstallPrompt {
                 }
             }
 
+            reader.println("");
+
+            return promptBoolean("Continue with the install? (y/n) ", Optional.absent());
+        }
+
+        /**
+         * Prompt the user for which Mongo specific features of Rya they want enabled.
+         *
+         * @param instanceName - The Rya instance name. (not null)
+         * @return The value they entered.
+         * @throws IOException There was a problem reading the values.
+         */
+        private InstallConfiguration promptMongoConfig(final String instanceName) throws IOException {
+            requireNonNull(instanceName);
+
+            final InstallConfiguration.Builder builder = InstallConfiguration.builder();
+
+            String prompt = makeFieldPrompt("Use Free Text Indexing", true);
+            final boolean enableFreeTextIndexing = promptBoolean(prompt, Optional.of(true));
+            builder.setEnableFreeTextIndex( enableFreeTextIndexing );
+
+            prompt = makeFieldPrompt("Use Temporal Indexing", true);
+            final boolean useTemporalIndexing = promptBoolean(prompt, Optional.of(true));
+            builder.setEnableTemporalIndex( useTemporalIndexing );
+
+            return builder.build();
+        }
+
+        /**
+         * Prompt the user asking them if they are sure they would like to do the
+         * install.
+         *
+         * @param instanceName - The Rya instance name. (not null)
+         * @param installConfig - The configuration that will be presented to the user. (not null)
+         * @return The value they entered.
+         * @throws IOException There was a problem reading the value.
+         */
+        private boolean promptMongoVerified(final String instanceName, final InstallConfiguration installConfig)  throws IOException {
+            requireNonNull(instanceName);
+            requireNonNull(installConfig);
+
+            final ConsoleReader reader = getReader();
+            reader.println();
+            reader.println("A Rya instance will be installed using the following values:");
+            reader.println("   Instance Name: " + instanceName);
+            reader.println("   Use Free Text Indexing: " + installConfig.isFreeTextIndexEnabled());
+            reader.println("   Use Temporal Indexing: " + installConfig.isTemporalIndexEnabled());
             reader.println("");
 
             return promptBoolean("Continue with the install? (y/n) ", Optional.absent());

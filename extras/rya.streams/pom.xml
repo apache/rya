@@ -35,7 +35,10 @@
 
     <modules>
         <module>kafka</module>
+        <module>kafka-test</module>
         <module>api</module>
         <module>client</module>
+        <module>geo</module>
+        <module>integration</module>
     </modules>
 </project>

@@ -1,6 +1,4 @@
-package org.apache.rya.mongodb;
-
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,72 +16,75 @@ package org.apache.rya.mongodb;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.mongodb;
 
-import java.util.List;
+import static java.util.Objects.requireNonNull;
+
 import java.util.Properties;
 
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.mongodb.MongoClient;
+import edu.umd.cs.findbugs.annotations.Nullable;
 
+/**
+ * A {@link RdfCloudTripleStoreConfiguration} that configures how Rya connects to a MongoDB Rya triple store.
+ */
 public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
-    public static final String MONGO_INSTANCE = "mongo.db.instance";
-    public static final String MONGO_INSTANCE_PORT = "mongo.db.port";
-    public static final String MONGO_GEO_MAXDISTANCE = "mongo.geo.maxdist";
+
+    // MongoDB Server connection values.
+    public static final String MONGO_HOSTNAME = "mongo.db.instance";
+    public static final String MONGO_PORT = "mongo.db.port";
+
+    // MongoDB Database values.
     public static final String MONGO_DB_NAME = "mongo.db.name";
-    public static final String MONGO_COLLECTION_PREFIX = "mongo.db.collectionprefix";
     public static final String MONGO_USER = "mongo.db.user";
     public static final String MONGO_USER_PASSWORD = "mongo.db.userpassword";
-    public static final String CONF_ADDITIONAL_INDEXERS = "ac.additional.indexers";
+
+    // Rya Instance values.
+    public static final String MONGO_COLLECTION_PREFIX = "mongo.db.collectionprefix";
+
+    // Rya Sail configuration values.
     public static final String USE_MOCK_MONGO = ".useMockInstance";
     public static final String CONF_FLUSH_EACH_UPDATE = "rya.mongodb.dao.flusheachupdate";
+    public static final String CONF_ADDITIONAL_INDEXERS = "ac.additional.indexers";
+    public static final String MONGO_GEO_MAXDISTANCE = "mongo.geo.maxdist";
 
-    private MongoClient mongoClient;
-
+    /**
+     * Constructs an empty instance of {@link MongoDBRdfConfiguration}.
+     */
     public MongoDBRdfConfiguration() {
         super();
     }
 
+    /**
+     * Constructs an instance of {@link MongoDBRdfConfiguration} pre-loaded with values.
+     *
+     * @param other - The values that will be cloned into the constructed object. (not null)
+     */
     public MongoDBRdfConfiguration(final Configuration other) {
-        super(other);
+        super( requireNonNull(other) );
     }
 
     /**
-     * Creates a MongoRdfConfiguration object from a Properties file. This
-     * method assumes that all values in the Properties file are Strings and
-     * that the Properties file uses the keys below.
+     * Reads a {@link Properties} object into a {@link MongoDBRdfConfiguration}.
+     * See {@link MongoDBRdfConfigurationBuilder#fromProperties(Properties)} for which keys
+     * are to be used within the properties object. This method will replace that object's keys
+     * with the configuration object's keys since they are not the same.
      *
-     * <br>
-     * <ul>
-     * <li>"mongo.auths" - String of Mongo authorizations.  Empty auths used by default.
-     * <li>"mongo.visibilities" - String of Mongo visibilities assigned to ingested triples.
-     * <li>"mongo.user" - Mongo user.  Empty by default.
-     * <li>"mongo.password" - Mongo password.  Empty by default.
-     * <li>"mongo.host" - Mongo host.  Default host is "localhost"
-     * <li>"mongo.port" - Mongo port.  Default port is "27017".
-     * <li>"mongo.db.name" - Name of MongoDB.  Default name is "rya_triples".
-     * <li>"mongo.collection.prefix" - Mongo collection prefix. Default is "rya_".
-     * <li>"mongo.rya.prefix" - Prefix for Mongo Rya instance.  Same as value of "mongo.collection.prefix".
-     * <li>"use.mock" - Use a Embedded Mongo instance as back-end for Rya instance. False by default.
-     * <li>"use.display.plan" - Display query plan during evaluation. Useful for debugging.  True by default.
-     * <li>"use.inference" - Use backward chaining inference during query.  False by default.
-     * </ul>
-     * <br>
-     *
-     * @param props
-     *            - Properties file containing Mongo specific configuration
-     *            parameters
-     * @return MongoRdfConfiguration with properties set
+     * @param props - The properties containing Mongo specific configuration parameters. (not null)
+     * @return A {@link } loaded with the values that were in {@code props}.
      */
     public static MongoDBRdfConfiguration fromProperties(final Properties props) {
+        requireNonNull(props);
         return MongoDBRdfConfigurationBuilder.fromProperties(props);
     }
 
-    public MongoDBRdfConfigurationBuilder getBuilder() {
+    /**
+     * @return A new instance of {@link MongoDBRdfConfigurationBuilder}.
+     */
+    public static MongoDBRdfConfigurationBuilder getBuilder() {
         return new MongoDBRdfConfigurationBuilder();
     }
 
@@ -92,6 +93,133 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
         return new MongoDBRdfConfiguration(this);
     }
 
+    /**
+     * Set whether the Rya client should spin up an embedded MongoDB instance and connect to that
+     * or if it should connect to a MongoDB Server that is running somewhere.
+     *
+     * @param useMock - {@code true} to use an embedded Mongo DB instance; {@code false} to connect to a real server.
+     */
+    public void setUseMock(final boolean useMock) {
+        this.setBoolean(USE_MOCK_MONGO, useMock);
+    }
+
+    /**
+     * Indicates whether the Rya client should spin up an embedded MongoDB instance and connect to that
+     * or if it should connect to a MongoDB Server that is running somewhere.
+     *
+     * @return {@code true} to use an embedded Mongo DB instance; {@code false} to connect to a real server.
+     */
+    public boolean getUseMock() {
+        return getBoolean(USE_MOCK_MONGO, false);
+    }
+
+    /**
+     * @return The hostname of the MongoDB Server to connect to. (default: localhost)
+     */
+    public String getMongoHostname() {
+        return get(MONGO_HOSTNAME, "localhost");
+    }
+
+    /**
+     * @param hostname - The hostname of the MongoDB Server to connect to.
+     */
+    public void setMongoHostname(final String hostname) {
+        requireNonNull(hostname);
+        set(MONGO_HOSTNAME, hostname);
+    }
+
+    /**
+     * @return The port of the MongoDB Server to connect to. (default: 27017)
+     */
+    public String getMongoPort() {
+        return get(MONGO_PORT, AbstractMongoDBRdfConfigurationBuilder.DEFAULT_MONGO_PORT);
+    }
+
+    /**
+     * @param port - The port of the MongoDB Server to connect to.
+     */
+    public void setMongoPort(final String port) {
+        requireNonNull(port);
+        set(MONGO_PORT, port);
+    }
+
+    /**
+     * @return The name of the MongoDB Database to connect to. (default: rya)
+     */
+    public String getMongoDBName() {
+        return get(MONGO_DB_NAME, "rya");
+    }
+
+    /**
+     * @param database - The name of the MongoDb Database to connect to.
+     */
+    public void setMongoDBName(final String database) {
+        requireNonNull(database);
+        set(MONGO_DB_NAME, database);
+    }
+
+    /**
+     * @param user - The user used to connect to the MongoDB Database that hosts the Rya Instance. (not null)
+     */
+    public void setMongoUser(final String user) {
+        requireNonNull(user);
+        set(MONGO_USER, user);
+    }
+
+    /**
+     * @return The user used to connect to the MongoDB Database that hosts the Rya Instance.
+     */
+    public @Nullable String getMongoUser() {
+        return get(MONGO_USER);
+    }
+
+    /**
+     * @param password - The password used to connect to the MongoDB Database that hosts the Rya Instance.
+     */
+    public void setMongoPassword(final String password) {
+        requireNonNull(password);
+        set(MONGO_USER_PASSWORD, password);
+    }
+
+    /**
+     * @return The password used to connect to the MongoDB Database that hosts the Rya Instance.
+     */
+    public @Nullable String getMongoPassword() {
+        return get(MONGO_USER_PASSWORD);
+    }
+
+    /**
+     * @return The name of the Rya instance to connect to. (default: rya)
+     */
+    public String getRyaInstanceName() {
+        return get(MONGO_COLLECTION_PREFIX, "rya");
+    }
+
+    /**
+     * @param name - The name of the Rya instance to connect to.
+     */
+    public void setRyaInstanceName(final String name) {
+        requireNonNull(name);
+        set(MONGO_COLLECTION_PREFIX, name);
+    }
+
+    /**
+     * @return The name of the MongoDB Collection that contains Rya statements. (default: rya_triples)
+     */
+    public String getTriplesCollectionName() {
+        return getRyaInstanceName() + "_triples";
+    }
+
+    /**
+     * @return The name of the MongoDB Collection that contains the Rya namespace. (default: rya_ns)
+     */
+    public String getNameSpacesCollectionName() {
+        return getRyaInstanceName() + "_ns";
+    }
+
+    /**
+     * @return The authorizations that will be used when accessing data. (default: empty)
+     */
     public Authorizations getAuthorizations() {
         final String[] auths = getAuths();
         if (auths == null || auths.length == 0) {
@@ -101,175 +229,26 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     }
 
     /**
-     * @return {@code true} if each statement added to the batch writer should
-     * be flushed and written right away to the datastore. {@code false} if the
-     * statements should be queued and written to the datastore when the queue
-     * is full or after enough time has passed without a write.<p>
-     * Defaults to {@code true} if nothing is specified.
+     * Indicates whether each statement added to the batch writer should be flushed and written
+     * right away to the datastore or not. If this is turned off, then the statements will be
+     * queued and written to the datastore when the queue is full or after enough time has
+     * passed without a write.
+     *
+     * @return {@code true} if flushing after each updated is enabled; otherwise {@code false}. (default: true)
      */
     public boolean flushEachUpdate(){
         return getBoolean(CONF_FLUSH_EACH_UPDATE, true);
     }
 
     /**
-     * Sets the {@link #CONF_FLUSH_EACH_UPDATE} property of the configuration.
-     * @param flush {@code true} if each statement added to the batch writer
-     * should be flushed and written right away to the datastore. {@code false}
-     * if the statements should be queued and written to the datastore when the
-     * queue is full or after enough time has passed without a write.
+     * Set whether each statement added to the batch writer should be flushed and written
+     * right away to the datastore or not. If this is turned off, then the statements will be
+     * queued and written to the datastore when the queue is full or after enough time has
+     * passed without a write.
+     *
+     * @param flush - {@code true} if flushing after each updated is enabled; otherwise {@code false}.
      */
     public void setFlush(final boolean flush){
         setBoolean(CONF_FLUSH_EACH_UPDATE, flush);
     }
-
-    /**
-     * @return name of Mongo Collection containing Rya triples
-     */
-    public String getTriplesCollectionName() {
-        return this.get(MONGO_COLLECTION_PREFIX, "rya") + "_triples";
-    }
-
-    /**
-     * @return name of Mongo Collection
-     */
-    public String getCollectionName() {
-        return this.get(MONGO_COLLECTION_PREFIX, "rya");
-    }
-
-    /**
-     * Sets Mongo Collection name
-     * @param name - name of Mongo Collection to connect to
-     */
-    public void setCollectionName(final String name) {
-        Preconditions.checkNotNull(name);
-        this.set(MONGO_COLLECTION_PREFIX, name);
-    }
-
-    /**
-     * @return name of Mongo Host
-     */
-    public String getMongoInstance() {
-        return this.get(MONGO_INSTANCE, "localhost");
-    }
-
-    /**
-     * Sets name of Mongo Host
-     * @param name - name of Mongo Host to connect to
-     */
-    public void setMongoInstance(final String name) {
-        Preconditions.checkNotNull(name);
-        this.set(MONGO_INSTANCE, name);
-    }
-
-    /**
-     * @return port that Mongo is running on
-     */
-    public String getMongoPort() {
-        return this.get(MONGO_INSTANCE_PORT, AbstractMongoDBRdfConfigurationBuilder.DEFAULT_MONGO_PORT);
-    }
-
-    /**
-     * Sets port that Mongo will run on
-     * @param name - Mongo port to connect to
-     */
-    public void setMongoPort(final String name) {
-        Preconditions.checkNotNull(name);
-        this.set(MONGO_INSTANCE_PORT, name);
-    }
-
-    /**
-     * @return name of MongoDB
-     */
-    public String getMongoDBName() {
-        return this.get(MONGO_DB_NAME, "rya");
-    }
-
-    /**
-     * Sets name of MongoDB
-     * @param name - name of MongoDB to connect to
-     */
-    public void setMongoDBName(final String name) {
-        Preconditions.checkNotNull(name);
-        this.set(MONGO_DB_NAME, name);
-    }
-
-    /**
-     * Tells Rya to use an embedded Mongo instance as its backing
-     * if set to true.  By default this is set to false.
-     * @param useMock
-     */
-    public void setUseMock(final boolean useMock) {
-        this.setBoolean(USE_MOCK_MONGO, useMock);
-    }
-
-    /**
-     * Get whether an embedded Mongo is being used as the backing
-     * for Rya.
-     * @return true if embedded Mongo is being used, and false otherwise
-     */
-    public boolean getUseMock() {
-        return getBoolean(USE_MOCK_MONGO, false);
-    }
-
-    /**
-     * @return name of NameSpace Mongo Collection
-     */
-    public String getNameSpacesCollectionName() {
-        return this.get(MONGO_COLLECTION_PREFIX, "rya") + "_ns";
-    }
-
-    /**
-     * Sets name of Mongo User
-     * @param user - name of Mongo user to connect to
-     */
-    public void setMongoUser(final String user) {
-        Preconditions.checkNotNull(user);
-        set(MONGO_USER, user);
-    }
-
-    /**
-     * @return name of Mongo user
-     */
-    public String getMongoUser() {
-        return get(MONGO_USER);
-    }
-
-    /**
-     * Sets Mongo password
-     * @param password - password to connect to Mongo
-     */
-    public void setMongoPassword(final String password) {
-        Preconditions.checkNotNull(password);
-        set(MONGO_USER_PASSWORD, password);
-    }
-
-    /**
-     * @return Mongo password
-     */
-    public String getMongoPassword() {
-        return get(MONGO_USER_PASSWORD);
-    }
-
-    public void setAdditionalIndexers(final Class<? extends MongoSecondaryIndex>... indexers) {
-        final List<String> strs = Lists.newArrayList();
-        for (final Class<?> ai : indexers){
-            strs.add(ai.getName());
-        }
-
-        setStrings(CONF_ADDITIONAL_INDEXERS, strs.toArray(new String[]{}));
-    }
-
-    public List<MongoSecondaryIndex> getAdditionalIndexers() {
-        return getInstances(CONF_ADDITIONAL_INDEXERS, MongoSecondaryIndex.class);
-    }
-
-    public void setMongoClient(final MongoClient client) {
-        Preconditions.checkNotNull(client);
-        this.mongoClient = client;
-    }
-
-    public MongoClient getMongoClient() {
-        return mongoClient;
-    }
-
 }

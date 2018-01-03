@@ -59,7 +59,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
 
     /**
      * Sets Mongo user.
-     * 
+     *
      * @param user - user name used to connect to Mongo
      * @return specified builder for chaining method invocations
      */
@@ -71,7 +71,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
     /**
      * Sets password for Mongo user specified by
      * {@link AbstractMongoDBRdfConfigurationBuilder#setMongoUser(String)}.
-     * 
+     *
      * @param password - password used to connect to Mongo
      * @return specified builder for chaining method invocations
      */
@@ -83,7 +83,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
     /**
      * Sets Mongo port. This parameter must be set to connect to an instance of
      * MongoDB and will default to "27017" if no value is specified.
-     * 
+     *
      * @param port - port used to connect Mongo
      * @return specified builder for chaining method invocations
      */
@@ -95,7 +95,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
     /**
      * Sets Mongo host. This parameter must be set to connect to an instance of
      * MongoDB and will default to "localhost" if no value is specified.
-     * 
+     *
      * @param host - host used to connect to Mongo
      * @return specified builder for chaining method invocations
      */
@@ -107,7 +107,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
     /**
      * Sets MongoDB name. This parameter must be set to connect to an instance
      * of MongoDB and will default to "rya_triples" is no value is specified.
-     * 
+     *
      * @param name - name of MongoDB to connect to
      * @return specified builder for chaining method invocations
      */
@@ -120,8 +120,8 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * Sets MongoDB Collection prefix. This parameter must be set to connect to
      * an instance of MongoDB and will default to "rya_" is no value is
      * specified.
-     * 
-     * @param name - name of Collection to connect to
+     *
+     * @param prefix - name of Collection to connect to
      * @return specified builder for chaining method invocations
      */
     public B setMongoCollectionPrefix(String prefix) {
@@ -132,7 +132,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
     /**
      * Set whether to use instance of embedded Mongo as backend for Rya
      * instance.
-     * 
+     *
      * @param useMock - indicates whether to use embedded Mongo as Rya backing
      * @return specified builder for chaining method invocations
      */
@@ -144,13 +144,14 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
     /**
      * @return extension of {@link MongoDBRdfConfiguration} with specified parameters set
      */
+    @Override
     public C build() {
         return getConf(super.build());
     }
 
     /**
      * Assigns builder values to appropriate parameters within the {@link Configuration} object.
-     * 
+     *
      * @param conf - Configuration object
      * @return - Configuration object with parameters set
      */
@@ -158,7 +159,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
 
         conf.setUseMock(useMock);
         conf.set("sc.useMongo", "true");
-        
+
         if (user != null) {
             conf.setMongoUser(user);
         }
@@ -166,9 +167,9 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
             conf.setMongoPassword(pass);
         }
         conf.setMongoDBName(mongoDBName);
-        conf.setCollectionName(mongoCollectionPrefix);
+        conf.setRyaInstanceName(mongoCollectionPrefix);
         conf.setTablePrefix(mongoCollectionPrefix);
-        conf.setMongoInstance(host);
+        conf.setMongoHostname(host);
         conf.setMongoPort(port);
 
         return conf;

@@ -1,6 +1,4 @@
-package org.apache.rya.indexing;
-
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,7 +16,7 @@ package org.apache.rya.indexing;
  * specific language governing permissions and limitations
  * under the License.
  */
-
+package org.apache.rya.indexing;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -43,11 +41,10 @@ import org.apache.rya.indexing.accumulo.geo.GeoParseUtils;
 import org.apache.rya.indexing.accumulo.geo.GeoTupleSet;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
 import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
-import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
-import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
+import org.apache.rya.mongodb.MongoSecondaryIndex;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
-import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.model.impl.ValueFactoryImpl;
@@ -94,31 +91,35 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
         this.conf = conf;
         //reset the init.
         init = false;
-            init();
+        init();
     }
     /**
      * Load instances of the selected indexers.  This is tricky because some (geomesa vs geowave) have incompatible dependencies (geotools versions).
      */
     private synchronized void init() {
         if (!init) {
-			if (ConfigUtils.getUseMongo(conf)) {
-				// create a new MongoGeoIndexer() without having it at compile time.
-				geoIndexer = instantiate(GeoIndexerType.MONGO_DB.getGeoIndexerClassString(), GeoIndexer.class);
-				geoIndexer.setConf(conf);
-				freeTextIndexer = new MongoFreeTextIndexer();
-				freeTextIndexer.setConf(conf);
-				temporalIndexer = new MongoTemporalIndexer();
-				temporalIndexer.setConf(conf);
-			} else {
-				GeoIndexerType geoIndexerType = OptionalConfigUtils.getGeoIndexerType(conf);
-				if (geoIndexerType == GeoIndexerType.UNSPECIFIED) {
-					geoIndexer = instantiate(GeoIndexerType.GEO_MESA.getGeoIndexerClassString(), GeoIndexer.class);
-				} else {
-					geoIndexer = instantiate(geoIndexerType.getGeoIndexerClassString(), GeoIndexer.class);
-				}
-				geoIndexer.setConf(conf);
-				freeTextIndexer = new AccumuloFreeTextIndexer();
-				freeTextIndexer.setConf(conf);
+            if (ConfigUtils.getUseMongo(conf)) {
+                // create a new MongoGeoIndexer() without having it at compile time.
+                StatefulMongoDBRdfConfiguration stateConf = (StatefulMongoDBRdfConfiguration) conf;
+                for(final MongoSecondaryIndex indexer : stateConf.getAdditionalIndexers()) {
+                    if(indexer instanceof FreeTextIndexer) {
+                        freeTextIndexer = (FreeTextIndexer) indexer;
+                    } else if(indexer instanceof TemporalIndexer) {
+                        temporalIndexer = (TemporalIndexer) indexer;
+                    } else if(indexer instanceof GeoIndexer) {
+                        geoIndexer = (GeoIndexer) indexer;
+                    }
+                }
+            } else {
+                GeoIndexerType geoIndexerType = OptionalConfigUtils.getGeoIndexerType(conf);
+                if (geoIndexerType == GeoIndexerType.UNSPECIFIED) {
+                    geoIndexer = instantiate(GeoIndexerType.GEO_MESA.getGeoIndexerClassString(), GeoIndexer.class);
+                } else {
+                    geoIndexer = instantiate(geoIndexerType.getGeoIndexerClassString(), GeoIndexer.class);
+                }
+                geoIndexer.setConf(conf);
+                freeTextIndexer = new AccumuloFreeTextIndexer();
+                freeTextIndexer.setConf(conf);
                 temporalIndexer = new AccumuloTemporalIndexer();
                 temporalIndexer.setConf(conf);
             }
@@ -126,10 +127,10 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
         }
     }
 
-    
+
     @Override
     public void optimize(final TupleExpr tupleExpr, final Dataset dataset, final BindingSet bindings) {
-     // find variables used in property and resource based searches:
+        // find variables used in property and resource based searches:
         final SearchVarVisitor searchVars = new SearchVarVisitor();
         tupleExpr.visit(searchVars);
         // rewrites for property searches:
@@ -147,8 +148,8 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
         try{
             return type.cast(Class.forName(className).newInstance());
         } catch(InstantiationException
-              | IllegalAccessException
-              | ClassNotFoundException e){
+                | IllegalAccessException
+                | ClassNotFoundException e){
             throw new IllegalStateException(e);
         }
     }
@@ -190,7 +191,7 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
 
     //find vars contained in filters
     private static class SearchVarVisitor extends QueryModelVisitorBase<RuntimeException> {
-        private final Collection<Var> searchProperties = new ArrayList<Var>();
+        private final Collection<Var> searchProperties = new ArrayList<>();
 
         @Override
         public void meet(final FunctionCall fn) {
@@ -205,8 +206,8 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
     //find StatementPatterns containing filter variables
     private static class MatchStatementVisitor extends QueryModelVisitorBase<RuntimeException> {
         private final Collection<Var> propertyVars;
-        private final Collection<Var> usedVars = new ArrayList<Var>();
-        private final List<StatementPattern> matchStatements = new ArrayList<StatementPattern>();
+        private final Collection<Var> usedVars = new ArrayList<>();
+        private final List<StatementPattern> matchStatements = new ArrayList<>();
 
         public MatchStatementVisitor(final Collection<Var> propertyVars) {
             this.propertyVars = propertyVars;

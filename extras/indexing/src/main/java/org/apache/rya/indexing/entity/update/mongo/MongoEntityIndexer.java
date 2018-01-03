@@ -18,7 +18,6 @@
  */
 package org.apache.rya.indexing.entity.update.mongo;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
@@ -26,10 +25,7 @@ import org.apache.rya.indexing.entity.storage.mongo.MongoEntityStorage;
 import org.apache.rya.indexing.entity.storage.mongo.MongoTypeStorage;
 import org.apache.rya.indexing.entity.update.BaseEntityIndexer;
 import org.apache.rya.indexing.entity.update.EntityIndexer;
-import org.apache.rya.mongodb.MongoConnectorFactory;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-
-import com.mongodb.MongoClient;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -39,44 +35,16 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public class MongoEntityIndexer extends BaseEntityIndexer {
-    private MongoClient client;
 
     @Override
-    public EntityStorage getEntityStorage(final Configuration conf) throws EntityStorageException {
-        final MongoDBRdfConfiguration mongoConf = (MongoDBRdfConfiguration) conf;
-        if (client == null) {
-            if(mongoConf.getMongoClient() != null) {
-                client = mongoConf.getMongoClient();
-            } else {
-                client = MongoConnectorFactory.getMongoClient(conf);
-            }
-        }
-        final String ryaInstanceName = new MongoDBRdfConfiguration(conf).getMongoDBName();
-        return new MongoEntityStorage(client, ryaInstanceName);
+    public EntityStorage getEntityStorage() throws EntityStorageException {
+        final StatefulMongoDBRdfConfiguration conf = super.configuration.get();
+        return new MongoEntityStorage(conf.getMongoClient(), conf.getRyaInstanceName());
     }
 
     @Override
-    public TypeStorage getTypeStorage(final Configuration conf) {
-        final MongoDBRdfConfiguration mongoConf = (MongoDBRdfConfiguration) conf;
-        if (client == null) {
-            if(mongoConf.getMongoClient() != null) {
-                client = mongoConf.getMongoClient();
-            } else {
-                client = MongoConnectorFactory.getMongoClient(conf);
-            }
-        }
-        final String ryaInstanceName = new MongoDBRdfConfiguration(conf).getMongoDBName();
-        return new MongoTypeStorage(client, ryaInstanceName);
-    }
-
-
-    @Override
-    public void init() {
-        //nothing to init.
-    }
-
-    @Override
-    public void setClient(final MongoClient client) {
-        this.client = client;
+    public TypeStorage getTypeStorage() {
+        final StatefulMongoDBRdfConfiguration conf = super.configuration.get();
+        return new MongoTypeStorage(conf.getMongoClient(), conf.getRyaInstanceName());
     }
 }

@@ -18,7 +18,6 @@
  */
 package org.apache.rya.indexing.geotemporal;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
@@ -33,15 +32,15 @@ public interface GeoTemporalIndexer extends RyaSecondaryIndexer {
 	/**
 	 * initialize after setting configuration.
 	 */
-    public void init();  
+    @Override
+    public void init();
 
     /**
-     * Creates the {@link Eventtorage} that will be used by the indexer.
-     *
-     * @param conf - Indicates how the {@link EventStorage} is initialized. (not null)
+     * Creates the {@link EventStorage} that will be used by the indexer.
+     * NOTE: {@link #setConf(org.apache.hadoop.conf.Configuration)} must be called before calling this.
      * @return The {@link EventStorage} that will be used by this indexer.
      */
-    public abstract EventStorage getEventStorage(final Configuration conf);
+    public abstract EventStorage getEventStorage();
 
     /**
      * Used to indicate which geo filter functions to use in a query.

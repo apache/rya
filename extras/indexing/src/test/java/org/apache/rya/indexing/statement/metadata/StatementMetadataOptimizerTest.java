@@ -7,9 +7,9 @@ package org.apache.rya.indexing.statement.metadata;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -90,8 +90,8 @@ public class StatementMetadataOptimizerTest {
 
     @Before
     public void init() {
-        RdfCloudTripleStoreConfiguration mongoConf = (RdfCloudTripleStoreConfiguration) getConf(true);
-        RdfCloudTripleStoreConfiguration accumuloConf = (RdfCloudTripleStoreConfiguration) getConf(false);
+        RdfCloudTripleStoreConfiguration mongoConf = getConf(true);
+        RdfCloudTripleStoreConfiguration accumuloConf = getConf(false);
         mongoOptimizer = new StatementMetadataOptimizer(mongoConf);
         accumuloOptimizer = new StatementMetadataOptimizer(accumuloConf);
     }
@@ -127,12 +127,12 @@ public class StatementMetadataOptimizerTest {
     private static RdfCloudTripleStoreConfiguration getConf(boolean useMongo) {
 
         RdfCloudTripleStoreConfiguration conf;
-        Set<RyaURI> propertySet = new HashSet<RyaURI>(
+        Set<RyaURI> propertySet = new HashSet<>(
                 Arrays.asList(new RyaURI("http://createdBy"), new RyaURI("http://createdOn")));
         if (useMongo) {
             MongoDBRdfConfiguration mConf = new MongoDBRdfConfiguration();
             mConf.setBoolean("sc.useMongo", true);
-            mConf.setMongoInstance("localhost");
+            mConf.setMongoHostname("localhost");
             mConf.setMongoPort("27017");
             mConf.setMongoDBName("rya_");
             conf = mConf;
@@ -152,9 +152,9 @@ public class StatementMetadataOptimizerTest {
     private static Set<StatementMetadataNode<?>> getExpected(String query) throws MalformedQueryException {
         ParsedQuery pq = parser.parseQuery(query, null);
         StatementMetadataExternalSetProvider provider = new StatementMetadataExternalSetProvider(
-                (RdfCloudTripleStoreConfiguration) getConf(false));
+                getConf(false));
         List<StatementPattern> patterns = StatementPatternCollector.process(pq.getTupleExpr());
-        JoinSegment<StatementMetadataNode<?>> segment = new JoinSegment<StatementMetadataNode<?>>(
+        JoinSegment<StatementMetadataNode<?>> segment = new JoinSegment<>(
                 new HashSet<QueryModelNode>(patterns), new ArrayList<QueryModelNode>(patterns),
                 new HashMap<ValueExpr, Filter>());
         return new HashSet<>(provider.getExternalSets(segment));

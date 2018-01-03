@@ -1,5 +1,4 @@
-package org.apache.rya.mongodb;
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,6 +16,7 @@ package org.apache.rya.mongodb;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.mongodb;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -47,7 +47,6 @@ import org.openrdf.query.impl.MapBindingSet;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
@@ -57,48 +56,41 @@ import info.aduna.iteration.CloseableIteration;
  * Date: 7/17/12
  * Time: 9:28 AM
  */
-public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguration> {
+public class MongoDBQueryEngine implements RyaQueryEngine<StatefulMongoDBRdfConfiguration> {
 
-    private MongoDBRdfConfiguration configuration;
-    private final MongoClient mongoClient;
-    private final MongoDBStorageStrategy<RyaStatement> strategy;
-
-    public MongoDBQueryEngine(final MongoDBRdfConfiguration conf, final MongoClient mongoClient) {
-        this.mongoClient = checkNotNull(mongoClient);
-        strategy = new SimpleMongoDBStorageStrategy();
-    }
-
+    private StatefulMongoDBRdfConfiguration configuration;
+    private final MongoDBStorageStrategy<RyaStatement> strategy = new SimpleMongoDBStorageStrategy();
 
     @Override
-    public void setConf(final MongoDBRdfConfiguration conf) {
+    public void setConf(final StatefulMongoDBRdfConfiguration conf) {
         configuration = conf;
     }
 
     @Override
-    public MongoDBRdfConfiguration getConf() {
+    public StatefulMongoDBRdfConfiguration getConf() {
         return configuration;
     }
 
     @Override
     public CloseableIteration<RyaStatement, RyaDAOException> query(
-            final RyaStatement stmt, MongoDBRdfConfiguration conf)
+            final RyaStatement stmt, final StatefulMongoDBRdfConfiguration conf)
             throws RyaDAOException {
-        Preconditions.checkNotNull(stmt);
-        Preconditions.checkNotNull(conf);
-        
+        checkNotNull(stmt);
+        checkNotNull(conf);
+
         Entry<RyaStatement, BindingSet> entry = new AbstractMap.SimpleEntry<>(stmt, new MapBindingSet());
         Collection<Entry<RyaStatement, BindingSet>> collection = Collections.singleton(entry);
-        
+
         return new RyaStatementCursorIterator(queryWithBindingSet(collection, conf));
     }
 
     @Override
     public CloseableIteration<? extends Entry<RyaStatement, BindingSet>, RyaDAOException> queryWithBindingSet(
             final Collection<Entry<RyaStatement, BindingSet>> stmts,
-            MongoDBRdfConfiguration conf) throws RyaDAOException {
-        Preconditions.checkNotNull(stmts);
-        Preconditions.checkNotNull(conf);
-        
+            final StatefulMongoDBRdfConfiguration conf) throws RyaDAOException {
+        checkNotNull(stmts);
+        checkNotNull(conf);
+
         final Multimap<RyaStatement, BindingSet> rangeMap = HashMultimap.create();
 
         //TODO: cannot span multiple tables here
@@ -121,7 +113,7 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
     }
     @Override
     public CloseableIteration<RyaStatement, RyaDAOException> batchQuery(
-            final Collection<RyaStatement> stmts, MongoDBRdfConfiguration conf)
+            final Collection<RyaStatement> stmts, final StatefulMongoDBRdfConfiguration conf)
             throws RyaDAOException {
         final Map<RyaStatement, BindingSet> queries = new HashMap<>();
 
@@ -131,7 +123,7 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
 
         return new RyaStatementCursorIterator(queryWithBindingSet(queries.entrySet(), conf));
     }
-    
+
     @Override
     public CloseableIterable<RyaStatement> query(final RyaQuery ryaQuery)
             throws RyaDAOException {
@@ -155,8 +147,8 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
         return CloseableIterables.wrap((Iterable<RyaStatement>) () -> iterator);
     }
 
-    private MongoCollection<Document> getCollection(final MongoDBRdfConfiguration conf) {
-        final MongoDatabase db = mongoClient.getDatabase(conf.getMongoDBName());
+    private MongoCollection<Document> getCollection(final StatefulMongoDBRdfConfiguration conf) {
+        final MongoDatabase db = conf.getMongoClient().getDatabase(conf.getMongoDBName());
         return db.getCollection(conf.getTriplesCollectionName());
     }
 

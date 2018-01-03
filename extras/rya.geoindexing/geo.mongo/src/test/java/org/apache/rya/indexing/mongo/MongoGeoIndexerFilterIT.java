@@ -22,7 +22,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
@@ -31,10 +30,8 @@ import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.GeoRyaSailFactory;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
-import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
-import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
-import org.junit.After;
-import org.junit.Before;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Test;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -48,12 +45,10 @@ import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQueryResult;
-import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
-import com.mongodb.MongoClient;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -68,199 +63,203 @@ public class MongoGeoIndexerFilterIT extends MongoITBase {
     private static final Geometry CAPITAL_BUILDING = GF.createPoint(new Coordinate(38.8899, 77.0091));
     private static final Geometry WHITE_HOUSE = GF.createPoint(new Coordinate(38.8977, 77.0365));
 
-    private static final AtomicInteger COUNTER = new AtomicInteger(1);
-
-    private MongoClient client;
-    private Sail sail;
-    private SailRepositoryConnection conn;
-    @Before
-    public void before() throws Exception {
-        final MongoIndexingConfiguration indxrConf = MongoIndexingConfiguration.builder()
-            .setMongoCollectionPrefix("rya_")
-            .setMongoDBName(MongoGeoIndexerFilterIT.class.getSimpleName() + "_" + COUNTER.getAndIncrement())
-            .setUseMongoFreetextIndex(false)
-            .setUseMongoTemporalIndex(false)
-            .build();
-
-        client = super.getMongoClient();
-        indxrConf.setBoolean(OptionalConfigUtils.USE_GEO, true);
-        indxrConf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
-        indxrConf.setBoolean(ConfigUtils.USE_MONGO, true);
-        indxrConf.setMongoClient(client);
-
-        sail = GeoRyaSailFactory.getInstance(indxrConf);
-        conn = new SailRepository(sail).getConnection();
-    }
-
-    @After
-    public void after() throws RepositoryException {
-        if(conn != null) {
-            conn.close();
-        }
+    @Override
+    public void updateConfiguration(final MongoDBRdfConfiguration conf) {
+        conf.setBoolean(OptionalConfigUtils.USE_GEO, true);
+        conf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
+        conf.setBoolean(ConfigUtils.USE_MONGO, true);
     }
 
     @Test
     public void nearHappyUsesTest() throws Exception {
-        populateRya();
+        final Sail sail = GeoRyaSailFactory.getInstance(conf);
+        final SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+        try {
+            populateRya(conn);
 
-        //Only captial
-        String query =
-             "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
-           + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
-           + "SELECT * \n" //
-           + "WHERE { \n"
-           + "  <urn:geo> geo:asWKT ?point .\n"
-           + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral, 0.0, 2000))"
-           + "}";
+            //Only captial
+            String query =
+                    "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
+                            + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
+                            + "SELECT * \n" //
+                            + "WHERE { \n"
+                            + "  <urn:geo> geo:asWKT ?point .\n"
+                            + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral, 0.0, 2000))"
+                            + "}";
 
-        TupleQueryResult rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
-        final List<BindingSet> results = new ArrayList<>();
-        while (rez.hasNext()) {
-            final BindingSet bs = rez.next();
-            results.add(bs);
+            TupleQueryResult rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
+            final List<BindingSet> results = new ArrayList<>();
+            while (rez.hasNext()) {
+                final BindingSet bs = rez.next();
+                results.add(bs);
+            }
+            assertEquals(1, results.size());
+            assertEquals(CAPITAL_BUILDING, bindingToGeo(results.get(0)));
+
+            //all but capital
+            query =
+                    "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
+                            + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
+                            + "SELECT * \n" //
+                            + "WHERE { \n"
+                            + "  <urn:geo> geo:asWKT ?point .\n"
+                            + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral, 2000))"
+                            + "}";
+
+            rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
+            results.clear();
+            while (rez.hasNext()) {
+                final BindingSet bs = rez.next();
+                results.add(bs);
+            }
+            assertEquals(3, results.size());
+            assertEquals(WASHINGTON_MONUMENT, bindingToGeo(results.get(0)));
+            assertEquals(WHITE_HOUSE, bindingToGeo(results.get(1)));
+            assertEquals(LINCOLN_MEMORIAL, bindingToGeo(results.get(2)));
+
+            // all of them
+            query =
+                    "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
+                            + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
+                            + "SELECT * \n" //
+                            + "WHERE { \n"
+                            + "  <urn:geo> geo:asWKT ?point .\n"
+                            + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral, 6000, 000))"
+                            + "}";
+
+            rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
+            results.clear();
+            while (rez.hasNext()) {
+                final BindingSet bs = rez.next();
+                results.add(bs);
+            }
+            assertEquals(4, results.size());
+            assertEquals(WASHINGTON_MONUMENT, bindingToGeo(results.get(0)));
+            assertEquals(WHITE_HOUSE, bindingToGeo(results.get(1)));
+            assertEquals(LINCOLN_MEMORIAL, bindingToGeo(results.get(2)));
+            assertEquals(CAPITAL_BUILDING, bindingToGeo(results.get(3)));
+
+            // donut, only 2
+            query =
+                    "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
+                            + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
+                            + "SELECT * \n" //
+                            + "WHERE { \n"
+                            + "  <urn:geo> geo:asWKT ?point .\n"
+                            + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral, 2000, 100))"
+                            + "}";
+
+            rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
+            results.clear();
+            while (rez.hasNext()) {
+                final BindingSet bs = rez.next();
+                results.add(bs);
+            }
+            assertEquals(2, results.size());
+            assertEquals(WHITE_HOUSE, bindingToGeo(results.get(0)));
+            assertEquals(LINCOLN_MEMORIAL, bindingToGeo(results.get(1)));
+
+            // all of them
+            query =
+                    "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
+                            + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
+                            + "SELECT * \n" //
+                            + "WHERE { \n"
+                            + "  <urn:geo> geo:asWKT ?point .\n"
+                            + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral))"
+                            + "}";
+            rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
+            results.clear();
+            while (rez.hasNext()) {
+                final BindingSet bs = rez.next();
+                results.add(bs);
+            }
+            assertEquals(4, results.size());
+            assertEquals(WASHINGTON_MONUMENT, bindingToGeo(results.get(0)));
+            assertEquals(WHITE_HOUSE, bindingToGeo(results.get(1)));
+            assertEquals(LINCOLN_MEMORIAL, bindingToGeo(results.get(2)));
+            assertEquals(CAPITAL_BUILDING, bindingToGeo(results.get(3)));
+        } finally {
+            conn.close();
+            sail.shutDown();
         }
-        assertEquals(1, results.size());
-        assertEquals(CAPITAL_BUILDING, bindingToGeo(results.get(0)));
-
-        //all but capital
-        query =
-            "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
-          + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
-          + "SELECT * \n" //
-          + "WHERE { \n"
-          + "  <urn:geo> geo:asWKT ?point .\n"
-          + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral, 2000))"
-          + "}";
-
-        rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
-        results.clear();
-        while (rez.hasNext()) {
-            final BindingSet bs = rez.next();
-            results.add(bs);
-        }
-        assertEquals(3, results.size());
-        assertEquals(WASHINGTON_MONUMENT, bindingToGeo(results.get(0)));
-        assertEquals(WHITE_HOUSE, bindingToGeo(results.get(1)));
-        assertEquals(LINCOLN_MEMORIAL, bindingToGeo(results.get(2)));
-
-        // all of them
-        query =
-            "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
-          + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
-          + "SELECT * \n" //
-          + "WHERE { \n"
-          + "  <urn:geo> geo:asWKT ?point .\n"
-          + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral, 6000, 000))"
-          + "}";
-
-        rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
-        results.clear();
-        while (rez.hasNext()) {
-            final BindingSet bs = rez.next();
-            results.add(bs);
-        }
-        assertEquals(4, results.size());
-        assertEquals(WASHINGTON_MONUMENT, bindingToGeo(results.get(0)));
-        assertEquals(WHITE_HOUSE, bindingToGeo(results.get(1)));
-        assertEquals(LINCOLN_MEMORIAL, bindingToGeo(results.get(2)));
-        assertEquals(CAPITAL_BUILDING, bindingToGeo(results.get(3)));
-
-        // donut, only 2
-        query =
-            "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
-          + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
-          + "SELECT * \n" //
-          + "WHERE { \n"
-          + "  <urn:geo> geo:asWKT ?point .\n"
-          + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral, 2000, 100))"
-          + "}";
-
-        rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
-        results.clear();
-        while (rez.hasNext()) {
-            final BindingSet bs = rez.next();
-            results.add(bs);
-        }
-        assertEquals(2, results.size());
-        assertEquals(WHITE_HOUSE, bindingToGeo(results.get(0)));
-        assertEquals(LINCOLN_MEMORIAL, bindingToGeo(results.get(1)));
-
-        // all of them
-        query =
-            "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
-          + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
-          + "SELECT * \n" //
-          + "WHERE { \n"
-          + "  <urn:geo> geo:asWKT ?point .\n"
-          + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral))"
-          + "}";
-        rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
-        results.clear();
-        while (rez.hasNext()) {
-            final BindingSet bs = rez.next();
-            results.add(bs);
-        }
-        assertEquals(4, results.size());
-        assertEquals(WASHINGTON_MONUMENT, bindingToGeo(results.get(0)));
-        assertEquals(WHITE_HOUSE, bindingToGeo(results.get(1)));
-        assertEquals(LINCOLN_MEMORIAL, bindingToGeo(results.get(2)));
-        assertEquals(CAPITAL_BUILDING, bindingToGeo(results.get(3)));
     }
 
     @Test(expected = MalformedQueryException.class)
     public void near_invalidDistance() throws Exception {
-        populateRya();
+        final Sail sail = GeoRyaSailFactory.getInstance(conf);
+        final SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+        try {
+            populateRya(conn);
 
-        //Only captial
-        final String query =
-             "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
-           + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
-           + "SELECT * \n" //
-           + "WHERE { \n"
-           + "  <urn:geo> geo:asWKT ?point .\n"
-                + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral, distance))"
-           + "}";
+            //Only captial
+            final String query =
+                    "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
+                            + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
+                            + "SELECT * \n" //
+                            + "WHERE { \n"
+                            + "  <urn:geo> geo:asWKT ?point .\n"
+                            + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral, distance))"
+                            + "}";
 
-        conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
+            conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
+        } finally {
+            conn.close();
+            sail.shutDown();
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void near_negativeDistance() throws Exception {
-        populateRya();
+        final Sail sail = GeoRyaSailFactory.getInstance(conf);
+        final SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+        try {
+            populateRya(conn);
 
-        //Only captial
-        final String query =
-             "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
-           + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
-           + "SELECT * \n" //
-           + "WHERE { \n"
-           + "  <urn:geo> geo:asWKT ?point .\n"
-           + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral, -100))"
-           + "}";
+            //Only captial
+            final String query =
+                    "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
+                            + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
+                            + "SELECT * \n" //
+                            + "WHERE { \n"
+                            + "  <urn:geo> geo:asWKT ?point .\n"
+                            + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral, -100))"
+                            + "}";
 
-        final TupleQueryResult rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
-        while(rez.hasNext()) {
-            rez.next();
+            final TupleQueryResult rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
+            while(rez.hasNext()) {
+                rez.next();
+            }
+        } finally {
+            conn.close();
+            sail.shutDown();
         }
     }
 
     @Test(expected = QueryEvaluationException.class)
     public void tooManyArgumentsTest() throws Exception {
-        populateRya();
+        final Sail sail = GeoRyaSailFactory.getInstance(conf);
+        final SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+        try {
+            populateRya(conn);
 
-        // Only captial
-        final String query =
-              "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
-            + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
-            + "SELECT * \n" //
-            + "WHERE { \n" + "  <urn:geo> geo:asWKT ?point .\n"
-            + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral, 100, 1000, 10))"
-            + "}";
+            // Only captial
+            final String query =
+                    "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
+                            + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
+                            + "SELECT * \n" //
+                            + "WHERE { \n" + "  <urn:geo> geo:asWKT ?point .\n"
+                            + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral, 100, 1000, 10))"
+                            + "}";
 
-        conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
+            conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
+        } finally {
+            conn.close();
+            sail.shutDown();
+        }
     }
 
-    private void populateRya() throws Exception {
+    private void populateRya(final SailRepositoryConnection conn) throws Exception {
         // geo 2x2 points
         conn.begin();
         RyaStatement stmnt = statement(WASHINGTON_MONUMENT);

@@ -29,10 +29,8 @@ import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
-import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
-import org.apache.rya.mongodb.EmbeddedMongoSingleton;
-import org.junit.After;
-import org.junit.Before;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Test;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -55,89 +53,75 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.io.WKTWriter;
 
-public class MongoIndexerDeleteIT {
-    private MongoClient client;
-    private Sail sail;
-    private SailRepositoryConnection conn;
-
-    @Before
-    public void before() throws Exception {
-        final MongoIndexingConfiguration indxrConf = MongoIndexingConfiguration.builder()
-                .setMongoCollectionPrefix("rya_").setMongoDBName("indexerTests")
-            .setUseMongoFreetextIndex(true)
-            .setUseMongoTemporalIndex(true)
-            .setMongoFreeTextPredicates(RDFS.LABEL.stringValue())
-            .setMongoTemporalPredicates("Property:atTime")
-            .build();
-
-        client = EmbeddedMongoSingleton.getInstance();
-        indxrConf.setBoolean(OptionalConfigUtils.USE_GEO, true);
-        indxrConf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
-        indxrConf.setBoolean(ConfigUtils.USE_MONGO, true);
-        indxrConf.setMongoClient(client);
-
-        sail = GeoRyaSailFactory.getInstance(indxrConf);
-        conn = new SailRepository(sail).getConnection();
-        conn.begin();
-    }
-
-    @After
-    public void after() throws Exception {
-        if (conn != null) {
-            conn.clear();
-        }
+public class MongoIndexerDeleteIT extends MongoITBase {
+    @Override
+    public void updateConfiguration(final MongoDBRdfConfiguration conf) {
+        conf.setStrings(ConfigUtils.FREETEXT_PREDICATES_LIST, new String[] {RDFS.LABEL.stringValue()});
+        conf.setStrings(ConfigUtils.TEMPORAL_PREDICATES_LIST, new String[] {"Property:atTime"});
+        conf.setBoolean(ConfigUtils.USE_FREETEXT, true);
+        conf.setBoolean(ConfigUtils.USE_TEMPORAL, true);
+        conf.setBoolean(OptionalConfigUtils.USE_GEO, true);
+        conf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
     }
 
     @Test
     public void deleteTest() throws Exception {
-        populateRya();
+        final Sail sail = GeoRyaSailFactory.getInstance(conf);
+        final SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+        try {
+            populateRya(conn);
+            final MongoClient client = conf.getMongoClient();
 
-        //The extra 1 is from the person type defined in freetext
-        assertEquals(8, client.getDatabase("indexerTests").getCollection("rya__triples").count());
-        assertEquals(4, client.getDatabase("indexerTests").getCollection("rya_rya_geo").count());
-        assertEquals(1, client.getDatabase("indexerTests").getCollection("rya_rya_temporal").count());
-        assertEquals(2, client.getDatabase("indexerTests").getCollection("rya_rya_freetext").count());
+            //The extra 1 is from the person type defined in freetext
+            assertEquals(8, client.getDatabase(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName()).count());
+            assertEquals(4, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_geo").count());
+            assertEquals(1, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_temporal").count());
+            assertEquals(2, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_freetext").count());
 
-        //free text -- remove one from many
-        String delete = "DELETE DATA \n" //
-           + "{\n"
-           + "  <urn:people> <http://www.w3.org/2000/01/rdf-schema#label> \"Alice Palace Hose\" "
-           + "}";
-        Update update = conn.prepareUpdate(QueryLanguage.SPARQL, delete);
-        update.execute();
+            //free text -- remove one from many
+            String delete = "DELETE DATA \n" //
+                    + "{\n"
+                    + "  <urn:people> <http://www.w3.org/2000/01/rdf-schema#label> \"Alice Palace Hose\" "
+                    + "}";
+            Update update = conn.prepareUpdate(QueryLanguage.SPARQL, delete);
+            update.execute();
 
-        // temporal -- remove one from one
-        delete = "DELETE DATA \n" //
-           + "{\n"
-           + "  <foo:time> <Property:atTime> \"0001-02-03T04:05:06Z\" "
-           + "}";
+            // temporal -- remove one from one
+            delete = "DELETE DATA \n" //
+                    + "{\n"
+                    + "  <foo:time> <Property:atTime> \"0001-02-03T04:05:06Z\" "
+                    + "}";
 
-        update = conn.prepareUpdate(QueryLanguage.SPARQL, delete);
-        update.execute();
+            update = conn.prepareUpdate(QueryLanguage.SPARQL, delete);
+            update.execute();
 
-        //geo -- remove many from many
-        delete =
-             "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
-           + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
-           + "DELETE \n" //
-           + "{\n"
-           + "  <urn:geo> geo:asWKT ?point \n"
-           + "}"
-           + "WHERE { \n"
-           + "  <urn:geo> geo:asWKT ?point .\n"
-           + "  FILTER(geof:sfWithin(?point, \"POLYGON((0 0, 2 0, 2 1, 0 1, 0 0))\"^^geo:wktLiteral))"
-           + "}";
+            //geo -- remove many from many
+            delete =
+                    "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
+                            + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
+                            + "DELETE \n" //
+                            + "{\n"
+                            + "  <urn:geo> geo:asWKT ?point \n"
+                            + "}"
+                            + "WHERE { \n"
+                            + "  <urn:geo> geo:asWKT ?point .\n"
+                            + "  FILTER(geof:sfWithin(?point, \"POLYGON((0 0, 2 0, 2 1, 0 1, 0 0))\"^^geo:wktLiteral))"
+                            + "}";
 
-        update = conn.prepareUpdate(QueryLanguage.SPARQL, delete);
-        update.execute();
+            update = conn.prepareUpdate(QueryLanguage.SPARQL, delete);
+            update.execute();
 
-        assertEquals(2, client.getDatabase("indexerTests").getCollection("rya_rya_geo").count());
-        assertEquals(0, client.getDatabase("indexerTests").getCollection("rya_rya_temporal").count());
-        assertEquals(1, client.getDatabase("indexerTests").getCollection("rya_rya_freetext").count());
-        assertEquals(4, client.getDatabase("indexerTests").getCollection("rya__triples").count());
+            assertEquals(2, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_geo").count());
+            assertEquals(0, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_temporal").count());
+            assertEquals(1, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_freetext").count());
+            assertEquals(4, client.getDatabase(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName()).count());
+        } finally {
+            conn.close();
+            sail.shutDown();
+        }
     }
 
-    private void populateRya() throws Exception {
+    private void populateRya(final SailRepositoryConnection conn) throws Exception {
         final ValueFactory VF = new ValueFactoryImpl();
         // geo 2x2 points
         final GeometryFactory GF = new GeometryFactory();

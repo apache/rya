@@ -18,6 +18,10 @@ l * Licensed to the Apache Software Foundation (ASF) under one
  */
 package org.apache.rya.indexing.geotemporal.mongo;
 
+import static org.apache.rya.indexing.geotemporal.GeoTemporalTestUtils.assertEqualMongo;
+import static org.apache.rya.indexing.geotemporal.GeoTemporalTestUtils.getFilters;
+import static org.apache.rya.indexing.geotemporal.GeoTemporalTestUtils.getSps;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +32,6 @@ import org.apache.rya.indexing.IndexingFunctionRegistry;
 import org.apache.rya.indexing.IndexingFunctionRegistry.FUNCTION_TYPE;
 import org.apache.rya.indexing.geotemporal.GeoTemporalIndexer.GeoPolicy;
 import org.apache.rya.indexing.geotemporal.GeoTemporalIndexer.TemporalPolicy;
-import org.apache.rya.indexing.geotemporal.GeoTemporalTestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.Resource;
@@ -56,7 +59,7 @@ import com.mongodb.util.JSON;
  * @see TemporalPolicy Temporal Filter Functions
  * @see GeoPolicy Geo Filter Functions
  */
-public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
+public class GeoTemporalMongoDBStorageStrategyTest {
     private GeoTemporalMongoDBStorageStrategy adapter;
     @Before
     public void setup() {

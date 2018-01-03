@@ -32,7 +32,7 @@ import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.mongo.MongoEntityStorage;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Test;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
@@ -50,9 +50,9 @@ import com.google.common.collect.ImmutableSet;
 import info.aduna.iteration.CloseableIteration;
 
 /**
- * Unit tests the methods of {@link EntityQueryNode}.
+ * Integration tests the methods of {@link EntityQueryNode}.
  */
-public class EntityQueryNodeTest extends MongoTestBase {
+public class EntityQueryNodeIT extends MongoITBase {
 
     private static final Type PERSON_TYPE =
             new Type(new RyaURI("urn:person"),

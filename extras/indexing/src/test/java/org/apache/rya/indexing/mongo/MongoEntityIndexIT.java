@@ -32,10 +32,9 @@ import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.update.mongo.MongoEntityIndexer;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.MongoITBase;
 import org.apache.rya.sail.config.RyaSailFactory;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -52,131 +51,143 @@ import org.openrdf.sail.Sail;
 
 import com.google.common.collect.ImmutableSet;
 
-public class MongoEntityIndexIT extends MongoTestBase {
+public class MongoEntityIndexIT extends MongoITBase {
     private static final ValueFactory VF = ValueFactoryImpl.getInstance();
-    private SailRepositoryConnection conn;
-    private MongoEntityIndexer indexer;
 
-    @Before
-    public void setUp() throws Exception {
+    @Override
+    protected void updateConfiguration(final MongoDBRdfConfiguration conf) {
         conf.setBoolean(ConfigUtils.USE_MONGO, true);
         conf.setBoolean(ConfigUtils.USE_ENTITY, true);
-
-        final Sail sail = RyaSailFactory.getInstance(conf);
-        conn = new SailRepository(sail).getConnection();
-        conn.begin();
-
-        indexer = new MongoEntityIndexer();
-        indexer.setConf(conf);
-        indexer.init();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        if (conn != null) {
-            conn.clear();
-        }
-        if (indexer != null) {
-            indexer.close();
-        }
     }
 
     @Test
     public void ensureInEntityStore_Test() throws Exception {
-        setupTypes();
-        addStatements();
+        final Sail sail = RyaSailFactory.getInstance(conf);
+        SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+        conn.begin();
 
-        final EntityStorage entities = indexer.getEntityStorage(conf);
-        final RyaURI subject = new RyaURI("urn:alice");
-        final Optional<Entity> alice = entities.get(subject);
-        assertTrue(alice.isPresent());
+        try(MongoEntityIndexer indexer = new MongoEntityIndexer()) {
+            indexer.setConf(conf);
+            indexer.init();
+
+            setupTypes(indexer);
+            addStatements(conn);
+
+            final EntityStorage entities = indexer.getEntityStorage();
+            final RyaURI subject = new RyaURI("urn:alice");
+            final Optional<Entity> alice = entities.get(subject);
+            assertTrue(alice.isPresent());
+        } finally {
+            conn.close();
+        }
     }
 
     @Test
     public void sparqlQuery_Test() throws Exception {
-        setupTypes();
-        addStatements();
-        //conn.commit();
+        final Sail sail = RyaSailFactory.getInstance(conf);
+        SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+        conn.begin();
 
-        final String query = "SELECT * WHERE { " +
-                "<urn:strawberry> <" + RDF.TYPE + "> <urn:icecream> ."+
-                "<urn:strawberry> <urn:brand> ?brand . " +
-                "<urn:strawberry> <urn:flavor> ?flavor . " +
-            "}";
+        try(MongoEntityIndexer indexer = new MongoEntityIndexer()) {
+            indexer.setConf(conf);
+            indexer.init();
 
-        final TupleQueryResult rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
-        final Set<BindingSet> results = new HashSet<>();
-        while(rez.hasNext()) {
-            final BindingSet bs = rez.next();
-            results.add(bs);
+            setupTypes(indexer);
+            addStatements(conn);
+
+            final String query = "SELECT * WHERE { " +
+                    "<urn:strawberry> <" + RDF.TYPE + "> <urn:icecream> ."+
+                    "<urn:strawberry> <urn:brand> ?brand . " +
+                    "<urn:strawberry> <urn:flavor> ?flavor . " +
+                    "}";
+
+            final TupleQueryResult rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
+            final Set<BindingSet> results = new HashSet<>();
+            while(rez.hasNext()) {
+                final BindingSet bs = rez.next();
+                results.add(bs);
+            }
+            final MapBindingSet expected = new MapBindingSet();
+            expected.addBinding("flavor", ValueFactoryImpl.getInstance().createLiteral("Strawberry"));
+            expected.addBinding("brand", ValueFactoryImpl.getInstance().createLiteral("Awesome Icecream"));
+
+            assertEquals(1, results.size());
+            assertEquals(expected, results.iterator().next());
+        } finally {
+            conn.close();
         }
-        final MapBindingSet expected = new MapBindingSet();
-        expected.addBinding("flavor", ValueFactoryImpl.getInstance().createLiteral("Strawberry"));
-        expected.addBinding("brand", ValueFactoryImpl.getInstance().createLiteral("Awesome Icecream"));
-
-        assertEquals(1, results.size());
-        assertEquals(expected, results.iterator().next());
     }
 
     @Test
     public void partialQuery_Test() throws Exception {
-        setupTypes();
-        addStatements();
-        conn.commit();
+        final Sail sail = RyaSailFactory.getInstance(conf);
+        SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+        conn.begin();
 
-        final String query = "SELECT * WHERE { " +
-                "<urn:george> <" + RDF.TYPE + "> <urn:person> ."+
-                "<urn:george> <urn:name> ?name . " +
-                "<urn:george> <urn:eye> ?eye . " +
-            "}";
+        try(MongoEntityIndexer indexer = new MongoEntityIndexer()) {
+            indexer.setConf(conf);
+            indexer.init();
 
-        final TupleQueryResult rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
-        final Set<BindingSet> results = new HashSet<>();
-        while(rez.hasNext()) {
-            final BindingSet bs = rez.next();
-            System.out.println(bs);
-            results.add(bs);
+            setupTypes(indexer);
+            addStatements(conn);
+            conn.commit();
+
+            final String query = "SELECT * WHERE { " +
+                    "<urn:george> <" + RDF.TYPE + "> <urn:person> ."+
+                    "<urn:george> <urn:name> ?name . " +
+                    "<urn:george> <urn:eye> ?eye . " +
+                    "}";
+
+            final TupleQueryResult rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
+            final Set<BindingSet> results = new HashSet<>();
+            while(rez.hasNext()) {
+                final BindingSet bs = rez.next();
+                System.out.println(bs);
+                results.add(bs);
+            }
+            final ValueFactory vf = ValueFactoryImpl.getInstance();
+            final MapBindingSet expected = new MapBindingSet();
+            //expected.addBinding("name", vf.createURI("http://www.w3.org/2001/SMLSchema#string", "George"));
+            expected.addBinding("name", vf.createLiteral("George"));
+            expected.addBinding("eye", vf.createLiteral("blue"));
+
+            assertEquals(1, results.size());
+            assertEquals(expected, results.iterator().next());
+        } finally {
+            conn.close();
         }
-        final ValueFactory vf = ValueFactoryImpl.getInstance();
-        final MapBindingSet expected = new MapBindingSet();
-        //expected.addBinding("name", vf.createURI("http://www.w3.org/2001/SMLSchema#string", "George"));
-        expected.addBinding("name", vf.createLiteral("George"));
-        expected.addBinding("eye", vf.createLiteral("blue"));
-
-        assertEquals(1, results.size());
-        assertEquals(expected, results.iterator().next());
     }
 
-    private void setupTypes() throws Exception {
-        final TypeStorage typeStore = indexer.getTypeStorage(conf);
+    private void setupTypes(MongoEntityIndexer indexer) throws Exception {
+        final TypeStorage typeStore = indexer.getTypeStorage();
         // Add some Types to the storage.
         final Type cat = new Type(new RyaURI("urn:cat"),
                 ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:numLegs"))
-                    .add(new RyaURI("urn:eye"))
-                    .add(new RyaURI("urn:species"))
-                    .build());
+                .add(new RyaURI("urn:numLegs"))
+                .add(new RyaURI("urn:eye"))
+                .add(new RyaURI("urn:species"))
+                .build());
 
         final Type dog = new Type(new RyaURI("urn:dog"),
                 ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:numLegs"))
-                    .add(new RyaURI("urn:eye"))
-                    .add(new RyaURI("urn:species"))
-                    .build());
+                .add(new RyaURI("urn:numLegs"))
+                .add(new RyaURI("urn:eye"))
+                .add(new RyaURI("urn:species"))
+                .build());
 
         final Type icecream = new Type(new RyaURI("urn:icecream"),
                 ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:brand"))
-                    .add(new RyaURI("urn:flavor"))
-                    .add(new RyaURI("urn:cost"))
-                    .build());
+                .add(new RyaURI("urn:brand"))
+                .add(new RyaURI("urn:flavor"))
+                .add(new RyaURI("urn:cost"))
+                .build());
 
         final Type person = new Type(new RyaURI("urn:person"),
                 ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:name"))
-                    .add(new RyaURI("urn:age"))
-                    .add(new RyaURI("urn:eye"))
-                    .build());
+                .add(new RyaURI("urn:name"))
+                .add(new RyaURI("urn:age"))
+                .add(new RyaURI("urn:eye"))
+                .build());
 
         typeStore.create(cat);
         typeStore.create(dog);
@@ -184,7 +195,7 @@ public class MongoEntityIndexIT extends MongoTestBase {
         typeStore.create(person);
     }
 
-    private void addStatements() throws Exception {
+    private void addStatements(SailRepositoryConnection conn) throws Exception {
         //alice
         URI subject = VF.createURI("urn:alice");
         URI predicate = VF.createURI("urn:name");

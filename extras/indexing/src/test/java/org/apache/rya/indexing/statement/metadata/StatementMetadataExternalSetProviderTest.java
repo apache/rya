@@ -7,9 +7,9 @@ package org.apache.rya.indexing.statement.metadata;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -73,7 +73,7 @@ public class StatementMetadataExternalSetProviderTest {
 
         patterns.addAll(StatementPatternCollector.process(pq.getTupleExpr()));
         JoinSegment<StatementMetadataNode<?>> segment = new JoinSegment<>(
-                new HashSet<QueryModelNode>(patterns), patterns, new HashMap<ValueExpr, Filter>());
+                new HashSet<>(patterns), patterns, new HashMap<ValueExpr, Filter>());
         List<StatementMetadataNode<?>> extSets = metaProvider.getExternalSets(segment);
 
         expected.add(new StatementMetadataNode<>(sp, conf));
@@ -81,7 +81,7 @@ public class StatementMetadataExternalSetProviderTest {
         Assert.assertEquals(expected, extSets);
 
     }
-    
+
     @Test
     public void createSingleMongoMetadataNode() throws MalformedQueryException {
 
@@ -99,7 +99,7 @@ public class StatementMetadataExternalSetProviderTest {
 
         patterns.addAll(StatementPatternCollector.process(pq.getTupleExpr()));
         JoinSegment<StatementMetadataNode<?>> segment = new JoinSegment<>(
-                new HashSet<QueryModelNode>(patterns), patterns, new HashMap<ValueExpr, Filter>());
+                new HashSet<>(patterns), patterns, new HashMap<ValueExpr, Filter>());
         List<StatementMetadataNode<?>> extSets = metaProvider.getExternalSets(segment);
 
         expected.add(new StatementMetadataNode<>(sp,conf));
@@ -107,8 +107,8 @@ public class StatementMetadataExternalSetProviderTest {
         Assert.assertEquals(expected, extSets);
 
     }
-    
-    
+
+
     @Test
     public void createMultipleMetadataNode() throws MalformedQueryException {
 
@@ -133,7 +133,7 @@ public class StatementMetadataExternalSetProviderTest {
 
         patterns.addAll(StatementPatternCollector.process(pq2.getTupleExpr()));
         JoinSegment<StatementMetadataNode<?>> segment = new JoinSegment<>(
-                new HashSet<QueryModelNode>(patterns), patterns, new HashMap<ValueExpr, Filter>());
+                new HashSet<>(patterns), patterns, new HashMap<ValueExpr, Filter>());
         List<StatementMetadataNode<?>> extSets = metaProvider.getExternalSets(segment);
 
         expected.add(new StatementMetadataNode<>(sp1,conf));
@@ -147,7 +147,7 @@ public class StatementMetadataExternalSetProviderTest {
         if (useMongo) {
             MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration();
             conf.setBoolean("sc.useMongo", true);
-            conf.setMongoInstance("localhost");
+            conf.setMongoHostname("localhost");
             conf.setMongoPort("27017");
             conf.setMongoDBName("rya_");
             return conf;
@@ -164,7 +164,7 @@ public class StatementMetadataExternalSetProviderTest {
             return conf;
         }
     }
-    
+
     private void removePatternWithGivenSubject(String subject, Set<StatementPattern> patterns) {
         Iterator<StatementPattern> spIter = patterns.iterator();
         while(spIter.hasNext()) {

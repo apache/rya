@@ -18,6 +18,8 @@
  */
 package org.apache.rya.indexing.geotemporal.mongo;
 
+import static org.apache.rya.indexing.geotemporal.GeoTemporalTestUtils.makeInstant;
+import static org.apache.rya.indexing.geotemporal.GeoTemporalTestUtils.point;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -29,6 +31,7 @@ import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.geotemporal.model.Event;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.Resource;
@@ -58,7 +61,7 @@ public class MongoGeoTemporalIndexerIT extends MongoITBase {
         final RyaStatement geoStmnt = statement(point(0, 0));
         final RyaStatement timeStmnt = statement(makeInstant(0));
 
-        final EventStorage store = indexer.getEventStorage(conf);
+        final EventStorage store = indexer.getEventStorage();
 
         indexer.storeStatement(geoStmnt);
         Optional<Event> evnt = store.get(geoStmnt.getSubject());

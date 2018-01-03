@@ -34,6 +34,14 @@ import org.apache.commons.lang.Validate;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.indexing.IndexingFunctionRegistry.FUNCTION_TYPE;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
+import org.apache.rya.indexing.accumulo.freetext.FreeTextTupleSet;
+import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
+import org.apache.rya.mongodb.MongoSecondaryIndex;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -57,15 +65,6 @@ import org.openrdf.query.algebra.evaluation.QueryOptimizer;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 
 import com.google.common.collect.Lists;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.indexing.IndexingFunctionRegistry.FUNCTION_TYPE;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
-import org.apache.rya.indexing.accumulo.freetext.FreeTextTupleSet;
-import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
-import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
-import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
 
 public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
     private static final Logger LOG = Logger.getLogger(FilterFunctionOptimizer.class);
@@ -98,12 +97,16 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
     private synchronized void init() {
         if (!init) {
             if (ConfigUtils.getUseMongo(conf)) {
-                    freeTextIndexer = new MongoFreeTextIndexer();
-                    freeTextIndexer.setConf(conf);
-                    temporalIndexer = new MongoTemporalIndexer();
-                    temporalIndexer.setConf(conf);
+                StatefulMongoDBRdfConfiguration stateConf = (StatefulMongoDBRdfConfiguration) conf;
+                for(final MongoSecondaryIndex indexer : stateConf.getAdditionalIndexers()) {
+                    if(indexer instanceof FreeTextIndexer) {
+                        freeTextIndexer = (FreeTextIndexer) indexer;
+                    } else if(indexer instanceof TemporalIndexer) {
+                        temporalIndexer = (TemporalIndexer) indexer;
+                    }
+                }
             } else {
-                 freeTextIndexer = new AccumuloFreeTextIndexer();
+                freeTextIndexer = new AccumuloFreeTextIndexer();
                 freeTextIndexer.setConf(conf);
                 temporalIndexer = new AccumuloTemporalIndexer();
                 temporalIndexer.setConf(conf);
@@ -161,7 +164,7 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
 
     //find vars contained in filters
     private static class SearchVarVisitor extends QueryModelVisitorBase<RuntimeException> {
-        private final Collection<Var> searchProperties = new ArrayList<Var>();
+        private final Collection<Var> searchProperties = new ArrayList<>();
 
         @Override
         public void meet(final FunctionCall fn) {
@@ -176,8 +179,8 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
     //find StatementPatterns containing filter variables
     private static class MatchStatementVisitor extends QueryModelVisitorBase<RuntimeException> {
         private final Collection<Var> propertyVars;
-        private final Collection<Var> usedVars = new ArrayList<Var>();
-        private final List<StatementPattern> matchStatements = new ArrayList<StatementPattern>();
+        private final Collection<Var> usedVars = new ArrayList<>();
+        private final List<StatementPattern> matchStatements = new ArrayList<>();
 
         public MatchStatementVisitor(final Collection<Var> propertyVars) {
             this.propertyVars = propertyVars;

@@ -31,16 +31,11 @@ import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration.MongoDBIndexingConfigBuilder;
 import org.apache.rya.mongodb.EmbeddedMongoFactory;
-import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.apache.zookeeper.ClientCnxn;
-import org.openrdf.model.Namespace;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
 import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
@@ -53,7 +48,6 @@ import org.openrdf.query.TupleQueryResultHandlerException;
 import org.openrdf.query.Update;
 import org.openrdf.query.UpdateExecutionException;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryResult;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
@@ -106,7 +100,7 @@ public class InferenceExamples {
 	            repository = new SailRepository(sail);
 	            conn = repository.getConnection();
 
-	            
+
 	            final long start = System.currentTimeMillis();
 
 	                testInfer(conn, sail);
@@ -122,7 +116,6 @@ public class InferenceExamples {
 	            log.info("Shutting down");
 	            closeQuietly(conn);
 	            closeQuietly(repository);
-	            MongoConnectorFactory.closeMongoClient();
 	        }
 	    }
 
@@ -152,7 +145,7 @@ public class InferenceExamples {
 	       //     .setUseMockMongo(USE_MOCK).setUseInference(USE_INFER).setAuths("U");
 	        MongoDBIndexingConfigBuilder builder = MongoIndexingConfiguration.builder()
 		            .setUseMockMongo(USE_EMBEDDED_MONGO).setUseInference(true).setAuths("U");
-	        
+
 	        if (USE_EMBEDDED_MONGO) {
 	            final MongoClient c = EmbeddedMongoFactory.newFactory().newMongoClient();
 	            final ServerAddress address = c.getAddress();

@@ -29,7 +29,7 @@ import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.query.EntityQueryNode;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -45,7 +45,7 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.collect.ImmutableSet;
 
-public class MongoEntityIndexTest extends MongoTestBase {
+public class MongoEntityIndex2IT extends MongoITBase {
     private static final Type PERSON_TYPE =
             new Type(new RyaURI("urn:person"),
                 ImmutableSet.<RyaURI>builder()

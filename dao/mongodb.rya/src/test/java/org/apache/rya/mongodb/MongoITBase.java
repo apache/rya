@@ -18,9 +18,10 @@
  */
 package org.apache.rya.mongodb;
 
+import java.util.List;
+
 import org.apache.hadoop.conf.Configuration;
 import org.bson.Document;
-import org.junit.After;
 import org.junit.Before;
 
 import com.mongodb.DBCollection;
@@ -31,27 +32,43 @@ import com.mongodb.client.MongoCollection;
  * A base class that may be used when implementing Mongo DB tests that use the
  * JUnit framework.
  */
-public class MongoTestBase {
+public class MongoITBase {
 
-    private static MongoClient mongoClient = null;
-    protected static MongoDBRdfConfiguration conf;
+    private MongoClient mongoClient = null;
+    protected StatefulMongoDBRdfConfiguration conf;
 
     @Before
     public void setupTest() throws Exception {
-        conf = new MongoDBRdfConfiguration( new Configuration() );
+        // Setup the configuration that will be used within the test.
+        final MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration( new Configuration() );
         conf.setBoolean("sc.useMongo", true);
         conf.setTablePrefix("test_");
         conf.setMongoDBName("testDB");
-        mongoClient = EmbeddedMongoSingleton.getInstance();
-        conf.setMongoClient(mongoClient);
-    }
+        conf.setMongoHostname(EmbeddedMongoSingleton.getMongodConfig().net().getServerAddress().getHostAddress());
+        conf.setMongoPort(Integer.toString(EmbeddedMongoSingleton.getMongodConfig().net().getPort()));
 
-    @After
-    public void cleanupTest() {
-        // Remove any DBs that were created by the test.
+        // Let tests update the configuration.
+        updateConfiguration(conf);
+
+        // Create the stateful configuration object.
+        mongoClient = EmbeddedMongoSingleton.getNewMongoClient();
+        final List<MongoSecondaryIndex> indexers = conf.getInstances("ac.additional.indexers", MongoSecondaryIndex.class);
+        this.conf = new StatefulMongoDBRdfConfiguration(conf, mongoClient, indexers);
+
+        // Remove any DBs that were created by previous tests.
         for(final String dbName : mongoClient.listDatabaseNames()) {
             mongoClient.dropDatabase(dbName);
         }
+    }
+
+    /**
+     * Override this method if you would like to augment the configuration object that
+     * will be used to initialize indexers and create the mongo client prior to running a test.
+     *
+     * @param conf - The configuration object that may be updated. (not null)
+     */
+    protected void updateConfiguration(final MongoDBRdfConfiguration conf) {
+        // By default, do nothing.
     }
 
     /**

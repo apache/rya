@@ -31,7 +31,6 @@ import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration.MongoDBIndexingConfigBuilder;
 import org.apache.rya.mongodb.EmbeddedMongoFactory;
-import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
@@ -58,9 +57,8 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
-
+import de.flapdoodle.embed.mongo.config.IMongoConfig;
+import de.flapdoodle.embed.mongo.config.Net;
 import info.aduna.iteration.Iterations;
 
 
@@ -132,7 +130,6 @@ public class MongoRyaDirectExample {
             log.info("Shutting down");
             closeQuietly(conn);
             closeQuietly(repository);
-            MongoConnectorFactory.closeMongoClient();
         }
     }
 
@@ -297,12 +294,11 @@ public class MongoRyaDirectExample {
             .setUseMockMongo(USE_MOCK).setUseInference(USE_INFER).setAuths("U");
 
         if (USE_MOCK) {
-            final MongoClient c = EmbeddedMongoFactory.newFactory().newMongoClient();
-            final ServerAddress address = c.getAddress();
-            final String url = address.getHost();
-            final String port = Integer.toString(address.getPort());
-            c.close();
-            builder.setMongoHost(url).setMongoPort(port);
+            final EmbeddedMongoFactory factory = EmbeddedMongoFactory.newFactory();
+            final IMongoConfig connectionConfig = factory.getMongoServerDetails();
+            Net net = connectionConfig.net();
+            builder.setMongoHost(net.getServerAddress().getHostAddress())
+                   .setMongoPort(net.getPort() + "");
         } else {
             // User name and password must be filled in:
             builder = builder.setMongoUser(MONGO_USER)

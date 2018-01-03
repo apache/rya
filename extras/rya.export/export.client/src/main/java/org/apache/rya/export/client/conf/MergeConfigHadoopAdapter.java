@@ -28,8 +28,8 @@ import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 public class MergeConfigHadoopAdapter {
     public static MongoDBRdfConfiguration getMongoConfiguration(final MergeConfiguration config) {
         final MongoDBRdfConfiguration configuration = new MongoDBRdfConfiguration();
-        configuration.setMongoInstance(config.getChildHostname());
-        configuration.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, config.getChildPort() + "");
+        configuration.setMongoHostname(config.getChildHostname());
+        configuration.set(MongoDBRdfConfiguration.MONGO_PORT, config.getChildPort() + "");
         configuration.set(MongoDBRdfConfiguration.MONGO_DB_NAME, config.getChildRyaInstanceName());
         return configuration;
     }

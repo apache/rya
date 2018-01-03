@@ -18,6 +18,8 @@
  */
 package org.apache.rya.indexing.geotemporal.model;
 
+import static org.apache.rya.indexing.geotemporal.GeoTemporalTestUtils.getFilters;
+import static org.apache.rya.indexing.geotemporal.GeoTemporalTestUtils.getSps;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -33,8 +35,8 @@ import org.apache.rya.indexing.IndexingFunctionRegistry.FUNCTION_TYPE;
 import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.geotemporal.mongo.MongoEventStorage;
-import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Test;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -58,9 +60,9 @@ import com.vividsolutions.jts.geom.PrecisionModel;
 import info.aduna.iteration.CloseableIteration;
 
 /**
- * Unit tests the methods of {@link EventQueryNode}.
+ * Integration tests the methods of {@link EventQueryNode}.
  */
-public class EventQueryNodeTest extends MongoITBase {
+public class EventQueryNode2IT extends MongoITBase {
     private static final GeometryFactory GF = new GeometryFactory(new PrecisionModel(), 4326);
     private static final ValueFactory VF = ValueFactoryImpl.getInstance();
 

@@ -18,6 +18,7 @@
  */
 package org.apache.rya.indexing.entity.update;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
@@ -46,8 +47,8 @@ import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage.TypeStorageException;
 import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
 import org.apache.rya.indexing.mongodb.IndexingException;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoSecondaryIndex;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.RDF;
 
@@ -69,19 +70,27 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
      */
     private static final RyaURI TYPE_URI = new RyaURI( RDF.TYPE.toString() );
 
-    private final AtomicReference<MongoDBRdfConfiguration> configuration = new AtomicReference<>();
+    protected final AtomicReference<StatefulMongoDBRdfConfiguration> configuration = new AtomicReference<>();
     private final AtomicReference<EntityStorage> entities = new AtomicReference<>();
     private final AtomicReference<TypeStorage> types = new AtomicReference<>();
 
     @Override
-    public void setConf(final Configuration conf) {
-        requireNonNull(conf);
+    public void init() {
         try {
-            entities.set( getEntityStorage(conf) );
+            entities.set(getEntityStorage());
         } catch (final EntityStorageException e) {
             log.error("Unable to set entity storage.");
         }
-        types.set( getTypeStorage(conf) );
+        types.set(getTypeStorage());
+    }
+
+    @Override
+    public void setConf(final Configuration conf) {
+        requireNonNull(conf);
+        checkArgument(conf instanceof StatefulMongoDBRdfConfiguration,
+                "The configuration provided must be a StatefulMongoDBRdfConfiguration, found: "
+                        + conf.getClass().getSimpleName());
+        configuration.set((StatefulMongoDBRdfConfiguration) conf);
     }
 
     @Override
@@ -100,7 +109,7 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
         requireNonNull(statements);
 
         final Map<RyaURI,List<RyaStatement>> groupedBySubject = statements.stream()
-            .collect(groupingBy(RyaStatement::getSubject));
+                .collect(groupingBy(RyaStatement::getSubject));
 
         for(final Entry<RyaURI, List<RyaStatement>> entry : groupedBySubject.entrySet()) {
             try {

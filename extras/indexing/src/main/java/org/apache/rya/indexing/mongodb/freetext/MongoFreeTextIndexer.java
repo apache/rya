@@ -35,7 +35,7 @@ import info.aduna.iteration.CloseableIteration;
 public class MongoFreeTextIndexer extends AbstractMongoIndexer<TextMongoDBStorageStrategy> implements FreeTextIndexer {
     private static final String COLLECTION_SUFFIX = "freetext";
     private static final Logger logger = Logger.getLogger(MongoFreeTextIndexer.class);
-
+    
     @Override
     public void init() {
         initCore();

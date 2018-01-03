@@ -1,6 +1,4 @@
-package org.apache.rya.mongodb;
-
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,10 +16,11 @@ package org.apache.rya.mongodb;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.mongodb;
 
+import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -57,13 +56,13 @@ import com.mongodb.MongoClient;
 /**
  * Default DAO for mongo backed RYA allowing for CRUD operations.
  */
-public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
+public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfiguration>{
     private static final Logger log = Logger.getLogger(MongoDBRyaDAO.class);
 
     private boolean isInitialized = false;
     private boolean flushEachUpdate = true;
-    private MongoDBRdfConfiguration conf;
-    private final MongoClient mongoClient;
+    private StatefulMongoDBRdfConfiguration conf;
+    private MongoClient mongoClient;
     private DB db;
     private DBCollection coll;
     private MongoDBQueryEngine queryEngine;
@@ -75,51 +74,24 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
 
     private MongoDbBatchWriter<DBObject> mongoDbBatchWriter;
 
-    /**
-     * Creates a new instance of {@link MongoDBRyaDAO}.
-     * @param conf the {@link MongoDBRdfConfiguration}.
-     * @throws RyaDAOException
-     */
-    public MongoDBRyaDAO(final MongoDBRdfConfiguration conf) throws RyaDAOException, NumberFormatException, UnknownHostException {
-        this(conf, MongoConnectorFactory.getMongoClient(conf));
-    }
-
-    /**
-     * Creates a new instance of {@link MongoDBRyaDAO}.
-     * @param conf the {@link MongoDBRdfConfiguration}.
-     * @param mongoClient the {@link MongoClient}.
-     * @throws RyaDAOException
-     */
-    public MongoDBRyaDAO(final MongoDBRdfConfiguration conf, final MongoClient mongoClient) throws RyaDAOException {
-        this.conf = conf;
-        this.mongoClient = mongoClient;
-        conf.setMongoClient(mongoClient);
+    @Override
+    public void setConf(final StatefulMongoDBRdfConfiguration conf) {
+        this.conf = requireNonNull(conf);
+        mongoClient = this.conf.getMongoClient();
         auths = conf.getAuthorizations();
         flushEachUpdate = conf.flushEachUpdate();
-        init();
-    }
-
-    @Override
-    public void setConf(final MongoDBRdfConfiguration conf) {
-        this.conf = conf;
-        auths = conf.getAuthorizations();
-    }
-
-    public MongoClient getMongoClient(){
-        return mongoClient;
     }
 
     public void setDB(final DB db) {
         this.db = db;
     }
 
-
     public void setDBCollection(final DBCollection coll) {
         this.coll = coll;
     }
 
     @Override
-    public MongoDBRdfConfiguration getConf() {
+    public StatefulMongoDBRdfConfiguration getConf() {
         return conf;
     }
 
@@ -131,13 +103,13 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
         secondaryIndexers = conf.getAdditionalIndexers();
         for(final MongoSecondaryIndex index: secondaryIndexers) {
             index.setConf(conf);
-            index.setClient(mongoClient);
         }
 
         db = mongoClient.getDB(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
         coll = db.getCollection(conf.getTriplesCollectionName());
         nameSpaceManager = new SimpleMongoDBNamespaceManager(db.getCollection(conf.getNameSpacesCollectionName()));
-        queryEngine = new MongoDBQueryEngine(conf, mongoClient);
+        queryEngine = new MongoDBQueryEngine();
+        queryEngine.setConf(conf);
         storageStrategy = new SimpleMongoDBStorageStrategy();
         storageStrategy.createIndices(coll);
         for(final MongoSecondaryIndex index: secondaryIndexers) {
@@ -145,7 +117,7 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
         }
 
         final MongoDbBatchWriterConfig mongoDbBatchWriterConfig = MongoDbBatchWriterUtils.getMongoDbBatchWriterConfig(conf);
-        mongoDbBatchWriter = new MongoDbBatchWriter<DBObject>(new DbCollectionType(coll), mongoDbBatchWriterConfig);
+        mongoDbBatchWriter = new MongoDbBatchWriter<>(new DbCollectionType(coll), mongoDbBatchWriterConfig);
         try {
             mongoDbBatchWriter.start();
         } catch (final MongoDbBatchWriterException e) {
@@ -217,7 +189,7 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
 
     @Override
     public void add(final Iterator<RyaStatement> statementIter) throws RyaDAOException {
-        final List<DBObject> dbInserts = new ArrayList<DBObject>();
+        final List<DBObject> dbInserts = new ArrayList<>();
         while (statementIter.hasNext()){
             final RyaStatement ryaStatement = statementIter.next();
             final boolean canAdd = DocumentVisibilityUtil.doesUserHaveDocumentAccess(auths, ryaStatement.getColumnVisibility());
@@ -247,7 +219,7 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
     }
 
     @Override
-    public void delete(final RyaStatement statement, final MongoDBRdfConfiguration conf)
+    public void delete(final RyaStatement statement, final StatefulMongoDBRdfConfiguration conf)
             throws RyaDAOException {
         final boolean canDelete = DocumentVisibilityUtil.doesUserHaveDocumentAccess(auths, statement.getColumnVisibility());
         if (canDelete) {
@@ -266,14 +238,14 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
     }
 
     @Override
-    public void dropGraph(final MongoDBRdfConfiguration conf, final RyaURI... graphs)
+    public void dropGraph(final StatefulMongoDBRdfConfiguration conf, final RyaURI... graphs)
             throws RyaDAOException {
 
     }
 
     @Override
     public void delete(final Iterator<RyaStatement> statements,
-            final MongoDBRdfConfiguration conf) throws RyaDAOException {
+            final StatefulMongoDBRdfConfiguration conf) throws RyaDAOException {
         while (statements.hasNext()){
             final RyaStatement ryaStatement = statements.next();
             final boolean canDelete = DocumentVisibilityUtil.doesUserHaveDocumentAccess(auths, ryaStatement.getColumnVisibility());
@@ -298,12 +270,12 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
     }
 
     @Override
-    public RyaQueryEngine<MongoDBRdfConfiguration> getQueryEngine() {
+    public RyaQueryEngine<StatefulMongoDBRdfConfiguration> getQueryEngine() {
         return queryEngine;
     }
 
     @Override
-    public RyaNamespaceManager<MongoDBRdfConfiguration> getNamespaceManager() {
+    public RyaNamespaceManager<StatefulMongoDBRdfConfiguration> getNamespaceManager() {
         return nameSpaceManager;
     }
 

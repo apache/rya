@@ -32,7 +32,7 @@ import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.mongo.MongoEntityStorage;
 import org.apache.rya.indexing.entity.storage.mongo.MongoTypeStorage;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Test;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.XMLSchema;
@@ -43,7 +43,7 @@ import com.google.common.collect.Sets;
 /**
  * Integration tests the methods of {@link MongoEntityIndexer}.
  */
-public class MongoEntityIndexerIT extends MongoTestBase {
+public class MongoEntityIndexerIT extends MongoITBase {
 
     private static final Type PERSON_TYPE =
             new Type(new RyaURI("urn:person"),

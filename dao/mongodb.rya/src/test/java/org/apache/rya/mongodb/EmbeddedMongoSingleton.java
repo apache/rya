@@ -54,6 +54,9 @@ public class EmbeddedMongoSingleton {
         return client;
     }
 
+    /**
+     * @return The singleton Mongo DB instance's server details.
+     */
     public static IMongodConfig getMongodConfig() {
         return InstanceHolder.SINGLETON.mongodConfig;
     }

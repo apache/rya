@@ -36,7 +36,7 @@ import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.geotemporal.mongo.MongoEventStorage;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Test;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -60,9 +60,9 @@ import com.vividsolutions.jts.geom.PrecisionModel;
 import info.aduna.iteration.CloseableIteration;
 
 /**
- * Unit tests the methods of {@link EventQueryNode}.
+ * Integration tests the methods of {@link EventQueryNode}.
  */
-public class EventQueryNodeTest extends MongoTestBase {
+public class EventQueryNode2IT extends MongoITBase {
     private static final GeometryFactory GF = new GeometryFactory(new PrecisionModel(), 4326);
     private static final ValueFactory VF = ValueFactoryImpl.getInstance();
 

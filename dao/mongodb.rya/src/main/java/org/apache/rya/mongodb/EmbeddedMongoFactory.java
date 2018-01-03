@@ -67,7 +67,7 @@ public class EmbeddedMongoFactory {
     }
 
     private IMongodConfig newMongodConfig(final IFeatureAwareVersion version) throws UnknownHostException, IOException {
-        Net net = new Net(findRandomOpenPortOnAllLocalInterfaces(), false);
+        final Net net = new Net(findRandomOpenPortOnAllLocalInterfaces(), false);
         return new MongodConfigBuilder().version(version).net(net).build();
     }
 
@@ -78,17 +78,16 @@ public class EmbeddedMongoFactory {
     }
 
     /**
-     * Creates a new Mongo connection.
-     *
-     * @throws MongoException
-     * @throws UnknownHostException
+     * @return A new Mongo client that is connected to the embedded MongoDB Server.
+     * @throws UnknownHostException The hostname used was unknown.
+     * @throws MongoException Couldn't create the client.
      */
     public MongoClient newMongoClient() throws UnknownHostException, MongoException {
         return new MongoClient(new ServerAddress(mongodProcess.getConfig().net().getServerAddress(), mongodProcess.getConfig().net().getPort()));
     }
 
     /**
-     * Gives access to the process configuration.
+     * @return The process configuration.
      *
      */
     public IMongodConfig getMongoServerDetails() {

@@ -62,7 +62,7 @@ import org.apache.rya.indexing.entity.storage.mongo.MongoTypeStorage;
 import org.apache.rya.indexing.mongodb.update.RyaObjectStorage.ObjectStorageException;
 import org.apache.rya.indexing.smarturi.SmartUriException;
 import org.apache.rya.indexing.smarturi.duplication.conf.DuplicateDataConfig;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.openrdf.model.ValueFactory;
@@ -76,7 +76,7 @@ import com.google.common.collect.Lists;
 /**
  * Tests the methods of {@link DuplicateDataDetector}.
  */
-public class DuplicateDataDetectorTest extends MongoTestBase {
+public class DuplicateDataDetectorIT extends MongoITBase {
     private static final String RYA_INSTANCE_NAME = "testInstance";
 
     private static final String NAMESPACE = RyaSchema.NAMESPACE;

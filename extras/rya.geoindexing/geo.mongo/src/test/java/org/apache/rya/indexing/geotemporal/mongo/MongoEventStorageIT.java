@@ -31,7 +31,7 @@ import org.apache.rya.indexing.geotemporal.model.Event;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage.EventAlreadyExistsException;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage.EventStorageException;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -43,7 +43,7 @@ import com.vividsolutions.jts.geom.PrecisionModel;
 /**
  * Integration tests the methods of {@link MongoEventStorage}.
  */
-public class MongoEventStorageTest extends MongoTestBase {
+public class MongoEventStorageIT extends MongoITBase {
 
     private static final String RYA_INSTANCE_NAME = "testInstance";
     private static final GeometryFactory GF = new GeometryFactory(new PrecisionModel(), 4326);

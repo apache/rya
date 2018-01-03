@@ -32,7 +32,7 @@ import com.mongodb.client.MongoCollection;
  * A base class that may be used when implementing Mongo DB tests that use the
  * JUnit framework.
  */
-public class MongoTestBase {
+public class MongoITBase {
 
     private MongoClient mongoClient = null;
     protected StatefulMongoDBRdfConfiguration conf;

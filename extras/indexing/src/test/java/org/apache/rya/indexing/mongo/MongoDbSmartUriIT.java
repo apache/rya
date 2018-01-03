@@ -51,7 +51,7 @@ import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
 import org.apache.rya.indexing.mongodb.MongoDbSmartUri;
 import org.apache.rya.indexing.smarturi.SmartUriAdapter;
 import org.apache.rya.indexing.smarturi.SmartUriException;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,7 +77,7 @@ import info.aduna.iteration.CloseableIteration;
 /**
  * Tests for MongoDB based Smart URI.
  */
-public class MongoDbSmartUriIT extends MongoTestBase {
+public class MongoDbSmartUriIT extends MongoITBase {
     private static final String NAMESPACE = RyaSchema.NAMESPACE;
     private static final ValueFactory VALUE_FACTORY = ValueFactoryImpl.getInstance();
 

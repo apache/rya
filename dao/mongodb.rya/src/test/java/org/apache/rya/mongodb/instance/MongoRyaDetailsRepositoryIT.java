@@ -40,7 +40,7 @@ import org.apache.rya.api.instance.RyaDetailsRepository.AlreadyInitializedExcept
 import org.apache.rya.api.instance.RyaDetailsRepository.ConcurrentUpdateException;
 import org.apache.rya.api.instance.RyaDetailsRepository.NotInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,7 +50,7 @@ import com.mongodb.MongoClient;
 /**
  * Tests the methods of {@link AccumuloRyaDetailsRepository} by using a {@link MiniAccumuloCluster}.
  */
-public class MongoRyaDetailsRepositoryIT extends MongoTestBase {
+public class MongoRyaDetailsRepositoryIT extends MongoITBase {
     private MongoClient client;
 
     @Before

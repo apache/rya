@@ -33,7 +33,7 @@ import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.update.mongo.MongoEntityIndexer;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.junit.Test;
 import org.openrdf.model.URI;
@@ -51,7 +51,7 @@ import org.openrdf.sail.Sail;
 
 import com.google.common.collect.ImmutableSet;
 
-public class MongoEntityIndexIT extends MongoTestBase {
+public class MongoEntityIndexIT extends MongoITBase {
     private static final ValueFactory VF = ValueFactoryImpl.getInstance();
 
     @Override

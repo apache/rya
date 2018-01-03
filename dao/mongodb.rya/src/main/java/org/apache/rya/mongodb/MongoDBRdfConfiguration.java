@@ -97,7 +97,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * Set whether the Rya client should spin up an embedded MongoDB instance and connect to that
      * or if it should connect to a MongoDB Server that is running somewhere.
      *
-     * @param useMock - {@true} to use an embedded Mongo DB instance; {@code false} to connect to a real server.
+     * @param useMock - {@code true} to use an embedded Mongo DB instance; {@code false} to connect to a real server.
      */
     public void setUseMock(final boolean useMock) {
         this.setBoolean(USE_MOCK_MONGO, useMock);
@@ -107,7 +107,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * Indicates whether the Rya client should spin up an embedded MongoDB instance and connect to that
      * or if it should connect to a MongoDB Server that is running somewhere.
      *
-     * @return {@true} to use an embedded Mongo DB instance; {@code false} to connect to a real server.
+     * @return {@code true} to use an embedded Mongo DB instance; {@code false} to connect to a real server.
      */
     public boolean getUseMock() {
         return getBoolean(USE_MOCK_MONGO, false);

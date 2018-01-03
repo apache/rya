@@ -1,7 +1,3 @@
-package org.apache.rya.rdftriplestore;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,8 +16,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.rdftriplestore;
 
-
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;

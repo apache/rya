@@ -36,7 +36,7 @@ import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.EntityStorage.EntityAlreadyExistsException;
 import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 import org.apache.rya.indexing.entity.storage.EntityStorage.StaleUpdateException;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Test;
 import org.openrdf.model.vocabulary.XMLSchema;
 
@@ -46,7 +46,7 @@ import com.google.common.collect.Sets;
 /**
  * Integration tests the methods of {@link MongoEntityStorage}.
  */
-public class MongoEntityStorageIT extends MongoTestBase {
+public class MongoEntityStorageIT extends MongoITBase {
 
     private static final String RYA_INSTANCE_NAME = "testInstance";
 

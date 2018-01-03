@@ -33,7 +33,7 @@ public interface GeoTemporalIndexer extends RyaSecondaryIndexer {
 	 * initialize after setting configuration.
 	 */
     @Override
-	public void init();  
+    public void init();
 
     /**
      * Creates the {@link EventStorage} that will be used by the indexer.

@@ -42,7 +42,7 @@ import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
-public class MongoDBRyaDAOIT extends MongoTestBase {
+public class MongoDBRyaDAOIT extends MongoITBase {
 
     @Override
     protected void updateConfiguration(final MongoDBRdfConfiguration conf) {
@@ -51,7 +51,7 @@ public class MongoDBRyaDAOIT extends MongoTestBase {
 
     @Test
     public void testDeleteWildcard() throws RyaDAOException {
-        MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         try {
             dao.setConf(conf);
             dao.init();
@@ -67,7 +67,7 @@ public class MongoDBRyaDAOIT extends MongoTestBase {
 
     @Test
     public void testAdd() throws RyaDAOException, MongoException, IOException {
-        MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         try {
             dao.setConf(conf);
             dao.init();
@@ -95,7 +95,7 @@ public class MongoDBRyaDAOIT extends MongoTestBase {
 
     @Test
     public void testDelete() throws RyaDAOException, MongoException, IOException {
-        MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         try {
             dao.setConf(conf);
             dao.init();
@@ -121,7 +121,7 @@ public class MongoDBRyaDAOIT extends MongoTestBase {
 
     @Test
     public void testDeleteWildcardSubjectWithContext() throws RyaDAOException, MongoException, IOException {
-        MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         try {
             dao.setConf(conf);
             dao.init();
@@ -155,7 +155,7 @@ public class MongoDBRyaDAOIT extends MongoTestBase {
 
     @Test
     public void testVisibility() throws RyaDAOException, MongoException, IOException {
-        MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         try {
             dao.setConf(conf);
             dao.init();
@@ -519,9 +519,11 @@ public class MongoDBRyaDAOIT extends MongoTestBase {
     /**
      * Generates a test statement with the provided document visibility to
      * determine if the specified user authorization can view the statement.
-     * @param documentVisibility the document visibility boolean expression
+     *
+     * @param dao - The DAO that will be used by the test.
+     * @param documentVisibility - The document visibility boolean expression
      * string.
-     * @param userAuthorizations the user authorization strings.
+     * @param userAuthorizations - The user authorization strings.
      * @return {@code true} if provided authorization could access the document
      * in the collection. {@code false} otherwise.
      * @throws RyaDAOException

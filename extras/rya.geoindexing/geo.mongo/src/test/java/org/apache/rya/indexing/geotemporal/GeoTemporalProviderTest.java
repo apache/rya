@@ -18,6 +18,7 @@
  */
 package org.apache.rya.indexing.geotemporal;
 
+import static org.apache.rya.indexing.geotemporal.GeoTemporalTestUtils.getQueryNode;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
@@ -26,7 +27,6 @@ import java.util.List;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.external.matching.QuerySegment;
-import org.apache.rya.indexing.geotemporal.GeoTemporalIndexSetProvider;
 import org.apache.rya.indexing.geotemporal.model.EventQueryNode;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.junit.Before;
@@ -36,7 +36,7 @@ import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 
-public class GeoTemporalProviderTest extends GeoTemporalTestUtils {
+public class GeoTemporalProviderTest {
     private static final String URI_PROPERTY_AT_TIME = "Property:atTime";
     private GeoTemporalIndexSetProvider provider;
     private EventStorage events;

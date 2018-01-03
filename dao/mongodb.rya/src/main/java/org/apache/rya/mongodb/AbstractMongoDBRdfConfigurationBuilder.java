@@ -121,7 +121,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * an instance of MongoDB and will default to "rya_" is no value is
      * specified.
      *
-     * @param name - name of Collection to connect to
+     * @param prefix - name of Collection to connect to
      * @return specified builder for chaining method invocations
      */
     public B setMongoCollectionPrefix(String prefix) {

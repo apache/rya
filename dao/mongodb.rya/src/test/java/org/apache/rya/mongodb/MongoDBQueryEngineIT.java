@@ -58,7 +58,7 @@ import info.aduna.iteration.CloseableIteration;
 /**
  * Integration tests the methods of {@link MongoDBQueryEngine}.
  */
-public class MongoDBQueryEngineTest extends MongoTestBase {
+public class MongoDBQueryEngineIT extends MongoITBase {
 
     private RyaStatement getStatement(final String s, final String p, final String o) {
         final RyaStatementBuilder builder = new RyaStatementBuilder();

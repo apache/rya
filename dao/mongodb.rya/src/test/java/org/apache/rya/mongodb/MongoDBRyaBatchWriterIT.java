@@ -44,7 +44,7 @@ import com.mongodb.DBObject;
 /**
  * Integration tests for the {@link MongoDbBatchWriter}.
  */
-public class MongoDBRyaBatchWriterIT extends MongoTestBase {
+public class MongoDBRyaBatchWriterIT extends MongoITBase {
 
     private static void setupLogging() {
         BasicConfigurator.configure();

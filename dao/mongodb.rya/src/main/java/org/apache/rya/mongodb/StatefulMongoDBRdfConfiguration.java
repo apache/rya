@@ -33,7 +33,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 /**
  * A {@link MongoDBRdfConfiguration} that is used to hold onto state that is pass into Rya components that accept
  * {@link Configuration} objects.
- * </p>
+ * <p>
  * HACK:
  * This class is part of a hack to get around how Rya uses reflection to initialize indexers, optimizers, etc.
  * Those classes have empty constructors, so they are not able to receive Mongo specific components at construction

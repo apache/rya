@@ -31,7 +31,7 @@ import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.geotemporal.model.Event;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.Resource;
@@ -46,7 +46,7 @@ import com.vividsolutions.jts.geom.Geometry;
 /**
  * Integration tests the methods of {@link MongoGeoTemporalIndexer}.
  */
-public class MongoGeoTemporalIndexerIT extends MongoTestBase {
+public class MongoGeoTemporalIndexerIT extends MongoITBase {
     private MongoGeoTemporalIndexer indexer;
 
     @Before

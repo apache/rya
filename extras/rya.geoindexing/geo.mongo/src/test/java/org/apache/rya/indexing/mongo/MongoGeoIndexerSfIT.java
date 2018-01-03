@@ -36,7 +36,7 @@ import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
 import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.model.Resource;
@@ -59,7 +59,7 @@ import info.aduna.iteration.CloseableIteration;
 /**
  * Tests all of the "simple functions" of the geoindexer.
  */
-public class MongoGeoIndexerSfTest extends MongoTestBase {
+public class MongoGeoIndexerSfIT extends MongoITBase {
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
     // Here is the landscape:

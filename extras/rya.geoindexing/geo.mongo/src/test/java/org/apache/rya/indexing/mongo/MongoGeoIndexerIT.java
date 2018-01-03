@@ -32,7 +32,7 @@ import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
 import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Test;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -52,7 +52,7 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
-public class MongoGeoIndexerTest extends MongoTestBase {
+public class MongoGeoIndexerIT extends MongoITBase {
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
     GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
 

@@ -36,7 +36,7 @@ import org.apache.rya.indexing.geotemporal.model.Event;
 import org.apache.rya.indexing.geotemporal.mongo.MongoGeoTemporalIndexer;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Test;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -50,7 +50,7 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
-public class MongoGeoTemporalIndexIT extends MongoTestBase {
+public class MongoGeoTemporalIndexIT extends MongoITBase {
     private static final String URI_PROPERTY_AT_TIME = "Property:atTime";
 
     private static final ValueFactory VF = ValueFactoryImpl.getInstance();

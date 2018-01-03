@@ -29,6 +29,7 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.mongodb.MongoDBQueryEngine;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 
@@ -60,7 +61,7 @@ public class RyaQueryEngineFactory {
                 throw new RuntimeException(e);
             }
             return (RyaQueryEngine<C>) new AccumuloRyaQueryEngine(conn, aConf);
-        } else if(conf instanceof StatefulMongoDBRdfConfiguration && conf.getBoolean("sc.useMongo", false)) {
+        } else if(conf instanceof StatefulMongoDBRdfConfiguration && ConfigUtils.getUseMongo(conf)) {
             StatefulMongoDBRdfConfiguration mongoConf = (StatefulMongoDBRdfConfiguration)conf;
             MongoDBQueryEngine mongoQueryEngine = new MongoDBQueryEngine();
             mongoQueryEngine.setConf(mongoConf);

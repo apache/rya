@@ -45,8 +45,13 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
-public class GeoTemporalTestUtils {
+public final class GeoTemporalTestUtils {
     private static final GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
+
+    /**
+     * Private constructor to prevent initialization.
+     */
+    private GeoTemporalTestUtils() { }
 
     /**
      * Make an uniform instant with given seconds.

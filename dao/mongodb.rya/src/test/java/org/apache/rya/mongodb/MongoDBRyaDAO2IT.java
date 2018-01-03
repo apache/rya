@@ -36,7 +36,7 @@ import com.mongodb.client.MongoDatabase;
 /**
  * Integration tests the methods of {@link MongoDBRyaDAO}.
  */
-public class MongoDBRyaDAOTest extends MongoTestBase {
+public class MongoDBRyaDAO2IT extends MongoITBase {
 
     @Test
     public void testDeleteWildcard() throws RyaDAOException {

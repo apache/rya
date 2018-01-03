@@ -39,7 +39,7 @@ import org.apache.rya.indexing.TemporalInterval;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -78,7 +78,7 @@ import info.aduna.iteration.CloseableIteration;
  * And a few more.
  *
  */
-public final class MongoTemporalIndexerTest extends MongoTestBase {
+public final class MongoTemporalIndexerIT extends MongoITBase {
 
     private static final String URI_PROPERTY_EVENT_TIME = "Property:event:time";
     private static final String URI_PROPERTY_CIRCA = "Property:circa";

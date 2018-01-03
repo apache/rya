@@ -30,7 +30,7 @@ import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage.TypeStorageException;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
@@ -39,7 +39,7 @@ import com.google.common.collect.Sets;
 /**
  * Integration tests the methods of {@link MongoTypeStorage}.
  */
-public class MongoTypeStorageIT extends MongoTestBase {
+public class MongoTypeStorageIT extends MongoITBase {
 
     private static final String RYA_INSTANCE_NAME = "testInstance";
 

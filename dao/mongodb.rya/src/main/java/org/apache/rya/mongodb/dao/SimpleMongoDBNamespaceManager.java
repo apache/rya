@@ -142,7 +142,6 @@ public class SimpleMongoDBNamespaceManager implements MongoDBNamespaceManager {
             final MessageDigest digest = MessageDigest.getInstance("SHA-1");
             bytes = digest.digest(bytes);
         } catch (final NoSuchAlgorithmException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         final BasicDBObject doc = new BasicDBObject(ID, new String(Hex.encodeHex(bytes)))

@@ -32,7 +32,7 @@ import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
-import org.apache.rya.mongodb.MongoTestBase;
+import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -49,7 +49,7 @@ import info.aduna.iteration.CloseableIteration;
 /**
  * Integration tests the methods of {@link MongoFreeTextIndexer}.
  */
-public class MongoFreeTextIndexerTest extends MongoTestBase {
+public class MongoFreeTextIndexerIT extends MongoITBase {
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
     @Test

@@ -332,13 +332,6 @@ public class AggregationProcessorIT {
                 vf.createStatement(vf.createURI("urn:timecard3"), vf.createURI("urn:hours"), vf.createLiteral(28)), ""));
 
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:TacoJoint"), vf.createURI("urn:hasTimecardId"), vf.createURI("urn:timecard4")), ""));
-        statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:hasTimecardId"), vf.createURI("urn:timecard4")), ""));
-        statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:timecard4"), vf.createURI("urn:hours"), vf.createLiteral(28)), ""));
-
-        statements.add(new VisibilityStatement(
                 vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:worksAt"), vf.createURI("urn:CoffeeShop")), ""));
         statements.add(new VisibilityStatement(
                 vf.createStatement(vf.createURI("urn:CoffeeShop"), vf.createURI("urn:hasTimecardId"), vf.createURI("urn:timecard5")), ""));
@@ -365,12 +358,6 @@ public class AggregationProcessorIT {
         bs.addBinding("business", vf.createURI("urn:TacoJoint"));
         bs.addBinding("employee", vf.createURI("urn:Bob"));
         bs.addBinding("totalHours", vf.createLiteral("28", XMLSchema.INTEGER));
-        expected.add(new VisibilityBindingSet(bs, ""));
-
-        bs = new MapBindingSet();
-        bs.addBinding("business", vf.createURI("urn:TacoJoint"));
-        bs.addBinding("employee", vf.createURI("urn:Bob"));
-        bs.addBinding("totalHours", vf.createLiteral("56", XMLSchema.INTEGER));
         expected.add(new VisibilityBindingSet(bs, ""));
 
         bs = new MapBindingSet();

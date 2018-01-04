@@ -25,8 +25,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -88,7 +90,8 @@ public class RyaStreamsTestUtil {
 
         // Start the streams program.
         final Properties props = kafka.createBootstrapServerConfig();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "StatementPatternProcessorIT");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, UUID.randomUUID().toString());
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         final KafkaStreams streams = new KafkaStreams(builder, new StreamsConfig(props));
         streams.cleanUp();

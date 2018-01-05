@@ -198,10 +198,17 @@ public class RyaAdminCommands implements CommandMarker {
         final Optional<String> ryaInstance = shellState.getRyaInstanceName();
 
         try {
-            // Sort the names alphabetically.
             final List<String> instanceNames = commands.getListInstances().listInstances();
+
+            // Return a special message when there are no instances installed.
+            if(instanceNames.isEmpty()) {
+                return "There are no Rya instances installed on this storage.";
+            }
+
+            // Sort the names alphabetically.
             Collections.sort( instanceNames );
 
+            // Return a pretty print of the instances that have been installed.
             final String report;
             final InstanceNamesFormatter formatter = new InstanceNamesFormatter();
             if(ryaInstance.isPresent()) {

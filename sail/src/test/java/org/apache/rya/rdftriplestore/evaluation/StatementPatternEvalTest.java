@@ -32,7 +32,6 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAOException;
@@ -62,7 +61,7 @@ public class StatementPatternEvalTest {
     @Before
     public void init() throws Exception {
         conf = getConf();
-        Instance mock = new MockInstance("instance");
+        Instance mock = new MockInstance("instance" + Math.random());
         Connector conn = mock.getConnector("root", new PasswordToken(""));
         dao = new AccumuloRyaDAO();
         dao.setConnector(conn);
@@ -86,15 +85,15 @@ public class StatementPatternEvalTest {
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
         RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+                new RyaURI("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
         RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
+                new RyaURI("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
         dao.add(statement2);
         
         RyaStatement statement3 = new RyaStatement(new RyaURI("uri:Eric"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context3"), "", new StatementMetadata());
+                new RyaURI("uri:Bob"), new RyaURI("uri:context3"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
@@ -137,24 +136,23 @@ public class StatementPatternEvalTest {
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
         RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+                new RyaURI("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
         RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
+                new RyaURI("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
         dao.add(statement2);
         
         RyaStatement statement3 = new RyaStatement(new RyaURI("uri:Eric"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context3"), "", new StatementMetadata());
+                new RyaURI("uri:Bob"), new RyaURI("uri:context3"), "", new StatementMetadata());
         dao.add(statement3);
-
+        
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
         bsConstraint1.addBinding("c", new URIImpl("uri:context2"));
         
         QueryBindingSet bsConstraint2 = new QueryBindingSet();
         bsConstraint2.addBinding("c", new URIImpl("uri:context1"));
 
-        
         CloseableIteration<BindingSet, QueryEvaluationException> iteration = eval.evaluate(spList.get(0), Arrays.asList(bsConstraint1, bsConstraint2));
 
         List<BindingSet> bsList = new ArrayList<>();
@@ -191,15 +189,15 @@ public class StatementPatternEvalTest {
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
         RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+                new RyaURI("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
         RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
+                new RyaURI("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
         dao.add(statement2);
         
         RyaStatement statement3 = new RyaStatement(new RyaURI("uri:Eric"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context3"), "", new StatementMetadata());
+                new RyaURI("uri:Bob"), new RyaURI("uri:context3"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
@@ -231,21 +229,21 @@ public class StatementPatternEvalTest {
     public void simpleQueryNoBindingSetConstantContext()
             throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
         //query is used to build statement that will be evaluated
-        String query = "select ?x ?c where{ graph <uri:context1>  {?x <uri:talksTo> <uri:Bob>. }}";
+        String query = "select ?x where{ graph <uri:context1>  {?x <uri:talksTo> <uri:Bob>. }}";
         SPARQLParser parser = new SPARQLParser();
         ParsedQuery pq = parser.parseQuery(query, null);
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
         RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+                new RyaURI("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
         RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
+                new RyaURI("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
         dao.add(statement2);
         
         RyaStatement statement3 = new RyaStatement(new RyaURI("uri:Eric"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context3"), "", new StatementMetadata());
+                new RyaURI("uri:Bob"), new RyaURI("uri:context3"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
@@ -271,21 +269,21 @@ public class StatementPatternEvalTest {
     public void simpleQueryWithBindingSetConstantContext()
             throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
         //query is used to build statement that will be evaluated
-        String query = "select ?x ?c where{ graph <uri:context1>  {?x <uri:talksTo> <uri:Bob>. }}";
+        String query = "select ?x where{ graph <uri:context1>  {?x <uri:talksTo> <uri:Bob>. }}";
         SPARQLParser parser = new SPARQLParser();
         ParsedQuery pq = parser.parseQuery(query, null);
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
         RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+                new RyaURI("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
         RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+                new RyaURI("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
         dao.add(statement2);
         
         RyaStatement statement3 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
+                new RyaURI("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
@@ -295,7 +293,7 @@ public class StatementPatternEvalTest {
 
         List<BindingSet> bsList = new ArrayList<>();
         while (iteration.hasNext()) {
-            bsList.add(iteration.next());
+            bsList.add(iteration.next());  // this causes a NullPointerException #1 of 2
         }
 
         Assert.assertEquals(1, bsList.size());
@@ -320,6 +318,84 @@ public class StatementPatternEvalTest {
         conf.set("sc.cloudbase.authorizations", "");
 
         return conf;
+    }
+
+    @Test
+    public void simpleQueryWithBindingWithoutContext()
+            throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
+        //query is used to build statement that will be evaluated
+        String query = "select ?x where{?x <uri:talksTo> <uri:Bob>. }";
+        SPARQLParser parser = new SPARQLParser();
+        ParsedQuery pq = parser.parseQuery(query, null);
+        List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
+
+        RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
+                new RyaURI("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+        dao.add(statement1);
+
+        RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
+                new RyaURI("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+        dao.add(statement2);
+
+        QueryBindingSet bsConstraint1 = new QueryBindingSet();
+        bsConstraint1.addBinding("x", new URIImpl("uri:Doug"));
+
+        CloseableIteration<BindingSet, QueryEvaluationException> iteration = eval.evaluate(spList.get(0), Arrays.asList(bsConstraint1));
+
+        List<BindingSet> bsList = new ArrayList<>();
+        while (iteration.hasNext()) {
+            bsList.add(iteration.next());
+        }
+
+        Assert.assertEquals(1, bsList.size());
+
+        QueryBindingSet expected = new QueryBindingSet();
+        expected.addBinding("x", new URIImpl("uri:Doug"));
+
+        Assert.assertEquals(expected, bsList.get(0));
+
+    }
+
+    @Test
+    public void simpleQueryWithBindingSetWithContext()
+            throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
+        //query is used to build statement that will be evaluated
+        String query = "select ?x ?c where{graph ?c {?x <uri:talksTo>  <uri:Bob>. }}";
+        SPARQLParser parser = new SPARQLParser();
+        ParsedQuery pq = parser.parseQuery(query, null);
+        List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
+
+        RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
+                new RyaURI("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+        dao.add(statement1);
+
+        RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
+                new RyaURI("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+        dao.add(statement2);
+
+        RyaStatement statement3 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
+                new RyaURI("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
+        dao.add(statement3);
+
+        QueryBindingSet bsConstraint1 = new QueryBindingSet();
+        bsConstraint1.addBinding("x", new URIImpl("uri:Doug"));
+        bsConstraint1.addBinding("c", new URIImpl("uri:context1"));
+
+        CloseableIteration<BindingSet, QueryEvaluationException> iteration = eval.evaluate(spList.get(0), Arrays.asList(bsConstraint1));
+
+        List<BindingSet> bsList = new ArrayList<>();
+        while (iteration.hasNext()) {
+            bsList.add(iteration.next());    // this causes a NullPointerException #2 of 2
+        }
+
+        Assert.assertEquals(1, bsList.size());
+
+        QueryBindingSet expected = new QueryBindingSet();
+        expected.addBinding("x", new URIImpl("uri:Doug"));
+        expected.addBinding("c", new URIImpl("uri:context1"));
+
+       Assert.assertEquals(expected, bsList.get(0));
+
     }
 
 

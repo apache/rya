@@ -363,7 +363,7 @@ public class RyaAdminCommands implements CommandMarker {
         try {
             final Optional<RyaDetails> details = commands.getGetInstanceDetails().getDetails(ryaInstance);
             if(details.isPresent()) {
-                return new RyaDetailsFormatter().format(details.get());
+                return new RyaDetailsFormatter().format(shellState.getStorageType().get(), details.get());
             } else {
                 return "This instance of Rya does not have a Rya Details table. Consider migrating to a newer version of Rya.";
             }

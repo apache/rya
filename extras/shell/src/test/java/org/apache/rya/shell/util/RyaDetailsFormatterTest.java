@@ -33,6 +33,7 @@ import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
+import org.apache.rya.shell.SharedShellState.StorageType;
 import org.junit.Test;
 
 import com.google.common.base.Optional;
@@ -43,7 +44,7 @@ import com.google.common.base.Optional;
 public class RyaDetailsFormatterTest {
 
     @Test
-    public void format() {
+    public void format_accumulo() {
         // This test failed if the default timezone was not EST, so now it's fixed at EST.
         TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
         // Create the object that will be formatted.
@@ -73,7 +74,7 @@ public class RyaDetailsFormatterTest {
             .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date(125221351L))) )
             .build();
 
-        final String formatted = new RyaDetailsFormatter().format(details);
+        final String formatted = new RyaDetailsFormatter().format(StorageType.ACCUMULO, details);
 
         // Verify the created object matches the expected result.
         final String expected =
@@ -105,6 +106,40 @@ public class RyaDetailsFormatterTest {
                 "    Last Update Time: Wed Dec 31 22:28:45 EST 1969\n" +
                 "  Join Selectivity:\n" +
                 "    Last Updated Time: Fri Jan 02 05:47:01 EST 1970\n";
+
+        assertEquals(expected, formatted);
+    }
+
+    @Test
+    public void format_mongo() {
+        // This test failed if the default timezone was not EST, so now it's fixed at EST.
+        TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
+        // Create the object that will be formatted.
+        final RyaDetails details = RyaDetails.builder().setRyaInstanceName("test_instance")
+            .setRyaVersion("1.2.3.4")
+            .setEntityCentricIndexDetails(new EntityCentricIndexDetails(false))
+          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
+            .setTemporalIndexDetails( new TemporalIndexDetails(true) )
+            .setFreeTextDetails( new FreeTextIndexDetails(true) )
+            .setPCJIndexDetails(PCJIndexDetails.builder().setEnabled(false))
+            .setProspectorDetails( new ProspectorDetails(Optional.absent()) )
+            .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.absent()) )
+            .build();
+
+        final String formatted = new RyaDetailsFormatter().format(StorageType.MONGO, details);
+
+        // Verify the created object matches the expected result.
+        final String expected =
+                "General Metadata:\n" +
+                "  Instance Name: test_instance\n" +
+                "  RYA Version: 1.2.3.4\n" +
+                "Secondary Indicies:\n" +
+            //RYA-215                "  Geospatial Index:\n" +
+            //RYA-215                "    Enabled: true\n" +
+                "  Free Text Index:\n" +
+                "    Enabled: true\n" +
+                "  Temporal Index:\n" +
+                "    Enabled: true\n";
 
         assertEquals(expected, formatted);
     }

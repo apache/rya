@@ -83,9 +83,9 @@ public class RyaClient {
         this.addUser = requireNonNull(addUser);
         this.removeUser = requireNonNull(removeUser);
         this.uninstall = requireNonNull(uninstall);
-        this.loadStatements = loadStatements;
-        this.loadStatementsFile = loadStatementsFile;
-        this.executeSparqlQuery = executeSparqlQuery;
+        this.loadStatements = requireNonNull(loadStatements);
+        this.loadStatementsFile = requireNonNull(loadStatementsFile);
+        this.executeSparqlQuery = requireNonNull(executeSparqlQuery);
     }
 
     /**

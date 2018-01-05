@@ -53,6 +53,7 @@ public class MongoUninstall implements Uninstall {
 
     @Override
     public void uninstall(final String ryaInstanceName) throws InstanceDoesNotExistException, RyaClientException {
+        requireNonNull(ryaInstanceName);
         try {
             if (!instanceExists.exists(ryaInstanceName)) {
                 throw new InstanceDoesNotExistException("The database '" + ryaInstanceName + "' does not exist.");

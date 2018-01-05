@@ -112,7 +112,7 @@ public class MongoConnectionDetails {
             conf.setMongoPassword( new String(password.get()) );
         }
 
-        // Default to having a table prefix of "rya", otherwise the app doesn't work for some reason.
+        // Default to having a table prefix of "rya", otherwise the app doesn't work. Remove this in RYA-135.
         conf.setTablePrefix("rya");
         return conf;
     }

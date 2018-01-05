@@ -40,23 +40,23 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
     private boolean useMock = false;
     private String host = "localhost";
     private String port = DEFAULT_MONGO_PORT;
-    protected static final String DEFAULT_MONGO_PORT = "27017";
+    public static final String DEFAULT_MONGO_PORT = "27017";
     private String mongoCollectionPrefix = "rya_";
     private String mongoDBName = "rya";
     private boolean usePipeline = false;
 
-    protected static final String MONGO_USER = "mongo.user";
-    protected static final String MONGO_PASSWORD = "mongo.password";
-    protected static final String MONGO_DB_NAME = "mongo.db.name";
-    protected static final String MONGO_COLLECTION_PREFIX = "mongo.collection.prefix";
-    protected static final String MONGO_HOST = "mongo.host";
-    protected static final String MONGO_PORT = "mongo.port";
-    protected static final String MONGO_AUTHS = "mongo.auths";
-    protected static final String MONGO_VISIBILITIES = "mongo.visibilities";
-    protected static final String MONGO_RYA_PREFIX = "mongo.rya.prefix";
-    protected static final String USE_INFERENCE = "use.inference";
-    protected static final String USE_DISPLAY_QUERY_PLAN = "use.display.plan";
-    protected static final String USE_MOCK_MONGO = "use.mock";
+    public static final String MONGO_USER = "mongo.user";
+    public static final String MONGO_PASSWORD = "mongo.password";
+    public static final String MONGO_DB_NAME = "mongo.db.name";
+    public static final String MONGO_COLLECTION_PREFIX = "mongo.collection.prefix";
+    public static final String MONGO_HOST = "mongo.host";
+    public static final String MONGO_PORT = "mongo.port";
+    public static final String MONGO_AUTHS = "mongo.auths";
+    public static final String MONGO_VISIBILITIES = "mongo.visibilities";
+    public static final String MONGO_RYA_PREFIX = "mongo.rya.prefix";
+    public static final String USE_INFERENCE = "use.inference";
+    public static final String USE_DISPLAY_QUERY_PLAN = "use.display.plan";
+    public static final String USE_MOCK_MONGO = "use.mock";
 
     /**
      * Sets Mongo user.

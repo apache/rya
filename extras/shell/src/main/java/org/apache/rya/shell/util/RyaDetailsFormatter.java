@@ -20,16 +20,17 @@ package org.apache.rya.shell.util;
 
 import static java.util.Objects.requireNonNull;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
+import org.apache.rya.shell.SharedShellState.StorageType;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Formats an instance of {@link RyaDetails}.
@@ -40,10 +41,11 @@ public class RyaDetailsFormatter {
     /**
      * Pretty formats an instance of {@link RyaDetails}.
      *
+     * @param storageType - The type of storage the instance is installed on. (not null)
      * @param details - The object to format. (not null)
      * @return A pretty render of the object.
      */
-    public String format(final RyaDetails details) {
+    public String format(StorageType storageType, final RyaDetails details) {
         requireNonNull(details);
 
         final StringBuilder report = new StringBuilder();
@@ -51,11 +53,18 @@ public class RyaDetailsFormatter {
         report.append("General Metadata:\n");
         report.append("  Instance Name: ").append(details.getRyaInstanceName()).append("\n");
         report.append("  RYA Version: ").append( details.getRyaVersion() ).append("\n");
-        report.append("  Users: ").append( Joiner.on(", ").join(details.getUsers()) ).append("\n");
+
+        if(storageType == StorageType.ACCUMULO) {
+            report.append("  Users: ").append( Joiner.on(", ").join(details.getUsers()) ).append("\n");
+        }
 
         report.append("Secondary Indicies:\n");
-        report.append("  Entity Centric Index:\n");
-        report.append("    Enabled: ").append( details.getEntityCentricIndexDetails().isEnabled() ).append("\n");
+
+        if(storageType == StorageType.ACCUMULO) {
+            report.append("  Entity Centric Index:\n");
+            report.append("    Enabled: ").append( details.getEntityCentricIndexDetails().isEnabled() ).append("\n");
+        }
+
       //RYA-215        report.append("  Geospatial Index:\n");
       //RYA-215        report.append("    Enabled: ").append( details.getGeoIndexDetails().isEnabled() ).append("\n");
         report.append("  Free Text Index:\n");
@@ -63,40 +72,42 @@ public class RyaDetailsFormatter {
         report.append("  Temporal Index:\n");
         report.append("    Enabled: ").append( details.getTemporalIndexDetails().isEnabled() ).append("\n");
 
-        report.append("  PCJ Index:\n");
-        final PCJIndexDetails pcjDetails = details.getPCJIndexDetails();
-        report.append("    Enabled: ").append( pcjDetails.isEnabled() ).append("\n");
-        if(pcjDetails.isEnabled()) {
-            if(pcjDetails.getFluoDetails().isPresent()) {
-                final String fluoAppName = pcjDetails.getFluoDetails().get().getUpdateAppName();
-                report.append("    Fluo App Name: ").append(fluoAppName).append("\n");
-            }
+        if(storageType == StorageType.ACCUMULO) {
+            report.append("  PCJ Index:\n");
+            final PCJIndexDetails pcjDetails = details.getPCJIndexDetails();
+            report.append("    Enabled: ").append( pcjDetails.isEnabled() ).append("\n");
+            if(pcjDetails.isEnabled()) {
+                if(pcjDetails.getFluoDetails().isPresent()) {
+                    final String fluoAppName = pcjDetails.getFluoDetails().get().getUpdateAppName();
+                    report.append("    Fluo App Name: ").append(fluoAppName).append("\n");
+                }
 
-            final ImmutableMap<String, PCJDetails> pcjs = pcjDetails.getPCJDetails();
-            report.append("    PCJs:\n");
-            if(pcjs.isEmpty()) {
-                report.append("      No PCJs have been added yet.\n");
-            } else {
-                for(final PCJDetails pcj : pcjs.values()) {
-                    report.append("      ID: ").append(pcj.getId()).append("\n");
+                final ImmutableMap<String, PCJDetails> pcjs = pcjDetails.getPCJDetails();
+                report.append("    PCJs:\n");
+                if(pcjs.isEmpty()) {
+                    report.append("      No PCJs have been added yet.\n");
+                } else {
+                    for(final PCJDetails pcj : pcjs.values()) {
+                        report.append("      ID: ").append(pcj.getId()).append("\n");
 
-                    final String updateStrategy = format( pcj.getUpdateStrategy(), "None" );
-                    report.append("        Update Strategy: ").append(updateStrategy).append("\n");
+                        final String updateStrategy = format( pcj.getUpdateStrategy(), "None" );
+                        report.append("        Update Strategy: ").append(updateStrategy).append("\n");
 
-                    final String lastUpdateTime = format( pcj.getLastUpdateTime(), "unavailable");
-                    report.append("        Last Update Time: ").append(lastUpdateTime).append("\n");
+                        final String lastUpdateTime = format( pcj.getLastUpdateTime(), "unavailable");
+                        report.append("        Last Update Time: ").append(lastUpdateTime).append("\n");
+                    }
                 }
             }
+
+            report.append("Statistics:\n");
+            report.append("  Prospector:\n");
+            final String prospectorLastUpdateTime = format(details.getProspectorDetails().getLastUpdated(), "unavailable");
+            report.append("    Last Update Time: ").append( prospectorLastUpdateTime).append("\n");
+
+            report.append("  Join Selectivity:\n");
+            final String jsLastUpdateTime = format(details.getJoinSelectivityDetails().getLastUpdated(), "unavailable");
+            report.append("    Last Updated Time: ").append( jsLastUpdateTime ).append("\n");
         }
-
-        report.append("Statistics:\n");
-        report.append("  Prospector:\n");
-        final String prospectorLastUpdateTime = format(details.getProspectorDetails().getLastUpdated(), "unavailable");
-        report.append("    Last Update Time: ").append( prospectorLastUpdateTime).append("\n");
-
-        report.append("  Join Selectivity:\n");
-        final String jsLastUpdateTime = format(details.getJoinSelectivityDetails().getLastUpdated(), "unavailable");
-        report.append("    Last Updated Time: ").append( jsLastUpdateTime ).append("\n");
 
         return report.toString();
     }

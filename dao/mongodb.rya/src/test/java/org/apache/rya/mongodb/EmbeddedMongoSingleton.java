@@ -60,7 +60,7 @@ public class EmbeddedMongoSingleton {
     public static IMongodConfig getMongodConfig() {
         return InstanceHolder.SINGLETON.mongodConfig;
     }
-
+    
     private EmbeddedMongoSingleton() {
         // hiding implicit default constructor
     }

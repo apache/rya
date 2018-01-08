@@ -46,6 +46,7 @@ import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
 
 /**
  * Spring Shell commands that manage the connection that is used by the shell.
@@ -88,11 +89,11 @@ public class RyaConnectionCommands implements CommandMarker {
     @CliAvailabilityIndicator({CONNECT_INSTANCE_CMD})
     public boolean isConnectToInstanceAvailable() {
         switch(sharedState.getShellState().getConnectionState()) {
-            case CONNECTED_TO_STORAGE:
-            case CONNECTED_TO_INSTANCE:
-                return true;
-            default:
-                return false;
+        case CONNECTED_TO_STORAGE:
+        case CONNECTED_TO_INSTANCE:
+            return true;
+        default:
+            return false;
         }
     }
 
@@ -190,7 +191,6 @@ public class RyaConnectionCommands implements CommandMarker {
 
             // Connect to a MongoDB server. TODO Figure out how to provide auth info?
             final MongoClient adminClient = new MongoClient(hostname, Integer.parseInt(port));
-
             // Make sure the client is closed at shutdown.
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
@@ -199,11 +199,20 @@ public class RyaConnectionCommands implements CommandMarker {
                 }
             });
 
+            try {
+                //attempt to get the connection point, essentially pinging mongo server.
+                adminClient.getConnectPoint();
+            } catch(final MongoException e) {
+            	//had to rethrow to get scope on adminClient.
+                adminClient.close();
+                throw e;
+            }
+
             // Initialize the connected to Mongo shared state.
             final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, adminClient);
             sharedState.connectedToMongo(connectionDetails, ryaClient);
 
-        } catch (final IOException e) {
+        } catch (final IOException | MongoException e) {
             throw new RuntimeException("Could not connection to MongoDB. Reason: " + e.getMessage(), e);
         }
 

@@ -39,6 +39,7 @@ import org.apache.fluo.api.data.ColumnValue;
 import org.apache.fluo.api.data.Span;
 import org.apache.fluo.core.client.FluoClientImpl;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.api.utils.CloseableIterator;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePeriodicQuery;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
@@ -48,7 +49,6 @@ import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil;
 import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryStorageException;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
@@ -68,7 +68,7 @@ import com.google.common.collect.Sets;
 
 public class PeriodicNotificationBinPrunerIT extends RyaExportITBase {
 
-    
+
     @Test
     public void periodicPrunerTest() throws Exception {
 
@@ -238,7 +238,7 @@ public class PeriodicNotificationBinPrunerIT extends RyaExportITBase {
         pruner.stop();
 
     }
-    
+
     private void compareResults(PeriodicQueryResultStorage periodicStorage, String queryId, long bin, Set<BindingSet> expected) throws PeriodicQueryStorageException, Exception {
         try(CloseableIterator<BindingSet> iter = periodicStorage.listResults(queryId, Optional.of(bin))) {
             Set<BindingSet> actual = new HashSet<>();
@@ -248,13 +248,13 @@ public class PeriodicNotificationBinPrunerIT extends RyaExportITBase {
             Assert.assertEquals(expected, actual);
         }
     }
-    
+
     private void compareFluoCounts(FluoClient client, String pcjId, long bin) {
         QueryBindingSet bs = new QueryBindingSet();
         bs.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, new LiteralImpl(Long.toString(bin), XMLSchema.LONG));
-        
+
         VariableOrder varOrder = new VariableOrder(IncrementalUpdateConstants.PERIODIC_BIN_ID);
-        
+
         try(Snapshot sx = client.newSnapshot()) {
             String fluoQueryId = NodeType.generateNewIdForType(NodeType.QUERY, pcjId);
             Set<String> ids = new HashSet<>();
@@ -279,5 +279,5 @@ public class PeriodicNotificationBinPrunerIT extends RyaExportITBase {
             }
         }
     }
-    
+
 }

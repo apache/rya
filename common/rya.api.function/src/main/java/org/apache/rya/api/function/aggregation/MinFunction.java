@@ -19,6 +19,7 @@
 package org.apache.rya.api.function.aggregation;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.requireNonNull;
 
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.openrdf.model.Value;
@@ -40,6 +41,8 @@ public final class MinFunction implements AggregationFunction {
     @Override
     public void update(final AggregationElement aggregation, final AggregationState state, final VisibilityBindingSet childBindingSet) {
         checkArgument(aggregation.getAggregationType() == AggregationType.MIN, "The MinFunction only accepts MIN AggregationElements.");
+        requireNonNull(state);
+        requireNonNull(childBindingSet);
 
         // Only update the min if the child contains the binding that we are finding the min value for.
         final String aggregatedName = aggregation.getAggregatedBindingName();

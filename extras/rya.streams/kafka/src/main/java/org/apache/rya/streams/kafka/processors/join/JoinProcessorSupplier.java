@@ -28,6 +28,7 @@ import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.rya.api.function.join.IterativeJoin;
 import org.apache.rya.api.model.VisibilityBindingSet;
+import org.apache.rya.api.utils.CloseableIterator;
 import org.apache.rya.streams.kafka.processors.ProcessorResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult.Side;
@@ -75,7 +76,7 @@ public class JoinProcessorSupplier extends RyaStreamsProcessorSupplier {
         this.allVars = requireNonNull(allVars);
 
         if(!allVars.subList(0, joinVars.size()).equals(joinVars)) {
-            throw new IllegalArgumentException("All vars must be lead by the join vars, but it did not. " +
+            throw new IllegalArgumentException("The allVars list must start with the joinVars list, but it did not. " +
                     "Join Vars: " + joinVars + ", All Vars: " + allVars);
         }
     }

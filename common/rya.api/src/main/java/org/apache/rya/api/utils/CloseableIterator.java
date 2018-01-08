@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,17 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.streams.kafka.processors.join;
+package org.apache.rya.api.utils;
 
 import java.util.Iterator;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 /**
- * An {@link Iterator} that is also {@link AutoCloseable}.
+ * An {@link Iterator} that also extends {@link AutoCloseable} because it has reference to resources
+ * that need to be released once you are done iterating.
  *
- * @param <T> - The type of elements that will be iterated over.
+ * @param <T> The type of object that is iterated over.
  */
-@DefaultAnnotation(NonNull.class)
-public interface CloseableIterator<T> extends Iterator<T>, AutoCloseable { }
+public interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
+
+}

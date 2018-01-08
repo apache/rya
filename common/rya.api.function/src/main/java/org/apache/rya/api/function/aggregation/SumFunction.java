@@ -19,6 +19,7 @@
 package org.apache.rya.api.function.aggregation;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.requireNonNull;
 
 import java.math.BigInteger;
 
@@ -48,6 +49,8 @@ public final class SumFunction implements AggregationFunction {
     @Override
     public void update(final AggregationElement aggregation, final AggregationState state, final VisibilityBindingSet childBindingSet) {
         checkArgument(aggregation.getAggregationType() == AggregationType.SUM, "The SumFunction only accepts SUM AggregationElements.");
+        requireNonNull(state);
+        requireNonNull(childBindingSet);
 
         // Only add values to the sum if the child contains the binding that we are summing.
         final String aggregatedName = aggregation.getAggregatedBindingName();

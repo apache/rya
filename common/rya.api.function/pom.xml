@@ -27,8 +27,8 @@ under the License.
         <version>3.2.12-incubating-SNAPSHOT</version>
     </parent>
 
-    <artifactId>rya.api.function</artifactId>
-    <name>Apache Rya Common API - Functions</name>
+    <artifactId>rya.api.evaluation</artifactId>
+    <name>Apache Rya Common API - Evaluation Functions</name>
 
     <dependencies>
         <!-- Rya dependencies. -->        

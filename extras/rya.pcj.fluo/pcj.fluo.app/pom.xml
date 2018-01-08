@@ -62,7 +62,7 @@ under the License.
         
         <dependency>
             <groupId>org.apache.rya</groupId>
-            <artifactId>rya.api.function</artifactId>
+            <artifactId>rya.api.evaluation</artifactId>
         </dependency>
 
         <!-- 3rd Party Runtime Dependencies. -->

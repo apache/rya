@@ -19,6 +19,7 @@
 package org.apache.rya.api.function.aggregation;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.requireNonNull;
 
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.openrdf.model.Value;
@@ -40,6 +41,8 @@ public final class MaxFunction implements AggregationFunction {
     @Override
     public void update(final AggregationElement aggregation, final AggregationState state, final VisibilityBindingSet childBindingSet) {
         checkArgument(aggregation.getAggregationType() == AggregationType.MAX, "The MaxFunction only accepts MAX AggregationElements.");
+        requireNonNull(state);
+        requireNonNull(childBindingSet);
 
         // Only update the max if the child contains the binding that we are finding the max value for.
         final String aggregatedName = aggregation.getAggregatedBindingName();

@@ -19,6 +19,7 @@
 package org.apache.rya.streams.kafka.processors.join;
 
 import org.apache.rya.api.model.VisibilityBindingSet;
+import org.apache.rya.api.utils.CloseableIterator;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;

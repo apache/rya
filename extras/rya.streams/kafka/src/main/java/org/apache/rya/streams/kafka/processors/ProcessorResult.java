@@ -36,7 +36,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * {@link VisibilityBindingSet} because some downstream processors require more information about
  * which upstream processor is emitting the result in order to do their work.
  * </p>
- * Currently there are only two types processors:
+ * Currently there are only two types of processors:
  * <ul>
  *   <li>Unary Processor - A processor that only has a single upstream node feeding it input.</li>
  *   <li>Binary Processor - A processor that has two upstream nodes feeding it input.</li>

@@ -45,9 +45,9 @@ import org.apache.rya.accumulo.MiniAccumuloSingleton;
 import org.apache.rya.accumulo.RyaTestInstanceRule;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.model.VisibilityBindingSet;
+import org.apache.rya.api.utils.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
@@ -120,7 +120,7 @@ public class PcjTablesIT {
     private String getRyaInstanceName() {
         return testInstance.getRyaInstanceName();
     }
-    
+
     /**
      * Format a Mini Accumulo to be a Rya repository.
      *

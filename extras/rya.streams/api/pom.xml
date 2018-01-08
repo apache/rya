@@ -54,11 +54,6 @@ under the License.
             <artifactId>guava</artifactId>
         </dependency>
         
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
-        
         <!-- Test dependences -->
         <dependency>
             <groupId>junit</groupId>

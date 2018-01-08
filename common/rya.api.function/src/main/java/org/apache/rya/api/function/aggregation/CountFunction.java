@@ -19,6 +19,7 @@
 package org.apache.rya.api.function.aggregation;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.requireNonNull;
 
 import java.math.BigInteger;
 
@@ -39,6 +40,8 @@ public final class CountFunction implements AggregationFunction {
     @Override
     public void update(final AggregationElement aggregation, final AggregationState state, final VisibilityBindingSet childBindingSet) {
         checkArgument(aggregation.getAggregationType() == AggregationType.COUNT, "The CountFunction only accepts COUNT AggregationElements.");
+        requireNonNull(state);
+        requireNonNull(childBindingSet);
 
         // Only add one to the count if the child contains the binding that we are counting.
         final String aggregatedName = aggregation.getAggregatedBindingName();

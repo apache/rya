@@ -19,6 +19,7 @@
 package org.apache.rya.api.function.aggregation;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.requireNonNull;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -51,6 +52,8 @@ public final class AverageFunction implements AggregationFunction {
     @Override
     public void update(final AggregationElement aggregation, final AggregationState state, final VisibilityBindingSet childBindingSet) {
         checkArgument(aggregation.getAggregationType() == AggregationType.AVERAGE, "The AverageFunction only accepts AVERAGE AggregationElements.");
+        requireNonNull(state);
+        requireNonNull(childBindingSet);
 
         // Only update the average if the child contains the binding that we are averaging.
         final String aggregatedName = aggregation.getAggregatedBindingName();

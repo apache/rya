@@ -38,7 +38,15 @@
         <module>kafka-test</module>
         <module>api</module>
         <module>client</module>
-        <module>geo</module>
         <module>integration</module>
     </modules>
+    
+    <profiles>
+        <profile>
+            <id>geoindexing</id>
+            <modules>
+                <module>geo</module>
+           </modules>
+        </profile>
+    </profiles>
 </project>

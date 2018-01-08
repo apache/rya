@@ -217,7 +217,7 @@ under the License.
             </dependency>
             <dependency>
                 <groupId>org.apache.rya</groupId>
-                <artifactId>rya.api.function</artifactId>
+                <artifactId>rya.api.evaluation</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

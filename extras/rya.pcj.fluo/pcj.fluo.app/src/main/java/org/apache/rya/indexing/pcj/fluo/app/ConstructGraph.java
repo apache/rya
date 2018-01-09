@@ -26,7 +26,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.api.model.VisibilityBindingSet;
 import org.openrdf.model.BNode;
 import org.openrdf.model.Value;
 import org.openrdf.model.impl.BNodeImpl;

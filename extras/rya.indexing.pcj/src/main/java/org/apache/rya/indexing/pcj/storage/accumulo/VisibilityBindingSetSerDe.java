@@ -26,6 +26,8 @@ import java.io.ObjectOutputStream;
 
 import org.apache.commons.io.serialization.ValidatingObjectInputStream;
 import org.apache.fluo.api.data.Bytes;
+import org.apache.rya.api.model.BindingSetDecorator;
+import org.apache.rya.api.model.VisibilityBindingSet;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -65,8 +67,8 @@ public class VisibilityBindingSetSerDe {
         requireNonNull(bytes);
         try (final ValidatingObjectInputStream vois = new ValidatingObjectInputStream(new ByteArrayInputStream(bytes.toArray()))) {
             // Perform input validation.  Only the following classes are allowed to be deserialized.
-            vois.accept(org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet.class,
-                    org.apache.rya.indexing.pcj.storage.accumulo.BindingSetDecorator.class,
+            vois.accept(VisibilityBindingSet.class,
+                    BindingSetDecorator.class,
                     org.openrdf.query.impl.MapBindingSet.class,
                     java.util.LinkedHashMap.class,
                     java.util.HashMap.class,

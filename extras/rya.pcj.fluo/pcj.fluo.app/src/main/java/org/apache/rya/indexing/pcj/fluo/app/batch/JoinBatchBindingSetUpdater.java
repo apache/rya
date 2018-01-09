@@ -31,16 +31,16 @@ import org.apache.fluo.api.data.ColumnValue;
 import org.apache.fluo.api.data.RowColumn;
 import org.apache.fluo.api.data.Span;
 import org.apache.log4j.Logger;
-import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.IterativeJoin;
-import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.LeftOuterJoin;
-import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.NaturalJoin;
-import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.Side;
+import org.apache.rya.api.function.join.IterativeJoin;
+import org.apache.rya.api.function.join.LazyJoiningIterator.Side;
+import org.apache.rya.api.function.join.LeftOuterJoin;
+import org.apache.rya.api.function.join.NaturalJoin;
+import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformation.Task;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.util.BindingHashShardingFunction;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
 
 import com.google.common.base.Preconditions;
@@ -66,12 +66,12 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
      * @throws Exception
      */
     @Override
-    public void processBatch(TransactionBase tx, Bytes row, BatchInformation batch) throws Exception {
+    public void processBatch(final TransactionBase tx, final Bytes row, final BatchInformation batch) throws Exception {
         super.processBatch(tx, row, batch);
-        String nodeId = BatchRowKeyUtil.getNodeId(row);
+        final String nodeId = BatchRowKeyUtil.getNodeId(row);
         Preconditions.checkArgument(batch instanceof JoinBatchInformation);
-        JoinBatchInformation joinBatch = (JoinBatchInformation) batch;
-        Task task = joinBatch.getTask();
+        final JoinBatchInformation joinBatch = (JoinBatchInformation) batch;
+        final Task task = joinBatch.getTask();
 
         // Figure out which join algorithm we are going to use.
         final IterativeJoin joinAlgorithm;
@@ -86,12 +86,12 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
             throw new RuntimeException("Unsupported JoinType: " + joinBatch.getJoinType());
         }
 
-        Set<VisibilityBindingSet> bsSet = new HashSet<>();
-        Optional<RowColumn> rowCol = fillSiblingBatch(tx, joinBatch, bsSet);
+        final Set<VisibilityBindingSet> bsSet = new HashSet<>();
+        final Optional<RowColumn> rowCol = fillSiblingBatch(tx, joinBatch, bsSet);
 
         // Iterates over the resulting BindingSets from the join.
         final Iterator<VisibilityBindingSet> newJoinResults;
-        VisibilityBindingSet bs = joinBatch.getBs();
+        final VisibilityBindingSet bs = joinBatch.getBs();
         if (joinBatch.getSide() == Side.LEFT) {
             newJoinResults = joinAlgorithm.newLeftResult(bs, bsSet.iterator());
         } else {
@@ -104,7 +104,7 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
         while (newJoinResults.hasNext()) {
             final VisibilityBindingSet newJoinResult = newJoinResults.next();
             //create BindingSet value
-            Bytes bsBytes = BS_SERDE.serialize(newJoinResult);
+            final Bytes bsBytes = BS_SERDE.serialize(newJoinResult);
             //make rowId
             Bytes rowKey = BindingHashShardingFunction.addShard(nodeId, joinVarOrder, newJoinResult);
             final Column col = FluoQueryColumns.JOIN_BINDING_SET;
@@ -114,14 +114,14 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
         // if batch limit met, there are additional entries to process
         // update the span and register updated batch job
         if (rowCol.isPresent()) {
-            Span newSpan = getNewSpan(rowCol.get(), joinBatch.getSpan());
+            final Span newSpan = getNewSpan(rowCol.get(), joinBatch.getSpan());
             joinBatch.setSpan(newSpan);
             BatchInformationDAO.addBatch(tx, nodeId, joinBatch);
         }
 
     }
 
-    private void processTask(TransactionBase tx, Task task, Bytes row, Column column, Bytes value) {
+    private void processTask(final TransactionBase tx, final Task task, final Bytes row, final Column column, final Bytes value) {
         switch (task) {
         case Add:
             tx.set(row, column, value);
@@ -149,21 +149,21 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
      * @return Set - containing results of sibling scan.
      * @throws Exception
      */
-    private Optional<RowColumn> fillSiblingBatch(TransactionBase tx, JoinBatchInformation batch, Set<VisibilityBindingSet> bsSet) throws Exception {
+    private Optional<RowColumn> fillSiblingBatch(final TransactionBase tx, final JoinBatchInformation batch, final Set<VisibilityBindingSet> bsSet) throws Exception {
 
-        Span span = batch.getSpan();
-        Column column = batch.getColumn();
-        int batchSize = batch.getBatchSize();
+        final Span span = batch.getSpan();
+        final Column column = batch.getColumn();
+        final int batchSize = batch.getBatchSize();
 
-        RowScanner rs = tx.scanner().over(span).fetch(column).byRow().build();
-        Iterator<ColumnScanner> colScannerIter = rs.iterator();
+        final RowScanner rs = tx.scanner().over(span).fetch(column).byRow().build();
+        final Iterator<ColumnScanner> colScannerIter = rs.iterator();
 
         boolean batchLimitMet = false;
         Bytes row = span.getStart().getRow();
         while (colScannerIter.hasNext() && !batchLimitMet) {
-            ColumnScanner colScanner = colScannerIter.next();
+            final ColumnScanner colScanner = colScannerIter.next();
             row = colScanner.getRow();
-            Iterator<ColumnValue> iter = colScanner.iterator();
+            final Iterator<ColumnValue> iter = colScanner.iterator();
             while (iter.hasNext()) {
                 if (bsSet.size() >= batchSize) {
                     batchLimitMet = true;

@@ -35,5 +35,6 @@
 
     <modules>
         <module>kafka</module>
+        <module>rdf</module>
     </modules>
 </project>

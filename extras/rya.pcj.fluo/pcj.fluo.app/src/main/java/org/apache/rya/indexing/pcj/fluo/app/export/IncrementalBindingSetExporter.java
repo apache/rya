@@ -18,7 +18,7 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.export;
 
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.api.model.VisibilityBindingSet;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;

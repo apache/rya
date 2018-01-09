@@ -26,10 +26,10 @@ import static org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConve
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Bytes.BytesBuilder;
 import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.openrdf.model.Value;
 
 import com.google.common.base.Preconditions;

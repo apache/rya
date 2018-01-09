@@ -59,6 +59,11 @@ under the License.
                 </exclusion>
             </exclusions>
         </dependency>
+        
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.api.evaluation</artifactId>
+        </dependency>
 
         <!-- 3rd Party Runtime Dependencies. -->
         <dependency>

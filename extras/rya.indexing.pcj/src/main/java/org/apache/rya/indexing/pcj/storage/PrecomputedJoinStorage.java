@@ -22,7 +22,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.api.model.VisibilityBindingSet;
+import org.apache.rya.api.utils.CloseableIterator;
 import org.openrdf.query.BindingSet;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -101,16 +102,6 @@ public interface PrecomputedJoinStorage extends AutoCloseable {
      */
     @Override
     public void close() throws PCJStorageException;
-
-    /**
-     * An {@link Iterator} that also extends {@link AutoCloseable} because it has reference to resources
-     * that need to be released once you are done iterating.
-     *
-     * @param <T> The type of object that is iterated over.
-     */
-    public static interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
-
-    }
 
     /**
      * An operation of {@link PrecomputedJoinStorage} failed.

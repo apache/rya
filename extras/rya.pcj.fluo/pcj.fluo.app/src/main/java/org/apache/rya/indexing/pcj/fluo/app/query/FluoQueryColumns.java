@@ -25,8 +25,8 @@ import java.util.List;
 
 import org.apache.fluo.api.data.Column;
 import org.apache.rya.api.client.CreatePCJ.QueryType;
-import org.apache.rya.indexing.pcj.fluo.app.AggregationResultUpdater.AggregationState;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.api.function.aggregation.AggregationState;
+import org.apache.rya.api.model.VisibilityBindingSet;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;

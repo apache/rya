@@ -44,6 +44,7 @@ under the License.
         <module>rya.export</module>
         <module>rya.merger</module>
         <module>rya.giraph</module>
+        <module>rya.streams</module>
     </modules>
 
     <profiles>

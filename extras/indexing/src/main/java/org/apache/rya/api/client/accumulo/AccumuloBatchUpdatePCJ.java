@@ -43,13 +43,13 @@ import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryExce
 import org.apache.rya.api.instance.RyaDetailsUpdater;
 import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator;
 import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator.CouldNotApplyMutationException;
+import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.openrdf.query.BindingSet;

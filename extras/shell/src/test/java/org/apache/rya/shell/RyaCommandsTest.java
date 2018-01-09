@@ -79,6 +79,38 @@ public class RyaCommandsTest {
     }
 
     @Test
+    public void loadData_relativePath() throws Exception {
+        // Mock the object that performs the create operation.
+        final String instanceName = "unitTest";
+        final String statementsFile = "~/statements.nt";
+        final String format = null;
+
+        final LoadStatementsFile mockLoadStatementsFile = mock(LoadStatementsFile.class);
+        final RyaClient mockCommands = mock(RyaClient.class);
+        when(mockCommands.getLoadStatementsFile()).thenReturn(mockLoadStatementsFile);
+
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockCommands);
+        state.connectedToInstance(instanceName);
+
+        final SparqlPrompt mockSparqlPrompt = mock(SparqlPrompt.class);
+        final ConsolePrinter mockConsolePrinter = mock(ConsolePrinter.class);
+
+        // Execute the command.
+        final RyaCommands commands = new RyaCommands(state, mockSparqlPrompt, mockConsolePrinter);
+        final String message = commands.loadData(statementsFile, format);
+
+        // Verify the values that were provided to the command were passed through to LoadStatementsFile
+        // using a user rooted filename.
+        String rootedFile = System.getProperty("user.home") + "/statements.nt";
+        verify(mockLoadStatementsFile).loadStatements(instanceName, Paths.get(rootedFile), RDFFormat.NTRIPLES);
+
+        // Verify a message is returned that explains what was created.
+        assertTrue(message.startsWith("Loaded the file: '" + statementsFile +"' successfully in "));
+        assertTrue(message.endsWith(" seconds."));
+    }
+
+    @Test
     public void testLoadData_specifyFormat() throws InstanceDoesNotExistException, RyaClientException, IOException {
         // Mock the object that performs the create operation.
         final String instanceName = "unitTest";

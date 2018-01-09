@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.Objects;
 
@@ -100,25 +102,30 @@ public class RyaCommands implements CommandMarker {
         final Optional<String> ryaInstanceName = shellState.getRyaInstanceName();
         try {
             final long start = System.currentTimeMillis();
-            final File rdfInputFile = new File(file);
+
+            // If the provided path is relative, then make it rooted in the user's home.
+            Path rootedFile = Paths.get( file.replaceFirst("^~", System.getProperty("user.home")) );
 
             RDFFormat rdfFormat = null;
+            // If a format was provided, then go with that.
             if (format != null) {
                 rdfFormat = RDFFormat.valueOf(format);
                 if (rdfFormat == null) {
                     throw new RuntimeException("Unsupported RDF Statement data input format: " + format);
                 }
             }
-            if (rdfFormat == null) {
-                rdfFormat = RDFFormat.forFileName(rdfInputFile.getName());
+
+            // Otherwise try to figure it out using the filename.
+            else if (rdfFormat == null) {
+                rdfFormat = RDFFormat.forFileName(rootedFile.getFileName().toString());
                 if (rdfFormat == null) {
-                    throw new RuntimeException("Unable to detect RDF Statement data input format for file: " + rdfInputFile);
+                    throw new RuntimeException("Unable to detect RDF Statement data input format for file: " + rootedFile);
                 } else {
                     consolePrinter.println("Detected RDF Format: " + rdfFormat);
                     consolePrinter.flush();
                 }
             }
-            commands.getLoadStatementsFile().loadStatements(ryaInstanceName.get(), rdfInputFile.toPath(), rdfFormat);
+            commands.getLoadStatementsFile().loadStatements(ryaInstanceName.get(), rootedFile, rdfFormat);
 
             final String seconds = new DecimalFormat("0.0##").format((System.currentTimeMillis() - start) / 1000.0);
             return "Loaded the file: '" + file + "' successfully in " + seconds + " seconds.";

@@ -99,7 +99,7 @@ public class RyaClientExample {
 
             // Give the root user the 'U' authorizations.
             final Connector connector = cluster.getConnector(accumuloUsername, accumuloPassword);
-            connector.securityOperations().changeUserAuthorizations("root", new Authorizations("U"));
+            connector.securityOperations().changeUserAuthorizations(accumuloUsername, new Authorizations("U"));
 
             // Setup a Rya Client that is able to interact with the mini cluster.
             final AccumuloConnectionDetails connectionDetails =

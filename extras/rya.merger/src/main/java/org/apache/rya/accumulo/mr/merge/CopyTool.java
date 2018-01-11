@@ -629,14 +629,19 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
      * @throws Exception
      */
     public void importFilesToChildTable(final String childTableName) throws Exception {
+        final String normalizedChildTableName = FilenameUtils.normalize(childTableName);
+        if (normalizedChildTableName == null) {
+            throw new Exception("Invalid child table name: " + childTableName);
+        }
+
         final Configuration childConfig = MergeToolMapper.getChildConfig(conf);
         final AccumuloRdfConfiguration childAccumuloRdfConfiguration = new AccumuloRdfConfiguration(childConfig);
         childAccumuloRdfConfiguration.setTablePrefix(childTablePrefix);
         final Connector childConnector = AccumuloRyaUtils.setupConnector(childAccumuloRdfConfiguration);
         final TableOperations childTableOperations = childConnector.tableOperations();
 
-        final Path localWorkDir = getPath(localCopyFileImportDir, childTableName);
-        final Path hdfsBaseWorkDir = getPath(baseImportDir, childTableName);
+        final Path localWorkDir = getPath(localCopyFileImportDir, normalizedChildTableName);
+        final Path hdfsBaseWorkDir = getPath(baseImportDir, normalizedChildTableName);
 
         final FileSystem fs = FileSystem.get(conf);
         if (fs.exists(hdfsBaseWorkDir)) {
@@ -661,7 +666,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
         }
         fs.mkdirs(failures);
 
-        childTableOperations.importDirectory(childTableName, files.toString(), failures.toString(), false);
+        childTableOperations.importDirectory(normalizedChildTableName, files.toString(), failures.toString(), false);
     }
 
     /**

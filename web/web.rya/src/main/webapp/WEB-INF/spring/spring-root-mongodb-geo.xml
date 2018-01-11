@@ -36,18 +36,7 @@ under the License.
 	<import resource="spring-security.xml"/>	
 	<import resource="spring-mongodb-geo.xml"/>
 
-	<bean id="inferenceEngine" class="org.apache.rya.rdftriplestore.inference.InferenceEngine" init-method="init" destroy-method="destroy">
-        <property name="ryaDAO" ref="ryaDAO"/>
-        <property name="conf" ref="conf"/>
-	</bean>
-    
-	<bean id="rts" class="org.apache.rya.rdftriplestore.RdfCloudTripleStore">
-        <property name="ryaDAO" ref="ryaDAO"/>
-        <property name="inferenceEngine" ref="inferenceEngine"/>
-        <property name="conf" ref="conf"/>
-	</bean>
-
-	<bean id="sailRepo" class="org.apache.rya.rdftriplestore.RyaSailRepository" init-method="initialize" destroy-method="shutDown">
-        <constructor-arg ref="rts"/>
-	</bean>
+    <bean id="sailRepo" class="org.apache.rya.rdftriplestore.RyaSailRepository" destroy-method="shutDown">
+        <constructor-arg ref="sail"/>
+    </bean>
 </beans>

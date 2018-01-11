@@ -36,34 +36,17 @@ under the License.
 
     <bean id="conf" class="org.apache.rya.mongodb.MongoDBRdfConfiguration">
         <constructor-arg ref="hadoopConf"/>
-        <property name="collectionName" value="${mongo.db.collectionprefix}"/>
+        <property name="ryaInstanceName" value="${mongo.db.collectionprefix}"/>
         <property name="tablePrefix" value="${mongo.db.collectionprefix}"/>
-        <property name="mongoInstance" value="${mongo.db.instance}"/>
+        <property name="mongoHostname" value="${mongo.db.instance}"/>
         <property name="mongoPort" value="${mongo.db.port}"/>
         <property name="mongoDBName" value="${mongo.db.name}"/>
         <property name="displayQueryPlan" value="${rya.displayqueryplan}"/>
         <property name="useStats" value="false"/>
-        <property name="additionalIndexers">
-            <list>
-            <value type="java.lang.Class">org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer</value>
-            </list>
-        </property>
-        <property name="optimizers">
-            <list>
-            <value type="java.lang.Class">org.apache.rya.indexing.GeoEnabledFilterFunctionOptimizer</value>
-            </list>
-        </property>
     </bean>
-
-
-    <bean id="mongoClient" class="org.apache.rya.mongodb.MongoConnectorFactory" factory-method="getMongoClient">
+    
+    <bean id="sail" class="org.apache.rya.sail.config.RyaSailFactory" factory-method="getInstance">
         <constructor-arg ref="conf"/>
     </bean>
-
-	<bean id="ryaDAO" class="org.apache.rya.mongodb.MongoDBRyaDAO" init-method="init" destroy-method="destroy">
-        <constructor-arg ref="conf"/>
-        <constructor-arg ref="mongoClient"/>
-    </bean>
-
 
 </beans>

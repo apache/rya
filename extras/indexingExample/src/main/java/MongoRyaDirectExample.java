@@ -296,8 +296,8 @@ public class MongoRyaDirectExample {
         if (USE_MOCK) {
             final EmbeddedMongoFactory factory = EmbeddedMongoFactory.newFactory();
             final IMongoConfig connectionConfig = factory.getMongoServerDetails();
-            Net net = connectionConfig.net();
-            builder.setMongoHost(net.getServerAddress().getHostAddress())
+            final Net net = connectionConfig.net();
+            builder.setMongoHost(net.getBindIp() == null ? "127.0.0.1" : net.getBindIp())
                    .setMongoPort(net.getPort() + "");
         } else {
             // User name and password must be filled in:

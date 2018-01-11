@@ -16,14 +16,14 @@ package org.apache.rya.test.kafka;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.Random;
+import java.security.SecureRandom;
 
 public class PortUtils {
 
     private PortUtils() {}
 
     public static int getRandomFreePort() {
-        final Random r = new Random();
+        final SecureRandom r = new SecureRandom();
         int count = 0;
 
         while (count < 13) {

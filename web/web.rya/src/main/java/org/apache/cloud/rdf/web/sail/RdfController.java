@@ -212,8 +212,9 @@ public class RdfController {
             final CountingTupleQueryResultHandlerWrapper sparqlWriter = new CountingTupleQueryResultHandlerWrapper(handler);
             final long startTime = System.currentTimeMillis();
             tupleQuery.evaluate(sparqlWriter);
-            log.info(String.format("Query Time = %.3f\n", (System.currentTimeMillis() - startTime) / 1000.));
-            log.info(String.format("Result Count = %s\n", sparqlWriter.getCount()));
+            log.info(String.format("Query Time = %.3f   Result Count = %s\n",
+                                   (System.currentTimeMillis() - startTime) / 1000.,
+                                   sparqlWriter.getCount()));
         }
 
     }
@@ -329,7 +330,6 @@ public class RdfController {
                         @RequestBody final String body,
                         final HttpServletResponse response)
             throws RepositoryException, IOException, RDFParseException {
-        final List<Resource> authList = new ArrayList<Resource>();
         RDFFormat format_r = RDFFormat.RDFXML;
         if (format != null) {
             format_r = RDFFormat.valueOf(format);
@@ -337,8 +337,11 @@ public class RdfController {
                 throw new RuntimeException("RDFFormat[" + format + "] not found");
             }
         }
+
+        // add named graph as context (if specified).
+        final List<Resource> contextList = new ArrayList<Resource>();
         if (graph != null) {
-            authList.add(VALUE_FACTORY.createURI(graph));
+            contextList.add(VALUE_FACTORY.createURI(graph));
         }
         SailRepositoryConnection conn = null;
         try {
@@ -349,7 +352,7 @@ public class RdfController {
                 sailConnection.getConf().set(RdfCloudTripleStoreConfiguration.CONF_CV, cv);
             }
 
-            conn.add(new StringReader(body), "", format_r);
+            conn.add(new StringReader(body), "", format_r, contextList.toArray(new Resource[contextList.size()]));
             conn.commit();
         } finally {
             if (conn != null) {

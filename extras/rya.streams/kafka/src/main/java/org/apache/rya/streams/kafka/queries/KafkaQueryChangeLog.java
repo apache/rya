@@ -140,18 +140,13 @@ public class KafkaQueryChangeLog implements QueryChangeLog {
 
         @Override
         public boolean hasNext() throws QueryChangeLogException {
-            if (iterCache == null || !iterCache.hasNext()) {
-                populateCache();
-            }
+            maybePopulateCache();
             return iterCache.hasNext();
         }
 
         @Override
         public ChangeLogEntry<QueryChange> next() throws QueryChangeLogException {
-            if (iterCache == null && iterCache.hasNext()) {
-                populateCache();
-            }
-
+            maybePopulateCache();
             if (iterCache.hasNext()) {
                 return iterCache.next();
             }
@@ -167,14 +162,14 @@ public class KafkaQueryChangeLog implements QueryChangeLog {
             consumer.unsubscribe();
         }
 
-        private void populateCache() {
-            final ConsumerRecords<?, QueryChange> records = consumer.poll(3000L);
-            final List<ChangeLogEntry<QueryChange>> changes = new ArrayList<>();
-            records.forEach(
-                    record ->
-                        changes.add(new ChangeLogEntry<>(record.offset(), record.value()))
-                    );
-            iterCache = changes.iterator();
+        private void maybePopulateCache() {
+            // If the cache isn't initialized yet, or it is empty, then check to see if there is more to put into it.
+            if (iterCache == null || !iterCache.hasNext()) {
+                final ConsumerRecords<?, QueryChange> records = consumer.poll(3000L);
+                final List<ChangeLogEntry<QueryChange>> changes = new ArrayList<>();
+                records.forEach(record -> changes.add(new ChangeLogEntry<>(record.offset(), record.value())));
+                iterCache = changes.iterator();
+            }
         }
     }
 }

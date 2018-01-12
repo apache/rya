@@ -52,6 +52,9 @@ public class AddQueryCommand implements RyaStreamsCommand {
         @Parameter(names = { "--query", "-q" }, required = true, description = "The SPARQL query to add to Rya Streams.")
         private String query;
 
+        @Parameter(names = {"--isActive", "-a"}, required = false, description = "True if the added query will be started.")
+        private String isActive;
+
         @Override
         public String toString() {
             final StringBuilder parameters = new StringBuilder();
@@ -60,6 +63,7 @@ public class AddQueryCommand implements RyaStreamsCommand {
             if (!Strings.isNullOrEmpty(query)) {
                 parameters.append("\tQuery: " + query + "\n");
             }
+            parameters.append("\tIs Active: " + isActive + "\n");
             return parameters.toString();
         }
     }
@@ -115,7 +119,7 @@ public class AddQueryCommand implements RyaStreamsCommand {
         try(QueryRepository queryRepo = new InMemoryQueryRepository(queryChangeLog)) {
             final AddQuery addQuery = new DefaultAddQuery(queryRepo);
             try {
-                final StreamsQuery query = addQuery.addQuery(params.query);
+                final StreamsQuery query = addQuery.addQuery(params.query, Boolean.parseBoolean(params.isActive));
                 System.out.println("Added query: " + query.getSparql());
             } catch (final RyaStreamsException e) {
                 System.err.println("Unable to parse query: " + params.query);

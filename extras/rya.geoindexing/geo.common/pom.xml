@@ -28,4 +28,14 @@
     <artifactId>rya.geo.common</artifactId>
     <name>Apache Rya Geo Indexing Common Code</name>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.indexing</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.vividsolutions</groupId>
+            <artifactId>jts</artifactId>
+        </dependency>
+    </dependencies>
 </project>

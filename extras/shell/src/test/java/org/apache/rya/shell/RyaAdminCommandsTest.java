@@ -84,7 +84,7 @@ public class RyaAdminCommandsTest {
         when(mockCreatePCJ.createPCJ( eq(instanceName), eq(sparql), eq(strategies) ) ).thenReturn( pcjId );
 
         final RyaClient mockCommands = mock(RyaClient.class);
-        when(mockCommands.getCreatePCJ()).thenReturn( java.util.Optional.of(mockCreatePCJ) );
+        when(mockCommands.getCreatePCJ()).thenReturn(mockCreatePCJ);
 
         final SharedShellState state = new SharedShellState();
         state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockCommands);
@@ -153,7 +153,7 @@ public class RyaAdminCommandsTest {
         final DeletePCJ mockDeletePCJ = mock(DeletePCJ.class);
 
         final RyaClient mockCommands = mock(RyaClient.class);
-        when(mockCommands.getDeletePCJ()).thenReturn( java.util.Optional.of(mockDeletePCJ) );
+        when(mockCommands.getDeletePCJ()).thenReturn(mockDeletePCJ);
 
         final SharedShellState state = new SharedShellState();
         state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockCommands);
@@ -251,22 +251,22 @@ public class RyaAdminCommandsTest {
                 .addUser("bob")
                 .addUser("charlie")
                 .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-              //RYA-215.setGeoIndexDetails( new GeoIndexDetails(true) )
+                //RYA-215.setGeoIndexDetails( new GeoIndexDetails(true) )
                 .setTemporalIndexDetails( new TemporalIndexDetails(true) )
                 .setFreeTextDetails( new FreeTextIndexDetails(true) )
                 .setPCJIndexDetails(
                         PCJIndexDetails.builder()
-                            .setEnabled(true)
-                            .setFluoDetails( new FluoDetails("test_instance_rya_pcj_updater") )
-                            .addPCJDetails(
-                                    PCJDetails.builder()
-                                        .setId("pcj 1")
-                                        .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                        .setLastUpdateTime( new Date(1252521351L) ))
-                            .addPCJDetails(
-                                    PCJDetails.builder()
-                                        .setId("pcj 2")
-                                        .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)))
+                        .setEnabled(true)
+                        .setFluoDetails( new FluoDetails("test_instance_rya_pcj_updater") )
+                        .addPCJDetails(
+                                PCJDetails.builder()
+                                .setId("pcj 1")
+                                .setUpdateStrategy(PCJUpdateStrategy.BATCH)
+                                .setLastUpdateTime( new Date(1252521351L) ))
+                        .addPCJDetails(
+                                PCJDetails.builder()
+                                .setId("pcj 2")
+                                .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)))
                 .setProspectorDetails( new ProspectorDetails(Optional.of(new Date(12525211L))) )
                 .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date(125221351L))) )
                 .build();
@@ -290,33 +290,33 @@ public class RyaAdminCommandsTest {
         // Verify a message is returned that includes the details.
         final String expected =
                 "General Metadata:\n" +
-                "  Instance Name: test_instance\n" +
-                "  RYA Version: 1.2.3.4\n" +
-                "  Users: alice, bob, charlie\n" +
-                "Secondary Indicies:\n" +
-                "  Entity Centric Index:\n" +
-                "    Enabled: true\n" +
-              //RYA-215"  Geospatial Index:\n" +
-            //RYA-215"    Enabled: true\n" +
-                "  Free Text Index:\n" +
-                "    Enabled: true\n" +
-                "  Temporal Index:\n" +
-                "    Enabled: true\n" +
-                "  PCJ Index:\n" +
-                "    Enabled: true\n" +
-                "    Fluo App Name: test_instance_rya_pcj_updater\n" +
-                "    PCJs:\n" +
-                "      ID: pcj 1\n" +
-                "        Update Strategy: BATCH\n" +
-                "        Last Update Time: Thu Jan 15 06:55:21 EST 1970\n" +
-                "      ID: pcj 2\n" +
-                "        Update Strategy: INCREMENTAL\n" +
-                "        Last Update Time: unavailable\n" +
-                "Statistics:\n" +
-                "  Prospector:\n" +
-                "    Last Update Time: Wed Dec 31 22:28:45 EST 1969\n" +
-                "  Join Selectivity:\n" +
-                "    Last Updated Time: Fri Jan 02 05:47:01 EST 1970\n";
+                        "  Instance Name: test_instance\n" +
+                        "  RYA Version: 1.2.3.4\n" +
+                        "  Users: alice, bob, charlie\n" +
+                        "Secondary Indicies:\n" +
+                        "  Entity Centric Index:\n" +
+                        "    Enabled: true\n" +
+                        //RYA-215"  Geospatial Index:\n" +
+                        //RYA-215"    Enabled: true\n" +
+                        "  Free Text Index:\n" +
+                        "    Enabled: true\n" +
+                        "  Temporal Index:\n" +
+                        "    Enabled: true\n" +
+                        "  PCJ Index:\n" +
+                        "    Enabled: true\n" +
+                        "    Fluo App Name: test_instance_rya_pcj_updater\n" +
+                        "    PCJs:\n" +
+                        "      ID: pcj 1\n" +
+                        "        Update Strategy: BATCH\n" +
+                        "        Last Update Time: Thu Jan 15 06:55:21 EST 1970\n" +
+                        "      ID: pcj 2\n" +
+                        "        Update Strategy: INCREMENTAL\n" +
+                        "        Last Update Time: unavailable\n" +
+                        "Statistics:\n" +
+                        "  Prospector:\n" +
+                        "    Last Update Time: Wed Dec 31 22:28:45 EST 1969\n" +
+                        "  Join Selectivity:\n" +
+                        "    Last Updated Time: Fri Jan 02 05:47:01 EST 1970\n";
         assertEquals(expected, message);
     }
 
@@ -455,11 +455,13 @@ public class RyaAdminCommandsTest {
         final String instanceName = "unitTests";
         final boolean enableFreeTextIndex = false;
         final boolean enableTemporalIndex = false;
+        final boolean enablePcjIndex = false;
 
         // Execute the command.
         final InstallConfiguration installConfig = InstallConfiguration.builder()
                 .setEnableFreeTextIndex(enableFreeTextIndex)
                 .setEnableTemporalIndex(enableTemporalIndex)
+                .setEnablePcjIndex(enablePcjIndex)
                 .build();
 
         final InstallPrompt mockInstallPrompt = mock(InstallPrompt.class);
@@ -468,7 +470,7 @@ public class RyaAdminCommandsTest {
         when(mockInstallPrompt.promptVerified(eq(instanceName), eq(installConfig))).thenReturn(true);
 
         final RyaAdminCommands commands = new RyaAdminCommands(state, mockInstallPrompt, mock(SparqlPrompt.class), mock(UninstallPrompt.class));
-        final String message = commands.installWithMongoParameters(instanceName, enableFreeTextIndex, enableTemporalIndex);
+        final String message = commands.installWithMongoParameters(instanceName, enableFreeTextIndex, enableTemporalIndex, enablePcjIndex);
 
         // Verify the values that were provided to the command were passed through to the Install.
         verify(mockInstall).install(eq(instanceName), eq(installConfig));
@@ -499,10 +501,10 @@ public class RyaAdminCommandsTest {
         // Verify a message is returned that lists the the instances.
         final String expected =
                 "Rya instance names:\n" +
-                "   a\n" +
-                " * b\n" +
-                "   c\n" +
-                "   d\n";
+                        "   a\n" +
+                        " * b\n" +
+                        "   c\n" +
+                        "   d\n";
         assertEquals(expected, message);
     }
 

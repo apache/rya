@@ -23,10 +23,9 @@ import static org.junit.Assert.assertTrue;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.rya.accumulo.AccumuloITBase;
-import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
 import org.apache.rya.api.client.Install.InstallConfiguration;
-import org.apache.rya.api.client.InstanceExists;
+import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.instance.RyaDetailsRepository.NotInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
@@ -41,6 +40,14 @@ public class AccumuloInstallIT extends AccumuloITBase {
     public void install() throws AccumuloException, AccumuloSecurityException, DuplicateInstanceNameException, RyaClientException, NotInitializedException, RyaDetailsRepositoryException {
         // Install an instance of Rya.
         final String instanceName = getRyaInstanceName();
+        final AccumuloConnectionDetails connectionDetails = new AccumuloConnectionDetails(
+        		getUsername(),
+        		getPassword().toCharArray(),
+        		getInstanceName(),
+        		getZookeepers());
+
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(connectionDetails, getConnector());
+        
         final InstallConfiguration installConfig = InstallConfiguration.builder()
                 .setEnableTableHashPrefix(false)
                 .setEnableEntityCentricIndex(false)
@@ -48,39 +55,58 @@ public class AccumuloInstallIT extends AccumuloITBase {
                 .setEnableTemporalIndex(false)
                 .setEnablePcjIndex(false)
                 .setEnableGeoIndex(false)
-                .setFluoPcjAppName("fluo_app_name")
                 .build();
 
-        final AccumuloConnectionDetails connectionDetails = new AccumuloConnectionDetails(
-                getUsername(),
-                getPassword().toCharArray(),
-                getInstanceName(),
-                getZookeepers());
 
-        final Install install = new AccumuloInstall(connectionDetails, getConnector());
-        install.install(instanceName, installConfig);
+        ryaClient.getInstall().install(instanceName, installConfig);
 
         // Check that the instance exists.
-        final InstanceExists instanceExists = new AccumuloInstanceExists(connectionDetails, getConnector());
-        assertTrue( instanceExists.exists(instanceName) );
+        assertTrue( ryaClient.getInstanceExists().exists(instanceName) );
+    }
+
+    @Test
+    public void install_withIndexers() throws AccumuloException, AccumuloSecurityException, DuplicateInstanceNameException, RyaClientException, NotInitializedException, RyaDetailsRepositoryException {
+        // Install an instance of Rya.
+        final String instanceName = getRyaInstanceName();
+        final AccumuloConnectionDetails connectionDetails = new AccumuloConnectionDetails(
+        		getUsername(),
+        		getPassword().toCharArray(),
+        		getInstanceName(),
+        		getZookeepers());
+
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(connectionDetails, getConnector());
+        
+        final InstallConfiguration installConfig = InstallConfiguration.builder()
+                .setEnableTableHashPrefix(true)
+                .setEnableEntityCentricIndex(true)
+                .setEnableFreeTextIndex(true)
+                .setEnableTemporalIndex(true)
+                .setEnablePcjIndex(true)
+                .setEnableGeoIndex(true)
+                .build();
+
+        ryaClient.getInstall().install(instanceName, installConfig);
+
+        // Check that the instance exists.
+        assertTrue( ryaClient.getInstanceExists().exists(instanceName) );
     }
 
     @Test(expected = DuplicateInstanceNameException.class)
     public void install_alreadyExists() throws DuplicateInstanceNameException, RyaClientException, AccumuloException, AccumuloSecurityException {
         // Install an instance of Rya.
         final String instanceName = getRyaInstanceName();
-        final InstallConfiguration installConfig = InstallConfiguration.builder().build();
-
         final AccumuloConnectionDetails connectionDetails = new AccumuloConnectionDetails(
-                getUsername(),
-                getPassword().toCharArray(),
-                getInstanceName(),
-                getZookeepers());
+        		getUsername(),
+        		getPassword().toCharArray(),
+        		getInstanceName(),
+        		getZookeepers());
 
-        final Install install = new AccumuloInstall(connectionDetails, getConnector());
-        install.install(instanceName, installConfig);
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(connectionDetails, getConnector());
+        
+        final InstallConfiguration installConfig = InstallConfiguration.builder().build();
+        ryaClient.getInstall().install(instanceName, installConfig);
 
         // Install it again.
-        install.install(instanceName, installConfig);
+        ryaClient.getInstall().install(instanceName, installConfig);
     }
 }

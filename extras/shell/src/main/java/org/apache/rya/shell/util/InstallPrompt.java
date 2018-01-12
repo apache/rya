@@ -108,14 +108,14 @@ public interface InstallPrompt {
             checkState(storageType.isPresent(), "The shell must be connected to a storage to use the install prompt.");
 
             switch(sharedShellState.getShellState().getStorageType().get()) {
-                case ACCUMULO:
-                    return promptAccumuloVerified(instanceName, installConfig);
+            case ACCUMULO:
+                return promptAccumuloVerified(instanceName, installConfig);
 
-                case MONGO:
-                    return promptMongoVerified(instanceName, installConfig);
+            case MONGO:
+                return promptMongoVerified(instanceName, installConfig);
 
-                default:
-                    throw new IllegalStateException("Unsupported storage type: " + storageType.get());
+            default:
+                throw new IllegalStateException("Unsupported storage type: " + storageType.get());
             }
         }
 
@@ -143,9 +143,9 @@ public interface InstallPrompt {
             final boolean enableFreeTextIndexing = promptBoolean(prompt, Optional.of(true));
             builder.setEnableFreeTextIndex( enableFreeTextIndexing );
 
-// RYA-215            prompt = makeFieldPrompt("Use Geospatial Indexing", true);
-//            final boolean enableGeoIndexing = promptBoolean(prompt, Optional.of(true));
-//            builder.setEnableGeoIndex( enableGeoIndexing );
+            // RYA-215            prompt = makeFieldPrompt("Use Geospatial Indexing", true);
+            //            final boolean enableGeoIndexing = promptBoolean(prompt, Optional.of(true));
+            //            builder.setEnableGeoIndex( enableGeoIndexing );
 
             prompt = makeFieldPrompt("Use Temporal Indexing", true);
             final boolean useTemporalIndexing = promptBoolean(prompt, Optional.of(true));
@@ -188,7 +188,7 @@ public interface InstallPrompt {
             reader.println("   Use Shard Balancing: " + installConfig.isTableHashPrefixEnabled());
             reader.println("   Use Entity Centric Indexing: " + installConfig.isEntityCentrixIndexEnabled());
             reader.println("   Use Free Text Indexing: " + installConfig.isFreeTextIndexEnabled());
-// RYA-215            reader.println("   Use Geospatial Indexing: " + installConfig.isGeoIndexEnabled());
+            // RYA-215            reader.println("   Use Geospatial Indexing: " + installConfig.isGeoIndexEnabled());
             reader.println("   Use Temporal Indexing: " + installConfig.isTemporalIndexEnabled());
             reader.println("   Use Precomputed Join Indexing: " + installConfig.isPcjIndexEnabled());
             if(installConfig.isPcjIndexEnabled()) {
@@ -224,6 +224,10 @@ public interface InstallPrompt {
             final boolean useTemporalIndexing = promptBoolean(prompt, Optional.of(true));
             builder.setEnableTemporalIndex( useTemporalIndexing );
 
+            prompt = makeFieldPrompt("Use PCJ Indexing", true);
+            final boolean usePcjIndexing = promptBoolean(prompt, Optional.of(true));
+            builder.setEnablePcjIndex(usePcjIndexing);
+
             return builder.build();
         }
 
@@ -246,6 +250,7 @@ public interface InstallPrompt {
             reader.println("   Instance Name: " + instanceName);
             reader.println("   Use Free Text Indexing: " + installConfig.isFreeTextIndexEnabled());
             reader.println("   Use Temporal Indexing: " + installConfig.isTemporalIndexEnabled());
+            reader.println("   Use PCJ Indexing: " + installConfig.isPcjIndexEnabled());
             reader.println("");
 
             return promptBoolean("Continue with the install? (y/n) ", Optional.absent());

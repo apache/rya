@@ -79,6 +79,47 @@ public class MongoInstallIT extends MongoITBase {
         assertTrue("Instance should exist.", instanceExists.exists(ryaInstance));
     }
 
+    @Test
+    public void install_withAllIndexers() throws DuplicateInstanceNameException, RyaClientException {
+        // Install an instance of Rya.
+        final String ryaInstance = conf.getMongoDBName();
+
+        // Setup the connection details that were used for the embedded Mongo DB instance we are testing with.
+        final MongoConnectionDetails connectionDetails = getConnectionDetails();
+
+        // Check that the instance does not exist.
+        final InstanceExists instanceExists = new MongoInstanceExists(getMongoClient());
+        assertFalse(instanceExists.exists(ryaInstance));
+
+        // Install an instance of Rya with all the valid options turned on.
+        final InstallConfiguration installConfig = InstallConfiguration.builder()
+                .setEnableTableHashPrefix(true)
+                .setEnableFreeTextIndex(true)
+                .setEnableTemporalIndex(true)
+                .setEnableEntityCentricIndex(true)
+                .setEnableGeoIndex(true)
+                .setEnablePcjIndex(true)
+                .build();
+
+        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, getMongoClient());
+        final Install install = ryaClient.getInstall();
+        install.install(ryaInstance, installConfig);
+
+        // Check that the instance exists.
+        assertTrue(instanceExists.exists(ryaInstance));
+
+        // Show that the expected collections were created within the database.
+        final List<String> expected = Arrays.asList(INSTANCE_DETAILS_COLLECTION_NAME, "rya_triples");
+        int count = 0;
+        final List<String> found = new ArrayList<>();
+        for (final String collection : getMongoClient().getDatabase(conf.getMongoDBName()).listCollectionNames()) {
+            count += expected.contains(collection) ? 1 : 0;
+            found.add( collection );
+        }
+        assertTrue("Tables missing from:" + expected + " actual:" + found, expected.size() == count);
+        assertTrue("Instance should exist.", instanceExists.exists(ryaInstance));
+    }
+
     @Test(expected = DuplicateInstanceNameException.class)
     public void install_alreadyExists() throws DuplicateInstanceNameException, RyaClientException {
         // Install an instance of Rya.
@@ -100,10 +141,10 @@ public class MongoInstallIT extends MongoITBase {
                 Optional.of(conf.getMongoPassword().toCharArray()) :
                     Optional.empty();
 
-        return new MongoConnectionDetails(
-                conf.getMongoHostname(),
-                Integer.parseInt(conf.getMongoPort()),
-                Optional.ofNullable(conf.getMongoUser()),
-                password);
+                return new MongoConnectionDetails(
+                        conf.getMongoHostname(),
+                        Integer.parseInt(conf.getMongoPort()),
+                        Optional.ofNullable(conf.getMongoUser()),
+                        password);
     }
 }

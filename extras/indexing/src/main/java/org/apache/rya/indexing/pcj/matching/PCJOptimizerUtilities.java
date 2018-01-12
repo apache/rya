@@ -27,7 +27,6 @@ import java.util.Set;
 import org.apache.rya.indexing.external.matching.QuerySegment;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.pcj.matching.QueryVariableNormalizer.VarCollector;
-
 import org.openrdf.query.algebra.Difference;
 import org.openrdf.query.algebra.EmptySet;
 import org.openrdf.query.algebra.Filter;
@@ -61,7 +60,7 @@ public class PCJOptimizerUtilities {
 	 * @param node - node to be checked for validity
 	 * @return - true if valid and false otherwise
 	 */
-	public static boolean isPCJValid(TupleExpr node) {
+	public static boolean isPCJValid(final TupleExpr node) {
 
 		final ValidQueryVisitor vqv = new ValidQueryVisitor();
 		node.visit(vqv);
@@ -91,16 +90,16 @@ public class PCJOptimizerUtilities {
 	 * @param node - PCJ {@link ExternalTupleSet} index node to be checked for validity
 	 * @return - true if valid and false otherwise
 	 */
-	public static boolean isPCJValid(ExternalTupleSet node) {
+	public static boolean isPCJValid(final ExternalTupleSet node) {
 		return isPCJValid(node.getTupleExpr());
 	}
 
 	public static List<ExternalTupleSet> getValidPCJs(
-			List<ExternalTupleSet> pcjs) {
+			final List<ExternalTupleSet> pcjs) {
 
-		Iterator<ExternalTupleSet> iterator = pcjs.iterator();
+		final Iterator<ExternalTupleSet> iterator = pcjs.iterator();
 		while (iterator.hasNext()) {
-			ExternalTupleSet pcj = iterator.next();
+			final ExternalTupleSet pcj = iterator.next();
 			if (!isPCJValid(pcj)) {
 				iterator.remove();
 			}
@@ -109,8 +108,8 @@ public class PCJOptimizerUtilities {
 	}
 
 
-	public static Projection getProjection(TupleExpr te) {
-		ProjectionVisitor visitor = new ProjectionVisitor();
+	public static Projection getProjection(final TupleExpr te) {
+		final ProjectionVisitor visitor = new ProjectionVisitor();
 		te.visit(visitor);
 		return visitor.node;
 	}
@@ -120,7 +119,7 @@ public class PCJOptimizerUtilities {
 		Projection node = null;
 
 		@Override
-		public void meet(Projection node) {
+		public void meet(final Projection node) {
 			this.node = node;
 		}
 	}
@@ -131,13 +130,13 @@ public class PCJOptimizerUtilities {
 	 *            - filters to be pushed down into next {@link QuerySegment}, or
 	 *            as far down as binding variable names permit.
 	 */
-	public static void relocateFilters(Set<Filter> filters) {
-		for (Filter filter : filters) {
+	public static void relocateFilters(final Set<Filter> filters) {
+		for (final Filter filter : filters) {
 			FilterRelocator.relocate(filter);
 		}
 	}
 
-	private static Set<String> getVarNames(Collection<QueryModelNode> nodes) {
+	private static Set<String> getVarNames(final Collection<QueryModelNode> nodes) {
 		List<String> tempVars;
 		final Set<String> nodeVarNames = Sets.newHashSet();
 
@@ -159,8 +158,8 @@ public class PCJOptimizerUtilities {
 			QueryModelVisitorBase<RuntimeException> {
 
 		private boolean isValid = true;
-		private Set<QueryModelNode> filterSet = Sets.newHashSet();
-		private Set<QueryModelNode> spSet = Sets.newHashSet();
+		private final Set<QueryModelNode> filterSet = Sets.newHashSet();
+		private final Set<QueryModelNode> spSet = Sets.newHashSet();
 		private int joinCount = 0;
 
 		public Set<QueryModelNode> getFilters() {
@@ -180,35 +179,35 @@ public class PCJOptimizerUtilities {
 		}
 
 		@Override
-		public void meet(Projection node) {
+		public void meet(final Projection node) {
 			node.getArg().visit(this);
 		}
 
 		@Override
-		public void meet(Filter node) {
+		public void meet(final Filter node) {
 			filterSet.add(node.getCondition());
 			node.getArg().visit(this);
 		}
 
 		@Override
-		public void meet(StatementPattern node) {
+		public void meet(final StatementPattern node) {
 			spSet.add(node);
 		}
 
 		@Override
-		public void meet(Join node) {
+		public void meet(final Join node) {
 			joinCount++;
 			super.meet(node);
 		}
 
 		@Override
-		public void meet(LeftJoin node) {
+		public void meet(final LeftJoin node) {
 			joinCount++;
 			super.meet(node);
 		}
 
 		@Override
-		public void meetNode(QueryModelNode node) {
+		public void meetNode(final QueryModelNode node) {
 			if (!(node instanceof Join || node instanceof LeftJoin
 					|| node instanceof StatementPattern || node instanceof Var
 					|| node instanceof Union || node instanceof Filter || node instanceof Projection)) {
@@ -238,18 +237,18 @@ public class PCJOptimizerUtilities {
 		protected Filter filter;
 		protected Set<String> filterVars;
 
-		public FilterRelocator(Filter filter) {
+		public FilterRelocator(final Filter filter) {
 			this.filter = filter;
 			filterVars = VarNameCollector.process(filter.getCondition());
 		}
 
-		public static void relocate(Filter filter) {
+		public static void relocate(final Filter filter) {
 			final FilterRelocator fr = new FilterRelocator(filter);
 			filter.visit(fr);
 		}
 
 		@Override
-		protected void meetNode(QueryModelNode node) {
+		protected void meetNode(final QueryModelNode node) {
 			// By default, do not traverse
 			assert node instanceof TupleExpr;
 
@@ -263,7 +262,7 @@ public class PCJOptimizerUtilities {
 		}
 
 		@Override
-		public void meet(Join join) {
+		public void meet(final Join join) {
 			if (join.getRightArg().getBindingNames().containsAll(filterVars)) {
 				// All required vars are bound by the left expr
 				join.getRightArg().visit(this);
@@ -277,12 +276,12 @@ public class PCJOptimizerUtilities {
 		}
 
 		@Override
-		public void meet(Filter node) {
+		public void meet(final Filter node) {
 			node.getArg().visit(this);
 		}
 
 		@Override
-		public void meet(LeftJoin leftJoin) {
+		public void meet(final LeftJoin leftJoin) {
 			if (leftJoin.getLeftArg().getBindingNames().containsAll(filterVars)) {
 				leftJoin.getLeftArg().visit(this);
 			} else {
@@ -291,7 +290,7 @@ public class PCJOptimizerUtilities {
 		}
 
 		@Override
-        public void meet(Union union) {
+        public void meet(final Union union) {
             boolean filterMoved = false;
             if (Sets.intersection(union.getRightArg().getBindingNames(), filterVars).size() > 0) {
                 relocate(filter, union.getRightArg());
@@ -300,7 +299,7 @@ public class PCJOptimizerUtilities {
  
             if (Sets.intersection(union.getLeftArg().getBindingNames(), filterVars).size() > 0) {
                 if (filterMoved) {
-                    Filter clone = new Filter(filter.getArg(), filter.getCondition().clone());
+                    final Filter clone = new Filter(filter.getArg(), filter.getCondition().clone());
                     relocate(clone, union.getLeftArg());
                 } else {
                     relocate(filter, union.getLeftArg());
@@ -309,36 +308,36 @@ public class PCJOptimizerUtilities {
         }
 
 		@Override
-		public void meet(Difference node) {
+		public void meet(final Difference node) {
 			if (Sets.intersection(node.getRightArg().getBindingNames(), filterVars).size() > 0) {
 				relocate(filter, node.getRightArg());
 			} else if (Sets.intersection(node.getLeftArg().getBindingNames(), filterVars).size() > 0) {
-				Filter clone = new Filter(filter.getArg(), filter
+				final Filter clone = new Filter(filter.getArg(), filter
 						.getCondition().clone());
 				relocate(clone, node.getLeftArg());
 			}
 		}
 
 		@Override
-		public void meet(Intersection node) {
+		public void meet(final Intersection node) {
 			if (Sets.intersection(node.getRightArg().getBindingNames(), filterVars).size() > 0) {
 				relocate(filter, node.getRightArg());
 			} else if (Sets.intersection(node.getLeftArg().getBindingNames(), filterVars).size() > 0) {
-				Filter clone = new Filter(filter.getArg(), filter
+				final Filter clone = new Filter(filter.getArg(), filter
 						.getCondition().clone());
 				relocate(clone, node.getLeftArg());
 			}
 		}
 
 		@Override
-		public void meet(EmptySet node) {
+		public void meet(final EmptySet node) {
 			if (filter.getParentNode() != null) {
 				// Remove filter from its original location
 				filter.replaceWith(filter.getArg());
 			}
 		}
 
-		protected void relocate(Filter filter, TupleExpr newFilterArg) {
+		protected void relocate(final Filter filter, final TupleExpr newFilterArg) {
 			if (!filter.getArg().equals(newFilterArg)) {
 				if (filter.getParentNode() != null) {
 					// Remove filter from its original location
@@ -351,10 +350,8 @@ public class PCJOptimizerUtilities {
 		}
 	}
 
-
-
-	public static boolean tupleContainsLeftJoins(TupleExpr node) {
-	    LeftJoinVisitor lj = new LeftJoinVisitor();
+	public static boolean tupleContainsLeftJoins(final TupleExpr node) {
+	    final LeftJoinVisitor lj = new LeftJoinVisitor();
 	    node.visit(lj);
         return lj.containsLeftJoin;
     }
@@ -368,18 +365,8 @@ public class PCJOptimizerUtilities {
         }
 
         @Override
-        public void meet(LeftJoin node) {
+        public void meet(final LeftJoin node) {
             containsLeftJoin = true;
         }
     }
-
-
-
-
-
-
-
-
-
-
 }

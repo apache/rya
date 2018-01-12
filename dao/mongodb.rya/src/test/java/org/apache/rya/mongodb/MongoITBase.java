@@ -43,7 +43,7 @@ public class MongoITBase {
         final MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration( new Configuration() );
         conf.setBoolean("sc.useMongo", true);
         conf.setTablePrefix("test_");
-        conf.setMongoDBName("testDB");
+        conf.setMongoDBName(conf.getRyaInstanceName());
         conf.setMongoHostname(EmbeddedMongoSingleton.getMongodConfig().net().getServerAddress().getHostAddress());
         conf.setMongoPort(Integer.toString(EmbeddedMongoSingleton.getMongodConfig().net().getPort()));
 

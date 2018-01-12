@@ -107,7 +107,7 @@ public class MongoInstall implements Install {
             // This can only happen if somebody else installs an instance of Rya with the name between the check and now.
             throw new DuplicateInstanceNameException(
                     "An instance of Rya has already been installed to this Rya storage " +
-                    "with the name '" + instanceName + "'. Try again with a different name.");
+                            "with the name '" + instanceName + "'. Try again with a different name.");
         } catch (final RyaDetailsRepositoryException e) {
             throw new RyaClientException("The RyaDetails couldn't be initialized. Details: " + e.getMessage(), e);
         }
@@ -147,27 +147,28 @@ public class MongoInstall implements Install {
             final InstallConfiguration installConfig) throws AlreadyInitializedException, RyaDetailsRepositoryException {
         final RyaDetailsRepository detailsRepo = new MongoRyaInstanceDetailsRepository(adminClient, instanceName);
 
-        // Build the PCJ Index details. [not supported in mongo]
-        final PCJIndexDetails.Builder pcjDetailsBuilder = PCJIndexDetails.builder().setEnabled(false);
+        if(installConfig.getFluoPcjAppName().isPresent()) {
+        	log.warn("Mongo does not have fluo support, use ignoring the configured fluo application name: " + installConfig.getFluoPcjAppName().get());
+        }
+        
+        // Build the PCJ Index details.
+        final PCJIndexDetails.Builder pcjDetailsBuilder = PCJIndexDetails.builder()
+                .setEnabled(installConfig.isPcjIndexEnabled());
 
         final RyaDetails details = RyaDetails.builder()
                 // General Metadata
                 .setRyaInstanceName(instanceName).setRyaVersion(getVersion())
 
-                // FIXME RYA-215 .setGeoIndexDetails(new GeoIndexDetails(installConfig.isGeoIndexEnabled()))
-
                 // Secondary Index Values
+                // FIXME RYA-215 .setGeoIndexDetails(new GeoIndexDetails(installConfig.isGeoIndexEnabled()))
                 .setTemporalIndexDetails(new TemporalIndexDetails(installConfig.isTemporalIndexEnabled()))
-                .setFreeTextDetails(new FreeTextIndexDetails(installConfig.isFreeTextIndexEnabled()))//
-
-                // Entity centric indexing is not supported in Mongo DB.
+                .setFreeTextDetails(new FreeTextIndexDetails(installConfig.isFreeTextIndexEnabled()))
                 .setEntityCentricIndexDetails(new EntityCentricIndexDetails(false))
-
                 .setPCJIndexDetails(pcjDetailsBuilder)
 
                 // Statistics values.
-                .setProspectorDetails(new ProspectorDetails(Optional.<Date> absent()))//
-                .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date> absent()))//
+                .setProspectorDetails(new ProspectorDetails(Optional.<Date> absent()))
+                .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date> absent()))
                 .build();
 
         // Initialize the table.
@@ -191,26 +192,23 @@ public class MongoInstall implements Install {
 
         final MongoDBRdfConfiguration conf = connectionDetails.build(ryaDetails.getRyaInstanceName());
 
-        // The Mongo implementation of Rya does not currently support PCJs.
-        if(ryaDetails.getPCJIndexDetails().isEnabled()) {
-            log.warn("The install configuration says to enable PCJ indexing, but Mongo RYA does not support that " +
-                    "feature. Ignoring this configuration.");
-        }
-        conf.set(ConfigUtils.USE_PCJ, "false");
+        conf.setBoolean(ConfigUtils.USE_PCJ, ryaDetails.getPCJIndexDetails().isEnabled());
 
         // Mongo does not support entity indexing.
         if(ryaDetails.getEntityCentricIndexDetails().isEnabled()) {
             log.warn("The install configuration says to enable Entity Centric indexing, but Mongo RYA does not support " +
                     "that feature. Ignoring this configuration.");
         }
-        conf.set(ConfigUtils.USE_ENTITY, "false");
+
+        //TODO mongo now has an entity index, just needs CLI support.
+        conf.setBoolean(ConfigUtils.USE_ENTITY, false);
 
         // FIXME RYA-215 We haven't enabled geo indexing in the console yet.
         //conf.set(OptionalConfigUtils.USE_GEO, "" + details.getGeoIndexDetails().isEnabled() );
 
         // Enable the supported indexers that the instance is configured to use.
-        conf.set(ConfigUtils.USE_FREETEXT, "" + ryaDetails.getFreeTextIndexDetails().isEnabled());
-        conf.set(ConfigUtils.USE_TEMPORAL, "" + ryaDetails.getTemporalIndexDetails().isEnabled());
+        conf.setBoolean(ConfigUtils.USE_FREETEXT, ryaDetails.getFreeTextIndexDetails().isEnabled());
+        conf.setBoolean(ConfigUtils.USE_TEMPORAL, ryaDetails.getTemporalIndexDetails().isEnabled());
 
         // This initializes the living indexers that will be used by the application and
         // caches them within the configuration object so that they may be used later.

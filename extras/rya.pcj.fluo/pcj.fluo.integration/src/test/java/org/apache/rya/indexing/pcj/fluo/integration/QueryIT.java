@@ -556,7 +556,7 @@ public class QueryIT extends RyaExportITBase {
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         final long period = 1800000;
-        final long binId = (currentTime / period) * period;
+        final long binId = currentTime / period * period;
 
         MapBindingSet bs = new MapBindingSet();
         bs.addBinding("id", vf.createLiteral("id_1", XMLSchema.STRING));
@@ -657,7 +657,7 @@ public class QueryIT extends RyaExportITBase {
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         final long period = 1800000;
-        final long binId = (currentTime / period) * period;
+        final long binId = currentTime / period * period;
 
         MapBindingSet bs = new MapBindingSet();
         bs.addBinding("total", vf.createLiteral("4", XMLSchema.INTEGER));
@@ -734,7 +734,7 @@ public class QueryIT extends RyaExportITBase {
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         final long period = 1800000;
-        final long binId = (currentTime / period) * period;
+        final long binId = currentTime / period * period;
 
         MapBindingSet bs = new MapBindingSet();
         bs.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
@@ -854,7 +854,7 @@ public class QueryIT extends RyaExportITBase {
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         final long period = 1800000;
-        final long binId = (currentTime / period) * period;
+        final long binId = currentTime / period * period;
 
         MapBindingSet bs = new MapBindingSet();
         bs.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
@@ -935,7 +935,7 @@ public class QueryIT extends RyaExportITBase {
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         final long period = 1800000;
-        final long binId = (currentTime / period) * period;
+        final long binId = currentTime / period * period;
 
         MapBindingSet bs = new MapBindingSet();
         bs.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
@@ -996,7 +996,7 @@ public class QueryIT extends RyaExportITBase {
 
         switch (strategy) {
         case RYA:
-            ryaClient.getCreatePCJ().get().createPCJ(getRyaInstanceName(), sparql);
+            ryaClient.getCreatePCJ().createPCJ(getRyaInstanceName(), sparql);
             addStatementsAndWait(statements);
             // Fetch the value that is stored within the PCJ table.
             try (final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, getRyaInstanceName())) {

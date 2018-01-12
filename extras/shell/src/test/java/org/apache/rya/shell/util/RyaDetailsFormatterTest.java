@@ -121,7 +121,7 @@ public class RyaDetailsFormatterTest {
           //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
             .setTemporalIndexDetails( new TemporalIndexDetails(true) )
             .setFreeTextDetails( new FreeTextIndexDetails(true) )
-            .setPCJIndexDetails(PCJIndexDetails.builder().setEnabled(false))
+            .setPCJIndexDetails(PCJIndexDetails.builder().setEnabled(true))
             .setProspectorDetails( new ProspectorDetails(Optional.absent()) )
             .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.absent()) )
             .build();
@@ -139,7 +139,11 @@ public class RyaDetailsFormatterTest {
                 "  Free Text Index:\n" +
                 "    Enabled: true\n" +
                 "  Temporal Index:\n" +
-                "    Enabled: true\n";
+                "    Enabled: true\n" +
+                "  PCJ Index:\n" +
+                "    Enabled: true\n" +
+                "    PCJs:\n" +
+                "      No PCJs have been added yet.\n";
 
         assertEquals(expected, formatted);
     }

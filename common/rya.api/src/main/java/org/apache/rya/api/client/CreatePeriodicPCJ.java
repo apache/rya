@@ -19,15 +19,15 @@
 package org.apache.rya.api.client;
 
 /**
- * This class creates new PeriodicPCJ for a given Rya instance.  
+ * This class creates new PeriodicPCJ for a given Rya instance.
  */
 public interface CreatePeriodicPCJ {
 
     /**
      * Creates a new PeriodicPCJ for a given Rya instance. The provided periodicTopic and bootStrapServers are used for
-     * registering new PeriodiNotifications with the underlying notification registration service. Typically, the
+     * registering new Periodic Notifications with the underlying notification registration service. Typically, the
      * bootStrapServers are the IP for the KafkaBrokers.
-     * 
+     *
      * @param instanceName - Rya instance to connect to
      * @param sparql - SPARQL query registered with the Periodic Service
      * @param periodicTopic - Kafka topic that new PeriodicNotifications are exported to for registration with the
@@ -36,5 +36,5 @@ public interface CreatePeriodicPCJ {
      * @return Fluo Query Id of the registered Periodic Query
      */
     public String createPeriodicPCJ(String instanceName, String sparql, String periodicTopic, String bootStrapServers) throws RyaClientException;
-    
+
 }

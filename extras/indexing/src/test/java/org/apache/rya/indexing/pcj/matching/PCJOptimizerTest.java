@@ -19,17 +19,24 @@ package org.apache.rya.indexing.pcj.matching;
  * under the License.
  */
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.IndexPlanValidator.IndexedExecutionPlanGenerator;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
-
+import org.apache.rya.indexing.mongodb.pcj.MongoPcjIndexSetProvider;
+import org.apache.rya.indexing.pcj.matching.provider.AbstractPcjIndexSetProvider;
+import org.apache.rya.indexing.pcj.matching.provider.AccumuloIndexSetProvider;
+import org.apache.rya.mongodb.EmbeddedMongoSingleton;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.query.MalformedQueryException;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.openrdf.query.algebra.Projection;
 import org.openrdf.query.algebra.QueryModelNode;
 import org.openrdf.query.algebra.StatementPattern;
@@ -38,14 +45,30 @@ import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 import org.openrdf.query.parser.ParsedQuery;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+@RunWith(Parameterized.class)
 public class PCJOptimizerTest {
+    private final AbstractPcjIndexSetProvider provider;
+
+    @Parameterized.Parameters
+    public static Collection providers() throws Exception {
+        final StatefulMongoDBRdfConfiguration conf = new StatefulMongoDBRdfConfiguration(new Configuration(), EmbeddedMongoSingleton.getNewMongoClient());
+        return Lists.<AbstractPcjIndexSetProvider> newArrayList(
+                new AccumuloIndexSetProvider(new Configuration()),
+                new MongoPcjIndexSetProvider(conf)
+                );
+    }
+
+    public PCJOptimizerTest(final AbstractPcjIndexSetProvider provider) {
+        this.provider = provider;
+    }
 
     @Test
     public void testBasicSegment() throws Exception {
 
-        String query1 = ""//
+        final String query1 = ""//
                 + "SELECT ?e ?c ?l" //
                 + "{" //
                 + "  ?e a ?c . "//
@@ -53,29 +76,30 @@ public class PCJOptimizerTest {
                 + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
                 + "}";//
 
-        String query2 = ""//
+        final String query2 = ""//
                 + "SELECT ?a ?b ?m" //
                 + "{" //
                 + "  ?a a ?b . "//
                 + "  OPTIONAL {?a <uri:talksTo> ?m}  . "//
                 + "}";//
 
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery pq1 = parser.parseQuery(query1, null);
-        ParsedQuery pq2 = parser.parseQuery(query2, null);
-        TupleExpr te1 = pq1.getTupleExpr();
-        TupleExpr te2 = pq2.getTupleExpr();
+        final SPARQLParser parser = new SPARQLParser();
+        final ParsedQuery pq1 = parser.parseQuery(query1, null);
+        final ParsedQuery pq2 = parser.parseQuery(query2, null);
+        final TupleExpr te1 = pq1.getTupleExpr();
+        final TupleExpr te2 = pq2.getTupleExpr();
 
-        TupleExpr unOpt = te1.clone();
-        List<QueryModelNode> remainingNodes = getNodes(te1);
-        Set<QueryModelNode> unMatchedNodes = new HashSet<>();
+        final TupleExpr unOpt = te1.clone();
+        final List<QueryModelNode> remainingNodes = getNodes(te1);
+        final Set<QueryModelNode> unMatchedNodes = new HashSet<>();
         unMatchedNodes.add(remainingNodes.get(2));
 
-        SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection) te2);
-        List<ExternalTupleSet> externalList = new ArrayList<>();
+        final SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection) te2);
+        final List<ExternalTupleSet> externalList = new ArrayList<>();
         externalList.add(pcj);
 
-        PCJOptimizer optimizer = new PCJOptimizer(externalList, false);
+        provider.setIndices(externalList);
+        final PCJOptimizer optimizer = new PCJOptimizer(externalList, false, provider);
         optimizer.optimize(te1, null, null);
 
         Assert.assertEquals(true, validatePcj(te1, unOpt, externalList, unMatchedNodes));
@@ -86,7 +110,7 @@ public class PCJOptimizerTest {
     @Test
     public void testSegmentWithUnion() throws Exception {
 
-        String query1 = ""//
+        final String query1 = ""//
                 + "SELECT ?e ?c ?l" //
                 + "{" //
                 + " {?e <uri:p1> <uri:o1>. } UNION { ?e a ?c. OPTIONAL {?e <uri:talksTo> ?l}. ?e <uri:p5> <uri:o4>. ?e <uri:p4> <uri:o3> }  . "//
@@ -94,7 +118,7 @@ public class PCJOptimizerTest {
                 + "  ?e <uri:p3> <uri:o2>  . "//
                 + "}";//
 
-        String query2 = ""//
+        final String query2 = ""//
                 + "SELECT ?a ?b ?m" //
                 + "{" //
                 + " ?a <uri:p5> <uri:o4> ." //
@@ -103,33 +127,34 @@ public class PCJOptimizerTest {
                 + "  ?a a ?b . "//
                 + "}";//
 
-        String query3 = ""//
+        final String query3 = ""//
                 + "SELECT ?h ?i" //
                 + "{" //
                 + "  ?h <uri:p2> ?i . "//
                 + "  ?h <uri:p3> <uri:o2>  . "//
                 + "}";//
 
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery pq1 = parser.parseQuery(query1, null);
-        ParsedQuery pq2 = parser.parseQuery(query2, null);
-        ParsedQuery pq3 = parser.parseQuery(query3, null);
-        TupleExpr te1 = pq1.getTupleExpr();
-        TupleExpr te2 = pq2.getTupleExpr();
-        TupleExpr te3 = pq3.getTupleExpr();
+        final SPARQLParser parser = new SPARQLParser();
+        final ParsedQuery pq1 = parser.parseQuery(query1, null);
+        final ParsedQuery pq2 = parser.parseQuery(query2, null);
+        final ParsedQuery pq3 = parser.parseQuery(query3, null);
+        final TupleExpr te1 = pq1.getTupleExpr();
+        final TupleExpr te2 = pq2.getTupleExpr();
+        final TupleExpr te3 = pq3.getTupleExpr();
 
-        TupleExpr unOpt = te1.clone();
-        List<QueryModelNode> remainingNodes = getNodes(te1);
-        Set<QueryModelNode> unMatchedNodes = new HashSet<>();
+        final TupleExpr unOpt = te1.clone();
+        final List<QueryModelNode> remainingNodes = getNodes(te1);
+        final Set<QueryModelNode> unMatchedNodes = new HashSet<>();
         unMatchedNodes.add(remainingNodes.get(0));
 
-        SimpleExternalTupleSet pcj1 = new SimpleExternalTupleSet((Projection) te2);
-        SimpleExternalTupleSet pcj2 = new SimpleExternalTupleSet((Projection) te3);
-        List<ExternalTupleSet> externalList = new ArrayList<>();
+        final SimpleExternalTupleSet pcj1 = new SimpleExternalTupleSet((Projection) te2);
+        final SimpleExternalTupleSet pcj2 = new SimpleExternalTupleSet((Projection) te3);
+        final List<ExternalTupleSet> externalList = new ArrayList<>();
         externalList.add(pcj1);
         externalList.add(pcj2);
 
-        PCJOptimizer optimizer = new PCJOptimizer(externalList, false);
+        provider.setIndices(externalList);
+        final PCJOptimizer optimizer = new PCJOptimizer(externalList, false, provider);
         optimizer.optimize(te1, null, null);
 
         Assert.assertEquals(true, validatePcj(te1, unOpt, externalList, unMatchedNodes));
@@ -142,7 +167,7 @@ public class PCJOptimizerTest {
     public void testExactMatchLargeReOrdered() throws Exception {
 
 
-        String query1 = ""//
+        final String query1 = ""//
                 + "SELECT ?a ?b ?c ?d ?e ?f ?g ?h" //
                 + "{" //
                 + "  ?a <uri:p0> ?b ." //
@@ -155,7 +180,7 @@ public class PCJOptimizerTest {
                 + "  OPTIONAL{?b <uri:p4> ?o. ?o <uri:p1> ?p} . "//
                 + "}";//
 
-        String query2 = ""//
+        final String query2 = ""//
                 + "SELECT ?a ?b ?c ?d ?e ?f ?g ?h" //
                 + "{" //
                 + "  ?a <uri:p0> ?b ." //
@@ -168,20 +193,21 @@ public class PCJOptimizerTest {
                 + "  OPTIONAL{?b <uri:p3> ?e. ?e <uri:p1> ?f} . "//
                 + "}";//
 
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery pq1 = parser.parseQuery(query1, null);
-        ParsedQuery pq2 = parser.parseQuery(query2, null);
-        TupleExpr te1 = pq1.getTupleExpr();
-        TupleExpr te2 = pq2.getTupleExpr();
+        final SPARQLParser parser = new SPARQLParser();
+        final ParsedQuery pq1 = parser.parseQuery(query1, null);
+        final ParsedQuery pq2 = parser.parseQuery(query2, null);
+        final TupleExpr te1 = pq1.getTupleExpr();
+        final TupleExpr te2 = pq2.getTupleExpr();
 
-        TupleExpr unOpt = te1.clone();
+        final TupleExpr unOpt = te1.clone();
 
-        SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection) te2);
-        List<ExternalTupleSet> externalList = new ArrayList<>();
+        final SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection) te2);
+        final List<ExternalTupleSet> externalList = new ArrayList<>();
         externalList.add(pcj);
 
 
-        PCJOptimizer optimizer = new PCJOptimizer(externalList, false);
+        provider.setIndices(externalList);
+        final PCJOptimizer optimizer = new PCJOptimizer(externalList, false, provider);
         optimizer.optimize(te1, null, null);
 
         Assert.assertEquals(true, validatePcj(te1, unOpt, externalList, new HashSet<QueryModelNode>()));
@@ -190,7 +216,7 @@ public class PCJOptimizerTest {
     @Test
     public void testSubsetMatchLargeReOrdered() throws Exception {
 
-        String query1 = ""//
+        final String query1 = ""//
                 + "SELECT ?a ?b ?c ?d ?e ?f ?g ?h" //
                 + "{" //
                 + "  ?a <uri:p0> ?b ." //
@@ -203,7 +229,7 @@ public class PCJOptimizerTest {
                 + "  OPTIONAL{?b <uri:p4> ?o. ?o <uri:p1> ?p} . "//
                 + "}";//
 
-        String query2 = ""//
+        final String query2 = ""//
                 + "SELECT ?a ?b ?c ?d ?e ?f ?g ?h" //
                 + "{" //
                 + "  ?a <uri:p0> ?b ." //
@@ -213,15 +239,15 @@ public class PCJOptimizerTest {
                 + "  OPTIONAL{?b <uri:p3> ?e. ?e <uri:p1> ?f} . "//
                 + "}";//
 
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery pq1 = parser.parseQuery(query1, null);
-        ParsedQuery pq2 = parser.parseQuery(query2, null);
-        TupleExpr te1 = pq1.getTupleExpr();
-        TupleExpr te2 = pq2.getTupleExpr();
+        final SPARQLParser parser = new SPARQLParser();
+        final ParsedQuery pq1 = parser.parseQuery(query1, null);
+        final ParsedQuery pq2 = parser.parseQuery(query2, null);
+        final TupleExpr te1 = pq1.getTupleExpr();
+        final TupleExpr te2 = pq2.getTupleExpr();
 
-        TupleExpr unOpt = te1.clone();
-        List<QueryModelNode> remainingNodes = getNodes(te1);
-        Set<QueryModelNode> unMatchedNodes = new HashSet<>();
+        final TupleExpr unOpt = te1.clone();
+        final List<QueryModelNode> remainingNodes = getNodes(te1);
+        final Set<QueryModelNode> unMatchedNodes = new HashSet<>();
         unMatchedNodes.add(remainingNodes.get(8));
         unMatchedNodes.add(remainingNodes.get(9));
         unMatchedNodes.add(remainingNodes.get(10));
@@ -229,11 +255,12 @@ public class PCJOptimizerTest {
         unMatchedNodes.add(remainingNodes.get(12));
         unMatchedNodes.add(remainingNodes.get(7));
 
-        SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection) te2);
-        List<ExternalTupleSet> externalList = new ArrayList<>();
+        final SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection) te2);
+        final List<ExternalTupleSet> externalList = new ArrayList<>();
         externalList.add(pcj);
 
-        PCJOptimizer optimizer = new PCJOptimizer(externalList, false);
+        provider.setIndices(externalList);
+        final PCJOptimizer optimizer = new PCJOptimizer(externalList, false, provider);
         optimizer.optimize(te1, null, null);
 
         Assert.assertEquals(true, validatePcj(te1, unOpt, externalList, unMatchedNodes));
@@ -242,7 +269,7 @@ public class PCJOptimizerTest {
     @Test
     public void testSwitchTwoBoundVars() throws Exception {
 
-        String query1 = ""//
+        final String query1 = ""//
                 + "SELECT ?a ?b ?c " //
                 + "{" //
                 + "  ?a <uri:p0> ?c ." //
@@ -254,7 +281,7 @@ public class PCJOptimizerTest {
                 + " ?b <uri:p3> <uri:o3> " //
                 + "}";//
 
-        String query2 = ""//
+        final String query2 = ""//
                 + "SELECT ?a ?b ?c " //
                 + "{" //
                 + " ?a <uri:p2> <uri:o2>. " //
@@ -264,23 +291,24 @@ public class PCJOptimizerTest {
                 + "  ?b<uri:p1> ?c " //
                 + "}";//
 
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery pq1 = parser.parseQuery(query1, null);
-        ParsedQuery pq2 = parser.parseQuery(query2, null);
-        TupleExpr te1 = pq1.getTupleExpr();
-        TupleExpr te2 = pq2.getTupleExpr();
+        final SPARQLParser parser = new SPARQLParser();
+        final ParsedQuery pq1 = parser.parseQuery(query1, null);
+        final ParsedQuery pq2 = parser.parseQuery(query2, null);
+        final TupleExpr te1 = pq1.getTupleExpr();
+        final TupleExpr te2 = pq2.getTupleExpr();
 
-        TupleExpr unOpt = te1.clone();
-        List<QueryModelNode> remainingNodes = getNodes(te1);
-        Set<QueryModelNode> unMatchedNodes = new HashSet<>();
+        final TupleExpr unOpt = te1.clone();
+        final List<QueryModelNode> remainingNodes = getNodes(te1);
+        final Set<QueryModelNode> unMatchedNodes = new HashSet<>();
         unMatchedNodes.add(remainingNodes.get(1));
         unMatchedNodes.add(remainingNodes.get(2));
 
-        SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection) te2);
-        List<ExternalTupleSet> externalList = new ArrayList<>();
+        final SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection) te2);
+        final List<ExternalTupleSet> externalList = new ArrayList<>();
         externalList.add(pcj);
 
-        PCJOptimizer optimizer = new PCJOptimizer(externalList, false);
+        provider.setIndices(externalList);
+        final PCJOptimizer optimizer = new PCJOptimizer(externalList, false, provider);
         optimizer.optimize(te1, null, null);
 
         Assert.assertEquals(true, validatePcj(te1, unOpt, externalList, unMatchedNodes));
@@ -289,7 +317,7 @@ public class PCJOptimizerTest {
     @Test
     public void testSegmentWithLargeUnion() throws Exception {
 
-        String query1 = ""//
+        final String query1 = ""//
                 + "SELECT ?e ?c ?l" //
                 + "{" //
                 + " {?e <uri:p1> <uri:o1>. } UNION { " //
@@ -304,7 +332,7 @@ public class PCJOptimizerTest {
                 + "  ?e <uri:p3> <uri:o2>  . "//
                 + "}";//
 
-        String query2 = ""//
+        final String query2 = ""//
                 + "SELECT ?a ?b ?c " //
                 + "{" //
                 + " ?a <uri:p2> <uri:o2>. " //
@@ -314,35 +342,36 @@ public class PCJOptimizerTest {
                 + "  ?b<uri:p1> ?c " //
                 + "}";//
 
-        String query3 = ""//
+        final String query3 = ""//
                 + "SELECT ?h ?i" //
                 + "{" //
                 + "  ?h <uri:p2> ?i . "//
                 + "  ?h <uri:p3> <uri:o2>  . "//
                 + "}";//
 
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery pq1 = parser.parseQuery(query1, null);
-        ParsedQuery pq2 = parser.parseQuery(query2, null);
-        ParsedQuery pq3 = parser.parseQuery(query3, null);
-        TupleExpr te1 = pq1.getTupleExpr();
-        TupleExpr te2 = pq2.getTupleExpr();
-        TupleExpr te3 = pq3.getTupleExpr();
+        final SPARQLParser parser = new SPARQLParser();
+        final ParsedQuery pq1 = parser.parseQuery(query1, null);
+        final ParsedQuery pq2 = parser.parseQuery(query2, null);
+        final ParsedQuery pq3 = parser.parseQuery(query3, null);
+        final TupleExpr te1 = pq1.getTupleExpr();
+        final TupleExpr te2 = pq2.getTupleExpr();
+        final TupleExpr te3 = pq3.getTupleExpr();
 
-        TupleExpr unOpt = te1.clone();
-        List<QueryModelNode> remainingNodes = getNodes(te1);
-        Set<QueryModelNode> unMatchedNodes = new HashSet<>();
+        final TupleExpr unOpt = te1.clone();
+        final List<QueryModelNode> remainingNodes = getNodes(te1);
+        final Set<QueryModelNode> unMatchedNodes = new HashSet<>();
         unMatchedNodes.add(remainingNodes.get(0));
         unMatchedNodes.add(remainingNodes.get(2));
         unMatchedNodes.add(remainingNodes.get(3));
 
-        SimpleExternalTupleSet pcj1 = new SimpleExternalTupleSet((Projection) te2);
-        SimpleExternalTupleSet pcj2 = new SimpleExternalTupleSet((Projection) te3);
-        List<ExternalTupleSet> externalList = new ArrayList<>();
+        final SimpleExternalTupleSet pcj1 = new SimpleExternalTupleSet((Projection) te2);
+        final SimpleExternalTupleSet pcj2 = new SimpleExternalTupleSet((Projection) te3);
+        final List<ExternalTupleSet> externalList = new ArrayList<>();
         externalList.add(pcj1);
         externalList.add(pcj2);
 
-        PCJOptimizer optimizer = new PCJOptimizer(externalList, false);
+        provider.setIndices(externalList);
+        final PCJOptimizer optimizer = new PCJOptimizer(externalList, false, provider);
         optimizer.optimize(te1, null, null);
 
         Assert.assertEquals(true, validatePcj(te1, unOpt, externalList, unMatchedNodes));
@@ -352,7 +381,7 @@ public class PCJOptimizerTest {
     @Test
     public void testSegmentWithUnionAndFilters() throws Exception {
 
-        String query1 = ""//
+        final String query1 = ""//
                 + "SELECT ?e ?c ?l" //
                 + "{" //
                 + " Filter(?e = <uri:s1>) " //
@@ -362,7 +391,7 @@ public class PCJOptimizerTest {
                 + "  ?e <uri:p3> <uri:o2>  . "//
                 + "}";//
 
-        String query2 = ""//
+        final String query2 = ""//
                 + "SELECT ?a ?b ?m" //
                 + "{" //
                 + " Filter(?b = <uri:s2>) " //
@@ -372,7 +401,7 @@ public class PCJOptimizerTest {
                 + "  ?a a ?b . "//
                 + "}";//
 
-        String query3 = ""//
+        final String query3 = ""//
                 + "SELECT ?h ?i" //
                 + "{" //
                 + " Filter(?h = <uri:s1>) " //
@@ -380,26 +409,27 @@ public class PCJOptimizerTest {
                 + "  ?h <uri:p3> <uri:o2>  . "//
                 + "}";//
 
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery pq1 = parser.parseQuery(query1, null);
-        ParsedQuery pq2 = parser.parseQuery(query2, null);
-        ParsedQuery pq3 = parser.parseQuery(query3, null);
-        TupleExpr te1 = pq1.getTupleExpr();
-        TupleExpr te2 = pq2.getTupleExpr();
-        TupleExpr te3 = pq3.getTupleExpr();
+        final SPARQLParser parser = new SPARQLParser();
+        final ParsedQuery pq1 = parser.parseQuery(query1, null);
+        final ParsedQuery pq2 = parser.parseQuery(query2, null);
+        final ParsedQuery pq3 = parser.parseQuery(query3, null);
+        final TupleExpr te1 = pq1.getTupleExpr();
+        final TupleExpr te2 = pq2.getTupleExpr();
+        final TupleExpr te3 = pq3.getTupleExpr();
 
-        TupleExpr unOpt = te1.clone();
-        List<QueryModelNode> remainingNodes = getNodes(te1);
-        Set<QueryModelNode> unMatchedNodes = new HashSet<>();
+        final TupleExpr unOpt = te1.clone();
+        final List<QueryModelNode> remainingNodes = getNodes(te1);
+        final Set<QueryModelNode> unMatchedNodes = new HashSet<>();
         unMatchedNodes.add(remainingNodes.get(0));
 
-        SimpleExternalTupleSet pcj1 = new SimpleExternalTupleSet((Projection) te2);
-        SimpleExternalTupleSet pcj2 = new SimpleExternalTupleSet((Projection) te3);
-        List<ExternalTupleSet> externalList = new ArrayList<>();
+        final SimpleExternalTupleSet pcj1 = new SimpleExternalTupleSet((Projection) te2);
+        final SimpleExternalTupleSet pcj2 = new SimpleExternalTupleSet((Projection) te3);
+        final List<ExternalTupleSet> externalList = new ArrayList<>();
         externalList.add(pcj1);
         externalList.add(pcj2);
 
-        PCJOptimizer optimizer = new PCJOptimizer(externalList, false);
+        provider.setIndices(externalList);
+        final PCJOptimizer optimizer = new PCJOptimizer(externalList, false, provider);
         optimizer.optimize(te1, null, null);
 
         Assert.assertEquals(true, validatePcj(te1, unOpt, externalList, unMatchedNodes));
@@ -409,7 +439,7 @@ public class PCJOptimizerTest {
     @Test
     public void testSegmentWithLeftJoinsAndFilters() throws Exception {
 
-        String query1 = ""//
+        final String query1 = ""//
                 + "SELECT ?e ?c ?l" //
                 + "{" //
                 + " Filter(?e = <uri:s1>) " //
@@ -419,14 +449,14 @@ public class PCJOptimizerTest {
                 + " OPTIONAL {?e <uri:p2> ?c } . "//
                 + "}";//
 
-        String query2 = ""//
+        final String query2 = ""//
                 + "SELECT ?e ?c ?l" //
                 + "{" //
                 + " Filter(?c = <uri:s2>) " //
                 + " ?e <uri:p1> <uri:o1>. " + " OPTIONAL {?e <uri:p2> ?l}. " + " ?c <uri:p3> <uri:o3>  . "//
                 + "}";//
 
-        String query3 = ""//
+        final String query3 = ""//
                 + "SELECT ?e ?c" //
                 + "{" //
                 + " Filter(?e = <uri:s1>) " //
@@ -434,23 +464,24 @@ public class PCJOptimizerTest {
                 + " OPTIONAL {?e <uri:p2> ?c } . "//
                 + "}";//
 
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery pq1 = parser.parseQuery(query1, null);
-        ParsedQuery pq2 = parser.parseQuery(query2, null);
-        ParsedQuery pq3 = parser.parseQuery(query3, null);
-        TupleExpr te1 = pq1.getTupleExpr();
-        TupleExpr te2 = pq2.getTupleExpr();
-        TupleExpr te3 = pq3.getTupleExpr();
+        final SPARQLParser parser = new SPARQLParser();
+        final ParsedQuery pq1 = parser.parseQuery(query1, null);
+        final ParsedQuery pq2 = parser.parseQuery(query2, null);
+        final ParsedQuery pq3 = parser.parseQuery(query3, null);
+        final TupleExpr te1 = pq1.getTupleExpr();
+        final TupleExpr te2 = pq2.getTupleExpr();
+        final TupleExpr te3 = pq3.getTupleExpr();
 
-        TupleExpr unOpt = te1.clone();
+        final TupleExpr unOpt = te1.clone();
 
-        SimpleExternalTupleSet pcj1 = new SimpleExternalTupleSet((Projection) te2);
-        SimpleExternalTupleSet pcj2 = new SimpleExternalTupleSet((Projection) te3);
-        List<ExternalTupleSet> externalList = new ArrayList<>();
+        final SimpleExternalTupleSet pcj1 = new SimpleExternalTupleSet((Projection) te2);
+        final SimpleExternalTupleSet pcj2 = new SimpleExternalTupleSet((Projection) te3);
+        final List<ExternalTupleSet> externalList = new ArrayList<>();
         externalList.add(pcj1);
         externalList.add(pcj2);
 
-        PCJOptimizer optimizer = new PCJOptimizer(externalList, false);
+        provider.setIndices(externalList);
+        final PCJOptimizer optimizer = new PCJOptimizer(externalList, false, provider);
         optimizer.optimize(te1, null, null);
 
         Assert.assertEquals(true, validatePcj(te1, unOpt, externalList, new HashSet<QueryModelNode>()));
@@ -459,7 +490,7 @@ public class PCJOptimizerTest {
     @Test
     public void testJoinMatcherRejectsLeftJoinPcj() throws Exception {
 
-        String query1 = ""//
+        final String query1 = ""//
                 + "SELECT ?e ?c ?l" //
                 + "{" //
                 + "  ?e a ?c . "//
@@ -467,7 +498,7 @@ public class PCJOptimizerTest {
                 + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
                 + "}";//
 
-        String query2 = ""//
+        final String query2 = ""//
                 + "SELECT ?a ?b ?m" //
                 + "{" //
                 + "  ?a a ?b . "//
@@ -475,43 +506,44 @@ public class PCJOptimizerTest {
                 + "  OPTIONAL {?a <http://www.w3.org/2000/01/rdf-schema#label> ?m}  . "//
                 + "}";//
 
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery pq1 = parser.parseQuery(query1, null);
-        ParsedQuery pq2 = parser.parseQuery(query2, null);
-        TupleExpr te1 = pq1.getTupleExpr();
-        TupleExpr te2 = pq2.getTupleExpr();
-        TupleExpr expected = te1.clone();
+        final SPARQLParser parser = new SPARQLParser();
+        final ParsedQuery pq1 = parser.parseQuery(query1, null);
+        final ParsedQuery pq2 = parser.parseQuery(query2, null);
+        final TupleExpr te1 = pq1.getTupleExpr();
+        final TupleExpr te2 = pq2.getTupleExpr();
+        final TupleExpr expected = te1.clone();
 
-        SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection) te2);
-        List<ExternalTupleSet> externalList = new ArrayList<>();
+        final SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection) te2);
+        final List<ExternalTupleSet> externalList = new ArrayList<>();
         externalList.add(pcj);
 
-        PCJOptimizer optimizer = new PCJOptimizer(externalList, false);
+        provider.setIndices(externalList);
+        final PCJOptimizer optimizer = new PCJOptimizer(externalList, false, provider);
         optimizer.optimize(te1, null, null);
         Assert.assertEquals(expected, te1);
 
     }
 
 
-    private List<QueryModelNode> getNodes(TupleExpr te) {
-        NodeCollector collector = new NodeCollector();
+    private List<QueryModelNode> getNodes(final TupleExpr te) {
+        final NodeCollector collector = new NodeCollector();
         te.visit(collector);
         return collector.getNodes();
     }
 
-    private boolean validatePcj(TupleExpr optTupleExp, TupleExpr unOptTup, List<ExternalTupleSet> pcjs, Set<QueryModelNode> expUnmatchedNodes) {
+    private boolean validatePcj(final TupleExpr optTupleExp, final TupleExpr unOptTup, final List<ExternalTupleSet> pcjs, final Set<QueryModelNode> expUnmatchedNodes) {
 
-        IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(
+        final IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(
                 unOptTup, pcjs);
-        List<ExternalTupleSet> indexList = iep.getNormalizedIndices();
-        Set<QueryModelNode> indexSet = new HashSet<>();
-        for(ExternalTupleSet etup: indexList) {
+        final List<ExternalTupleSet> indexList = iep.getNormalizedIndices();
+        final Set<QueryModelNode> indexSet = new HashSet<>();
+        for(final ExternalTupleSet etup: indexList) {
             indexSet.add(etup);
         }
 
-        Set<QueryModelNode> tupNodes = Sets.newHashSet(getNodes(optTupleExp));
+        final Set<QueryModelNode> tupNodes = Sets.newHashSet(getNodes(optTupleExp));
 
-        Set<QueryModelNode> diff =  Sets.difference(tupNodes, indexSet);
+        final Set<QueryModelNode> diff =  Sets.difference(tupNodes, indexSet);
         return diff.equals(expUnmatchedNodes);
     }
 

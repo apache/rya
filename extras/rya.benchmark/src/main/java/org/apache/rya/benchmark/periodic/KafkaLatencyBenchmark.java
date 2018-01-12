@@ -113,8 +113,8 @@ public class KafkaLatencyBenchmark implements AutoCloseable {
     public KafkaLatencyBenchmark(final CommonOptions options, final BenchmarkOptions benchmarkOptions) throws AccumuloException, AccumuloSecurityException {
         this.options = Objects.requireNonNull(options);
         this.benchmarkOptions = Objects.requireNonNull(benchmarkOptions);
-        this.client = Objects.requireNonNull(options.buildRyaClient());
-        this.startTime = LocalDateTime.now();
+        client = Objects.requireNonNull(options.buildRyaClient());
+        startTime = LocalDateTime.now();
 
         logger.info("Running {} with the following input parameters:\n{}\n{}", this.getClass(), options, benchmarkOptions);
     }
@@ -172,7 +172,7 @@ public class KafkaLatencyBenchmark implements AutoCloseable {
                 + "group by ?type";
 
         logger.info("Query: {}", sparql);
-        return client.getCreatePCJ().get().createPCJ(options.getRyaInstance(), sparql, ImmutableSet.of(ExportStrategy.KAFKA));
+        return client.getCreatePCJ().createPCJ(options.getRyaInstance(), sparql, ImmutableSet.of(ExportStrategy.KAFKA));
     }
 
     private String issuePeriodicQuery(final PeriodicQueryCommand periodicOptions) throws InstanceDoesNotExistException, RyaClientException {
@@ -352,7 +352,7 @@ public class KafkaLatencyBenchmark implements AutoCloseable {
                 logger.info("Publishing {} Observations", observationsPerIteration);
                 final long t1 = System.currentTimeMillis();
                 loadStatements.loadStatements(ryaInstanceName, statements);
-                logger.info("Published {} observations in in {}s", observationsPerIteration, ((System.currentTimeMillis() - t1)/1000.0));
+                logger.info("Published {} observations in in {}s", observationsPerIteration, (System.currentTimeMillis() - t1)/1000.0);
                 logger.info("Updating published totals...");
                 for(int typeId = 0; typeId < numTypes; typeId++) {
                     typeToStatMap.get(typePrefix + typeId).total.addAndGet(observationsPerTypePerIteration);
@@ -367,7 +367,7 @@ public class KafkaLatencyBenchmark implements AutoCloseable {
         }
 
         public void setShutdownOperation(final Runnable f) {
-            this.shutdownOperation = f;
+            shutdownOperation = f;
         }
     }
 

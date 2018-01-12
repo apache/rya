@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,28 +16,39 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.streams.api.interactor;
+package org.apache.rya.streams.api.interactor.defaults;
 
-import org.apache.rya.streams.api.entity.StreamsQuery;
+import static java.util.Objects.requireNonNull;
+
+import java.util.UUID;
+
 import org.apache.rya.streams.api.exception.RyaStreamsException;
+import org.apache.rya.streams.api.interactor.StartQuery;
+import org.apache.rya.streams.api.queries.QueryRepository;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * Adds a SPARQL Query to be processed by Rya Streams.
+ * Start a query that is managed by Rya Streams.
  */
 @DefaultAnnotation(NonNull.class)
-public interface AddQuery {
+public class DefaultStartQuery implements StartQuery {
+
+    private final QueryRepository repository;
 
     /**
-     * Adds a query to the Rya Streams system.
+     * Constructs an instance of {@link DefaultStartQuery}.
      *
-     * @param query - The SPARQL query that will be added. (not null)
-     * @param isActive - {@code true} if the query needs to be maintained by
-     *   Rya Streams; otherwise {@code false}.
-     * @return The {@link StreamsQuery} used by Rya Streams for this query.
-     * @throws RyaStreamsException The query could not be added to Rya Streams.
+     * @param repository - The {@link QueryRepository} that will be interacted with. (not null)
      */
-    public StreamsQuery addQuery(final String query, boolean isActive) throws RyaStreamsException;
+    public DefaultStartQuery(final QueryRepository repository) {
+        this.repository = requireNonNull(repository);
+    }
+
+    @Override
+    public void start(final UUID queryId) throws RyaStreamsException {
+        requireNonNull(queryId);
+        repository.updateIsActive(queryId, true);
+    }
 }

@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -34,16 +34,19 @@ public class StreamsQuery {
 
     private final UUID queryId;
     private final String sparql;
+    private final boolean isActive;
 
     /**
      * Constructs an instance of {@link StreamsQuery}.
      *
      * @param queryId - Uniquely identifies the query within Rya Streams. (not null)
      * @param sparql - The SPARQL query that defines how statements will be processed. (not null)
+     * @param isActive - {@code true} if Rya Streams should process this query; otherwise {@code false}.
      */
-    public StreamsQuery(final UUID queryId, final String sparql) {
+    public StreamsQuery(final UUID queryId, final String sparql, final boolean isActive) {
         this.queryId = requireNonNull(queryId);
         this.sparql = requireNonNull(sparql);
+        this.isActive = isActive;
     }
 
     /**
@@ -60,9 +63,16 @@ public class StreamsQuery {
         return sparql;
     }
 
+    /**
+     * @return {@code true} if Rya Streams should process this query; otherwise {@code false}.
+     */
+    public boolean isActive() {
+        return isActive;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(queryId, sparql);
+        return Objects.hash(queryId, sparql, isActive);
     }
 
     @Override
@@ -70,7 +80,8 @@ public class StreamsQuery {
         if(o instanceof StreamsQuery) {
             final StreamsQuery other = (StreamsQuery) o;
             return Objects.equals(queryId, other.queryId) &&
-                    Objects.equals(sparql, other.sparql);
+                    Objects.equals(sparql, other.sparql) &&
+                    isActive == other.isActive;
         }
         return false;
     }

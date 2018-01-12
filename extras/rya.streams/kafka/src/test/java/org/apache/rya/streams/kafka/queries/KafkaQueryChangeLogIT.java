@@ -19,6 +19,7 @@
 package org.apache.rya.streams.kafka.queries;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +79,7 @@ public class KafkaQueryChangeLogIT extends KafkaITBase {
     public void testWrite() throws Exception {
         final String sparql = "SOME QUERY HERE";
         final UUID uuid = UUID.randomUUID();
-        final QueryChange newChange = QueryChange.create(uuid, sparql);
+        final QueryChange newChange = QueryChange.create(uuid, sparql, true);
         changeLog.write(newChange);
 
         consumer.subscribe(Lists.newArrayList(topic));
@@ -87,6 +88,17 @@ public class KafkaQueryChangeLogIT extends KafkaITBase {
 
         final QueryChange record = records.iterator().next().value();
         assertEquals(newChange, record);
+    }
+
+    @Test
+    public void readSingleWrite() throws Exception {
+        // Write a single change to the log.
+        final QueryChange change = QueryChange.create(UUID.randomUUID(), "query", true);
+        changeLog.write(change);
+
+        // Read that entry from the log.
+        final QueryChange readChange = changeLog.readFromStart().next().getEntry();
+        assertEquals(change, readChange);
     }
 
     @Test
@@ -175,12 +187,34 @@ public class KafkaQueryChangeLogIT extends KafkaITBase {
         assertEquals(0, count);
     }
 
+    @Test
+    public void multipleClients() throws Exception {
+        // Create a second KafkaQueryChangeLog objects that connect to the same change log.
+        final Producer<?, QueryChange> producer2 = KafkaTestUtil.makeProducer(rule, StringSerializer.class, QueryChangeSerializer.class);
+        final Consumer<?, QueryChange> consumer2 = KafkaTestUtil.fromStartConsumer(rule, StringDeserializer.class, QueryChangeDeserializer.class);
+        try(final KafkaQueryChangeLog changeLog2 = new KafkaQueryChangeLog(producer2, consumer2, topic)) {
+            // Show both of them report empty.
+            assertFalse( changeLog.readFromStart().hasNext() );
+            assertFalse( changeLog2.readFromStart().hasNext() );
+
+            // Write a change to the first log.
+            final QueryChange change = QueryChange.create(UUID.randomUUID(), "query", true);
+            changeLog.write(change);
+
+            // Show it's in the first log.
+            assertEquals(change, changeLog.readFromStart().next().getEntry());
+
+            // Show it is also seen in the second log.
+            assertEquals(change, changeLog2.readFromStart().next().getEntry());
+        }
+    }
+
     private List<QueryChange> write10ChangesToChangeLog() throws Exception {
         final List<QueryChange> changes = new ArrayList<>();
         for (int ii = 0; ii < 10; ii++) {
             final String sparql = "SOME QUERY HERE_" + ii;
             final UUID uuid = UUID.randomUUID();
-            final QueryChange newChange = QueryChange.create(uuid, sparql);
+            final QueryChange newChange = QueryChange.create(uuid, sparql, true);
             changeLog.write(newChange);
             changes.add(newChange);
         }

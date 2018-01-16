@@ -39,6 +39,7 @@
         <module>api</module>
         <module>client</module>
         <module>integration</module>
+        <module>query-manager</module>
     </modules>
     
     <profiles>

@@ -152,9 +152,6 @@ public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfigurati
                 log.error("Error closing indexer: " + indexer.getClass().getSimpleName(), e);
             }
         }
-        if (mongoClient != null) {
-            mongoClient.close();
-        }
 
         IOUtils.closeQuietly(queryEngine);
     }

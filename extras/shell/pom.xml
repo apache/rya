@@ -59,6 +59,10 @@
             <artifactId>rya.pcj.fluo.api</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.streams.kafka</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.fluo</groupId>
             <artifactId>fluo-core</artifactId>
         </dependency>

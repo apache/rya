@@ -23,6 +23,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 
 import org.apache.accumulo.core.client.Connector;
+import org.apache.rya.api.client.InstanceExists;
 import org.apache.rya.api.client.RyaClient;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -50,6 +51,8 @@ public class AccumuloRyaClientFactory {
         requireNonNull(connector);
 
         // Build the RyaCommands option with the initialized commands.
+        final InstanceExists instanceExists = new AccumuloInstanceExists(connectionDetails, connector);
+
         return new RyaClient(
                 new AccumuloInstall(connectionDetails, connector),
                 new AccumuloCreatePCJ(connectionDetails, connector),
@@ -59,10 +62,11 @@ public class AccumuloRyaClientFactory {
                 Optional.of(new AccumuloListIncrementalQueries(connectionDetails, connector)),
                 new AccumuloBatchUpdatePCJ(connectionDetails, connector),
                 new AccumuloGetInstanceDetails(connectionDetails, connector),
-                new AccumuloInstanceExists(connectionDetails, connector),
+                instanceExists,
                 new AccumuloListInstances(connectionDetails, connector),
                 Optional.of(new AccumuloAddUser(connectionDetails, connector)),
                 Optional.of(new AccumuloRemoveUser(connectionDetails, connector)),
+                new AccumuloSetRyaStreamsConfiguration(instanceExists, connector),
                 new AccumuloUninstall(connectionDetails, connector),
                 new AccumuloLoadStatements(connectionDetails, connector),
                 new AccumuloLoadStatementsFile(connectionDetails, connector),

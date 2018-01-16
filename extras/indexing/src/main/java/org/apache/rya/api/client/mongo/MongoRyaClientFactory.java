@@ -66,6 +66,7 @@ public class MongoRyaClientFactory {
                 new MongoListInstances(adminClient),
                 Optional.empty(),
                 Optional.empty(),
+                new MongoSetRyaStreamsConfiguration(instanceExists, adminClient),
                 new MongoUninstall(adminClient, instanceExists),
                 new MongoLoadStatements(connectionDetails, instanceExists),
                 new MongoLoadStatementsFile(connectionDetails, instanceExists),

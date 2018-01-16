@@ -60,4 +60,5 @@
     <bean id="ryaConnectionCommands" class="org.apache.rya.shell.RyaConnectionCommands" />
     <bean id="ryaCommands" class="org.apache.rya.shell.RyaCommands" />
     <bean id="ryaAdminCommands" class="org.apache.rya.shell.RyaAdminCommands" />
+    <bean id="ryaStreamsCommands" class="org.apache.rya.shell.RyaStreamsCommands" />
 </beans>

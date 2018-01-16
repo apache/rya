@@ -29,17 +29,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import net.jcip.annotations.Immutable;
-
-import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
-
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
+import net.jcip.annotations.Immutable;
 
 /**
  * Details about how a Rya instance's state.
@@ -47,7 +44,7 @@ import com.google.common.collect.ImmutableMap;
 @Immutable
 @DefaultAnnotation(NonNull.class)
 public class RyaDetails implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
 
     // General metadata about the instance.
     private final String instanceName;
@@ -68,6 +65,9 @@ public class RyaDetails implements Serializable {
     private final ProspectorDetails prospectorDetails;
     private final JoinSelectivityDetails joinSelectivityDetails;
 
+    // Rya Streams Details.
+    private final Optional<RyaStreamsDetails> ryaStreamsDetails;
+
     /**
      * Private to prevent initialization through the constructor. To build
      * instances of this class, use the {@link Builder}.
@@ -82,7 +82,8 @@ public class RyaDetails implements Serializable {
             final TemporalIndexDetails temporalDetails,
             final FreeTextIndexDetails freeTextDetails,
             final ProspectorDetails prospectorDetails,
-            final JoinSelectivityDetails joinSelectivityDetails) {
+            final JoinSelectivityDetails joinSelectivityDetails,
+            final Optional<RyaStreamsDetails> ryaStreamsDetails) {
         this.instanceName = requireNonNull(instanceName);
         this.version = requireNonNull(version);
         this.users = requireNonNull(users);
@@ -93,6 +94,7 @@ public class RyaDetails implements Serializable {
         this.freeTextDetails = requireNonNull(freeTextDetails);
         this.prospectorDetails = requireNonNull(prospectorDetails);
         this.joinSelectivityDetails = requireNonNull(joinSelectivityDetails);
+        this.ryaStreamsDetails = requireNonNull(ryaStreamsDetails);
     }
 
     /**
@@ -168,6 +170,13 @@ public class RyaDetails implements Serializable {
         return joinSelectivityDetails;
     }
 
+    /**
+     * @return Information about the instance's Rya Streams integration, if it was set.
+     */
+    public Optional<RyaStreamsDetails> getRyaStreamsDetails() {
+        return ryaStreamsDetails;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(
@@ -179,7 +188,8 @@ public class RyaDetails implements Serializable {
                 temporalDetails,
                 freeTextDetails,
                 prospectorDetails,
-                joinSelectivityDetails);
+                joinSelectivityDetails,
+                ryaStreamsDetails);
     }
 
     @Override
@@ -197,7 +207,8 @@ public class RyaDetails implements Serializable {
                     Objects.equals(temporalDetails, details.temporalDetails) &&
                     Objects.equals(freeTextDetails, details.freeTextDetails) &&
                     Objects.equals(prospectorDetails, details.prospectorDetails) &&
-                    Objects.equals(joinSelectivityDetails, details.joinSelectivityDetails);
+                    Objects.equals(joinSelectivityDetails, details.joinSelectivityDetails) &&
+                    Objects.equals(ryaStreamsDetails, details.ryaStreamsDetails);
         }
         return false;
     }
@@ -239,6 +250,9 @@ public class RyaDetails implements Serializable {
         private ProspectorDetails prospectorDetails;
         private JoinSelectivityDetails joinSelectivityDetails;
 
+        // Rya Streams Details.
+        private RyaStreamsDetails ryaStreamsDetails;
+
         /**
          * Construcst an empty instance of {@link Builder}.
          */
@@ -262,6 +276,7 @@ public class RyaDetails implements Serializable {
             freeTextDetails = details.freeTextDetails;
             prospectorDetails = details.prospectorDetails;
             joinSelectivityDetails = details.joinSelectivityDetails;
+            ryaStreamsDetails = details.ryaStreamsDetails.orNull();
         }
 
         /**
@@ -375,6 +390,15 @@ public class RyaDetails implements Serializable {
         }
 
         /**
+         * @param ryaStreamsDetails - Information about the instance's Rya Streams integration.
+         * @return This {@link Builder} so that method invocations may be chained.
+         */
+        public Builder setRyaStreamsDetails(@Nullable final RyaStreamsDetails ryaStreamsDetails) {
+            this.ryaStreamsDetails = ryaStreamsDetails;
+            return this;
+        }
+
+        /**
          * @return An instance of {@link RyaDetails} built using this
          *   builder's values.
          */
@@ -389,7 +413,8 @@ public class RyaDetails implements Serializable {
                     temporalDetails,
                     freeTextDetails,
                     prospectorDetails,
-                    joinSelectivityDetails);
+                    joinSelectivityDetails,
+                    Optional.fromNullable(ryaStreamsDetails));
         }
     }
 
@@ -1067,6 +1092,59 @@ public class RyaDetails implements Serializable {
             if(obj instanceof JoinSelectivityDetails) {
                 final JoinSelectivityDetails details = (JoinSelectivityDetails) obj;
                 return Objects.equals(lastUpdated, details.lastUpdated);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Details about the Rya instance's Rya Streams integration.
+     */
+    public static class RyaStreamsDetails implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private final String hostname;
+        private final int port;
+
+        /**
+         * Constructs an instance of {@link RyaStreamsDetails}.
+         *
+         * @param hostname - The hostname used to communicate with the Rya Streams subsystem. (not null)
+         * @param port - The port used to communicate with the Rya Streams subsystem.
+         */
+        public RyaStreamsDetails(final String hostname, final int port) {
+            this.hostname = requireNonNull(hostname);
+            this.port = port;
+        }
+
+        /**
+         * @return The hostname used to communicate with the Rya Streams subsystem.
+         */
+        public String getHostname() {
+            return hostname;
+        }
+
+        /**
+         * @return The port used to communicate with the Rya Streams subsystem.
+         */
+        public int getPort() {
+            return port;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(hostname, port);
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if(this == obj) {
+                return true;
+            }
+            if(obj instanceof RyaStreamsDetails) {
+                final RyaStreamsDetails other = (RyaStreamsDetails) obj;
+                return Objects.equals(hostname, other.hostname) &&
+                        port == other.port;
             }
             return false;
         }

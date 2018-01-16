@@ -107,7 +107,7 @@ public class AccumuloBatchUpdatePCJIT extends AccumuloITBase {
             final String pcjId = pcjStorage.createPcj(sparql);
 
             // Run the test.
-            ryaClient.getBatchUpdatePCJ().batchUpdate(RYA_INSTANCE_NAME, pcjId);
+            ryaClient.getBatchUpdatePCJ().get().batchUpdate(RYA_INSTANCE_NAME, pcjId);
 
             // Verify the correct results were loaded into the PCJ table.
             final Set<BindingSet> expectedResults = new HashSet<>();

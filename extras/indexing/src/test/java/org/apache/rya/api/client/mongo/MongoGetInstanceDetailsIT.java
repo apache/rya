@@ -79,7 +79,7 @@ public class MongoGetInstanceDetailsIT extends MongoITBase {
                 .setFreeTextDetails( new FreeTextIndexDetails(true) )
 
                 // Entity Centric Index is not supported, so it flips to false.
-                .setEntityCentricIndexDetails( new EntityCentricIndexDetails(false) )
+                .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
 
                 // PCJJ Index is not supported, so it flips to false.
                 .setPCJIndexDetails(

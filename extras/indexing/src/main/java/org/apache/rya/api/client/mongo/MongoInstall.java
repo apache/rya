@@ -147,10 +147,6 @@ public class MongoInstall implements Install {
             final InstallConfiguration installConfig) throws AlreadyInitializedException, RyaDetailsRepositoryException {
         final RyaDetailsRepository detailsRepo = new MongoRyaInstanceDetailsRepository(adminClient, instanceName);
 
-        if(installConfig.getFluoPcjAppName().isPresent()) {
-        	log.warn("Mongo does not have fluo support, use ignoring the configured fluo application name: " + installConfig.getFluoPcjAppName().get());
-        }
-        
         // Build the PCJ Index details.
         final PCJIndexDetails.Builder pcjDetailsBuilder = PCJIndexDetails.builder()
                 .setEnabled(installConfig.isPcjIndexEnabled());

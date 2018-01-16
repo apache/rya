@@ -154,6 +154,67 @@ public class MongoDBRyaDAOIT extends MongoITBase {
     }
 
     @Test
+    public void testReconstructDao() throws RyaDAOException, IOException {
+        MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        try {
+            dao.setConf(conf);
+            dao.init();
+
+            final RyaStatementBuilder builder = new RyaStatementBuilder();
+            builder.setPredicate(new RyaURI("http://temp.com"));
+            builder.setSubject(new RyaURI("http://subject.com"));
+            builder.setObject(new RyaURI("http://object.com"));
+            builder.setColumnVisibility(new DocumentVisibility("B").flatten());
+
+            final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+            final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
+
+            dao.add(builder.build());
+
+            assertEquals(coll.count(), 1);
+
+            final Document dbo = coll.find().first();
+            assertTrue(dbo.containsKey(DOCUMENT_VISIBILITY));
+            assertTrue(dbo.containsKey(TIMESTAMP));
+        }  finally {
+            dao.destroy();
+        }
+
+        // Test reinitializing the same instance
+        try {
+            dao.init();
+        } finally {
+            dao.destroy();
+        }
+
+        // Reconstruct new DAO and try again
+        dao = new MongoDBRyaDAO();
+        try {
+            dao.setConf(conf);
+            dao.init();
+
+            final RyaStatementBuilder builder = new RyaStatementBuilder();
+            builder.setPredicate(new RyaURI("http://temp.com"));
+            builder.setSubject(new RyaURI("http://subject.com"));
+            builder.setObject(new RyaURI("http://object.com"));
+            builder.setColumnVisibility(new DocumentVisibility("B").flatten());
+
+            final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+            final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
+
+            dao.add(builder.build());
+
+            assertEquals(coll.count(), 1);
+
+            final Document dbo = coll.find().first();
+            assertTrue(dbo.containsKey(DOCUMENT_VISIBILITY));
+            assertTrue(dbo.containsKey(TIMESTAMP));
+        }  finally {
+            dao.destroy();
+        }
+    }
+
+    @Test
     public void testVisibility() throws RyaDAOException, MongoException, IOException {
         final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         try {

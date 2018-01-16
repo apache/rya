@@ -55,7 +55,7 @@ public class MongoListInstances implements ListInstances {
         final List<String> ryaInstances = new ArrayList<>();
         for (final String db : adminClient.listDatabaseNames()) {
             for(final String collection : adminClient.getDatabase(db).listCollectionNames()) {
-                if (collection.equals(MongoRyaInstanceDetailsRepository.INSTANCE_DETAILS_COLLECTION_NAME)) {
+               if (collection.equals(MongoRyaInstanceDetailsRepository.INSTANCE_DETAILS_COLLECTION_NAME)) {
                     ryaInstances.add(db);
                     break;
                 }

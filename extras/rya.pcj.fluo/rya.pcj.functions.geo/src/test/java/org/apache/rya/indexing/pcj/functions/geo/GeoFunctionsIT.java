@@ -342,7 +342,7 @@ public class GeoFunctionsIT extends RyaExportITBase {
                 accInstance.getInstanceName(),
                 accInstance.getZooKeepers()), accumuloConn);
 
-        ryaClient.getCreatePCJ().createPCJ(getRyaInstanceName(), sparql);
+        ryaClient.getCreatePCJ().get().createPCJ(getRyaInstanceName(), sparql);
 
         // Write the data to Rya.
         final SailRepositoryConnection ryaConn = super.getRyaSailRepository().getConnection();

@@ -91,6 +91,34 @@ public class AccumuloInstallIT extends AccumuloITBase {
         assertTrue( ryaClient.getInstanceExists().exists(instanceName) );
     }
 
+    @Test
+    public void install_withIndexers() throws AccumuloException, AccumuloSecurityException, DuplicateInstanceNameException, RyaClientException, NotInitializedException, RyaDetailsRepositoryException {
+        // Install an instance of Rya.
+        final String instanceName = getRyaInstanceName();
+        final InstallConfiguration installConfig = InstallConfiguration.builder()
+                .setEnableTableHashPrefix(true)
+                .setEnableEntityCentricIndex(true)
+                .setEnableFreeTextIndex(true)
+                .setEnableTemporalIndex(true)
+                .setEnablePcjIndex(false)//todo this doesn't install properly
+                .setEnableGeoIndex(true)
+                .setFluoPcjAppName("fluo_app_name")
+                .build();
+
+        final AccumuloConnectionDetails connectionDetails = new AccumuloConnectionDetails(
+                getUsername(),
+                getPassword().toCharArray(),
+                getInstanceName(),
+                getZookeepers());
+
+        final Install install = new AccumuloInstall(connectionDetails, getConnector());
+        install.install(instanceName, installConfig);
+
+        // Check that the instance exists.
+        final InstanceExists instanceExists = new AccumuloInstanceExists(connectionDetails, getConnector());
+        assertTrue( instanceExists.exists(instanceName) );
+    }
+
     @Test(expected = DuplicateInstanceNameException.class)
     public void install_alreadyExists() throws DuplicateInstanceNameException, RyaClientException, AccumuloException, AccumuloSecurityException {
         // Install an instance of Rya.

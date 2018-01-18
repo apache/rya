@@ -43,9 +43,9 @@ public class InMemoryQueryRepositoryTest {
         try(final QueryRepository queries = new InMemoryQueryRepository( new InMemoryQueryChangeLog() )) {
             // Add some queries to it.
             final Set<StreamsQuery> expected = new HashSet<>();
-            expected.add( queries.add("query 1") );
-            expected.add( queries.add("query 2") );
-            expected.add( queries.add("query 3") );
+            expected.add( queries.add("query 1", true) );
+            expected.add( queries.add("query 2", false) );
+            expected.add( queries.add("query 3", true) );
 
             // Show they are in the list of all queries.
             final Set<StreamsQuery> stored = queries.list();
@@ -59,9 +59,9 @@ public class InMemoryQueryRepositoryTest {
         try(final QueryRepository queries = new InMemoryQueryRepository( new InMemoryQueryChangeLog() )) {
             // Add some queries to it. The second one we will delete.
             final Set<StreamsQuery> expected = new HashSet<>();
-            expected.add( queries.add("query 1") );
-            final UUID deletedMeId = queries.add("query 2").getQueryId();
-            expected.add( queries.add("query 3") );
+            expected.add( queries.add("query 1", true) );
+            final UUID deletedMeId = queries.add("query 2", false).getQueryId();
+            expected.add( queries.add("query 3", true) );
 
             // Delete the second query.
             queries.delete( deletedMeId );
@@ -73,15 +73,15 @@ public class InMemoryQueryRepositoryTest {
     }
 
     @Test
-    public void initializedWithPopulatedChnageLog() throws Exception {
+    public void initializedWithPopulatedChangeLog() throws Exception {
         // Setup a totally in memory QueryRepository. Hold onto the change log so that we can use it again later.
         final QueryChangeLog changeLog = new InMemoryQueryChangeLog();
         try(final QueryRepository queries = new InMemoryQueryRepository( changeLog )) {
             // Add some queries and deletes to it.
             final Set<StreamsQuery> expected = new HashSet<>();
-            expected.add( queries.add("query 1") );
-            final UUID deletedMeId = queries.add("query 2").getQueryId();
-            expected.add( queries.add("query 3") );
+            expected.add( queries.add("query 1", true) );
+            final UUID deletedMeId = queries.add("query 2", false).getQueryId();
+            expected.add( queries.add("query 3", true) );
             queries.delete( deletedMeId );
 
             // Create a new totally in memory QueryRepository.
@@ -110,7 +110,7 @@ public class InMemoryQueryRepositoryTest {
         // Setup a totally in memory QueryRepository.
         try(final QueryRepository queries = new InMemoryQueryRepository( new InMemoryQueryChangeLog() )) {
             // Add a query to it.
-            final StreamsQuery query = queries.add("query 1");
+            final StreamsQuery query = queries.add("query 1", true);
 
             // Show the fetched query matches the expected ones.
             final Optional<StreamsQuery> fetched = queries.get(query.getQueryId());
@@ -127,6 +127,23 @@ public class InMemoryQueryRepositoryTest {
 
             // Show it could not be found.
             assertFalse(query.isPresent());
+        }
+    }
+
+    @Test
+    public void update() throws Exception {
+        // Setup a totally in memory QueryRepository.
+        try(final QueryRepository queries = new InMemoryQueryRepository( new InMemoryQueryChangeLog() )) {
+            // Add a query to it.
+            final StreamsQuery query = queries.add("query 1", true);
+
+            // Change the isActive state of that query.
+            queries.updateIsActive(query.getQueryId(), false);
+
+            // Show the fetched query matches the expected one.
+            final Optional<StreamsQuery> fetched = queries.get(query.getQueryId());
+            final StreamsQuery expected = new StreamsQuery(query.getQueryId(), query.getSparql(), false);
+            assertEquals(expected, fetched.get());
         }
     }
 }

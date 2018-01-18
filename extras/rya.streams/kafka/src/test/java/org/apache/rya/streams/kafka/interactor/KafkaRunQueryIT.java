@@ -86,7 +86,7 @@ public class KafkaRunQueryIT {
         final QueryRepository queries = new InMemoryQueryRepository( new InMemoryQueryChangeLog() );
 
         // Add the query to the query repository.
-        final StreamsQuery sQuery = queries.add("SELECT * WHERE { ?person <urn:worksAt> ?business . }");
+        final StreamsQuery sQuery = queries.add("SELECT * WHERE { ?person <urn:worksAt> ?business . }", true);
         final UUID queryId = sQuery.getQueryId();
         final String resultsTopic = KafkaTopics.queryResultsTopic(queryId);
 

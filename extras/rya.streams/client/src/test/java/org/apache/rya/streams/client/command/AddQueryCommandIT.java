@@ -80,7 +80,8 @@ public class AddQueryCommandIT {
                 "-r", "" + ryaInstance,
                 "-i", kafka.getKafkaHostname(),
                 "-p", kafka.getKafkaPort(),
-                "-q", query
+                "-q", query,
+                "-a", "true"
         };
 
         // Execute the command.
@@ -101,7 +102,8 @@ public class AddQueryCommandIT {
                 "--ryaInstance", "" + ryaInstance,
                 "--kafkaHostname", kafka.getKafkaHostname(),
                 "--kafkaPort", kafka.getKafkaPort(),
-                "--query", query
+                "--query", query,
+                "--isActive", "true"
         };
 
         // Execute the command.

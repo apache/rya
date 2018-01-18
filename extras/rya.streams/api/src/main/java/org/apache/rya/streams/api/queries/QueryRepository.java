@@ -38,10 +38,23 @@ public interface QueryRepository extends AutoCloseable {
      * Adds a new query to Rya Streams.
      *
      * @param query - The SPARQL query to add. (not null)
+     * @param isActive - {@code true} if the query should be processed after it is added
+     *   otherwise {@code false}.
      * @return The {@link StreamsQuery} used in Rya Streams.
      * @throws QueryRepositoryException Could not add the query.
      */
-    public StreamsQuery add(final String query) throws QueryRepositoryException;
+    public StreamsQuery add(final String query, boolean isActive) throws QueryRepositoryException;
+
+    /**
+     * Updates the isActive state of a {@link StreamsQuery}. Setting this value to {@code true}
+     * means Rya Streams will start processing the query. Setting it to {@code false} will stop
+     * the processing.
+     *
+     * @param queryId - Identifies which query will be updated. (not null)
+     * @param isActive - The new isActive state for the query.
+     * @throws QueryRepositoryException If the query does not exist or something else caused the change to fail.
+     */
+    public void updateIsActive(UUID queryId, boolean isActive) throws QueryRepositoryException;
 
     /**
      * Get an existing query from Rya Streams.

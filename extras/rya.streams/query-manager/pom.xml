@@ -48,7 +48,57 @@ under the License.
         </dependency>
     </dependencies>
     <build>
+        <!-- Add the XSD directory as a resource so that it will be packaged in the jar. 
+           - Required so that the marshalling code is able to find the schema it is 
+           - validating XML against. -->
+        <resources>
+            <resource>
+                <directory>src/main/xsd</directory>
+            </resource>
+        </resources>
+    
         <plugins>
+            <!-- Generate the XML marshalling java code from the XSD file defining its structure. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxb2-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>xjc</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <packageName>org.apache.rya.streams.querymanager.xml</packageName>
+                </configuration>
+            </plugin>
+         
+            <!-- Ensure the generated java source contains the lisence header. -->   
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <header>${project.basedir}/src/license/header.txt</header>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>update-generated-source-headers</id>
+                        <configuration>
+                            <basedir>${project.build.directory}/generated-sources/jaxb</basedir>
+                            <mapping>
+                                <sun-jaxb.episode>XML_STYLE</sun-jaxb.episode>
+                            </mapping>
+                        </configuration>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>

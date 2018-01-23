@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.rya.streams.api.entity.StreamsQuery;
 import org.apache.rya.streams.api.queries.InMemoryQueryRepository;
@@ -39,6 +40,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.google.common.base.Strings;
+import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -117,8 +119,11 @@ public class RunQueryCommand implements RyaStreamsCommand {
         final String topic = KafkaTopics.queryChangeLogTopic(params.ryaInstance);
         final QueryChangeLog queryChangeLog = KafkaQueryChangeLogFactory.make(bootstrapServers, topic);
 
+        //The RunQuery command doesn't use the scheduled service feature.
+        final Scheduler scheduler = Scheduler.newFixedRateSchedule(0L, 5, TimeUnit.SECONDS);
+        final QueryRepository queryRepo = new InMemoryQueryRepository(queryChangeLog, scheduler);
         // Look up the query to be executed from the change log.
-        try(QueryRepository queryRepo = new InMemoryQueryRepository(queryChangeLog)) {
+        try {
             try {
                 final UUID queryId = UUID.fromString( params.queryId );
                 final Optional<StreamsQuery> query = queryRepo.get(queryId);
@@ -145,7 +150,7 @@ public class RunQueryCommand implements RyaStreamsCommand {
             } catch(final Exception e) {
                 throw new ExecutionException("Could not execute the Run Query command.", e);
             }
-        } catch(final ArgumentsException | ExecutionException e) {
+        } catch(final ExecutionException e) {
             // Rethrow the exceptions that are advertised by execute.
             throw e;
         } catch (final Exception e) {

@@ -53,6 +53,14 @@ public interface QueryExecutor extends Service {
     public void stopQuery(final UUID queryID) throws QueryExecutorException;
 
     /**
+     * Stops all {@link StreamsQuery} belonging to a specific rya instance.
+     *
+     * @param ryaInstanceName - The name of the rya instance to stop all queries for. (not null)
+     * @throws QueryExecutorException When the queries fails to stop.
+     */
+    public void stopAll(final String ryaInstanceName) throws QueryExecutorException;
+
+    /**
      * @return - A set of {@link UUID}s representing the current active queries.
      * @throws QueryExecutorException Can't discover which queries are currently running.
      */

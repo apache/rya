@@ -21,6 +21,7 @@ package org.apache.rya.streams.client.command;
 import static java.util.Objects.requireNonNull;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.rya.streams.api.exception.RyaStreamsException;
 import org.apache.rya.streams.api.interactor.DeleteQuery;
@@ -36,6 +37,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.google.common.base.Strings;
+import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -113,8 +115,11 @@ public class DeleteQueryCommand implements RyaStreamsCommand {
         final String topic = KafkaTopics.queryChangeLogTopic(params.ryaInstance);
         final QueryChangeLog queryChangeLog = KafkaQueryChangeLogFactory.make(bootstrapServers, topic);
 
+        //The DeleteQuery command doesn't use the scheduled service feature.
+        final Scheduler scheduler = Scheduler.newFixedRateSchedule(0L, 5, TimeUnit.SECONDS);
+        final QueryRepository queryRepo = new InMemoryQueryRepository(queryChangeLog, scheduler);
         // Execute the delete query command.
-        try(QueryRepository queryRepo = new InMemoryQueryRepository(queryChangeLog)) {
+        try {
             final DeleteQuery deleteQuery = new DefaultDeleteQuery(queryRepo);
             try {
                 deleteQuery.delete(UUID.fromString(params.queryId));

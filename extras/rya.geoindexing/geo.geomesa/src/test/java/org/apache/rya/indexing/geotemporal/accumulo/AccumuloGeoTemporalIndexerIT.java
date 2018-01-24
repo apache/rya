@@ -91,7 +91,7 @@ public class AccumuloGeoTemporalIndexerIT extends AccumuloITBase {
         final RyaStatement geoStmnt = statement(point(0, 0));
         final RyaStatement timeStmnt = statement(makeInstant(0));
 
-        final EventStorage store = indexer.getEventStorage(ryaConf);
+        final EventStorage store = indexer.getEventStorage();
 
         indexer.storeStatement(geoStmnt);
         Optional<Event> evnt = store.get(geoStmnt.getSubject());

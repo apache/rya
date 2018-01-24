@@ -220,7 +220,7 @@ public class AccumuloGeoTemporalIndexer extends AbstractAccumuloIndexer implemen
      * @see org.apache.rya.indexing.GeoTemporalIndexer#getEventStorage(org.apache.hadoop.conf.Configuration)
      */
     @Override
-    public EventStorage getEventStorage(Configuration conf) {
+    public EventStorage getEventStorage() {
         Objects.requireNonNull(eventStorage, "This is not initialized, call setconf() and init() first.");
         return eventStorage;
     }

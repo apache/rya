@@ -22,7 +22,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.mongodb.MongoSecondaryIndex;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
-
+import org.apache.rya.indexing.GeoTemporalIndexerType;
+import org.apache.rya.indexing.GeoEnabledFilterFunctionOptimizer;
 import com.google.common.base.Preconditions;
 
 /**

@@ -19,7 +19,6 @@ import java.util.regex.Matcher;
 
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.mock.MockInstance;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaURI;
@@ -492,7 +491,7 @@ public class AccumuloEventStorage implements EventStorage {
     		cqlString=null;
     	}else {
     		cqlString=null;
-    		throw new NotImplementedException("Temporal filter expression not supported. sparqlIndexingExpression="+sparqlIndexingExpression + ", sparqlIndexingExpression.getFunction()=" + sparqlIndexingExpression.getFunction());  // TODO need more
+    		throw new RuntimeException("Temporal filter expression not supported. sparqlIndexingExpression="+sparqlIndexingExpression + ", sparqlIndexingExpression.getFunction()=" + sparqlIndexingExpression.getFunction());  // TODO need more
     	}
         return cqlString;
 	}
@@ -532,7 +531,7 @@ public class AccumuloEventStorage implements EventStorage {
     		cqlString = "OVERLAPS" + "(" + GEOMETRY_ATTRIBUTE + ", " + geometry + " )";
 		} else {
 			cqlString=null;
-    		throw new NotImplementedException("Unkown function. function="+function+" sparqlIndexingExpression="+sparqlIndexingExpression + ", sparqlIndexingExpression.getFunction()=" + sparqlIndexingExpression.getFunction());  // TODO need more
+    		throw new RuntimeException("Unkown function. function="+function+" sparqlIndexingExpression="+sparqlIndexingExpression + ", sparqlIndexingExpression.getFunction()=" + sparqlIndexingExpression.getFunction());  // TODO need more
     	}
         return cqlString;
     }

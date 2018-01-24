@@ -74,9 +74,9 @@ public class AccumuloGeoTemporalIndexIT extends AccumuloITBase {
 		ryaConf.set(ConfigUtils.CLOUDBASE_PASSWORD, super.getPassword());
 		ryaConf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, super.getZookeepers());
 		ryaConf.set(ConfigUtils.CLOUDBASE_INSTANCE, super.getInstanceName());
-		ryaConf.set(OptionalConfigUtils.USE_GEO, "true");//"false");
+		ryaConf.set(OptionalConfigUtils.USE_GEO, "true"); //TODO investigate false
 		ryaConf.set(OptionalConfigUtils.USE_GEOTEMPORAL, "true");
-		ryaConf.set(OptionalConfigUtils.USE_TEMPORAL, "true");
+		ryaConf.set(OptionalConfigUtils.USE_TEMPORAL, "true"); //TODO investigate false
 		ryaConf.set(OptionalConfigUtils.USE_MONGO, "false");
 		ryaConf.set(OptionalConfigUtils.TEMPORAL_PREDICATES_LIST,URI_PROPERTY_AT_TIME);
 		ryaConf.set(OptionalConfigUtils.GEO_PREDICATES_LIST,GeoConstants.GEO_AS_WKT.stringValue());
@@ -106,7 +106,7 @@ public class AccumuloGeoTemporalIndexIT extends AccumuloITBase {
     public void ensureInEventStore_Test() throws Exception {
         addStatements();
 
-        final EventStorage eventStorage = indexer.getEventStorage(ryaConf);
+        final EventStorage eventStorage = indexer.getEventStorage();
         final RyaURI subject = new RyaURI("urn:event1");
         final Optional<Event> event = eventStorage.get(subject);
         System.out.println("Expected subj="+subject+" found event:"+event);
@@ -121,7 +121,7 @@ public class AccumuloGeoTemporalIndexIT extends AccumuloITBase {
     public void ensureStoreTimeOnly_Test() throws Exception {
         addStatements();
 
-        final EventStorage eventStorage = indexer.getEventStorage(ryaConf);
+        final EventStorage eventStorage = indexer.getEventStorage();
         final RyaURI subject = new RyaURI("urn:event3");
         final Optional<Event> event = eventStorage.get(subject);
         System.out.println("Expected subj="+subject+" found event:"+event);
@@ -135,7 +135,7 @@ public class AccumuloGeoTemporalIndexIT extends AccumuloITBase {
     public void ensureGeoOnlyStore_Test() throws Exception {
         addStatements();
 
-        final EventStorage eventStorage = indexer.getEventStorage(ryaConf);
+        final EventStorage eventStorage = indexer.getEventStorage();
         final RyaURI subject = new RyaURI("urn:event4");
         final Optional<Event> event = eventStorage.get(subject);
         System.out.println("Expected subj="+subject+" found event:"+event);

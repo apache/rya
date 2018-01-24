@@ -22,7 +22,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.mongodb.MongoSecondaryIndex;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
-
+import org.apache.rya.indexing.GeoTemporalIndexerType;
+import org.apache.rya.indexing.GeoEnabledFilterFunctionOptimizer;
 import com.google.common.base.Preconditions;
 
 /**
@@ -47,8 +48,10 @@ public class GeoTemporalIndexerFactory {
             
             throw new IllegalStateException("Geo Temporal Indexing is not turned on. Check configuration.");
         } else {
-            //TODO: add Accumulo here.
-            return null;
+            final GeoTemporalIndexer index = GeoEnabledFilterFunctionOptimizer.instantiate(GeoTemporalIndexerType.GEOMESA_GEO_TEMPORAL.getGeoTemporalIndexerClassString(), GeoTemporalIndexer.class);
+            index.setConf(conf);
+            index.init();
+            return index;
         }
     }
 }

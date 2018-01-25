@@ -20,6 +20,7 @@ package org.apache.rya.indexing.mongodb;
 
 import java.util.Properties;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.entity.EntityCentricIndex;
@@ -45,7 +46,7 @@ public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
     private MongoIndexingConfiguration() {
     };
 
-    private MongoIndexingConfiguration(Configuration conf) {
+    private MongoIndexingConfiguration(final Configuration conf) {
         super(conf);
     }
 
@@ -57,7 +58,7 @@ public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
      * Creates a MongoIndexingConfiguration object from a Properties file. This
      * method assumes that all values in the Properties file are Strings and
      * that the Properties file uses the keys below.
-     * 
+     *
      * <br>
      * <ul>
      * <li>"mongo.auths" - String of Mongo authorizations. Empty auths used by
@@ -91,26 +92,26 @@ public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
      * as comma delimited Strings with no spaces between. Empty by default.
      * </ul>
      * <br>
-     * 
+     *
      * @param props
      *            - Properties file containing Mongo specific configuration
      *            parameters
      * @return MongoIndexingConfiguration with properties set
      */
-    public static MongoIndexingConfiguration fromProperties(Properties props) {
+    public static MongoIndexingConfiguration fromProperties(final Properties props) {
         return MongoDBIndexingConfigBuilder.fromProperties(props);
     }
 
     /**
-     * 
+     *
      * Specify whether to use use {@link EntityCentricIndex} for ingest and at
      * query time. The default value is false, and if useEntity is set to true
      * and the EntityIndex does not exist, then useEntity will default to false.
-     * 
+     *
      * @param useEntity
      *            - use entity indexing
      */
-    public void setUseEntity(boolean useEntity) {
+    public void setUseEntity(final boolean useEntity) {
         setBoolean(ConfigUtils.USE_ENTITY, useEntity);
     }
 
@@ -122,16 +123,16 @@ public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
     }
 
     /**
-     * 
+     *
      * Specify whether to use use {@link MongoTemporalIndexer} for ingest and
      * at query time. The default value is false, and if useTemporal is set to
      * true and the TemporalIndex does not exist, then useTemporal will default
      * to false.
-     * 
+     *
      * @param useTemporal
      *            - use temporal indexing
      */
-    public void setUseTemporal(boolean useTemporal) {
+    public void setUseTemporal(final boolean useTemporal) {
         setBoolean(ConfigUtils.USE_TEMPORAL, useTemporal);
     }
 
@@ -150,16 +151,16 @@ public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
     }
 
     /**
-     * 
+     *
      * Specify whether to use use {@link MongoFreeTextIndexer} for ingest and
      * at query time. The default value is false, and if useFreeText is set to
      * true and the FreeTextIndex does not exist, then useFreeText will default
      * to false.
-     * 
+     *
      * @param useFreeText
      *            - use freetext indexing
      */
-    public void setUseFreetext(boolean useFreetext) {
+    public void setUseFreetext(final boolean useFreetext) {
         setBoolean(ConfigUtils.USE_FREETEXT, useFreetext);
     }
 
@@ -167,7 +168,7 @@ public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
      * Sets the predicates that the {@link MongoFreeTextIndexer} uses for indexing
      * @param predicates - predicate URI used for freetext indexing
      */
-    public void setMongoFreeTextPredicates(String[] predicates) {
+    public void setMongoFreeTextPredicates(final String[] predicates) {
         Preconditions.checkNotNull(predicates, "Freetext predicates cannot be null.");
         setStrings(ConfigUtils.FREETEXT_PREDICATES_LIST, predicates);
     }
@@ -183,7 +184,7 @@ public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
      * Sets the predicates that the {@link MongoTemporalIndexer} uses for indexing
      * @param predicates - predicate URI used for temporal indexing
      */
-    public void setMongoTemporalPredicates(String[] predicates) {
+    public void setMongoTemporalPredicates(final String[] predicates) {
         Preconditions.checkNotNull(predicates, "Freetext predicates cannot be null.");
         setStrings(ConfigUtils.TEMPORAL_PREDICATES_LIST, predicates);
     }
@@ -223,7 +224,7 @@ public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
          * Creates a MongoIndexingConfiguration object from a Properties file.
          * This method assumes that all values in the Properties file are
          * Strings and that the Properties file uses the keys below.
-         * 
+         *
          * <br>
          * <ul>
          * <li>"mongo.auths" - String of Mongo authorizations. Empty auths used
@@ -259,15 +260,15 @@ public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
          * default.
          * </ul>
          * <br>
-         * 
+         *
          * @param props
          *            - Properties file containing Mongo specific configuration
          *            parameters
          * @return MongoIndexingConfiguration with properties set
          */
-        public static MongoIndexingConfiguration fromProperties(Properties props) {
+        public static MongoIndexingConfiguration fromProperties(final Properties props) {
             try {
-                MongoDBIndexingConfigBuilder builder = new MongoDBIndexingConfigBuilder() //
+                final MongoDBIndexingConfigBuilder builder = new MongoDBIndexingConfigBuilder() //
                         .setAuths(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_AUTHS, "")) //
                         .setRyaPrefix(
                                 props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_RYA_PREFIX, "rya_"))//
@@ -290,82 +291,82 @@ public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
                         .setUseMongoFreetextIndex(getBoolean(props.getProperty(USE_FREETEXT, "false")))//
                         .setUseMongoTemporalIndex(getBoolean(props.getProperty(USE_TEMPORAL, "false")))//
                         .setUseMongoEntityIndex(getBoolean(props.getProperty(USE_ENTITY, "false")))//
-                        .setMongoFreeTextPredicates(props.getProperty(FREETEXT_PREDICATES))//
-                        .setMongoTemporalPredicates(props.getProperty(TEMPORAL_PREDICATES));
+                        .setMongoFreeTextPredicates(StringUtils.split(props.getProperty(FREETEXT_PREDICATES), ","))//
+                        .setMongoTemporalPredicates(StringUtils.split(props.getProperty(TEMPORAL_PREDICATES), ","));
 
                 return builder.build();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new RuntimeException(e);
             }
         }
 
         /**
-         * 
+         *
          * Specify whether to use use {@link MongoFreeTextIndexer} for ingest
          * and at query time. The default value is false, and if useFreeText is
          * set to true and the FreeTextIndex does not exist, then useFreeText
          * will default to false.
-         * 
+         *
          * @param useFreeText
          *            - use freetext indexing
          * @return MongoIndexingConfigBuilder for chaining method invocations
          */
-        public MongoDBIndexingConfigBuilder setUseMongoFreetextIndex(boolean useFreeText) {
+        public MongoDBIndexingConfigBuilder setUseMongoFreetextIndex(final boolean useFreeText) {
             this.useFreetext = useFreeText;
             return this;
         }
 
         /**
-         * 
+         *
          * Specify whether to use use {@link MongoTemporalIndexer} for ingest
          * and at query time. The default value is false, and if useTemporal is
          * set to true and the TemporalIndex does not exist, then useTemporal
          * will default to false.
-         * 
+         *
          * @param useTemporal
          *            - use temporal indexing
          * @return MongoIndexingConfigBuilder for chaining method invocations
          */
-        public MongoDBIndexingConfigBuilder setUseMongoTemporalIndex(boolean useTemporal) {
+        public MongoDBIndexingConfigBuilder setUseMongoTemporalIndex(final boolean useTemporal) {
             this.useTemporal = useTemporal;
             return this;
         }
 
         /**
-         * 
+         *
          * Specify whether to use the MongoEntityIndexer for ingest and at query
          * time. The default value is false, and if useEntity is set to true and
          * the EntityIndex does not exist, then useEntity will default to false.
-         * 
+         *
          * @param useEntity
          *            - use entity indexing
          * @return MongoIndexingConfigBuilder for chaining method invocations
          */
-        public MongoDBIndexingConfigBuilder setUseMongoEntityIndex(boolean useEntity) {
+        public MongoDBIndexingConfigBuilder setUseMongoEntityIndex(final boolean useEntity) {
             this.useEntity = useEntity;
             return this;
         }
 
         /**
-         * 
+         *
          * @param predicates
          *            - String of comma delimited predicates used by the
          *            FreetextIndexer to determine which triples to index
          * @return MongoIndexingConfigBuilder for chaining method invocations
          */
-        public MongoDBIndexingConfigBuilder setMongoFreeTextPredicates(String... predicates) {
+        public MongoDBIndexingConfigBuilder setMongoFreeTextPredicates(final String... predicates) {
             this.freetextPredicates = predicates;
             return this;
         }
 
         /**
-         * 
+         *
          * @param predicates
          *            - String of comma delimited predicates used by the
          *            TemporalIndexer to determine which triples to index
          * @return MongoIndexingConfigBuilder for chaining method invocations
          */
-        public MongoDBIndexingConfigBuilder setMongoTemporalPredicates(String... predicates) {
+        public MongoDBIndexingConfigBuilder setMongoTemporalPredicates(final String... predicates) {
             this.temporalPredicates = predicates;
             return this;
         }
@@ -373,18 +374,19 @@ public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
         /**
          * @return {@link MongoIndexingConfiguration} with specified parameters set
          */
+        @Override
         public MongoIndexingConfiguration build() {
-            MongoIndexingConfiguration conf = getConf(super.build());
+            final MongoIndexingConfiguration conf = getConf(super.build());
             return conf;
         }
 
         /**
          * Assigns builder values to appropriate parameters within the {@link Configuration} object.
-         * 
+         *
          * @param conf - Configuration object
          * @return - Configuration object with parameters set
          */
-        private MongoIndexingConfiguration getConf(MongoIndexingConfiguration conf) {
+        private MongoIndexingConfiguration getConf(final MongoIndexingConfiguration conf) {
 
             if (useFreetext) {
                 conf.setUseFreetext(useFreetext);

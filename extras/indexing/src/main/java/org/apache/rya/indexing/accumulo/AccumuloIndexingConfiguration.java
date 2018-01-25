@@ -18,22 +18,21 @@
  */
 package org.apache.rya.indexing.accumulo;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AbstractAccumuloRdfConfigurationBuilder;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRdfConfigurationBuilder;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.accumulo.entity.EntityCentricIndex;
 import org.apache.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
 import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexer;
+import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataOptimizer;
 import org.openrdf.sail.Sail;
 
 import com.google.common.base.Preconditions;
@@ -61,7 +60,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
      * Creates an AccumuloIndexingConfiguration object from a Properties file.
      * This method assumes that all values in the Properties file are Strings
      * and that the Properties file uses the keys below.
-     * 
+     *
      * <br>
      * <ul>
      * <li>"accumulo.auths" - String of Accumulo authorizations. Default is
@@ -106,26 +105,26 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
      * as comma delimited Strings with no spaces between. Empty by default.
      * </ul>
      * <br>
-     * 
+     *
      * @param props
      *            - Properties file containing Accumulo specific configuration
      *            parameters
      * @return AccumumuloIndexingConfiguration with properties set
      */
-    public static AccumuloIndexingConfiguration fromProperties(Properties props) {
+    public static AccumuloIndexingConfiguration fromProperties(final Properties props) {
         return AccumuloIndexingConfigBuilder.fromProperties(props);
     }
 
     /**
-     * 
+     *
      * Specify whether to use use {@link EntitCentricIndex} for ingest and at
      * query time. The default value is false, and if useEntity is set to true
      * and the EntityIndex does not exist, then useEntity will default to false.
-     * 
+     *
      * @param useEntity
      *            - use entity indexing
      */
-    public void setUseEntity(boolean useEntity) {
+    public void setUseEntity(final boolean useEntity) {
         setBoolean(ConfigUtils.USE_ENTITY, useEntity);
     }
 
@@ -137,16 +136,16 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
     }
 
     /**
-     * 
+     *
      * Specify whether to use use {@link AccumuloTemproalIndexer} for ingest and
      * at query time. The default value is false, and if useTemporal is set to
      * true and the TemporalIndex does not exist, then useTemporal will default
      * to false.
-     * 
+     *
      * @param useTemporal
      *            - use temporal indexing
      */
-    public void setUseTemporal(boolean useTemporal) {
+    public void setUseTemporal(final boolean useTemporal) {
         setBoolean(ConfigUtils.USE_TEMPORAL, useTemporal);
     }
 
@@ -165,16 +164,16 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
     }
 
     /**
-     * 
+     *
      * Specify whether to use use {@link AccumuloFreeTextIndexer} for ingest and
      * at query time. The default value is false, and if useFreeText is set to
      * true and the FreeTextIndex does not exist, then useFreeText will default
      * to false.
-     * 
+     *
      * @param useFreeText
      *            - use freetext indexing
      */
-    public void setUseFreetext(boolean useFreetext) {
+    public void setUseFreetext(final boolean useFreetext) {
         setBoolean(ConfigUtils.USE_FREETEXT, useFreetext);
     }
 
@@ -185,7 +184,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
         return getBoolean(ConfigUtils.USE_PCJ_UPDATER_INDEX, false);
     }
 
-    public void setUsePCJUpdater(boolean usePCJUpdater) {
+    public void setUsePCJUpdater(final boolean usePCJUpdater) {
         setBoolean(ConfigUtils.USE_PCJ_UPDATER_INDEX, usePCJUpdater);
         if (usePCJUpdater) {
             set(ConfigUtils.PCJ_STORAGE_TYPE, "ACCUMULO");
@@ -194,18 +193,18 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
     }
 
     /**
-     * 
+     *
      * Specify the name of the PCJ Fluo updater application. A non-null
      * application results in the {@link PrecomputedJoinIndexer} being activated
      * so that all triples ingested into Rya are also ingested into Fluo to
      * update any registered PCJs. PreomputedJoinIndexer is turned off by
      * default. If no fluo application of the specified name exists, a
      * RuntimeException will occur.
-     * 
+     *
      * @param fluoAppName
      *            - use entity indexing
      */
-    public void setFluoAppUpdaterName(String fluoAppName) {
+    public void setFluoAppUpdaterName(final String fluoAppName) {
         Preconditions.checkNotNull(fluoAppName, "Fluo app name cannot be null.");
         setUsePCJUpdater(true);
         set(ConfigUtils.FLUO_APP_NAME, fluoAppName);
@@ -220,11 +219,11 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
 
     /**
      * Use Precomputed Joins as a query optimization.
-     * 
+     *
      * @param usePcj
      *            - use PCJ
      */
-    public void setUsePCJ(boolean usePCJ) {
+    public void setUsePCJ(final boolean usePCJ) {
         setBoolean(ConfigUtils.USE_PCJ, usePCJ);
     }
 
@@ -238,11 +237,11 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
     /**
      * Use Precomputed Joins as a query optimization and attempt to find the
      * best combination of PCJ in the query plan
-     * 
+     *
      * @param useOptimalPcj
      *            - use optimal pcj plan
      */
-    public void setUseOptimalPCJ(boolean useOptimalPCJ) {
+    public void setUseOptimalPCJ(final boolean useOptimalPCJ) {
         setBoolean(ConfigUtils.USE_OPTIMAL_PCJ, useOptimalPCJ);
     }
 
@@ -258,7 +257,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
      * Sets the predicates used for freetext indexing
      * @param predicates - Array of predicate URI strings used for freetext indexing
      */
-    public void setAccumuloFreeTextPredicates(String[] predicates) {
+    public void setAccumuloFreeTextPredicates(final String[] predicates) {
         Preconditions.checkNotNull(predicates, "Freetext predicates cannot be null.");
         setStrings(ConfigUtils.FREETEXT_PREDICATES_LIST, predicates);
     }
@@ -275,7 +274,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
      * Sets the predicates used for temporal indexing
      * @param predicates - Array of predicate URI strings used for temporal indexing
      */
-    public void setAccumuloTemporalPredicates(String[] predicates) {
+    public void setAccumuloTemporalPredicates(final String[] predicates) {
         Preconditions.checkNotNull(predicates, "Freetext predicates cannot be null.");
         setStrings(ConfigUtils.TEMPORAL_PREDICATES_LIST, predicates);
     }
@@ -287,15 +286,19 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
     public String[] getAccumuloTemporalPredicates() {
         return getStrings(ConfigUtils.TEMPORAL_PREDICATES_LIST);
     }
-    
-    private static Set<RyaURI> getPropURIFromStrings(String ... props) {
-        Set<RyaURI> properties = new HashSet<>();
-        for(String prop: props) {
-            properties.add(new RyaURI(prop));
+
+    private static Set<RyaURI> getPropURIFromStrings(final String... props) {
+        final Set<RyaURI> properties = new HashSet<>();
+        if (props != null) {
+            for(final String prop : props) {
+                if (StringUtils.isNotBlank(prop)) {
+                    properties.add(new RyaURI(prop));
+                }
+            }
         }
         return properties;
     }
-    
+
     /**
      * Concrete extension of {@link AbstractAccumuloRdfConfigurationBuilder}
      * that adds setter methods to configure Accumulo Rya Indexers in addition
@@ -335,7 +338,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
          * Creates an AccumuloIndexingConfiguration object from a Properties
          * file. This method assumes that all values in the Properties file are
          * Strings and that the Properties file uses the keys below.
-         * 
+         *
          * <br>
          * <ul>
          * <li>"accumulo.auths" - String of Accumulo authorizations. Default is
@@ -386,16 +389,16 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
          * default.
          * </ul>
          * <br>
-         * 
+         *
          * @param props
          *            - Properties file containing Accumulo specific
          *            configuration parameters
          * @return AccumumuloIndexingConfiguration with properties set
          */
-        public static AccumuloIndexingConfiguration fromProperties(Properties props) {
+        public static AccumuloIndexingConfiguration fromProperties(final Properties props) {
             Preconditions.checkNotNull(props);
             try {
-                AccumuloIndexingConfigBuilder builder = new AccumuloIndexingConfigBuilder() //
+                final AccumuloIndexingConfigBuilder builder = new AccumuloIndexingConfigBuilder() //
                         .setAuths(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_AUTHS, "")) //
                         .setRyaPrefix(
                                 props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_RYA_PREFIX, "rya_"))//
@@ -423,119 +426,119 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
                         .setUseAccumuloFreetextIndex(getBoolean(props.getProperty(USE_FREETEXT, "false")))//
                         .setUseAccumuloTemporalIndex(getBoolean(props.getProperty(USE_TEMPORAL, "false")))//
                         .setUseAccumuloEntityIndex(getBoolean(props.getProperty(USE_ENTITY, "false")))//
-                        .setAccumuloFreeTextPredicates(props.getProperty(FREETEXT_PREDICATES))//
-                        .setAccumuloTemporalPredicates(props.getProperty(TEMPORAL_PREDICATES))//
+                        .setAccumuloFreeTextPredicates(StringUtils.split(props.getProperty(FREETEXT_PREDICATES), ","))//
+                        .setAccumuloTemporalPredicates(StringUtils.split(props.getProperty(TEMPORAL_PREDICATES), ","))//
                         .setUsePcj(getBoolean(props.getProperty(USE_PCJ, "false")))//
                         .setUseOptimalPcj(getBoolean(props.getProperty(USE_OPTIMAL_PCJ, "false")))//
-                        .setPcjTables(props.getProperty(PCJ_TABLES))//
+                        .setPcjTables(StringUtils.split(props.getProperty(PCJ_TABLES), ","))//
                         .setPcjUpdaterFluoAppName(props.getProperty(FLUO_APP_NAME))
                         .setUseStatementMetadata(getBoolean(props.getProperty(USE_STATEMENT_METADATA)))
-                        .setStatementMetadataProperties(getPropURIFromStrings(props.getProperty(STATEMENT_METADATA_PROPERTIES)));
+                        .setStatementMetadataProperties(getPropURIFromStrings(StringUtils.split(props.getProperty(STATEMENT_METADATA_PROPERTIES), ",")));
 
                 return builder.build();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new RuntimeException(e);
             }
         }
 
         /**
-         * 
+         *
          * Specify whether to use use {@link AccumuloFreeTextIndexer} for ingest
          * and at query time. The default value is false, and if useFreeText is
          * set to true and the FreeTextIndex does not exist, then useFreeText
          * will default to false.
-         * 
+         *
          * @param useFreeText
          *            - use freetext indexing
          * @return AccumuloIndexingConfigBuilder for chaining method invocations
          */
-        public AccumuloIndexingConfigBuilder setUseAccumuloFreetextIndex(boolean useFreeText) {
+        public AccumuloIndexingConfigBuilder setUseAccumuloFreetextIndex(final boolean useFreeText) {
             this.useFreetext = useFreeText;
             return this;
         }
 
         /**
-         * 
+         *
          * Specify whether to use use {@link AccumuloTemporalIndexer} for ingest
          * and at query time. The default value is false, and if useTemporal is
          * set to true and the TemporalIndex does not exist, then useTemporal
          * will default to false.
-         * 
+         *
          * @param useTemporal
          *            - use temporal indexing
          * @return AccumuloIndexingConfigBuilder for chaining method invocations
          */
-        public AccumuloIndexingConfigBuilder setUseAccumuloTemporalIndex(boolean useTemporal) {
+        public AccumuloIndexingConfigBuilder setUseAccumuloTemporalIndex(final boolean useTemporal) {
             this.useTemporal = useTemporal;
             return this;
         }
 
         /**
-         * 
+         *
          * Specify whether to use use {@link EntitCentricIndex} for ingest and
          * at query time. The default value is false, and if useEntity is set to
          * true and the EntityIndex does not exist, then useEntity will default
          * to false.
-         * 
+         *
          * @param useEntity
          *            - use entity indexing
          * @return AccumuloIndexingConfigBuilder for chaining method invocations
          */
-        public AccumuloIndexingConfigBuilder setUseAccumuloEntityIndex(boolean useEntity) {
+        public AccumuloIndexingConfigBuilder setUseAccumuloEntityIndex(final boolean useEntity) {
             this.useEntity = useEntity;
             return this;
         }
 
         /**
-         * 
+         *
          * Specify the name of the PCJ Fluo updater application. A non-null
          * application results in the {@link PrecomputedJoinIndexer} being
          * activated so that all triples ingested into Rya are also ingested
          * into Fluo to update any registered PCJs. PreomputedJoinIndexer is
          * turned off by default. If no fluo application of the specified name
          * exists, a RuntimeException will be thrown.
-         * 
+         *
          * @param fluoAppName
          *            - use entity indexing
          * @return AccumuloIndexingConfigBuilder for chaining method invocations
          */
-        public AccumuloIndexingConfigBuilder setPcjUpdaterFluoAppName(String fluoAppName) {
+        public AccumuloIndexingConfigBuilder setPcjUpdaterFluoAppName(final String fluoAppName) {
             this.fluoAppName = fluoAppName;
             return this;
         }
 
         /**
-         * 
+         *
          * @param predicates
          *            - String of comma delimited predicates used by the
          *            FreetextIndexer to determine which triples to index
          * @return AccumuloIndexingConfigBuilder for chaining method invocations
          */
-        public AccumuloIndexingConfigBuilder setAccumuloFreeTextPredicates(String... predicates) {
+        public AccumuloIndexingConfigBuilder setAccumuloFreeTextPredicates(final String... predicates) {
             this.freetextPredicates = predicates;
             return this;
         }
 
         /**
-         * 
+         *
          * @param predicates
          *            - String of comma delimited predicates used by the
          *            TemporalIndexer to determine which triples to index
          * @return AccumuloIndexingConfigBuilder for chaining method invocations
          */
-        public AccumuloIndexingConfigBuilder setAccumuloTemporalPredicates(String... predicates) {
+        public AccumuloIndexingConfigBuilder setAccumuloTemporalPredicates(final String... predicates) {
             this.temporalPredicates = predicates;
             return this;
         }
 
         /**
          * Use Precomputed Joins as a query optimization.
-         * 
+         *
          * @param usePcj
          *            - use PCJ
          * @return AccumuloIndexingConfigBuilder for chaining method invocations
          */
-        public AccumuloIndexingConfigBuilder setUsePcj(boolean usePcj) {
+        public AccumuloIndexingConfigBuilder setUsePcj(final boolean usePcj) {
             this.usePcj = usePcj;
             return this;
         }
@@ -543,12 +546,12 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
         /**
          * Use Precomputed Joins as a query optimization and attempt to find the
          * best combination of PCJs in the query plan
-         * 
+         *
          * @param useOptimalPcj
          *            - use optimal pcj plan
          * @return AccumuloIndexingConfigBuilder for chaining method invocations
          */
-        public AccumuloIndexingConfigBuilder setUseOptimalPcj(boolean useOptimalPcj) {
+        public AccumuloIndexingConfigBuilder setUseOptimalPcj(final boolean useOptimalPcj) {
             this.useOptimalPcj = useOptimalPcj;
             return this;
         }
@@ -558,54 +561,55 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
          * no tables are specified and PCJs are enabled for query evaluation,
          * then all registered PCJs will be considered when optimizing the
          * query.
-         * 
+         *
          * @param pcjs
          *            - array of PCJs to be used for query evaluation
          * @return AccumuloIndexingConfigBuilder for chaining method invocations
          */
-        public AccumuloIndexingConfigBuilder setPcjTables(String... pcjs) {
+        public AccumuloIndexingConfigBuilder setPcjTables(final String... pcjs) {
             this.pcjs = pcjs;
             return this;
         }
-        
+
         /**
          * Specify whether or not to use {@link StatementMetadataOptimizer} to query on Statement
          * properties.
          * @param useMetadata
          * @return AccumuloIndexingConfigBuilder for chaining method invocations
          */
-        public AccumuloIndexingConfigBuilder setUseStatementMetadata(boolean useMetadata) {
+        public AccumuloIndexingConfigBuilder setUseStatementMetadata(final boolean useMetadata) {
             this.useMetadata = useMetadata;
             return this;
         }
-        
+
         /**
          * Specify properties that the {@link StatementMetadataOptimizer} will use to query
          * @param useMetadata
          * @return AccumuloIndexingConfigBuilder for chaining method invocations
          */
-        public AccumuloIndexingConfigBuilder setStatementMetadataProperties(Set<RyaURI> metadataProps) {
+        public AccumuloIndexingConfigBuilder setStatementMetadataProperties(final Set<RyaURI> metadataProps) {
             this.metadataProps = metadataProps;
             return this;
         }
-        
-        
+
+
         /**
          * @return {@link AccumuloIndexingConfiguration} object with specified parameters set
          */
+        @Override
         public AccumuloIndexingConfiguration build() {
-            AccumuloIndexingConfiguration conf = getConf(super.build());
+            final AccumuloIndexingConfiguration conf = getConf(super.build());
 
             return conf;
         }
 
         /**
          * Assigns builder values to appropriate parameters within the {@link Configuration} object.
-         * 
+         *
          * @param conf - Configuration object
          * @return - Configuration object with parameters set
          */
-        private AccumuloIndexingConfiguration getConf(AccumuloIndexingConfiguration conf) {
+        private AccumuloIndexingConfiguration getConf(final AccumuloIndexingConfiguration conf) {
 
             Preconditions.checkNotNull(conf);
 
@@ -632,7 +636,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
                     conf.setPcjTables(Lists.newArrayList(pcjs));
                 }
             }
-            
+
             if(useMetadata) {
                 conf.setUseStatementMetadata(useMetadata);
                 conf.setStatementMetadataProperties(metadataProps);

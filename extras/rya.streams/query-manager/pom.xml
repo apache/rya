@@ -33,6 +33,10 @@ under the License.
         This module contains the Rya Streams Query Manager.
     </description>
 
+    <properties>
+        <rpm.staging.path>${project.build.directory}/${project.artifactId}-${project.version}-rpm-staging</rpm.staging.path>
+    </properties>
+
     <dependencies>
         <!-- Rya dependencies -->
         <dependency>
@@ -46,7 +50,10 @@ under the License.
             <artifactId>commons-daemon</artifactId>
             <version>1.1.0</version>
         </dependency>
-        
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
@@ -97,7 +104,7 @@ under the License.
                 </configuration>
             </plugin>
          
-            <!-- Ensure the generated java source contains the lisence header. -->   
+            <!-- Ensure the generated java source contains the license header. -->   
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
@@ -121,6 +128,7 @@ under the License.
                 </executions>
             </plugin>
         
+            <!-- Create a shaded jar that is able to execute the Daemon. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -137,6 +145,123 @@ under the License.
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                             </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <!-- Use the assembly plugin to create the binary and RPM distributions. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <!-- The binary distribution of Rya Streams Query Manager. -->
+                    <execution>
+                        <id>create-binary-distribution</id>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <tarLongFileMode>gnu</tarLongFileMode>
+                            <descriptors>
+                                <descriptor>src/assembly/binary-release.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                    
+                    <!-- Stage the files for the RPM construction. -->
+                    <execution>
+                        <id>stage-content-for-rpms</id>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <!-- This is only staging, so don't attach the built folder to the project. -->
+                            <attach>false</attach>
+                            <descriptors>
+                                <descriptor>src/assembly/rpm-staging.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>rpm-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>set-rpm-properties</id>
+                        <goals>
+                            <goal>version</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>create-rpm-distribution</id>
+                        <goals>
+                            <goal>attached-rpm</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <group>${project.groupId}</group>
+                            <name>${project.artifactId}</name>
+                            <classifier>noarch</classifier>
+                            <defaultUsername>root</defaultUsername>
+                            <defaultGroupname>root</defaultGroupname>
+                            <defaultDirmode>755</defaultDirmode>
+                            <defaultFilemode>644</defaultFilemode>
+                            
+                            <!-- This project requires the Apache Commons Daemon applications. -->
+                            <requires>
+                                <require>jsvc</require>
+                            </requires>
+                            
+                            <mappings>
+                                <!-- Copy everything over to the /opt directory, except for the scripts. -->
+                                <mapping>
+                                    <directory>/opt/rya-streams-query-manager-${rpm.version}</directory>
+                                    <sources>
+                                        <!-- Copy over everything exception for the executable script. -->
+                                        <source>
+                                            <location>${rpm.staging.path}</location>
+                                            <includes>
+                                                <include>bin/systemd/rya-streams-query-manager.service</include>
+                                                <include>config/*</include>
+                                                <include>lib/*</include>
+                                                <include>README.txt</include>
+                                            </includes>
+                                        </source>
+                                    </sources>
+                                </mapping>
+                                
+                                <!-- Copy over the scripts with the correct execution permissions. -->
+                                <mapping>
+                                    <directory>/opt/rya-streams-query-manager-${rpm.version}/bin</directory>
+                                    <directoryIncluded>false</directoryIncluded>
+                                    <filemode>554</filemode>
+                                    <sources>
+                                        <source>
+                                            <location>${rpm.staging.path}/bin</location>
+                                            <includes>
+                                                <include>rya-streams-query-manager.sh</include>
+                                            </includes>
+                                        </source>
+                                    </sources>
+                                </mapping>
+                                
+                                <!-- Symbolic link the service file after it has been copied over. -->
+                                <mapping>
+                                    <directory>/etc/systemd/system/</directory>
+                                    <sources>
+                                        <softlinkSource>
+                                            <location>/opt/rya-streams-query-manager-${rpm.version}/bin/systemd/rya-streams-query-manager.service</location>
+                                            <destination>rya-streams-query-manager.service</destination>
+                                        </softlinkSource>
+                                    </sources>
+                                </mapping>
+                            </mappings>
                         </configuration>
                     </execution>
                 </executions>

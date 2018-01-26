@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -35,36 +35,41 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public interface QueryExecutor extends Service {
+
     /**
      * Starts running a {@link StreamsQuery}.
      *
      * @param ryaInstanceName - The rya instance whose {@link Statement}s will be processed by the query. (not null)
      * @param query - The query to run. (not null)
      * @throws QueryExecutorException When the query fails to start.
+     * @throws IllegalStateException The service has not been started yet.
      */
-    public void startQuery(final String ryaInstanceName, final StreamsQuery query) throws QueryExecutorException;
+    public void startQuery(final String ryaInstanceName, final StreamsQuery query) throws QueryExecutorException, IllegalStateException;
 
     /**
      * Stops a {@link StreamsQuery}.
      *
      * @param queryID - The ID of the query to stop. (not null)
      * @throws QueryExecutorException When the query fails to stop.
+     * @throws IllegalStateException The service has not been started yet.
      */
-    public void stopQuery(final UUID queryID) throws QueryExecutorException;
+    public void stopQuery(final UUID queryID) throws QueryExecutorException, IllegalStateException;
 
     /**
      * Stops all {@link StreamsQuery} belonging to a specific rya instance.
      *
      * @param ryaInstanceName - The name of the rya instance to stop all queries for. (not null)
      * @throws QueryExecutorException When the queries fails to stop.
+     * @throws IllegalStateException The service has not been started yet.
      */
-    public void stopAll(final String ryaInstanceName) throws QueryExecutorException;
+    public void stopAll(final String ryaInstanceName) throws QueryExecutorException, IllegalStateException;
 
     /**
-     * @return - A set of {@link UUID}s representing the current active queries.
+     * @return A set of {@link UUID}s representing the current active queries.
      * @throws QueryExecutorException Can't discover which queries are currently running.
+     * @throws IllegalStateException The service has not been started yet.
      */
-    public Set<UUID> getRunningQueryIds() throws QueryExecutorException;
+    public Set<UUID> getRunningQueryIds() throws QueryExecutorException, IllegalStateException;
 
     /**
      * Exception to be used by {@link QueryExecutor} when queries fail to start or stop.

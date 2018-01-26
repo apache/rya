@@ -18,19 +18,17 @@ specific language governing permissions and limitations
 under the License.
 -->
 <queryManagerConfig>
-    <!-- A list of Query Change Log Sources. A source needs to be defined for
-       - every system that is used to manage Rya Streams Query Change Logs.
-       - The query manager will manage queries for all Rya instances whose
-       - change logs are stored within those sources.
+    <!-- The  Query Change Log Sources. The source defines a system where Rya
+       - Streams Query Change Logs are managed. The query manager will manage 
+       - queries for all Rya instances whose change logs are stored within the
+       - source.
        -->
-    <queryChangeLogSources>
-        <queryChangeLogSource>
-            <kafka>
-                <hostname>[Kafka Broker Hostname]</hostname>
-                <port>[Kafka Broker Port]</port>
-            </kafka>
-        </queryChangeLogSource>
-    </queryChangeLogSources>
+    <queryChangeLogSource>
+        <kafka>
+            <hostname>[Kafka Broker Hostname]</hostname>
+            <port>[Kafka Broker Port]</port>
+        </kafka>
+    </queryChangeLogSource>
     
     <!-- This section defines performance related tuning values. Sensible
        - default have been provided to simplify configuration. 

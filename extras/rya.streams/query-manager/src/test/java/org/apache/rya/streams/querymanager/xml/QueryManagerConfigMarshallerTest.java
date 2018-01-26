@@ -36,14 +36,12 @@ public class QueryManagerConfigMarshallerTest {
         final String xml =
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                 "<queryManagerConfig>\n" +
-                "    <queryChangeLogSources>\n" +
-                "        <queryChangeLogSource>\n" +
-                "            <kafka>\n" +
-                "                <hostname>localhost</hostname>\n" +
-                "                <port>6</port>\n" +
-                "            </kafka>\n" +
-                "        </queryChangeLogSource>\n" +
-                "    </queryChangeLogSources>\n" +
+                "    <queryChangeLogSource>\n" +
+                "        <kafka>\n" +
+                "            <hostname>localhost</hostname>\n" +
+                "            <port>6</port>\n" +
+                "        </kafka>\n" +
+                "    </queryChangeLogSource>\n" +
                 "    <performanceTunning>\n" +
                 "        <queryChanngeLogDiscoveryPeriod>\n" +
                 "            <value>1</value>\n" +
@@ -62,14 +60,12 @@ public class QueryManagerConfigMarshallerTest {
         final String xml =
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                 "<queryManagerConfig>\n" +
-                "    <queryChangeLogSources>\n" +
-                "        <queryChangeLogSource>\n" +
-                "            <kafka>\n" +
-                "                <hostname>localhost</hostname>\n" +
-                "                <port>6</port>\n" +
-                "            </kafka>\n" +
-                "        </queryChangeLogSource>\n" +
-                "    </queryChangeLogSources>\n" +
+                "    <queryChangeLogSource>\n" +
+                "        <kafka>\n" +
+                "            <hostname>localhost</hostname>\n" +
+                "            <port>6</port>\n" +
+                "        </kafka>\n" +
+                "    </queryChangeLogSource>\n" +
                 "</queryManagerConfig>";
 
 

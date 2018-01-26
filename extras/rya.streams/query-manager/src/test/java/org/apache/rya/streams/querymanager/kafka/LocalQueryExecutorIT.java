@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,14 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.streams.client.command;
+package org.apache.rya.streams.querymanager.kafka;
 
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.producer.Producer;
@@ -33,19 +32,13 @@ import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.streams.api.entity.StreamsQuery;
 import org.apache.rya.streams.api.interactor.LoadStatements;
-import org.apache.rya.streams.api.queries.InMemoryQueryRepository;
-import org.apache.rya.streams.api.queries.QueryChange;
-import org.apache.rya.streams.api.queries.QueryChangeLog;
-import org.apache.rya.streams.api.queries.QueryRepository;
-import org.apache.rya.streams.client.RyaStreamsCommand.ArgumentsException;
-import org.apache.rya.streams.client.RyaStreamsCommand.ExecutionException;
+import org.apache.rya.streams.kafka.KafkaStreamsFactory;
 import org.apache.rya.streams.kafka.KafkaTopics;
+import org.apache.rya.streams.kafka.SingleThreadKafkaStreamsFactory;
 import org.apache.rya.streams.kafka.interactor.KafkaLoadStatements;
-import org.apache.rya.streams.kafka.queries.KafkaQueryChangeLog;
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementSerializer;
-import org.apache.rya.streams.kafka.serialization.queries.QueryChangeDeserializer;
-import org.apache.rya.streams.kafka.serialization.queries.QueryChangeSerializer;
+import org.apache.rya.streams.querymanager.QueryExecutor;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.apache.rya.test.kafka.KafkaTestUtil;
 import org.junit.After;
@@ -57,33 +50,25 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
 
 /**
- * Integration tests the methods of {@link RunQueryCommand}.
+ * Integration tests the methods of {@link LocalQueryExecutor}.
  */
-public class RunQueryCommandIT {
+public class LocalQueryExecutorIT {
 
     private final String ryaInstance = UUID.randomUUID().toString();
 
-    private QueryRepository queryRepo;
     private Producer<String, VisibilityStatement> stmtProducer = null;
     private Consumer<String, VisibilityBindingSet> resultConsumer = null;
 
     @Rule
-    public KafkaTestInstanceRule kafka = new KafkaTestInstanceRule(true);
+    public KafkaTestInstanceRule kafka = new KafkaTestInstanceRule(false);
 
     @Before
     public void setup() {
         // Make sure the topic that the change log uses exists.
         final String changeLogTopic = KafkaTopics.queryChangeLogTopic("" + ryaInstance);
         kafka.createTopic(changeLogTopic);
-
-        // Setup the QueryRepository used by the test.
-        final Producer<?, QueryChange> queryProducer = KafkaTestUtil.makeProducer(kafka, StringSerializer.class, QueryChangeSerializer.class);
-        final Consumer<?, QueryChange>queryConsumer = KafkaTestUtil.fromStartConsumer(kafka, StringDeserializer.class, QueryChangeDeserializer.class);
-        final QueryChangeLog changeLog = new KafkaQueryChangeLog(queryProducer, queryConsumer, changeLogTopic);
-        queryRepo = new InMemoryQueryRepository(changeLog, Scheduler.newFixedRateSchedule(0L, 5, TimeUnit.SECONDS));
 
         // Initialize the Statements Producer and the Results Consumer.
         stmtProducer = KafkaTestUtil.makeProducer(kafka, StringSerializer.class, VisibilityStatementSerializer.class);
@@ -92,53 +77,15 @@ public class RunQueryCommandIT {
 
     @After
     public void cleanup() throws Exception {
-        queryRepo.stopAndWait();
         stmtProducer.close();
         resultConsumer.close();
     }
 
-    @Test(expected = ExecutionException.class)
-    public void runUnregisteredQuery() throws Exception {
-        // Arguments that run a query that is not registered with Rya Streams.
-        final String[] args = new String[] {
-                "--ryaInstance", "" + ryaInstance,
-                "--kafkaHostname", kafka.getKafkaHostname(),
-                "--kafkaPort", kafka.getKafkaPort(),
-                "--queryID", UUID.randomUUID().toString(),
-                "--zookeepers", kafka.getZookeeperServers()
-        };
-
-        // Run the test. This will throw an exception.
-        final RunQueryCommand command = new RunQueryCommand();
-        command.execute(args);
-    }
-
     @Test
     public void runQuery() throws Exception {
-        // Register a query with the Query Repository.
-        final StreamsQuery sQuery = queryRepo.add("SELECT * WHERE { ?person <urn:worksAt> ?business . }", true);
-
-        // Arguments that run the query we just registered with Rya Streams.
-        final String[] args = new String[] {
-                "--ryaInstance", "" + ryaInstance,
-                "--kafkaHostname", kafka.getKafkaHostname(),
-                "--kafkaPort", kafka.getKafkaPort(),
-                "--queryID", sQuery.getQueryId().toString(),
-                "--zookeepers", kafka.getZookeeperServers()
-        };
-
-        // Create a new Thread that runs the command.
-        final Thread commandThread = new Thread() {
-            @Override
-            public void run() {
-                final RunQueryCommand command = new RunQueryCommand();
-                try {
-                    command.execute(args);
-                } catch (ArgumentsException | ExecutionException e) {
-                    // Do nothing. Test will still fail because the expected results will be missing.
-                }
-            }
-        };
+        // Test values.
+        final String ryaInstance = "rya";
+        final StreamsQuery sQuery = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?person <urn:worksAt> ?business . }", true);
 
         // Create the statements that will be loaded.
         final ValueFactory vf = new ValueFactoryImpl();
@@ -171,11 +118,16 @@ public class RunQueryCommandIT {
         bs.addBinding("business", vf.createURI("urn:TacoShop"));
         expected.add(new VisibilityBindingSet(bs, "a"));
 
-        // Execute the test. This will result in a set of results that were read from the results topic.
-        final List<VisibilityBindingSet> results;
+        // Start the executor that will be tested.
+        final String kafkaServers = kafka.getKafkaHostname() + ":" + kafka.getKafkaPort();
+        final KafkaStreamsFactory jobFactory = new SingleThreadKafkaStreamsFactory(kafkaServers);
+        final QueryExecutor executor = new LocalQueryExecutor(jobFactory);
+        executor.startAndWait();
         try {
+            // Start the query.
+            executor.startQuery(ryaInstance, sQuery);
+
             // Wait for the program to start.
-            commandThread.start();
             Thread.sleep(5000);
 
             // Write some statements to the program.
@@ -186,14 +138,11 @@ public class RunQueryCommandIT {
             // Read the output of the streams program.
             final String resultsTopic = KafkaTopics.queryResultsTopic(sQuery.getQueryId());
             resultConsumer.subscribe( Lists.newArrayList(resultsTopic) );
-            results = KafkaTestUtil.pollForResults(500, 6, 3, resultConsumer);
-        } finally {
-            // Tear down the test.
-            commandThread.interrupt();
-            commandThread.join(3000);
-        }
+            final List<VisibilityBindingSet> results = KafkaTestUtil.pollForResults(500, 6, 3, resultConsumer);
+            assertEquals(expected, results);
 
-        // Show the read results matched the expected ones.
-        assertEquals(expected, results);
+        } finally {
+            executor.stopAndWait();
+        }
     }
 }

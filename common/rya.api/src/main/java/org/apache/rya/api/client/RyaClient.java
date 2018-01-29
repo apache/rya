@@ -45,6 +45,7 @@ public class RyaClient {
     private final ListInstances listInstances;
     private final Optional<AddUser> addUser;
     private final Optional<RemoveUser> removeUser;
+    private final SetRyaStreamsConfiguration setRyaStreamsConfig;
     private final Uninstall uninstall;
     private final LoadStatements loadStatements;
     private final LoadStatementsFile loadStatementsFile;
@@ -65,6 +66,7 @@ public class RyaClient {
             final ListInstances listInstances,
             final Optional<AddUser> addUser,
             final Optional<RemoveUser> removeUser,
+            final SetRyaStreamsConfiguration setRyaStreamsConfig,
             final Uninstall uninstall,
             final LoadStatements loadStatements,
             final LoadStatementsFile loadStatementsFile,
@@ -81,6 +83,7 @@ public class RyaClient {
         this.listInstances = requireNonNull(listInstances);
         this.addUser = requireNonNull(addUser);
         this.removeUser = requireNonNull(removeUser);
+        this.setRyaStreamsConfig = requireNonNull(setRyaStreamsConfig);
         this.uninstall = requireNonNull(uninstall);
         this.loadStatements = requireNonNull(loadStatements);
         this.loadStatementsFile = requireNonNull(loadStatementsFile);
@@ -173,6 +176,13 @@ public class RyaClient {
      */
     public Optional<RemoveUser> getRemoveUser() {
         return removeUser;
+    }
+
+    /**
+     * @return An instance of {@link SetRyaStreamsConfiguration} that is connected to a Rya storage.
+     */
+    public SetRyaStreamsConfiguration getSetRyaStreamsConfiguration() {
+        return setRyaStreamsConfig;
     }
 
     /**

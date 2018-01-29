@@ -26,6 +26,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.client.mongo.MongoConnectionDetails;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.streams.api.RyaStreamsClient;
 
 import com.google.common.base.Optional;
 import com.mongodb.MongoClient;
@@ -159,6 +161,34 @@ public class SharedShellState {
     }
 
     /**
+     * This method indicates a shift into a state where the shell may have to interact with the Rya Streams subsystem.
+     * <p/>
+     * Stores the {@link RyaStreamsClient} all Rya Streams commands will be executed against.
+     *
+     * @param ryaStreamsCommands - Rya Streams commands that will execute against the Rya Streams subsystem. (not null)
+     */
+    public void connectedToRyaStreams(
+            final RyaStreamsClient ryaStreamsCommands) {
+        requireNonNull(ryaStreamsCommands);
+
+        lock.lock();
+        try {
+            // Verify the Rya Shell is connected to an instance.
+            if(shellState.getConnectionState() != ConnectionState.CONNECTED_TO_INSTANCE) {
+                throw new IllegalStateException("You can not set the connected Rya Streams Client before connected to a Rya Instance.");
+            }
+
+            // Set the connected Rya Streams commands.
+            shellState = ShellState.builder( shellState )
+                    .setRyaStreamsCommands(ryaStreamsCommands)
+                    .build();
+
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
      * This method indicates a shift into the {@link DISCONNECTED} state.
      * <p/>
      * Clears all of the values associated with a Rya Storage/Instance connection.
@@ -225,6 +255,7 @@ public class SharedShellState {
         private final Optional<MongoConnectionDetails> mongoDetails;
         private final Optional<MongoClient> mongoAdminClient;
         private final Optional<RyaClient> connectedCommands;
+        private final Optional<RyaStreamsClient> ryaStreamsCommands;
 
         // Instance specific values.
         private final Optional<String> instanceName;
@@ -236,7 +267,8 @@ public class SharedShellState {
                 final Optional<MongoConnectionDetails> mongoDetails,
                 final Optional<MongoClient> mongoAdminClient,
                 final Optional<RyaClient> connectedCommands,
-                final Optional<String> instanceName) {
+                final Optional<String> instanceName,
+                final Optional<RyaStreamsClient> ryaStreamsCommands) {
             this.connectionState = requireNonNull(connectionState);
             this.storageType = requireNonNull(storageType);
             this.accumuloDetails = requireNonNull(accumuloDetails);
@@ -244,6 +276,7 @@ public class SharedShellState {
             this.mongoAdminClient = requireNonNull(mongoAdminClient);
             this.connectedCommands = requireNonNull(connectedCommands);
             this.instanceName = requireNonNull(instanceName);
+            this.ryaStreamsCommands = requireNonNull(ryaStreamsCommands);
         }
 
         /**
@@ -291,6 +324,15 @@ public class SharedShellState {
          */
         public Optional<RyaClient> getConnectedCommands() {
             return connectedCommands;
+        }
+
+        /**
+         * @return The {@link RyaStreamsClient} to use when a command on the shell is issued.
+         *   The value will not be present if the Rya Shell is not connected to an instance
+         *   whose {@link RyaDetails} indicate when Rya Streams system to use.
+         */
+        public Optional<RyaStreamsClient> getRyaStreamsCommands() {
+            return ryaStreamsCommands;
         }
 
         /**
@@ -353,6 +395,7 @@ public class SharedShellState {
             private MongoConnectionDetails mongoDetails;
             private MongoClient mongoAdminClient;
             private RyaClient connectedCommands;
+            private RyaStreamsClient ryaStreamsCommands;
 
             // Instance specific values.
             private String instanceName;
@@ -375,6 +418,7 @@ public class SharedShellState {
                 this.mongoDetails = shellState.getMongoDetails().orNull();
                 this.mongoAdminClient = shellState.getMongoAdminClient().orNull();
                 this.connectedCommands = shellState.getConnectedCommands().orNull();
+                this.ryaStreamsCommands = shellState.getRyaStreamsCommands().orNull();
                 this.instanceName = shellState.getRyaInstanceName().orNull();
             }
 
@@ -435,6 +479,15 @@ public class SharedShellState {
             }
 
             /**
+             * @param ryaStreamsCommands - The {@link RyaStreamsClient} to use when a command on the shell is issued.
+             * @return This {@link Builder} so that method invocations may be chained.
+             */
+            public Builder setRyaStreamsCommands(@Nullable final RyaStreamsClient ryaStreamsCommands) {
+                this.ryaStreamsCommands = ryaStreamsCommands;
+                return this;
+            }
+
+            /**
              * @param instanceName - The name of the Rya Instance the Rya Shell is issuing commands to.
              * @return This {@link Builder} so that method invocations may be chained.
              */
@@ -454,7 +507,8 @@ public class SharedShellState {
                         Optional.fromNullable(mongoDetails),
                         Optional.fromNullable(mongoAdminClient),
                         Optional.fromNullable(connectedCommands),
-                        Optional.fromNullable(instanceName));
+                        Optional.fromNullable(instanceName),
+                        Optional.fromNullable(ryaStreamsCommands));
             }
         }
     }

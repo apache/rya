@@ -34,10 +34,15 @@ import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
 import org.apache.rya.api.client.mongo.MongoConnectionDetails;
 import org.apache.rya.api.client.mongo.MongoRyaClientFactory;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetails.RyaStreamsDetails;
 import org.apache.rya.shell.SharedShellState.ConnectionState;
+import org.apache.rya.shell.SharedShellState.ShellState;
 import org.apache.rya.shell.SharedShellState.StorageType;
 import org.apache.rya.shell.util.ConnectorFactory;
 import org.apache.rya.shell.util.PasswordPrompt;
+import org.apache.rya.streams.api.RyaStreamsClient;
+import org.apache.rya.streams.kafka.KafkaRyaStreamsClientFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
@@ -222,28 +227,55 @@ public class RyaConnectionCommands implements CommandMarker {
     @CliCommand(value = CONNECT_INSTANCE_CMD, help = "Connect to a specific Rya instance")
     public void connectToInstance(
             @CliOption(key = {"instance"}, mandatory = true, help = "The name of the Rya instance the shell will interact with.")
-            final String instance) {
+            final String ryaInstance) {
+        final RyaClient ryaClient = sharedState.getShellState().getConnectedCommands().get();
         try {
-            final InstanceExists instanceExists = sharedState.getShellState().getConnectedCommands().get().getInstanceExists();
+            final InstanceExists instanceExists = ryaClient.getInstanceExists();
 
             // Make sure the requested instance exists.
-            if(!instanceExists.exists(instance)) {
-                throw new RuntimeException(String.format("'%s' does not match an existing Rya instance.", instance));
+            if(!instanceExists.exists(ryaInstance)) {
+                throw new RuntimeException(String.format("'%s' does not match an existing Rya instance.", ryaInstance));
+            }
+
+            // Store the instance name in the shared state.
+            sharedState.connectedToInstance(ryaInstance);
+
+            // If the Rya instance is configured to interact with Rya Streams, then connect the
+            // Rya Streams client to the shared state.
+            final com.google.common.base.Optional<RyaDetails> ryaDetails = ryaClient.getGetInstanceDetails().getDetails(ryaInstance);
+            if(ryaDetails.isPresent()) {
+                final com.google.common.base.Optional<RyaStreamsDetails> streamsDetails = ryaDetails.get().getRyaStreamsDetails();
+                if(streamsDetails.isPresent()) {
+                    final String kafkaHostname = streamsDetails.get().getHostname();
+                    final int kafkaPort = streamsDetails.get().getPort();
+                    final RyaStreamsClient streamsClient = KafkaRyaStreamsClientFactory.make(ryaInstance, kafkaHostname, kafkaPort);
+                    sharedState.connectedToRyaStreams(streamsClient);
+                }
             }
         } catch(final RyaClientException e) {
             throw new RuntimeException("Could not connect to Rya instance. Reason: " + e.getMessage(), e);
         }
-
-        // Store the instance name in the shared state.
-        sharedState.connectedToInstance(instance);
     }
 
     @CliCommand(value = DISCONNECT_COMMAND_NAME_CMD, help = "Disconnect the shell's Rya storage connection (Accumulo).")
     public void disconnect() {
+        final ShellState shellState = sharedState.getShellState();
+
         // If connected to Mongo, there is a client that needs to be closed.
-        final com.google.common.base.Optional<MongoClient> mongoAdminClient = sharedState.getShellState().getMongoAdminClient();
+        final com.google.common.base.Optional<MongoClient> mongoAdminClient = shellState.getMongoAdminClient();
         if(mongoAdminClient.isPresent()) {
             mongoAdminClient.get().close();
+        }
+
+        // If connected to Rya Streams, then close the associated resources.
+        final com.google.common.base.Optional<RyaStreamsClient> streamsClient = shellState.getRyaStreamsCommands();
+        if(streamsClient.isPresent()) {
+            try {
+                streamsClient.get().close();
+            } catch (final Exception e) {
+                System.err.print("Could not close the RyaStreamsClient.");
+                e.printStackTrace();
+            }
         }
 
         // Update the shared state to disconnected.

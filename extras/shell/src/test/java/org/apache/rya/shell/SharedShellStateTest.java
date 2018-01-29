@@ -25,6 +25,7 @@ import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.shell.SharedShellState.ConnectionState;
 import org.apache.rya.shell.SharedShellState.ShellState;
+import org.apache.rya.streams.api.RyaStreamsClient;
 import org.junit.Test;
 
 /**
@@ -162,5 +163,35 @@ public class SharedShellStateTest {
                 .setConnectionState(ConnectionState.DISCONNECTED)
                 .build();
         assertEquals(expected, state.getShellState());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void connectedToRyaStreams_notConnectedToInstance() throws Exception {
+        // Create a shell state that is not connected to an instance.
+        final SharedShellState state = new SharedShellState();
+
+        // Connecting to a Rya Streams system fails.
+        state.connectedToRyaStreams( mock(RyaStreamsClient.class) );
+    }
+
+    @Test
+    public void connectedToRyaStreams() {
+        // Create a shell state.
+        final SharedShellState state = new SharedShellState();
+
+        // Connect to Accumulo.
+        final AccumuloConnectionDetails connectionDetails = mock(AccumuloConnectionDetails.class);
+        final RyaClient connectedCommands = mock(RyaClient.class);
+        state.connectedToAccumulo(connectionDetails, connectedCommands);
+
+        // Connect to an Instance.
+        state.connectedToInstance("instance");
+
+        // Connect to Rya Streams for the instance.
+        final RyaStreamsClient streamsClient = mock(RyaStreamsClient.class);
+        state.connectedToRyaStreams(streamsClient);
+
+        // Verify the state.
+        assertEquals(streamsClient, state.getShellState().getRyaStreamsCommands().get());
     }
 }

@@ -32,6 +32,7 @@ import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
+import org.apache.rya.api.instance.RyaDetails.RyaStreamsDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import org.apache.rya.mongodb.instance.MongoDetailsAdapter.MalformedRyaDetailsException;
 import org.junit.Test;
@@ -72,6 +73,7 @@ public class MongoDetailsAdapterTest {
                 .setFreeTextDetails(new FreeTextIndexDetails(true))
                 .setProspectorDetails(new ProspectorDetails(Optional.fromNullable(new Date(0L))))
                 .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.fromNullable(new Date(1L))))
+                .setRyaStreamsDetails(new RyaStreamsDetails("localhost", 6))
                 .build();
 
         final BasicDBObject actual = MongoDetailsAdapter.toDBObject(details);
@@ -100,7 +102,8 @@ public class MongoDetailsAdapterTest {
                         + "temporalDetails : true,"
                         + "freeTextDetails : true,"
                         + "prospectorDetails : { $date : \"1970-01-01T00:00:00.000Z\"},"
-                        + "joinSelectivitiyDetails : { $date : \"1970-01-01T00:00:00.001Z\"}"
+                        + "joinSelectivitiyDetails : { $date : \"1970-01-01T00:00:00.001Z\"},"
+                        + "ryaStreamsDetails : { hostname : \"localhost\" , port : 6}"
                         + "}"
                 );
 
@@ -134,7 +137,8 @@ public class MongoDetailsAdapterTest {
                         + "temporalDetails : true,"
                         + "freeTextDetails : true,"
                         + "prospectorDetails : { $date : \"1970-01-01T00:00:00.000Z\"},"
-                        + "joinSelectivitiyDetails : { $date : \"1970-01-01T00:00:00.001Z\"}"
+                        + "joinSelectivitiyDetails : { $date : \"1970-01-01T00:00:00.001Z\"},"
+                        + "ryaStreamsDetails : { hostname : \"localhost\" , port : 6}"
                         + "}"
                 );
 
@@ -163,6 +167,7 @@ public class MongoDetailsAdapterTest {
                 .setFreeTextDetails(new FreeTextIndexDetails(true))
                 .setProspectorDetails(new ProspectorDetails(Optional.<Date>fromNullable(new Date(0L))))
                 .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>fromNullable(new Date(1L))))
+                .setRyaStreamsDetails(new RyaStreamsDetails("localhost", 6))
                 .build();
 
         assertEquals(expected, actual);

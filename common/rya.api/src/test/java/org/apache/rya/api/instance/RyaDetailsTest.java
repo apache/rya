@@ -31,6 +31,7 @@ import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
+import org.apache.rya.api.instance.RyaDetails.RyaStreamsDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import org.junit.Test;
 
@@ -65,7 +66,8 @@ public class RyaDetailsTest {
                                     .setId("pcj 2")
                                     .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)))
             .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
-            .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) );
+            .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
+            .setRyaStreamsDetails(new RyaStreamsDetails("localhost", 5));
 
         final RyaDetails details1 = builder.build();
         final RyaDetails details2 = builder.build();
@@ -96,7 +98,8 @@ public class RyaDetailsTest {
                                     .setId("pcj 2")
                                     .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)))
             .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
-            .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) );
+            .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
+            .setRyaStreamsDetails(new RyaStreamsDetails("localhost", 5));
 
         final RyaDetails details1 = builder.build();
         final RyaDetails details2 = builder.build();
@@ -127,6 +130,7 @@ public class RyaDetailsTest {
                                     .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)))
             .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
             .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
+            .setRyaStreamsDetails(new RyaStreamsDetails("localhost", 5))
             .build();
 
         // Create a new Builder using another RyaDetails object.

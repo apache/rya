@@ -85,4 +85,19 @@ public class StreamsQuery {
         }
         return false;
     }
+    
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("ID: ");
+        sb.append(getQueryId().toString() + "\n");
+        sb.append("Query: ");
+        sb.append(getSparql() + "\n");
+        sb.append("Is ");
+        if (!isActive) {
+            sb.append(" Not ");
+        }
+        sb.append("Running.\n");
+        return sb.toString();
+    }
 }

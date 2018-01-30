@@ -188,8 +188,8 @@ public class InMemoryQueryRepository extends AbstractScheduledService implements
 
             // Our internal cache is already up to date, so just return its values.
             return queriesCache.values()
-                        .stream()
-                        .collect(Collectors.toSet());
+                    .stream()
+                    .collect(Collectors.toSet());
 
         } finally {
             lock.unlock();
@@ -253,7 +253,8 @@ public class InMemoryQueryRepository extends AbstractScheduledService implements
                         break;
                 }
 
-                listeners.forEach(listener -> listener.notify(entry));
+                final Optional<StreamsQuery> newQueryState = Optional.ofNullable(queriesCache.get(queryId));
+                listeners.forEach(listener -> listener.notify(entry, newQueryState));
 
                 cachePosition = Optional.of( entry.getPosition() );
             }

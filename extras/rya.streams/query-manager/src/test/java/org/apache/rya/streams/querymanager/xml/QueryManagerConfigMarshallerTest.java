@@ -20,11 +20,14 @@ package org.apache.rya.streams.querymanager.xml;
 
 import static org.junit.Assert.assertNotNull;
 
-import java.io.StringReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
 import javax.xml.bind.UnmarshalException;
 
 import org.junit.Test;
+
+import com.google.common.base.Charsets;
 
 /**
  * Unit tests the methods of {@link QueryManagerConfigUnmarshaller}.
@@ -50,8 +53,8 @@ public class QueryManagerConfigMarshallerTest {
                 "    </performanceTunning>\n" +
                 "</queryManagerConfig>";
 
-
-        final QueryManagerConfig config = QueryManagerConfigUnmarshaller.unmarshall(new StringReader(xml));
+        final InputStream xmlStream = new ByteArrayInputStream(xml.getBytes(Charsets.UTF_8));
+        final QueryManagerConfig config = QueryManagerConfigUnmarshaller.unmarshall(xmlStream);
         assertNotNull(config);
     }
 
@@ -68,7 +71,7 @@ public class QueryManagerConfigMarshallerTest {
                 "    </queryChangeLogSource>\n" +
                 "</queryManagerConfig>";
 
-
-        QueryManagerConfigUnmarshaller.unmarshall(new StringReader(xml));
+        final InputStream xmlStream = new ByteArrayInputStream(xml.getBytes(Charsets.UTF_8));
+        QueryManagerConfigUnmarshaller.unmarshall(xmlStream);
     }
 }

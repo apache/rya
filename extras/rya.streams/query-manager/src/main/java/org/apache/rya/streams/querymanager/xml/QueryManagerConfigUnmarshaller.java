@@ -20,7 +20,7 @@ package org.apache.rya.streams.querymanager.xml;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.Reader;
+import java.io.InputStream;
 import java.net.URL;
 
 import javax.xml.XMLConstants;
@@ -49,13 +49,13 @@ public class QueryManagerConfigUnmarshaller {
     /**
      * Validates and unmarshalls XML into a {@link QueryManagerConfig} object.
      *
-     * @param xmlReader - Reads the XML that will be unmarshalled. (not null)
+     * @param xmlStream - Reads the XML that will be unmarshalled. (not null)
      * @return A {@link QueryManagerConfig} loaded with the XMLs values.
      * @throws SAXException Could not load the schema the XML will be validated against.
      * @throws JAXBException Could not unmarshal the XML into a POJO.
      */
-    public static QueryManagerConfig unmarshall(final Reader xmlReader) throws JAXBException, SAXException {
-        requireNonNull(xmlReader);
+    public static QueryManagerConfig unmarshall(final InputStream xmlStream) throws JAXBException, SAXException {
+        requireNonNull(xmlStream);
 
         // Get an input stream to the XSD file that is packaged inside of the jar.
         final URL schemaURL = ClassLoader.getSystemResource(XSD_PATH);
@@ -73,6 +73,6 @@ public class QueryManagerConfigUnmarshaller {
         unmarshaller.setSchema(schema);
 
         // Perform the unmarshal.
-        return (QueryManagerConfig) unmarshaller.unmarshal(xmlReader);
+        return (QueryManagerConfig) unmarshaller.unmarshal(xmlStream);
     }
 }

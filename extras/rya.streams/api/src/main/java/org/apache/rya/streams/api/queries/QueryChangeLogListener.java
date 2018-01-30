@@ -18,6 +18,10 @@
  */
 package org.apache.rya.streams.api.queries;
 
+import java.util.Optional;
+
+import org.apache.rya.streams.api.entity.StreamsQuery;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -36,6 +40,8 @@ public interface QueryChangeLogListener {
      * on the repository.
      *
      * @param queryChangeEvent - The event that occurred. (not null)
+     * @param newQueryState - The new state of the query after the query change event, this will be
+     *     absent if the change type is DELETE. (not null)
      */
-    public void notify(final ChangeLogEntry<QueryChange> queryChangeEvent);
+    public void notify(final ChangeLogEntry<QueryChange> queryChangeEvent, final Optional<StreamsQuery> newQueryState);
 }

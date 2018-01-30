@@ -29,6 +29,7 @@ import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.Objects;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.shell.SharedShellState.ShellState;
@@ -104,7 +105,11 @@ public class RyaCommands implements CommandMarker {
             final long start = System.currentTimeMillis();
 
             // If the provided path is relative, then make it rooted in the user's home.
-            Path rootedFile = Paths.get( file.replaceFirst("^~", System.getProperty("user.home")) );
+            // Make sure the path is formatted with Unix style file
+            // separators('/') before using it as a regex replacement string.
+            // Windows file separators('\') will not work unless escaped.
+            final String userHome = FilenameUtils.separatorsToUnix(System.getProperty("user.home"));
+            final Path rootedFile = Paths.get( file.replaceFirst("^~", userHome) );
 
             RDFFormat rdfFormat = null;
             // If a format was provided, then go with that.

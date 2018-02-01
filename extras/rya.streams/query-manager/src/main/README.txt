@@ -42,10 +42,10 @@ Java 8
     
  3. Update the configuration file:
     Replace "[Kafka Broker Hostname]" with the IP address of the Kafka broker.
-    Replace "[Kafka Broker Port]" with the port of the Kafka broker (usually 9092)
+    Replace the Kafka port if using something other than the default of 9092.
     
  4. Start the service:
-    systemctl start rya-streams-query-manager
+    systemctl start rya-streams-query-manager.service
     
 ### Uninstallation ###
  1. Get the name of the RPM you want to uninstall:

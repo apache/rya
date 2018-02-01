@@ -28,7 +28,7 @@ EXEC="/usr/bin/jsvc"
 PROJECT_HOME=$(dirname $(cd $(dirname $0) && pwd))
 
 # This classpath must contain the commons-daemon jar as well as the jar we're executing.
-CLASS_PATH="$PROJECT_HOME/lib/commons-daemon-1.1.0.jar:$PROJECT_HOME/lib/${project.artifactId}-${project.version}-shaded.jar:$PROJECT_HOME/config/log4j.xml"
+CLASS_PATH="$PROJECT_HOME/lib/commons-daemon-1.1.0.jar:$PROJECT_HOME/lib/${project.artifactId}-${project.version}-shaded.jar"
 
 # The fully qualified name of the class to execute. This class must implement the Daemon interface.
 DAEMON_CLASS=org.apache.rya.streams.querymanager.QueryManagerDaemon
@@ -50,8 +50,9 @@ start ()
         exit 1
     else
         echo "Starting the $DESC."
-        $EXEC -cp $CLASS_PATH -user root -outfile $LOG_OUT -errfile $LOG_ERR -pidfile $PID $1 $DAEMON_CLASS \
-            -c "$PROJECT_HOME/config/configuration.xml"
+        $EXEC -cp $CLASS_PATH -user root -outfile $LOG_OUT -errfile $LOG_ERR -pidfile $PID \
+              -Dlog4j.configuration="file://$PROJECT_HOME/config/log4j.xml" \
+              $DAEMON_CLASS -c "$PROJECT_HOME/config/configuration.xml"
     fi
 }
 

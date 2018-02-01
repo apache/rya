@@ -26,7 +26,7 @@ under the License.
     <queryChangeLogSource>
         <kafka>
             <hostname>[Kafka Broker Hostname]</hostname>
-            <port>[Kafka Broker Port]</port>
+            <port>9092</port>
         </kafka>
     </queryChangeLogSource>
     

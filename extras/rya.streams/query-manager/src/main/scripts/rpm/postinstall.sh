@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -16,17 +17,5 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-[Unit]
-Description=Rya Streams Query Manager Service
-After=network.target
 
-[Service]
-Type=forking
-PIDFile=/var/run/rya-streams-query-manager.pid
-ExecStart=/opt/rya-streams-query-manager-${rpm.version}/bin/rya-streams-query-manager.sh start
-ExecStop=/opt/rya-streams-query-manager-${rpm.version}/bin/rya-streams-query-manager.sh stop
-ExecReload=/opt/rya-streams-query-manager-${rpm.version}/bin/rya-streams-query-manager.sh restart
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
+systemctl enable /opt/rya-streams-query-manager-${rpm.version}/bin/systemd/rya-streams-query-manager.service

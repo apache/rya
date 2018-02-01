@@ -155,21 +155,6 @@ under the License.
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
-                    <!-- The binary distribution of Rya Streams Query Manager. -->
-                    <execution>
-                        <id>create-binary-distribution</id>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <tarLongFileMode>gnu</tarLongFileMode>
-                            <descriptors>
-                                <descriptor>src/assembly/binary-release.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-                    </execution>
-                    
                     <!-- Stage the files for the RPM construction. -->
                     <execution>
                         <id>stage-content-for-rpms</id>
@@ -213,6 +198,16 @@ under the License.
                             <defaultDirmode>755</defaultDirmode>
                             <defaultFilemode>644</defaultFilemode>
                             
+                            <!-- (Un)Install scripts that enable/disable the daemon.-->
+                            <postinstallScriptlet>
+                                <scriptFile>${rpm.staging.path}/bin/rpm/postinstall.sh</scriptFile>
+                                <fileEncoding>utf-8</fileEncoding>
+                            </postinstallScriptlet>
+                            <preremoveScriptlet>
+                                <scriptFile>${rpm.staging.path}/bin/rpm/preremove.sh</scriptFile>
+                                <fileEncoding>utf-8</fileEncoding>
+                            </preremoveScriptlet>
+                            
                             <!-- This project requires the Apache Commons Daemon applications. -->
                             <requires>
                                 <require>jsvc</require>
@@ -226,16 +221,14 @@ under the License.
                                         <!-- Copy over everything exception for the executable script. -->
                                         <source>
                                             <location>${rpm.staging.path}</location>
-                                            <includes>
-                                                <include>bin/systemd/rya-streams-query-manager.service</include>
-                                                <include>config/*</include>
-                                                <include>lib/*</include>
-                                                <include>README.txt</include>
-                                            </includes>
+                                            <excludes>
+                                                <exclude>bin/rpm/**</exclude>
+                                                <exclude>bin/rya-streams-query-manager.sh</exclude>
+                                            </excludes>
                                         </source>
                                     </sources>
                                 </mapping>
-                                
+
                                 <!-- Copy over the scripts with the correct execution permissions. -->
                                 <mapping>
                                     <directory>/opt/rya-streams-query-manager-${rpm.version}/bin</directory>
@@ -248,17 +241,6 @@ under the License.
                                                 <include>rya-streams-query-manager.sh</include>
                                             </includes>
                                         </source>
-                                    </sources>
-                                </mapping>
-                                
-                                <!-- Symbolic link the service file after it has been copied over. -->
-                                <mapping>
-                                    <directory>/etc/systemd/system/</directory>
-                                    <sources>
-                                        <softlinkSource>
-                                            <location>/opt/rya-streams-query-manager-${rpm.version}/bin/systemd/rya-streams-query-manager.service</location>
-                                            <destination>rya-streams-query-manager.service</destination>
-                                        </softlinkSource>
                                     </sources>
                                 </mapping>
                             </mappings>

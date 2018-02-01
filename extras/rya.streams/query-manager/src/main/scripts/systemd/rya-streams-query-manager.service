@@ -16,14 +16,16 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-
-TODO This will be the service file installed to CentOS 7 for systemd integration.
-
-[Units]
-TODO
+[Unit]
+Description=Rya Streams Query Manager Service
 
 [Service]
-TODO
+PIDFile=/var/run/rya-streams-query-manager.pid
+ExecStart=/opt/rya-streams-query-manager/rya-query-manager.sh start
+ExecStop=/opt/rya-streams-query-manager/rya-query-manager.sh stop
+ExecReload=/opt/rya-streams-query-manager/rya-query-manager.sh restart
+Type=oneshot
+Restart=always
 
 [Install]
-TODO
+Alias=rya-streams-query-manager

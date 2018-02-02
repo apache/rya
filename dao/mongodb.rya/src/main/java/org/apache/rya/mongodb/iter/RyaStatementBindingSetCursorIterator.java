@@ -48,7 +48,7 @@ import info.aduna.iteration.CloseableIteration;
 
 public class RyaStatementBindingSetCursorIterator implements CloseableIteration<Entry<RyaStatement, BindingSet>, RyaDAOException> {
     private static final Logger log = Logger.getLogger(RyaStatementBindingSetCursorIterator.class);
-    
+
     private static final int QUERY_BATCH_SIZE = 50;
 
     private final MongoCollection<Document> coll;
@@ -99,38 +99,38 @@ public class RyaStatementBindingSetCursorIterator implements CloseableIteration<
         if (!currentBatchQueryResultCursorIsValid()) {
             submitBatchQuery();
         }
-        
+
         if (currentBatchQueryResultCursorIsValid()) {
             // convert to Rya Statement
             final Document queryResult = batchQueryResultsIterator.next();
             final DBObject dbo = (DBObject) JSON.parse(queryResult.toJson());
             currentResultStatement = strategy.deserializeDBObject(dbo);
-            
+
             // Find all of the queries in the executed RangeMap that this result matches
             // and collect all of those binding sets
-            Set<BindingSet> bsList = new HashSet<>();
-            for (RyaStatement executedQuery : executedRangeMap.keys()) {
+            final Set<BindingSet> bsList = new HashSet<>();
+            for (final RyaStatement executedQuery : executedRangeMap.keys()) {
                 if (isResultForQuery(executedQuery, currentResultStatement)) {
                     bsList.addAll(executedRangeMap.get(executedQuery));
                 }
             }
             currentBindingSetIterator = bsList.iterator();
         }
-        
+
         // Handle case of invalid currentResultStatement or no binding sets returned
         if ((currentBindingSetIterator == null || !currentBindingSetIterator.hasNext()) && (currentBatchQueryResultCursorIsValid() || queryIterator.hasNext())) {
             findNextResult();
         }
     }
-    
-    private static boolean isResultForQuery(RyaStatement query, RyaStatement result) {
+
+    private static boolean isResultForQuery(final RyaStatement query, final RyaStatement result) {
         return isResult(query.getSubject(), result.getSubject()) &&
                 isResult(query.getPredicate(), result.getPredicate()) &&
                 isResult(query.getObject(), result.getObject()) &&
                 isResult(query.getContext(), result.getContext());
     }
-    
-    private static boolean isResult(RyaType query, RyaType result) {
+
+    private static boolean isResult(final RyaType query, final RyaType result) {
         return (query == null) || query.equals(result);
     }
 
@@ -142,7 +142,7 @@ public class RyaStatementBindingSetCursorIterator implements CloseableIteration<
 
         while (queryIterator.hasNext() && count < QUERY_BATCH_SIZE){
             count++;
-            RyaStatement query = queryIterator.next();
+            final RyaStatement query = queryIterator.next();
             executedRangeMap.putAll(query, rangeMap.get(query));
             final DBObject currentQuery = strategy.getQuery(query);
             match.add(currentQuery);
@@ -156,10 +156,10 @@ public class RyaStatementBindingSetCursorIterator implements CloseableIteration<
             batchQueryResultsIterator = Iterators.emptyIterator();
             return;
         }
-        
+
         // Executing redact aggregation to only return documents the user has access to.
         pipeline.addAll(AggregationUtil.createRedactPipeline(auths));
-        log.info(pipeline);
+        log.trace(pipeline);
 
         final AggregateIterable<Document> aggIter = coll.aggregate(pipeline);
         aggIter.batchSize(1000);

@@ -83,7 +83,7 @@ public class SingleThreadKafkaStreamsFactory implements KafkaStreamsFactory {
         try {
             final TopologyBuilder topologyBuilder = topologyFactory.build(query.getSparql(), statementsTopic, resultsTopic, new RandomUUIDFactory());
             return new KafkaStreams(topologyBuilder, new StreamsConfig(streamsProps));
-        } catch (MalformedQueryException | TopologyBuilderException e) {
+        } catch (final MalformedQueryException | TopologyBuilderException e) {
             throw new KafkaStreamsFactoryException("Could not create a KafkaStreams processing topology for query " + query.getQueryId(), e);
         }
     }

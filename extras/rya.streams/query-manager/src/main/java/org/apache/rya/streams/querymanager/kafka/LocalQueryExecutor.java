@@ -32,10 +32,15 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.rya.streams.api.entity.StreamsQuery;
 import org.apache.rya.streams.kafka.KafkaStreamsFactory;
 import org.apache.rya.streams.kafka.KafkaStreamsFactory.KafkaStreamsFactoryException;
+import org.apache.rya.streams.kafka.KafkaTopics;
+import org.apache.rya.streams.kafka.interactor.CreateKafkaTopic;
 import org.apache.rya.streams.querymanager.QueryExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractIdleService;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -50,6 +55,7 @@ import kafka.consumer.KafkaStream;
  */
 @DefaultAnnotation(NonNull.class)
 public class LocalQueryExecutor extends AbstractIdleService implements QueryExecutor {
+    private static final Logger log = LoggerFactory.getLogger(LocalQueryExecutor.class);
 
     /**
      * Provides thread safety when interacting with this class.
@@ -72,6 +78,11 @@ public class LocalQueryExecutor extends AbstractIdleService implements QueryExec
     private final Map<UUID, KafkaStreams> byQueryId = new HashMap<>();
 
     /**
+     * Used to create the input and output topics for a Kafka Streams job.
+     */
+    private final CreateKafkaTopic createKafkaTopic;
+
+    /**
      * Builds the {@link KafkaStreams} objects that execute {@link KafkaStream}s.
      */
     private final KafkaStreamsFactory streamsFactory;
@@ -79,23 +90,31 @@ public class LocalQueryExecutor extends AbstractIdleService implements QueryExec
     /**
      * Constructs an instance of {@link LocalQueryExecutor}.
      *
+     * @param createKafkaTopic - Used to create the input and output topics for a Kafka Streams job. (not null)
      * @param streamsFactory - Builds the {@link KafkaStreams} objects that execute {@link KafkaStream}s. (not null)
      */
-    public LocalQueryExecutor(final KafkaStreamsFactory streamsFactory) {
+    public LocalQueryExecutor(
+            final CreateKafkaTopic createKafkaTopic,
+            final KafkaStreamsFactory streamsFactory) {
+        this.createKafkaTopic = requireNonNull(createKafkaTopic);
         this.streamsFactory = requireNonNull(streamsFactory);
     }
 
     @Override
     protected void startUp() throws Exception {
-        // Nothing to do.
+        log.info("Local Query Executor starting up.");
     }
 
     @Override
     protected void shutDown() throws Exception {
+        log.info("Local Query Executor shutting down. Stopping all jobs...");
+
         // Stop all of the running queries.
         for(final KafkaStreams job : byQueryId.values()) {
             job.close();
         }
+
+        log.info("Local Query Executor shut down.");
     }
 
     @Override
@@ -106,6 +125,14 @@ public class LocalQueryExecutor extends AbstractIdleService implements QueryExec
 
         lock.lock();
         try {
+            // Make sure the Statements topic exists for the query.
+            final Set<String> topics = Sets.newHashSet(
+                    KafkaTopics.statementsTopic(ryaInstance),
+                    KafkaTopics.queryResultsTopic(query.getQueryId()));
+
+            // Make sure the Query Results topic exists for the query.
+            createKafkaTopic.createTopics(topics, 1, 1);
+
             // Setup the Kafka Streams job that will execute.
             final KafkaStreams streams = streamsFactory.make(ryaInstance, query);
             streams.start();

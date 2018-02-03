@@ -45,6 +45,11 @@ public class QueryManagerConfigMarshallerTest {
                 "            <port>6</port>\n" +
                 "        </kafka>\n" +
                 "    </queryChangeLogSource>\n" +
+                "    <queryExecutor>\n" +
+                "        <localKafkaStreams>\n" +
+                "            <zookeepers>zoo1,zoo2,zoo3</zookeepers>\n" +
+                "        </localKafkaStreams>\n" +
+                "    </queryExecutor>\n" +
                 "    <performanceTunning>\n" +
                 "        <queryChanngeLogDiscoveryPeriod>\n" +
                 "            <value>1</value>\n" +

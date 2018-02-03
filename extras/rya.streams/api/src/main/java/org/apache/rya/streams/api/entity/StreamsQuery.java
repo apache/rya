@@ -85,7 +85,7 @@ public class StreamsQuery {
         }
         return false;
     }
-    
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
@@ -95,7 +95,7 @@ public class StreamsQuery {
         sb.append(getSparql() + "\n");
         sb.append("Is ");
         if (!isActive) {
-            sb.append(" Not ");
+            sb.append("Not ");
         }
         sb.append("Running.\n");
         return sb.toString();

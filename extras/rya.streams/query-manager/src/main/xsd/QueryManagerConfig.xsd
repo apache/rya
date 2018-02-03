@@ -30,6 +30,13 @@ under the License.
             </xs:choice>
           </xs:complexType>
         </xs:element>
+        <xs:element name="queryExecutor">
+            <xs:complexType>
+              <xs:choice>
+                <xs:element name="localKafkaStreams" type="localKafkaStreams"/>
+              </xs:choice>
+            </xs:complexType>
+        </xs:element>
         <xs:element name="performanceTunning">
           <xs:complexType>
             <xs:sequence>
@@ -62,6 +69,13 @@ under the License.
     <xs:sequence>
       <xs:element name="hostname" type="xs:string"/>
       <xs:element name="port" type="tcpPort" />
+    </xs:sequence>
+  </xs:complexType>
+  
+  <!-- Define what a local Kafka Streams query executor looks like. -->
+  <xs:complexType name="localKafkaStreams">
+    <xs:sequence>
+      <xs:element name="zookeepers" type="xs:string"/>
     </xs:sequence>
   </xs:complexType>
   

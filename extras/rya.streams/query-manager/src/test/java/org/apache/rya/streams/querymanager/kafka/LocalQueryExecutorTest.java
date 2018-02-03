@@ -32,6 +32,7 @@ import java.util.UUID;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.rya.streams.api.entity.StreamsQuery;
 import org.apache.rya.streams.kafka.KafkaStreamsFactory;
+import org.apache.rya.streams.kafka.interactor.CreateKafkaTopic;
 import org.apache.rya.streams.querymanager.QueryExecutor;
 import org.junit.Test;
 
@@ -44,7 +45,7 @@ public class LocalQueryExecutorTest {
 
     @Test(expected = IllegalStateException.class)
     public void startQuery_serviceNotStarted() throws Exception {
-        final QueryExecutor executor = new LocalQueryExecutor(mock(KafkaStreamsFactory.class));
+        final QueryExecutor executor = new LocalQueryExecutor(mock(CreateKafkaTopic.class), mock(KafkaStreamsFactory.class));
         executor.startQuery("rya", new StreamsQuery(UUID.randomUUID(), "query", true));
     }
 
@@ -60,7 +61,7 @@ public class LocalQueryExecutorTest {
         when(jobFactory.make(eq(ryaInstance), eq(query))).thenReturn(queryJob);
 
         // Start the executor that will be tested.
-        final QueryExecutor executor = new LocalQueryExecutor(jobFactory);
+        final QueryExecutor executor = new LocalQueryExecutor(mock(CreateKafkaTopic.class), jobFactory);
         executor.startAndWait();
         try {
             // Tell the executor to start the query.
@@ -75,14 +76,14 @@ public class LocalQueryExecutorTest {
 
     @Test(expected = IllegalStateException.class)
     public void stopQuery_serviceNotStarted() throws Exception {
-        final QueryExecutor executor = new LocalQueryExecutor(mock(KafkaStreamsFactory.class));
+        final QueryExecutor executor = new LocalQueryExecutor(mock(CreateKafkaTopic.class), mock(KafkaStreamsFactory.class));
         executor.stopQuery(UUID.randomUUID());
     }
 
     @Test
     public void stopQuery_queryNotRunning() throws Exception {
         // Start an executor.
-        final QueryExecutor executor = new LocalQueryExecutor(mock(KafkaStreamsFactory.class));
+        final QueryExecutor executor = new LocalQueryExecutor(mock(CreateKafkaTopic.class), mock(KafkaStreamsFactory.class));
         executor.startAndWait();
         try {
             // Try to stop a query that was never stareted.
@@ -104,7 +105,7 @@ public class LocalQueryExecutorTest {
         when(jobFactory.make(eq(ryaInstance), eq(query))).thenReturn(queryJob);
 
         // Start the executor that will be tested.
-        final QueryExecutor executor = new LocalQueryExecutor(jobFactory);
+        final QueryExecutor executor = new LocalQueryExecutor(mock(CreateKafkaTopic.class), jobFactory);
         executor.startAndWait();
         try {
             // Tell the executor to start the query.
@@ -122,7 +123,7 @@ public class LocalQueryExecutorTest {
 
     @Test(expected = IllegalStateException.class)
     public void stopAll_serviceNotStarted() throws Exception {
-        final QueryExecutor executor = new LocalQueryExecutor(mock(KafkaStreamsFactory.class));
+        final QueryExecutor executor = new LocalQueryExecutor(mock(CreateKafkaTopic.class), mock(KafkaStreamsFactory.class));
         executor.stopAll("rya");
     }
 
@@ -141,7 +142,7 @@ public class LocalQueryExecutorTest {
         when(jobFactory.make(eq(ryaInstance), eq(query2))).thenReturn(queryJob2);
 
         // Start the executor that will be tested.
-        final QueryExecutor executor = new LocalQueryExecutor(jobFactory);
+        final QueryExecutor executor = new LocalQueryExecutor(mock(CreateKafkaTopic.class), jobFactory);
         executor.startAndWait();
         try {
             // Tell the executor to start the queries.
@@ -180,7 +181,7 @@ public class LocalQueryExecutorTest {
         when(jobFactory.make(eq(ryaInstance2), eq(query2))).thenReturn(queryJob2);
 
         // Start the executor that will be tested.
-        final QueryExecutor executor = new LocalQueryExecutor(jobFactory);
+        final QueryExecutor executor = new LocalQueryExecutor(mock(CreateKafkaTopic.class), jobFactory);
         executor.startAndWait();
         try {
             // Tell the executor to start the queries.
@@ -205,14 +206,14 @@ public class LocalQueryExecutorTest {
 
     @Test(expected = IllegalStateException.class)
     public void getRunningQueryIds_serviceNotStarted() throws Exception {
-        final QueryExecutor executor = new LocalQueryExecutor(mock(KafkaStreamsFactory.class));
+        final QueryExecutor executor = new LocalQueryExecutor(mock(CreateKafkaTopic.class), mock(KafkaStreamsFactory.class));
         executor.getRunningQueryIds();
     }
 
     @Test
     public void getRunningQueryIds_noneStarted() throws Exception {
         // Start an executor.
-        final QueryExecutor executor = new LocalQueryExecutor(mock(KafkaStreamsFactory.class));
+        final QueryExecutor executor = new LocalQueryExecutor(mock(CreateKafkaTopic.class), mock(KafkaStreamsFactory.class));
         executor.startAndWait();
         try {
             // Get the list of running queries.
@@ -240,7 +241,7 @@ public class LocalQueryExecutorTest {
         when(jobFactory.make(eq(ryaInstance), eq(query3))).thenReturn(mock(KafkaStreams.class));
 
         // Start the executor that will be tested.
-        final QueryExecutor executor = new LocalQueryExecutor(jobFactory);
+        final QueryExecutor executor = new LocalQueryExecutor(mock(CreateKafkaTopic.class), jobFactory);
         executor.startAndWait();
         try {
             // Start the queries.
@@ -275,7 +276,7 @@ public class LocalQueryExecutorTest {
         when(jobFactory.make(eq(ryaInstance), eq(query3))).thenReturn(mock(KafkaStreams.class));
 
         // Start the executor that will be tested.
-        final QueryExecutor executor = new LocalQueryExecutor(jobFactory);
+        final QueryExecutor executor = new LocalQueryExecutor(mock(CreateKafkaTopic.class), jobFactory);
         executor.startAndWait();
         try {
             // Start the queries.

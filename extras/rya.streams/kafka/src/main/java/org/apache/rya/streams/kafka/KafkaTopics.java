@@ -55,7 +55,7 @@ public class KafkaTopics {
     }
 
     /**
-     * Get the Rya instance name from a Kafka topic name that has been used for a {@link QueryChnageLog}.
+     * Get the Rya instance name from a Kafka topic name that has been used for a {@link QueryChangeLog}.
      * <p/>
      * This is the inverse function of {@link #queryChangeLogTopic(String)}.
      *
@@ -106,7 +106,7 @@ public class KafkaTopics {
      * @param partitions - The number of partitions that each of the topics will have.
      * @param replicationFactor - The replication factor of the topics that are created.
      */
-    public static void createTopic(
+    public static void createTopics(
             final String zookeeperServers,
             final Set<String> topicNames,
             final int partitions,

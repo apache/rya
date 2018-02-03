@@ -93,13 +93,9 @@ public class InMemoryQueryRepositoryTest {
 
             // Create a new totally in memory QueryRepository.
             final QueryRepository initializedQueries = new InMemoryQueryRepository( changeLog, SCHEDULE );
-            try {
-                // Listing the queries should work using an initialized change log.
-                final Set<StreamsQuery> stored = initializedQueries.list();
-                assertEquals(expected, stored);
-            } finally {
-                queries.stop();
-            }
+            // Listing the queries should work using an initialized change log.
+            final Set<StreamsQuery> stored = initializedQueries.list();
+            assertEquals(expected, stored);
         } finally {
             queries.stop();
         }
@@ -166,7 +162,7 @@ public class InMemoryQueryRepositoryTest {
             final StreamsQuery query = queries.add("query 1", true);
 
             final Set<StreamsQuery> existing = queries.subscribe((queryChangeEvent, newQueryState) -> {
-                final ChangeLogEntry<QueryChange> expected = new ChangeLogEntry<QueryChange>(1L,
+                final ChangeLogEntry<QueryChange> expected = new ChangeLogEntry<>(1L,
                         QueryChange.create(queryChangeEvent.getEntry().getQueryId(), "query 2", true));
                 final Optional<StreamsQuery> expectedQueryState = Optional.of(
                         new StreamsQuery(queryChangeEvent.getEntry().getQueryId(), "query 2", true));
@@ -197,7 +193,7 @@ public class InMemoryQueryRepositoryTest {
             //show listener on repo that query was added to is being notified of the new query.
             final CountDownLatch repo1Latch = new CountDownLatch(1);
             queries.subscribe((queryChangeEvent, newQueryState) -> {
-                final ChangeLogEntry<QueryChange> expected = new ChangeLogEntry<QueryChange>(0L,
+                final ChangeLogEntry<QueryChange> expected = new ChangeLogEntry<>(0L,
                         QueryChange.create(queryChangeEvent.getEntry().getQueryId(), "query 2", true));
                 final Optional<StreamsQuery> expectedQueryState = Optional.of(
                         new StreamsQuery(queryChangeEvent.getEntry().getQueryId(), "query 2", true));
@@ -210,7 +206,7 @@ public class InMemoryQueryRepositoryTest {
             //show listener not on the repo that query was added to is being notified as well.
             final CountDownLatch repo2Latch = new CountDownLatch(1);
             queries2.subscribe((queryChangeEvent, newQueryState) -> {
-                final ChangeLogEntry<QueryChange> expected = new ChangeLogEntry<QueryChange>(0L,
+                final ChangeLogEntry<QueryChange> expected = new ChangeLogEntry<>(0L,
                         QueryChange.create(queryChangeEvent.getEntry().getQueryId(), "query 2", true));
                 final Optional<StreamsQuery> expectedQueryState = Optional.of(
                         new StreamsQuery(queryChangeEvent.getEntry().getQueryId(), "query 2", true));

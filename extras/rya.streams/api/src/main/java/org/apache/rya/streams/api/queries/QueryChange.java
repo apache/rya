@@ -110,6 +110,16 @@ public final class QueryChange implements Serializable {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return "QueryChange: {" +
+               "    Query ID: " + queryId + ",\n" +
+               "    Change Type: " + changeType + ",\n" +
+               "    Is Active: " + isActive + ",\n" +
+               "    SPARQL: " + sparql + "\n" +
+               "}";
+    }
+
     /**
      * Create a {@link QueryChange} that represents a new SPARQL query that will be managed by Rya Streams.
      *

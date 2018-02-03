@@ -136,7 +136,7 @@ public class RunQueryCommand implements RyaStreamsCommand {
                 final Set<String> topics = new HashSet<>();
                 topics.add( KafkaTopics.statementsTopic(params.ryaInstance) );
                 topics.add( KafkaTopics.queryResultsTopic(queryId) );
-                KafkaTopics.createTopic(params.zookeeperServers, topics, 1, 1);
+                KafkaTopics.createTopics(params.zookeeperServers, topics, 1, 1);
 
                 // Run the query that uses those topics.
                 final KafkaRunQuery runQuery = new KafkaRunQuery(

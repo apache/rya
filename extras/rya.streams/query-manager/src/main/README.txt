@@ -41,8 +41,11 @@ Java 8
     yum install -y ${project.artifactId}-${project.version}.noarch.rpm
     
  3. Update the configuration file:
-    Replace "[Kafka Broker Hostname]" with the IP address of the Kafka broker.
-    Replace the Kafka port if using something other than the default of 9092.
+    A. Replace "[Zookeepers used to manage Kafka. E.g.: zoo1,zoo2,zoo3]" with 
+       the zookeepers used to manage the Kafka cluster. It is a comma separated 
+       list.
+    B. Replace "[Kafka Broker Hostname]" with the IP address of the Kafka broker.
+    C. Replace the Kafka port if using something other than the default of 9092.
     
  4. Start the service:
     systemctl start rya-streams-query-manager.service

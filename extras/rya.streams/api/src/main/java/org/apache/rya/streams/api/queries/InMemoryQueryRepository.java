@@ -51,9 +51,9 @@ import info.aduna.iteration.CloseableIteration;
  */
 @DefaultAnnotation(NonNull.class)
 public class InMemoryQueryRepository extends AbstractScheduledService implements QueryRepository {
-    private static final Logger LOG = LoggerFactory.getLogger(InMemoryQueryRepository.class);
+    private static final Logger log = LoggerFactory.getLogger(InMemoryQueryRepository.class);
 
-    private final ReentrantLock lock = new ReentrantLock();
+    private final ReentrantLock lock = new ReentrantLock(true);
 
     /**
      * The change log that is the ground truth for describing what the queries look like.
@@ -198,7 +198,6 @@ public class InMemoryQueryRepository extends AbstractScheduledService implements
 
     @Override
     protected void shutDown() throws Exception {
-        super.shutDown();
         lock.lock();
         try {
             changeLog.close();
@@ -211,11 +210,12 @@ public class InMemoryQueryRepository extends AbstractScheduledService implements
      * Updates the {@link #queriesCache} to reflect the latest position within the {@link #changeLog}.
      */
     private void updateCache() {
-        requireNonNull(changeLog);
+        log.trace("updateCache() - Enter");
 
         CloseableIteration<ChangeLogEntry<QueryChange>, QueryChangeLogException> it = null;
         try {
             // Iterate over everything since the last position that was handled within the change log.
+            log.debug("Starting cache position:" + cachePosition);
             if(cachePosition.isPresent()) {
                 it = changeLog.readFromPosition(cachePosition.get() + 1);
             } else {
@@ -227,6 +227,8 @@ public class InMemoryQueryRepository extends AbstractScheduledService implements
                 final ChangeLogEntry<QueryChange> entry = it.next();
                 final QueryChange change = entry.getEntry();
                 final UUID queryId = change.getQueryId();
+
+                log.debug("Updating the cache to reflect:\n" + change);
 
                 switch(change.getChangeType()) {
                     case CREATE:
@@ -253,15 +255,17 @@ public class InMemoryQueryRepository extends AbstractScheduledService implements
                         break;
                 }
 
+                log.debug("Notifying listeners with the updated state.");
                 final Optional<StreamsQuery> newQueryState = Optional.ofNullable(queriesCache.get(queryId));
                 listeners.forEach(listener -> listener.notify(entry, newQueryState));
 
                 cachePosition = Optional.of( entry.getPosition() );
+                log.debug("New chache position: " + cachePosition);
             }
 
         } catch (final QueryChangeLogException e) {
             // Rethrow the exception because the object the supplier tried to create could not be created.
-            throw new RuntimeException("Could not initialize the " + InMemoryQueryRepository.class.getName(), e);
+            throw new RuntimeException("Could not update the cache of " + InMemoryQueryRepository.class.getName(), e);
 
         } finally {
             // Try to close the iteration if it was opened.
@@ -270,18 +274,22 @@ public class InMemoryQueryRepository extends AbstractScheduledService implements
                     it.close();
                 }
             } catch (final QueryChangeLogException e) {
-                LOG.error("Could not close the " + CloseableIteration.class.getName(), e);
+                log.error("Could not close the " + CloseableIteration.class.getName(), e);
             }
+
+            log.trace("updateCache() - Exit");
         }
     }
 
     @Override
     protected void runOneIteration() throws Exception {
+        log.trace("runOneIteration() - Enter");
         lock.lock();
         try {
             updateCache();
         } finally {
             lock.unlock();
+            log.trace("runOneIteration() - Exit");
         }
     }
 
@@ -292,17 +300,25 @@ public class InMemoryQueryRepository extends AbstractScheduledService implements
 
     @Override
     public Set<StreamsQuery> subscribe(final QueryChangeLogListener listener) {
+        log.trace("subscribe(listener) - Enter");
+
         //locks to prevent the current state from changing while subscribing.
         lock.lock();
+        log.trace("subscribe(listener) - Acquired lock");
         try {
             listeners.add(listener);
+            log.trace("subscribe(listener) - Listener Registered");
 
             //return the current state of the query repository
-            return queriesCache.values()
+            final Set<StreamsQuery> queries = queriesCache.values()
                     .stream()
                     .collect(Collectors.toSet());
+            log.trace("subscribe(listener) - Returning " + queries.size() + " existing queries");
+            return queries;
         } finally {
+            log.trace("subscribe(listener) - Releasing lock");
             lock.unlock();
+            log.trace("subscribe(listener) - Exit");
         }
     }
 

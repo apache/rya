@@ -51,8 +51,9 @@ public interface QueryChangeLogSource extends Service {
     public void unsubscribe(final SourceListener listener);
 
     /**
-     * A listener that is notified when a {@link QueryChangeLog} has
-     * been added or removed from a {@link QueryChangeLogSource}.
+     * A listener that is notified when a {@link QueryChangeLog} has been added or
+     * removed from a {@link QueryChangeLogSource}. The listener receives the only
+     * copy of the change log and is responsible for shutting it down.
      */
     @DefaultAnnotation(NonNull.class)
     public interface SourceListener {

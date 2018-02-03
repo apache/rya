@@ -33,11 +33,12 @@ import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.rya.streams.api.queries.QueryChangeLog;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.queries.KafkaQueryChangeLog;
 import org.apache.rya.streams.kafka.queries.KafkaQueryChangeLogFactory;
 import org.apache.rya.streams.querymanager.QueryChangeLogSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractScheduledService;
@@ -52,6 +53,8 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public class KafkaQueryChangeLogSource extends AbstractScheduledService implements QueryChangeLogSource {
+
+    private static final Logger log = LoggerFactory.getLogger(KafkaQueryChangeLogSource.class);
 
     /**
      * Ensures thread safe interactions with this object.
@@ -74,10 +77,10 @@ public class KafkaQueryChangeLogSource extends AbstractScheduledService implemen
     private final Set<SourceListener> listeners = new HashSet<>();
 
     /**
-     * Maps Rya instance name to a Query Change Log for that instance. This map is used to keep
-     * track of how the change logs change over time within the Kafka Server.
+     * Maps Rya instance names to the Query Change Log topic name in Kafka. This map is used to
+     * keep track of how the change logs change over time within the Kafka Server.
      */
-    private final HashMap<String, QueryChangeLog> knownChangeLogs = new HashMap<>();
+    private final HashMap<String, String> knownChangeLogs = new HashMap<>();
 
     /**
      * A consumer that is used to poll the Kafka Server for topics.
@@ -101,6 +104,8 @@ public class KafkaQueryChangeLogSource extends AbstractScheduledService implemen
 
     @Override
     protected void startUp() throws Exception {
+        log.info("Kafka Query Change Log Source watching " + kafkaBootstrapServer + " starting up...");
+
         // Setup the consumer that is used to list topics for the source.
         final Properties consumerProperties = new Properties();
         consumerProperties.setProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapServer);
@@ -108,17 +113,23 @@ public class KafkaQueryChangeLogSource extends AbstractScheduledService implemen
         consumerProperties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProperties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         listTopicsConsumer = new KafkaConsumer<>(consumerProperties);
+
+        log.info("Kafka Query Change Log Source watching " + kafkaBootstrapServer + " started.");
     }
 
     @Override
     protected void shutDown() throws Exception {
-        // Shut down the consumer that's used to list topics.
-        listTopicsConsumer.close();
+        log.info("Kafka Query Change Log Source watching " + kafkaBootstrapServer + " shutting down...");
 
-        // Shut down all of the change logs that were created within this class.
-        for(final QueryChangeLog changeLog : knownChangeLogs.values()) {
-            changeLog.close();
+        lock.lock();
+        try {
+            // Shut down the consumer that's used to list topics.
+            listTopicsConsumer.close();
+        } finally {
+            lock.unlock();
         }
+
+        log.info("Kafka Query Change Log Source watching " + kafkaBootstrapServer + " shut down.");
     }
 
     @Override
@@ -130,8 +141,10 @@ public class KafkaQueryChangeLogSource extends AbstractScheduledService implemen
             listeners.add(listener);
 
             // Notify it with everything that already exists.
-            for(final Entry<String, QueryChangeLog> entry : knownChangeLogs.entrySet()) {
-                listener.notifyCreate(entry.getKey(), entry.getValue());
+            for(final Entry<String, String> entry : knownChangeLogs.entrySet()) {
+                final String changeLogTopic = entry.getValue();
+                final KafkaQueryChangeLog changeLog = KafkaQueryChangeLogFactory.make(kafkaBootstrapServer, changeLogTopic);
+                listener.notifyCreate(entry.getKey(), changeLog);
             }
         } finally {
             lock.unlock();
@@ -174,26 +187,23 @@ public class KafkaQueryChangeLogSource extends AbstractScheduledService implemen
             // Handle the deletes.
             for(final String deletedRyaInstance : deletedRyaInstances) {
                 // Remove the change log from the set of known logs.
-                final QueryChangeLog removed = knownChangeLogs.remove(deletedRyaInstance);
+                knownChangeLogs.remove(deletedRyaInstance);
 
-                // Notify the listeners of the update.
+                // Notify the listeners of the update so that they may close the previously provided change log.
                 for(final SourceListener listener : listeners) {
                     listener.notifyDelete(deletedRyaInstance);
                 }
-
-                // Ensure the change log is closed.
-                removed.close();
             }
 
             // Handle the adds.
             for(final String createdRyaInstance : createdRyaInstances) {
                 // Create and store the ChangeLog.
                 final String changeLogTopic = KafkaTopics.queryChangeLogTopic(createdRyaInstance);
-                final KafkaQueryChangeLog changeLog = KafkaQueryChangeLogFactory.make(kafkaBootstrapServer, changeLogTopic);
-                knownChangeLogs.put(createdRyaInstance, changeLog);
+                knownChangeLogs.put(createdRyaInstance, changeLogTopic);
 
                 // Notify the listeners of the update.
                 for(final SourceListener listener : listeners) {
+                    final KafkaQueryChangeLog changeLog = KafkaQueryChangeLogFactory.make(kafkaBootstrapServer, changeLogTopic);
                     listener.notifyCreate(createdRyaInstance, changeLog);
                 }
             }

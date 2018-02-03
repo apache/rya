@@ -18,7 +18,7 @@ specific language governing permissions and limitations
 under the License.
 -->
 <queryManagerConfig>
-    <!-- The  Query Change Log Sources. The source defines a system where Rya
+    <!-- The Query Change Log Sources. The source defines a system where Rya
        - Streams Query Change Logs are managed. The query manager will manage 
        - queries for all Rya instances whose change logs are stored within the
        - source.
@@ -29,6 +29,14 @@ under the License.
             <port>9092</port>
         </kafka>
     </queryChangeLogSource>
+
+    <!-- The Query Executor. The executor defines a system for executing the
+         Rya Streams queries. -->    
+    <queryExecutor>
+        <localKafkaStreams>
+            <zookeepers>[Zookeepers used to manage Kafka. E.g.: zoo1,zoo2,zoo3]</zookeepers>
+        </localKafkaStreams>
+    </queryExecutor>
     
     <!-- This section defines performance related tuning values. Sensible
        - default have been provided to simplify configuration. 

@@ -35,6 +35,7 @@ import org.apache.rya.streams.api.interactor.LoadStatements;
 import org.apache.rya.streams.kafka.KafkaStreamsFactory;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.SingleThreadKafkaStreamsFactory;
+import org.apache.rya.streams.kafka.interactor.CreateKafkaTopic;
 import org.apache.rya.streams.kafka.interactor.KafkaLoadStatements;
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementSerializer;
@@ -119,9 +120,10 @@ public class LocalQueryExecutorIT {
         expected.add(new VisibilityBindingSet(bs, "a"));
 
         // Start the executor that will be tested.
+        final CreateKafkaTopic createKafkaTopic = new CreateKafkaTopic( kafka.getZookeeperServers() );
         final String kafkaServers = kafka.getKafkaHostname() + ":" + kafka.getKafkaPort();
         final KafkaStreamsFactory jobFactory = new SingleThreadKafkaStreamsFactory(kafkaServers);
-        final QueryExecutor executor = new LocalQueryExecutor(jobFactory);
+        final QueryExecutor executor = new LocalQueryExecutor(createKafkaTopic, jobFactory);
         executor.startAndWait();
         try {
             // Start the query.

@@ -28,6 +28,23 @@ under the License.
         </layout>
     </appender>
 
+    <!-- Kafka configuration configs are loud. -->
+    <logger name="org.apache.kafka.streams.StreamsConfig">
+        <level value="OFF"/>
+    </logger>
+    <logger name="org.apache.kafka.clients.consumer.ConsumerConfig">
+        <level value="OFF"/>
+    </logger>
+    <logger name="org.apache.kafka.clients.producer.ProducerConfig">
+        <level value="OFF"/>
+    </logger>
+
+    <!-- Change this level to DEBUG to see more information about what the 
+         QueryManager is doing. -->
+    <logger name="org.apache.rya.streams.querymanager.QueryManager">
+        <level value="INFO"/>
+    </logger>
+
     <root>
         <level value="INFO" />
         <appender-ref ref="console" />

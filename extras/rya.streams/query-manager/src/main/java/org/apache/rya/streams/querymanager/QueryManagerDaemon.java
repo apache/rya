@@ -33,6 +33,7 @@ import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
 import org.apache.rya.streams.kafka.KafkaStreamsFactory;
 import org.apache.rya.streams.kafka.SingleThreadKafkaStreamsFactory;
+import org.apache.rya.streams.kafka.interactor.CreateKafkaTopic;
 import org.apache.rya.streams.querymanager.kafka.KafkaQueryChangeLogSource;
 import org.apache.rya.streams.querymanager.kafka.LocalQueryExecutor;
 import org.apache.rya.streams.querymanager.xml.Kafka;
@@ -110,11 +111,12 @@ public class QueryManagerDaemon implements Daemon {
         final QueryChangeLogSource source = new KafkaQueryChangeLogSource(kafka.getHostname(), kafka.getPort(), scheduler);
 
         // Initialize a QueryExecutor.
+        final String zookeeperServers = config.getQueryExecutor().getLocalKafkaStreams().getZookeepers();
         final KafkaStreamsFactory streamsFactory = new SingleThreadKafkaStreamsFactory(kafka.getHostname() + ":" + kafka.getPort());
-        final QueryExecutor queryExecutor = new LocalQueryExecutor(streamsFactory);
+        final QueryExecutor queryExecutor = new LocalQueryExecutor(new CreateKafkaTopic(zookeeperServers), streamsFactory);
 
         // Initialize the QueryManager using the configured resources.
-        manager = new QueryManager(queryExecutor, source, scheduler);
+        manager = new QueryManager(queryExecutor, source, period, units);
     }
 
     @Override

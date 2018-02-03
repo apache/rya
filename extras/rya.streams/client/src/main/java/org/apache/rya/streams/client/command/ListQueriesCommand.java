@@ -112,12 +112,11 @@ public class ListQueriesCommand implements RyaStreamsCommand {
         sb.append("Queries in Rya Streams:\n");
         sb.append("---------------------------------------------------------\n");
         queries.forEach(query -> {
-            sb.append("ID: ");
-            sb.append(query.getQueryId());
-            sb.append("\t\t");
-            sb.append("Query: ");
-            sb.append(query.getSparql());
-            sb.append("\n");
+            sb.append("ID: ").append(query.getQueryId())
+                .append("    ")
+                .append("Is Active: ").append(query.isActive())
+                .append( query.isActive() ? "     " : "    " )
+                .append("Query: ").append(query.getSparql()).append("\n");
         });
         return sb.toString();
     }

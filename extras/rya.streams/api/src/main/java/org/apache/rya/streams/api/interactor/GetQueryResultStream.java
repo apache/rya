@@ -37,18 +37,20 @@ public interface GetQueryResultStream<T> {
     /**
      * Stream all of the results that have been produced by a query.
      *
+     * @param ryaInstance - The name of the Rya Instance the query is for. (not null)
      * @param queryId - Indicates which query results to stream. (not null)
      * @return A {@link QueryResultStream} that starts with the first result that was ever produced.
      * @throws RyaStreamsException Could not create the result stream.
      */
-    public QueryResultStream<T> fromStart(UUID queryId) throws RyaStreamsException;
+    public QueryResultStream<T> fromStart(String ryaInstance, UUID queryId) throws RyaStreamsException;
 
     /**
      * Stream results that have been produced by a query after this method was invoked.
      *
+     * @param ryaInstance - The name of the Rya Instance the query is for. (not null)
      * @param queryId - Indicates which query results to stream. (not null)
      * @return A {@link QueryResultStream} that only returns results that were produced after this method is invoked.
      * @throws RyaStreamsException Could not create the result stream.
      */
-    public QueryResultStream<T> fromNow(UUID queryId) throws RyaStreamsException;
+    public QueryResultStream<T> fromNow(String ryaInstance, UUID queryId) throws RyaStreamsException;
 }

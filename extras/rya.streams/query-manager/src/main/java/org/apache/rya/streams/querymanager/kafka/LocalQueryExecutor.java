@@ -128,7 +128,7 @@ public class LocalQueryExecutor extends AbstractIdleService implements QueryExec
             // Make sure the Statements topic exists for the query.
             final Set<String> topics = Sets.newHashSet(
                     KafkaTopics.statementsTopic(ryaInstance),
-                    KafkaTopics.queryResultsTopic(query.getQueryId()));
+                    KafkaTopics.queryResultsTopic(ryaInstance, query.getQueryId()));
 
             // Make sure the Query Results topic exists for the query.
             createKafkaTopic.createTopics(topics, 1, 1);

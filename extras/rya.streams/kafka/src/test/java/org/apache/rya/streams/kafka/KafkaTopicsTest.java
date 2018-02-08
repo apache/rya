@@ -37,7 +37,7 @@ public class KafkaTopicsTest {
         final String topicName = KafkaTopics.queryChangeLogTopic(ryaInstance);
 
         // Show the rya instance name is able to be extracted from the topic.
-        final Optional<String> resolvedRyaInstance = KafkaTopics.getRyaInstance(topicName);
+        final Optional<String> resolvedRyaInstance = KafkaTopics.getRyaInstanceFromQueryChangeLog(topicName);
         assertEquals(ryaInstance, resolvedRyaInstance.get());
     }
 
@@ -47,7 +47,7 @@ public class KafkaTopicsTest {
         final String invalidTopic = "thisIsABadTopicName";
 
         // Show there is no Rya Instance name in it.
-        final Optional<String> ryaInstance = KafkaTopics.getRyaInstance(invalidTopic);
+        final Optional<String> ryaInstance = KafkaTopics.getRyaInstanceFromQueryChangeLog(invalidTopic);
         assertFalse( ryaInstance.isPresent() );
     }
 }

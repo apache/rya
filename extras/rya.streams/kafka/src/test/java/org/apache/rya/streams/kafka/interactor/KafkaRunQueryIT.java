@@ -90,7 +90,7 @@ public class KafkaRunQueryIT {
         // Add the query to the query repository.
         final StreamsQuery sQuery = queries.add("SELECT * WHERE { ?person <urn:worksAt> ?business . }", true);
         final UUID queryId = sQuery.getQueryId();
-        final String resultsTopic = KafkaTopics.queryResultsTopic(queryId);
+        final String resultsTopic = KafkaTopics.queryResultsTopic(ryaInstance, queryId);
 
         // The thread that will run the tested interactor.
         final Thread testThread = new Thread() {

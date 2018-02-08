@@ -92,7 +92,7 @@ public class InMemoryQueryRepository extends AbstractScheduledService implements
     }
 
     @Override
-    public StreamsQuery add(final String query, final boolean isActive)
+    public StreamsQuery add(final String query, final boolean isActive, final boolean isInsert)
             throws QueryRepositoryException, IllegalStateException {
         requireNonNull(query);
 
@@ -101,7 +101,7 @@ public class InMemoryQueryRepository extends AbstractScheduledService implements
             checkState();
             // First record the change to the log.
             final UUID queryId = UUID.randomUUID();
-            final QueryChange change = QueryChange.create(queryId, query, isActive);
+            final QueryChange change = QueryChange.create(queryId, query, isActive, isInsert);
             changeLog.write(change);
 
             // Update the cache to represent what is currently in the log.
@@ -235,7 +235,8 @@ public class InMemoryQueryRepository extends AbstractScheduledService implements
                         final StreamsQuery query = new StreamsQuery(
                                 queryId,
                                 change.getSparql().get(),
-                                change.getIsActive().get());
+                                change.getIsActive().get(),
+                                change.getIsInsert().get());
                         queriesCache.put(queryId, query);
                         break;
 
@@ -245,7 +246,8 @@ public class InMemoryQueryRepository extends AbstractScheduledService implements
                             final StreamsQuery updated = new StreamsQuery(
                                     old.getQueryId(),
                                     old.getSparql(),
-                                    change.getIsActive().get());
+                                    change.getIsActive().get(),
+                                    old.isInsert());
                             queriesCache.put(queryId, updated);
                         }
                         break;

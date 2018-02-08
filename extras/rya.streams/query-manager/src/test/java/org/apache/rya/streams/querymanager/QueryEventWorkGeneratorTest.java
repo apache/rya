@@ -87,9 +87,9 @@ public class QueryEventWorkGeneratorTest {
 
         // A thread that will attempt to notify the generator with a created query.
         final UUID queryId = UUID.randomUUID();
-        final StreamsQuery query = new StreamsQuery(queryId, "query", true);
+        final StreamsQuery query = new StreamsQuery(queryId, "query", true, false);
         final Thread notifyThread = new Thread(() -> {
-            final QueryChange change = QueryChange.create(queryId, query.getSparql(), query.isActive());
+            final QueryChange change = QueryChange.create(queryId, query.getSparql(), query.isActive(), query.isInsert());
             final ChangeLogEntry<QueryChange> entry = new ChangeLogEntry<>(0, change);
             generator.notify(entry, Optional.of(query));
         });
@@ -108,7 +108,7 @@ public class QueryEventWorkGeneratorTest {
 
             // Show work was added to the queue and the notifying thread died.
             final QueryEvent event = queue.poll(500, TimeUnit.MILLISECONDS);
-            final QueryEvent expected = QueryEvent.executing("rya", new StreamsQuery(queryId, query.getSparql(), query.isActive()));
+            final QueryEvent expected = QueryEvent.executing("rya", new StreamsQuery(queryId, query.getSparql(), query.isActive(), query.isInsert()));
             assertEquals(expected, event);
         } finally {
             shutdownSignal.set(true);
@@ -132,9 +132,9 @@ public class QueryEventWorkGeneratorTest {
 
         // A thread that will attempt to notify the generator with a created query.
         final UUID queryId = UUID.randomUUID();
-        final StreamsQuery query = new StreamsQuery(queryId, "query", true);
+        final StreamsQuery query = new StreamsQuery(queryId, "query", true, false);
         final Thread notifyThread = new Thread(() -> {
-            final QueryChange change = QueryChange.create(queryId, query.getSparql(), query.isActive());
+            final QueryChange change = QueryChange.create(queryId, query.getSparql(), query.isActive(), query.isInsert());
             final ChangeLogEntry<QueryChange> entry = new ChangeLogEntry<>(0, change);
             generator.notify(entry, Optional.of(query));
         });
@@ -145,7 +145,7 @@ public class QueryEventWorkGeneratorTest {
         try {
             // Show work was added to the queue and the notifying thread died.
             final QueryEvent event = queue.poll(500, TimeUnit.MILLISECONDS);
-            final QueryEvent expected = QueryEvent.executing("rya", new StreamsQuery(queryId, query.getSparql(), query.isActive()));
+            final QueryEvent expected = QueryEvent.executing("rya", new StreamsQuery(queryId, query.getSparql(), query.isActive(), query.isInsert()));
             assertEquals(expected, event);
         } finally {
             shutdownSignal.set(true);
@@ -205,7 +205,7 @@ public class QueryEventWorkGeneratorTest {
 
         // A thread that will attempt to notify the generator with an update query change.
         final UUID queryId = UUID.randomUUID();
-        final StreamsQuery query = new StreamsQuery(queryId, "query", true);
+        final StreamsQuery query = new StreamsQuery(queryId, "query", true, false);
         final Thread notifyThread = new Thread(() -> {
             final QueryChange change = QueryChange.update(queryId, true);
             final ChangeLogEntry<QueryChange> entry = new ChangeLogEntry<>(0, change);
@@ -218,7 +218,7 @@ public class QueryEventWorkGeneratorTest {
         try {
             // Show work was added to the queue and the notifying thread died.
             final QueryEvent event = queue.poll(500, TimeUnit.MILLISECONDS);
-            final QueryEvent expected = QueryEvent.executing("rya", new StreamsQuery(queryId, query.getSparql(), query.isActive()));
+            final QueryEvent expected = QueryEvent.executing("rya", new StreamsQuery(queryId, query.getSparql(), query.isActive(), query.isInsert()));
             assertEquals(expected, event);
         } finally {
             shutdownSignal.set(true);
@@ -242,7 +242,7 @@ public class QueryEventWorkGeneratorTest {
 
         // A thread that will attempt to notify the generator with an update query change.
         final UUID queryId = UUID.randomUUID();
-        final StreamsQuery query = new StreamsQuery(queryId, "query", false);
+        final StreamsQuery query = new StreamsQuery(queryId, "query", false, false);
         final Thread notifyThread = new Thread(() -> {
             final QueryChange change = QueryChange.update(queryId, false);
             final ChangeLogEntry<QueryChange> entry = new ChangeLogEntry<>(0, change);

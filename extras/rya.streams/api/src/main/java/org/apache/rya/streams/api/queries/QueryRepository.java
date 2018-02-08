@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -46,11 +46,13 @@ public interface QueryRepository extends Service {
      * @param query - The SPARQL query to add. (not null)
      * @param isActive - {@code true} if the query should be processed after it is added
      *   otherwise {@code false}.
+     * @param isInsert - {@code true} if the query's results should be inserted back into
+     *   the Rya instance the originating statements came from; otherwise {@code false}.
      * @return The {@link StreamsQuery} used in Rya Streams.
      * @throws QueryRepositoryException Could not add the query.
      * @throws IllegalStateException The Service has not been started, but has been subscribed to.
      */
-    public StreamsQuery add(final String query, boolean isActive) throws QueryRepositoryException, IllegalStateException;
+    public StreamsQuery add(final String query, boolean isActive, boolean isInsert) throws QueryRepositoryException, IllegalStateException;
 
     /**
      * Updates the isActive state of a {@link StreamsQuery}. Setting this value to {@code true}

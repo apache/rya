@@ -49,7 +49,7 @@ public class DefaultAddQuery implements AddQuery {
     }
 
     @Override
-    public StreamsQuery addQuery(final String query, final boolean isActive) throws RyaStreamsException {
+    public StreamsQuery addQuery(final String query, final boolean isActive, final boolean isInsert) throws RyaStreamsException {
         requireNonNull(query);
 
         // Make sure the SPARQL is valid.
@@ -60,6 +60,6 @@ public class DefaultAddQuery implements AddQuery {
         }
 
         // If it is, then store it in the repository.
-        return repository.add(query, isActive);
+        return repository.add(query, isActive, isInsert);
     }
 }

@@ -22,6 +22,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.TimeUnit;
 
+import org.apache.rya.api.utils.QueryInvestigator;
 import org.apache.rya.streams.api.entity.StreamsQuery;
 import org.apache.rya.streams.api.exception.RyaStreamsException;
 import org.apache.rya.streams.api.interactor.AddQuery;
@@ -32,6 +33,7 @@ import org.apache.rya.streams.api.queries.QueryRepository;
 import org.apache.rya.streams.client.RyaStreamsCommand;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.queries.KafkaQueryChangeLogFactory;
+import org.openrdf.query.MalformedQueryException;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -58,6 +60,9 @@ public class AddQueryCommand implements RyaStreamsCommand {
         @Parameter(names = {"--isActive", "-a"}, required = false, description = "True if the added query will be started.")
         private String isActive;
 
+        @Parameter(names = {"--isInsert", "-n"}, required = false, description = "True if the reuslts of the query will be written back to Rya.")
+        private String isInsert;
+
         @Override
         public String toString() {
             final StringBuilder parameters = new StringBuilder();
@@ -67,6 +72,7 @@ public class AddQueryCommand implements RyaStreamsCommand {
                 parameters.append("\tQuery: " + query + "\n");
             }
             parameters.append("\tIs Active: " + isActive + "\n");
+            parameters.append("\tis Insert: " + isInsert + "\n");
             return parameters.toString();
         }
     }
@@ -125,17 +131,33 @@ public class AddQueryCommand implements RyaStreamsCommand {
         try {
             final AddQuery addQuery = new DefaultAddQuery(queryRepo);
             try {
-                final StreamsQuery query = addQuery.addQuery(params.query, Boolean.parseBoolean(params.isActive));
+                final Boolean isActive = Boolean.parseBoolean(params.isActive);
+                final Boolean isInsert = Boolean.parseBoolean(params.isInsert);
+
+                // If the query's results are meant to be written back to Rya, make sure it creates statements.
+                if(isInsert) {
+                    final boolean isConstructQuery = QueryInvestigator.isConstruct(params.query);
+                    final boolean isInsertQuery = QueryInvestigator.isInsertWhere(params.query);
+
+                    if(isConstructQuery) {
+                        System.out.println(
+                                "WARNING: CONSTRUCT is part of the SPARQL Query API, so they do not normally\n" +
+                                "get written back to the triple store. Consider using an INSERT, which is\n" +
+                                "part of the SPARQL Update API, in the future.");
+                    }
+
+                    if(!(isConstructQuery || isInsertQuery)) {
+                        throw new ArgumentsException("Only CONSTRUCT queries and INSERT updates may be inserted back to the triple store.");
+                    }
+                }
+
+                final StreamsQuery query = addQuery.addQuery(params.query, isActive, isInsert);
                 System.out.println("Added query: " + query.getSparql());
             } catch (final RyaStreamsException e) {
-                System.err.println("Unable to parse query: " + params.query);
-                e.printStackTrace();
-                System.exit(1);
+                throw new ExecutionException("Unable to add the query to Rya Streams.", e);
             }
-        } catch (final Exception e) {
-            System.err.println("Problem encountered while closing the QueryRepository.");
-            e.printStackTrace();
-            System.exit(1);
+        } catch(final MalformedQueryException e) {
+            throw new ArgumentsException("Could not parse the provided query.", e);
         }
     }
 }

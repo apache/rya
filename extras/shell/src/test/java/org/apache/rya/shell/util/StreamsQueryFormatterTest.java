@@ -39,13 +39,14 @@ public class StreamsQueryFormatterTest {
         final StreamsQuery query = new StreamsQuery(
                 UUID.fromString("da55cea5-c21c-46a5-ab79-5433eef4efaa"),
                 "SELECT * WHERE { ?a ?b ?c . }",
-                true);
+                true, false);
         final String formatted = StreamsQueryFormatter.format(query);
 
         // Ensure it has the expected format.
         final String expected =
                 " Query ID: da55cea5-c21c-46a5-ab79-5433eef4efaa\n" +
                 "Is Active: true\n" +
+                "Is Insert: false\n" +
                 "   SPARQL: select ?a ?b ?c\n" +
                 "           where {\n" +
                 "             ?a ?b ?c.\n" +
@@ -61,15 +62,15 @@ public class StreamsQueryFormatterTest {
                 new StreamsQuery(
                         UUID.fromString("33333333-3333-3333-3333-333333333333"),
                         "SELECT * WHERE { ?person <urn:worksAt> ?business . }",
-                        true),
+                        true, true),
                 new StreamsQuery(
                         UUID.fromString("11111111-1111-1111-1111-111111111111"),
                         "SELECT * WHERE { ?a ?b ?c . }",
-                        true),
+                        true, false),
                 new StreamsQuery(
                         UUID.fromString("22222222-2222-2222-2222-222222222222"),
                         "SELECT * WHERE { ?d ?e ?f . }",
-                        false));
+                        false, true));
 
         final String formatted = StreamsQueryFormatter.format(queries);
 
@@ -78,6 +79,7 @@ public class StreamsQueryFormatterTest {
                 "-----------------------------------------------\n" +
                 " Query ID: 11111111-1111-1111-1111-111111111111\n" +
                 "Is Active: true\n" +
+                "Is Insert: false\n" +
                 "   SPARQL: select ?a ?b ?c\n" +
                 "           where {\n" +
                 "             ?a ?b ?c.\n" +
@@ -85,6 +87,7 @@ public class StreamsQueryFormatterTest {
                 "-----------------------------------------------\n" +
                 " Query ID: 22222222-2222-2222-2222-222222222222\n" +
                 "Is Active: false\n" +
+                "Is Insert: true\n" +
                 "   SPARQL: select ?d ?e ?f\n" +
                 "           where {\n" +
                 "             ?d ?e ?f.\n" +
@@ -92,6 +95,7 @@ public class StreamsQueryFormatterTest {
                 "-----------------------------------------------\n" +
                 " Query ID: 33333333-3333-3333-3333-333333333333\n" +
                 "Is Active: true\n" +
+                "Is Insert: true\n" +
                 "   SPARQL: select ?person ?business\n" +
                 "           where {\n" +
                 "             ?person <urn:worksAt> ?business.\n" +

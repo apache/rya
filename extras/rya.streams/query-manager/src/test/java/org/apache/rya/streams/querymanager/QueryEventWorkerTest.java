@@ -68,7 +68,7 @@ public class QueryEventWorkerTest {
 
         // The message that indicates a query needs to be executed.
         final String ryaInstance = "rya";
-        final StreamsQuery query = new StreamsQuery(UUID.randomUUID(), "sparql", true);
+        final StreamsQuery query = new StreamsQuery(UUID.randomUUID(), "sparql", true, false);
         final QueryEvent executingEvent = QueryEvent.executing(ryaInstance, query);
 
         // Release a latch if the startQuery method on the queryExecutor is invoked with the correct values.

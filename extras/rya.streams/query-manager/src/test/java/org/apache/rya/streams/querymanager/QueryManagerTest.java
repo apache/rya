@@ -50,7 +50,7 @@ public class QueryManagerTest {
         //The new QueryChangeLog
         final QueryChangeLog newChangeLog = new InMemoryQueryChangeLog();
         final String ryaInstance = "ryaTestInstance";
-        final StreamsQuery query = new StreamsQuery(UUID.randomUUID(), "some query", true);
+        final StreamsQuery query = new StreamsQuery(UUID.randomUUID(), "some query", true, false);
 
         // when the query executor is told to start the test query on the test
         // rya instance, count down on the countdown latch
@@ -69,7 +69,7 @@ public class QueryManagerTest {
             //The listener created by the Query Manager
             final SourceListener listener = (SourceListener) invocation.getArguments()[0];
             listener.notifyCreate(ryaInstance, newChangeLog);
-            newChangeLog.write(QueryChange.create(query.getQueryId(), query.getSparql(), query.isActive()));
+            newChangeLog.write(QueryChange.create(query.getQueryId(), query.getSparql(), query.isActive(), query.isInsert()));
             return null;
         }).when(source).subscribe(any(SourceListener.class));
 
@@ -91,7 +91,7 @@ public class QueryManagerTest {
     public void testDeleteQuery() throws Exception {
         //The new QueryChangeLog
         final QueryChangeLog newChangeLog = new InMemoryQueryChangeLog();
-        final StreamsQuery query = new StreamsQuery(UUID.randomUUID(), "some query", true);
+        final StreamsQuery query = new StreamsQuery(UUID.randomUUID(), "some query", true, false);
         final String ryaInstance = "ryaTestInstance";
 
         // when the query executor is told to start the test query on the test
@@ -121,7 +121,7 @@ public class QueryManagerTest {
             final SourceListener listener = (SourceListener) invocation.getArguments()[0];
             listener.notifyCreate(ryaInstance, newChangeLog);
             Thread.sleep(1000);
-            newChangeLog.write(QueryChange.create(query.getQueryId(), query.getSparql(), query.isActive()));
+            newChangeLog.write(QueryChange.create(query.getQueryId(), query.getSparql(), query.isActive(), query.isInsert()));
             queryStarted.await(5, TimeUnit.SECONDS);
             newChangeLog.write(QueryChange.delete(query.getQueryId()));
             return null;
@@ -145,7 +145,7 @@ public class QueryManagerTest {
     public void testUpdateQuery() throws Exception {
         // The new QueryChangeLog
         final QueryChangeLog newChangeLog = new InMemoryQueryChangeLog();
-        final StreamsQuery query = new StreamsQuery(UUID.randomUUID(), "some query", true);
+        final StreamsQuery query = new StreamsQuery(UUID.randomUUID(), "some query", true, false);
         final String ryaInstance = "ryaTestInstance";
 
         // when the query executor is told to start the test query on the test
@@ -176,7 +176,7 @@ public class QueryManagerTest {
             final SourceListener listener = (SourceListener) invocation.getArguments()[0];
             listener.notifyCreate(ryaInstance, newChangeLog);
             Thread.sleep(1000);
-            newChangeLog.write(QueryChange.create(query.getQueryId(), query.getSparql(), query.isActive()));
+            newChangeLog.write(QueryChange.create(query.getQueryId(), query.getSparql(), query.isActive(), query.isInsert()));
             queryStarted.await(5, TimeUnit.SECONDS);
             newChangeLog.write(QueryChange.update(query.getQueryId(), false));
             return null;

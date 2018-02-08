@@ -68,9 +68,9 @@ public class ListQueryCommandIT {
     @Test
     public void shortParams() throws Exception {
         // Add a few queries to Rya Streams.
-        queryRepo.add("query1", true);
-        queryRepo.add("query2", false);
-        queryRepo.add("query3", true);
+        queryRepo.add("query1", true, true);
+        queryRepo.add("query2", false, true);
+        queryRepo.add("query3", true, false);
 
         // Execute the List Queries command.
         final String[] args = new String[] {
@@ -86,9 +86,9 @@ public class ListQueryCommandIT {
     @Test
     public void longParams() throws Exception {
         // Add a few queries to Rya Streams.
-        queryRepo.add("query1", true);
-        queryRepo.add("query2", false);
-        queryRepo.add("query3", true);
+        queryRepo.add("query1", true, true);
+        queryRepo.add("query2", false, true);
+        queryRepo.add("query3", true, false);
 
         // Execute the List Queries command.
         final String[] args = new String[] {

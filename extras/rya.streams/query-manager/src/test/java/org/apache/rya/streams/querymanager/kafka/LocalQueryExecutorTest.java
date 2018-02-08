@@ -46,14 +46,14 @@ public class LocalQueryExecutorTest {
     @Test(expected = IllegalStateException.class)
     public void startQuery_serviceNotStarted() throws Exception {
         final QueryExecutor executor = new LocalQueryExecutor(mock(CreateKafkaTopic.class), mock(KafkaStreamsFactory.class));
-        executor.startQuery("rya", new StreamsQuery(UUID.randomUUID(), "query", true));
+        executor.startQuery("rya", new StreamsQuery(UUID.randomUUID(), "query", true, false));
     }
 
     @Test
     public void startQuery() throws Exception {
         // Test values.
         final String ryaInstance = "rya";
-        final StreamsQuery query = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true);
+        final StreamsQuery query = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true, false);
 
         // Mock the streams factory so that we can tell if the start function is invoked by the executor.
         final KafkaStreamsFactory jobFactory = mock(KafkaStreamsFactory.class);
@@ -97,7 +97,7 @@ public class LocalQueryExecutorTest {
     public void stopQuery() throws Exception {
         // Test values.
         final String ryaInstance = "rya";
-        final StreamsQuery query = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true);
+        final StreamsQuery query = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true, false);
 
         // Mock the streams factory so that we can tell if the stop function is invoked by the executor.
         final KafkaStreamsFactory jobFactory = mock(KafkaStreamsFactory.class);
@@ -131,8 +131,8 @@ public class LocalQueryExecutorTest {
     public void stopAll_noneForThatRyaInstance() throws Exception {
         // Test values.
         final String ryaInstance = "rya";
-        final StreamsQuery query1= new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true);
-        final StreamsQuery query2= new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true);
+        final StreamsQuery query1= new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true, false);
+        final StreamsQuery query2= new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true, false);
 
         // Mock the streams factory so that we can tell if the stop function is invoked by the executor.
         final KafkaStreamsFactory jobFactory = mock(KafkaStreamsFactory.class);
@@ -169,9 +169,9 @@ public class LocalQueryExecutorTest {
     public void stopAll() throws Exception {
         // Test values.
         final String ryaInstance1 = "rya1";
-        final StreamsQuery query1= new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true);
+        final StreamsQuery query1= new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true, false);
         final String ryaInstance2 = "rya2";
-        final StreamsQuery query2= new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true);
+        final StreamsQuery query2= new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true, false);
 
         // Mock the streams factory so that we can tell if the stop function is invoked by the executor.
         final KafkaStreamsFactory jobFactory = mock(KafkaStreamsFactory.class);
@@ -230,9 +230,9 @@ public class LocalQueryExecutorTest {
     public void getRunningQueryIds_noneStopped() throws Exception {
         // Test values.
         final String ryaInstance = "rya";
-        final StreamsQuery query1 = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true);
-        final StreamsQuery query2 = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true);
-        final StreamsQuery query3 = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true);
+        final StreamsQuery query1 = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true, false);
+        final StreamsQuery query2 = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true, false);
+        final StreamsQuery query3 = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true, false);
 
         // Mock the streams factory so that we can figure out what is started.
         final KafkaStreamsFactory jobFactory = mock(KafkaStreamsFactory.class);
@@ -265,9 +265,9 @@ public class LocalQueryExecutorTest {
     public void getRunningQueryIds_stoppedNoLongerListed() throws Exception {
         // Test values.
         final String ryaInstance = "rya";
-        final StreamsQuery query1 = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true);
-        final StreamsQuery query2 = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true);
-        final StreamsQuery query3 = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true);
+        final StreamsQuery query1 = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true, false);
+        final StreamsQuery query2 = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true, false);
+        final StreamsQuery query3 = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?a ?b ?c. }", true, false);
 
         // Mock the streams factory so that we can figure out what is started.
         final KafkaStreamsFactory jobFactory = mock(KafkaStreamsFactory.class);

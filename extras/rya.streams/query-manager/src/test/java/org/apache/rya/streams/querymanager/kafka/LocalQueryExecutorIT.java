@@ -86,7 +86,7 @@ public class LocalQueryExecutorIT {
     public void runQuery() throws Exception {
         // Test values.
         final String ryaInstance = "rya";
-        final StreamsQuery sQuery = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?person <urn:worksAt> ?business . }", true);
+        final StreamsQuery sQuery = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?person <urn:worksAt> ?business . }", true, false);
 
         // Create the statements that will be loaded.
         final ValueFactory vf = new ValueFactoryImpl();

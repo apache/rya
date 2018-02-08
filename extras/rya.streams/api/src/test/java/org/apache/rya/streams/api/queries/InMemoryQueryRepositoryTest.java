@@ -50,9 +50,9 @@ public class InMemoryQueryRepositoryTest {
         final QueryRepository queries = new InMemoryQueryRepository( new InMemoryQueryChangeLog(), SCHEDULE );
         // Add some queries to it.
         final Set<StreamsQuery> expected = new HashSet<>();
-        expected.add( queries.add("query 1", true) );
-        expected.add( queries.add("query 2", false) );
-        expected.add( queries.add("query 3", true) );
+        expected.add( queries.add("query 1", true, true) );
+        expected.add( queries.add("query 2", false, true) );
+        expected.add( queries.add("query 3", true, false) );
 
         // Show they are in the list of all queries.
         final Set<StreamsQuery> stored = queries.list();
@@ -65,9 +65,9 @@ public class InMemoryQueryRepositoryTest {
         final QueryRepository queries = new InMemoryQueryRepository( new InMemoryQueryChangeLog(), SCHEDULE );
         // Add some queries to it. The second one we will delete.
         final Set<StreamsQuery> expected = new HashSet<>();
-        expected.add( queries.add("query 1", true) );
-        final UUID deletedMeId = queries.add("query 2", false).getQueryId();
-        expected.add( queries.add("query 3", true) );
+        expected.add( queries.add("query 1", true, true) );
+        final UUID deletedMeId = queries.add("query 2", false, true).getQueryId();
+        expected.add( queries.add("query 3", true, false) );
 
         // Delete the second query.
         queries.delete( deletedMeId );
@@ -86,9 +86,9 @@ public class InMemoryQueryRepositoryTest {
             queries.startAndWait();
             // Add some queries and deletes to it.
             final Set<StreamsQuery> expected = new HashSet<>();
-            expected.add( queries.add("query 1", true) );
-            final UUID deletedMeId = queries.add("query 2", false).getQueryId();
-            expected.add( queries.add("query 3", true) );
+            expected.add( queries.add("query 1", true, true) );
+            final UUID deletedMeId = queries.add("query 2", false, true).getQueryId();
+            expected.add( queries.add("query 3", true, false) );
             queries.delete( deletedMeId );
 
             // Create a new totally in memory QueryRepository.
@@ -121,7 +121,7 @@ public class InMemoryQueryRepositoryTest {
         // Setup a totally in memory QueryRepository.
         final QueryRepository queries = new InMemoryQueryRepository( new InMemoryQueryChangeLog(), SCHEDULE );
         // Add a query to it.
-        final StreamsQuery query = queries.add("query 1", true);
+        final StreamsQuery query = queries.add("query 1", true, false);
 
         // Show the fetched query matches the expected ones.
         final Optional<StreamsQuery> fetched = queries.get(query.getQueryId());
@@ -144,14 +144,14 @@ public class InMemoryQueryRepositoryTest {
         // Setup a totally in memory QueryRepository.
         final QueryRepository queries = new InMemoryQueryRepository( new InMemoryQueryChangeLog(), SCHEDULE );
         // Add a query to it.
-        final StreamsQuery query = queries.add("query 1", true);
+        final StreamsQuery query = queries.add("query 1", true, false);
 
         // Change the isActive state of that query.
         queries.updateIsActive(query.getQueryId(), false);
 
         // Show the fetched query matches the expected one.
         final Optional<StreamsQuery> fetched = queries.get(query.getQueryId());
-        final StreamsQuery expected = new StreamsQuery(query.getQueryId(), query.getSparql(), false);
+        final StreamsQuery expected = new StreamsQuery(query.getQueryId(), query.getSparql(), false, false);
         assertEquals(expected, fetched.get());
     }
 
@@ -163,13 +163,13 @@ public class InMemoryQueryRepositoryTest {
             queries.startAndWait();
 
             // Add a query to it.
-            final StreamsQuery query = queries.add("query 1", true);
+            final StreamsQuery query = queries.add("query 1", true, false);
 
             final Set<StreamsQuery> existing = queries.subscribe((queryChangeEvent, newQueryState) -> {
-                final ChangeLogEntry<QueryChange> expected = new ChangeLogEntry<QueryChange>(1L,
-                        QueryChange.create(queryChangeEvent.getEntry().getQueryId(), "query 2", true));
+                final ChangeLogEntry<QueryChange> expected = new ChangeLogEntry<>(1L,
+                        QueryChange.create(queryChangeEvent.getEntry().getQueryId(), "query 2", true, false));
                 final Optional<StreamsQuery> expectedQueryState = Optional.of(
-                        new StreamsQuery(queryChangeEvent.getEntry().getQueryId(), "query 2", true));
+                        new StreamsQuery(queryChangeEvent.getEntry().getQueryId(), "query 2", true, false));
 
                 assertEquals(expected, queryChangeEvent);
                 assertEquals(expectedQueryState, newQueryState);
@@ -177,7 +177,7 @@ public class InMemoryQueryRepositoryTest {
 
             assertEquals(Sets.newHashSet(query), existing);
 
-            queries.add("query 2", true);
+            queries.add("query 2", true, false);
         } finally {
             queries.stop();
         }
@@ -197,10 +197,10 @@ public class InMemoryQueryRepositoryTest {
             //show listener on repo that query was added to is being notified of the new query.
             final CountDownLatch repo1Latch = new CountDownLatch(1);
             queries.subscribe((queryChangeEvent, newQueryState) -> {
-                final ChangeLogEntry<QueryChange> expected = new ChangeLogEntry<QueryChange>(0L,
-                        QueryChange.create(queryChangeEvent.getEntry().getQueryId(), "query 2", true));
+                final ChangeLogEntry<QueryChange> expected = new ChangeLogEntry<>(0L,
+                        QueryChange.create(queryChangeEvent.getEntry().getQueryId(), "query 2", true, false));
                 final Optional<StreamsQuery> expectedQueryState = Optional.of(
-                        new StreamsQuery(queryChangeEvent.getEntry().getQueryId(), "query 2", true));
+                        new StreamsQuery(queryChangeEvent.getEntry().getQueryId(), "query 2", true, false));
 
                 assertEquals(expected, queryChangeEvent);
                 assertEquals(expectedQueryState, newQueryState);
@@ -210,17 +210,17 @@ public class InMemoryQueryRepositoryTest {
             //show listener not on the repo that query was added to is being notified as well.
             final CountDownLatch repo2Latch = new CountDownLatch(1);
             queries2.subscribe((queryChangeEvent, newQueryState) -> {
-                final ChangeLogEntry<QueryChange> expected = new ChangeLogEntry<QueryChange>(0L,
-                        QueryChange.create(queryChangeEvent.getEntry().getQueryId(), "query 2", true));
+                final ChangeLogEntry<QueryChange> expected = new ChangeLogEntry<>(0L,
+                        QueryChange.create(queryChangeEvent.getEntry().getQueryId(), "query 2", true, false));
                 final Optional<StreamsQuery> expectedQueryState = Optional.of(
-                        new StreamsQuery(queryChangeEvent.getEntry().getQueryId(), "query 2", true));
+                        new StreamsQuery(queryChangeEvent.getEntry().getQueryId(), "query 2", true, false));
 
                 assertEquals(expected, queryChangeEvent);
                 assertEquals(expectedQueryState, newQueryState);
                 repo2Latch.countDown();
             });
 
-            queries.add("query 2", true);
+            queries.add("query 2", true, false);
 
             assertTrue(repo1Latch.await(5, TimeUnit.SECONDS));
             assertTrue(repo2Latch.await(5, TimeUnit.SECONDS));
@@ -237,6 +237,6 @@ public class InMemoryQueryRepositoryTest {
         final QueryRepository queries = new InMemoryQueryRepository(new InMemoryQueryChangeLog(), SCHEDULE);
         queries.subscribe((queryChangeEvent, newQueryState) -> {});
 
-        queries.add("query 2", true);
+        queries.add("query 2", true, false);
     }
 }

@@ -116,6 +116,8 @@ public class ListQueriesCommand implements RyaStreamsCommand {
                 .append("    ")
                 .append("Is Active: ").append(query.isActive())
                 .append( query.isActive() ? "     " : "    " )
+                .append("Is Insert: ").append(query.isInsert())
+                .append(query.isInsert() ? "     " : "    ")
                 .append("Query: ").append(query.getSparql()).append("\n");
         });
         return sb.toString();

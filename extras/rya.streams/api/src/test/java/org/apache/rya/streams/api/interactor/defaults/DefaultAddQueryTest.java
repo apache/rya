@@ -43,10 +43,10 @@ public class DefaultAddQueryTest {
         final AddQuery addQuery = new DefaultAddQuery(repo);
 
         // Add the query.
-        addQuery.addQuery(sparql, true);
+        addQuery.addQuery(sparql, true, true);
 
         // Verify the call was forwarded to the repository.
-        verify(repo, times(1)).add(eq(sparql), eq(true));
+        verify(repo, times(1)).add(eq(sparql), eq(true), eq(true));
     }
 
     @Test(expected = RyaStreamsException.class)
@@ -59,6 +59,6 @@ public class DefaultAddQueryTest {
         final AddQuery addQuery = new DefaultAddQuery(repo);
 
         // Add the query.
-        addQuery.addQuery(sparql, true);
+        addQuery.addQuery(sparql, true, true);
     }
 }

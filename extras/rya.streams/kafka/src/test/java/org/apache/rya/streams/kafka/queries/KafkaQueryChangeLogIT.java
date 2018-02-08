@@ -79,7 +79,7 @@ public class KafkaQueryChangeLogIT extends KafkaITBase {
     public void testWrite() throws Exception {
         final String sparql = "SOME QUERY HERE";
         final UUID uuid = UUID.randomUUID();
-        final QueryChange newChange = QueryChange.create(uuid, sparql, true);
+        final QueryChange newChange = QueryChange.create(uuid, sparql, true, false);
         changeLog.write(newChange);
 
         consumer.subscribe(Lists.newArrayList(topic));
@@ -93,7 +93,7 @@ public class KafkaQueryChangeLogIT extends KafkaITBase {
     @Test
     public void readSingleWrite() throws Exception {
         // Write a single change to the log.
-        final QueryChange change = QueryChange.create(UUID.randomUUID(), "query", true);
+        final QueryChange change = QueryChange.create(UUID.randomUUID(), "query", true, false);
         changeLog.write(change);
 
         // Read that entry from the log.
@@ -198,7 +198,7 @@ public class KafkaQueryChangeLogIT extends KafkaITBase {
             assertFalse( changeLog2.readFromStart().hasNext() );
 
             // Write a change to the first log.
-            final QueryChange change = QueryChange.create(UUID.randomUUID(), "query", true);
+            final QueryChange change = QueryChange.create(UUID.randomUUID(), "query", true, false);
             changeLog.write(change);
 
             // Show it's in the first log.
@@ -214,7 +214,7 @@ public class KafkaQueryChangeLogIT extends KafkaITBase {
         for (int ii = 0; ii < 10; ii++) {
             final String sparql = "SOME QUERY HERE_" + ii;
             final UUID uuid = UUID.randomUUID();
-            final QueryChange newChange = QueryChange.create(uuid, sparql, true);
+            final QueryChange newChange = QueryChange.create(uuid, sparql, true, false);
             changeLog.write(newChange);
             changes.add(newChange);
         }

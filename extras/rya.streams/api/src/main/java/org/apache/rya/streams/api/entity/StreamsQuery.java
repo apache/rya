@@ -35,6 +35,7 @@ public class StreamsQuery {
     private final UUID queryId;
     private final String sparql;
     private final boolean isActive;
+    private final boolean isInsert;
 
     /**
      * Constructs an instance of {@link StreamsQuery}.
@@ -42,11 +43,18 @@ public class StreamsQuery {
      * @param queryId - Uniquely identifies the query within Rya Streams. (not null)
      * @param sparql - The SPARQL query that defines how statements will be processed. (not null)
      * @param isActive - {@code true} if Rya Streams should process this query; otherwise {@code false}.
+     * @param isInsert - {@code true} if Rya Streams should insert the results of the query back into
+     *   the Rya instance the statements originated from; otherwise {@code false}.
      */
-    public StreamsQuery(final UUID queryId, final String sparql, final boolean isActive) {
+    public StreamsQuery(
+            final UUID queryId,
+            final String sparql,
+            final boolean isActive,
+            final boolean isInsert) {
         this.queryId = requireNonNull(queryId);
         this.sparql = requireNonNull(sparql);
         this.isActive = isActive;
+        this.isInsert = isInsert;
     }
 
     /**
@@ -70,9 +78,17 @@ public class StreamsQuery {
         return isActive;
     }
 
+    /**
+     * @return {@code true} if Rya Streams should insert the results of the query back into
+     *   the Rya instance the statements originated from; otherwise {@code false}.
+     */
+    public boolean isInsert() {
+        return isInsert;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(queryId, sparql, isActive);
+        return Objects.hash(queryId, sparql, isActive, isInsert);
     }
 
     @Override
@@ -81,23 +97,17 @@ public class StreamsQuery {
             final StreamsQuery other = (StreamsQuery) o;
             return Objects.equals(queryId, other.queryId) &&
                     Objects.equals(sparql, other.sparql) &&
-                    isActive == other.isActive;
+                    isActive == other.isActive &&
+                    isInsert == other.isInsert;
         }
         return false;
     }
-    
+
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("ID: ");
-        sb.append(getQueryId().toString() + "\n");
-        sb.append("Query: ");
-        sb.append(getSparql() + "\n");
-        sb.append("Is ");
-        if (!isActive) {
-            sb.append(" Not ");
-        }
-        sb.append("Running.\n");
-        return sb.toString();
+        return "ID: " + queryId + "\n" +
+                "Query: " + sparql + "\n" +
+                "Is Active: " + isActive + "\n" +
+                "Is Insert: " + isInsert + "\n";
     }
 }

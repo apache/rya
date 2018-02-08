@@ -42,6 +42,7 @@ public final class QueryChange implements Serializable {
     private final ChangeType changeType;
     private final Optional<String> sparql;
     private final Optional<Boolean> isActive;
+    private final Optional<Boolean> isInsert;
 
     /**
      * Constructs an instance of {@link QueryChange}. Use the {@link #create(UUID, String)} or {@link #delete(UUID)}
@@ -52,16 +53,20 @@ public final class QueryChange implements Serializable {
      * @param sparql - If this is a create change, then the SPARQL query that will be evaluated within Rya Streams. (not null)
      * @param isActive - If this is a create or update change, then the active state that defines if the
      *   query will be evaluated by RyaStreams. (not null)
+     * @param isInsert - If this is a create change, then the insert state that defines if the
+     *   results of the query will be inserted back into the originating Rya store. (not null)
      */
     private QueryChange(
             final UUID queryId,
             final ChangeType changeType,
             final Optional<String> sparql,
-            final Optional<Boolean> isActive) {
+            final Optional<Boolean> isActive,
+            final Optional<Boolean> isInsert) {
         this.queryId = requireNonNull(queryId);
         this.changeType = requireNonNull(changeType);
         this.sparql = requireNonNull(sparql);
         this.isActive = requireNonNull(isActive);
+        this.isInsert = requireNonNull(isInsert);
     }
 
     /**
@@ -93,9 +98,17 @@ public final class QueryChange implements Serializable {
         return isActive;
     }
 
+    /**
+     * @return If this is a create change, then the insert state that defines if the
+     *   results of the query will be inserted back into the originating Rya store.
+     */
+    public Optional<Boolean> getIsInsert() {
+        return isInsert;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(queryId, changeType, sparql, isActive);
+        return Objects.hash(queryId, changeType, sparql, isActive, isInsert);
     }
 
     @Override
@@ -105,7 +118,8 @@ public final class QueryChange implements Serializable {
             return Objects.equals(queryId, change.queryId) &&
                     Objects.equals(changeType, change.changeType) &&
                     Objects.equals(sparql, change.sparql) &&
-                    Objects.equals(isActive, change.isActive);
+                    Objects.equals(isActive, change.isActive) &&
+                    Objects.equals(isInsert, change.isInsert);
         }
         return false;
     }
@@ -116,6 +130,7 @@ public final class QueryChange implements Serializable {
                "    Query ID: " + queryId + ",\n" +
                "    Change Type: " + changeType + ",\n" +
                "    Is Active: " + isActive + ",\n" +
+               "    Is Insert: " + isInsert + ",\n" +
                "    SPARQL: " + sparql + "\n" +
                "}";
     }
@@ -125,22 +140,24 @@ public final class QueryChange implements Serializable {
      *
      * @param queryId - Uniquely identifies the query within the streaming system. (not null)
      * @param sparql - The query that will be evaluated. (not null)
-     * @param isActive - The active state that defines if the query will be evaluated by RyaStreams. (not null)
+     * @param isActive - The active state that defines if the query will be evaluated by RyaStreams.
+     * @param isInsert - The insert state that defines if the query's results will be inserted back
+     *   into the Rya instance the originating statements came from.
      * @return A {@link QueryChange} built using the provided values.
      */
-    public static QueryChange create(final UUID queryId, final String sparql, final boolean isActive) {
-        return new QueryChange(queryId, ChangeType.CREATE, Optional.of(sparql), Optional.of(isActive));
+    public static QueryChange create(final UUID queryId, final String sparql, final boolean isActive, final boolean isInsert) {
+        return new QueryChange(queryId, ChangeType.CREATE, Optional.of(sparql), Optional.of(isActive), Optional.of(isInsert));
     }
 
     /**
      * Create a {@link QueryChange} that represents a query in Rya Streams whose active state has changed.
      *
      * @param queryId - Uniquely identifies the query within the streaming system. (not null)
-     * @param isActive - The active state that defines if the query will be evaluated by RyaStreams. (not null)
+     * @param isActive - The active state that defines if the query will be evaluated by RyaStreams.
      * @return A {@link QueryChange} built using the provided values.
      */
     public static QueryChange update(final UUID queryId, final boolean isActive) {
-        return new QueryChange(queryId, ChangeType.UPDATE, Optional.absent(), Optional.of(isActive));
+        return new QueryChange(queryId, ChangeType.UPDATE, Optional.absent(), Optional.of(isActive), Optional.absent());
     }
 
     /**
@@ -150,7 +167,7 @@ public final class QueryChange implements Serializable {
      * @return A {@link QueryChange} built using the provided values.
      */
     public static QueryChange delete(final UUID queryId) {
-        return new QueryChange(queryId, ChangeType.DELETE, Optional.absent(), Optional.absent());
+        return new QueryChange(queryId, ChangeType.DELETE, Optional.absent(), Optional.absent(), Optional.absent());
     }
 
     /**

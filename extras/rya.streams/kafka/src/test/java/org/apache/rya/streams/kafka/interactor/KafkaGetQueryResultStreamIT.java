@@ -85,6 +85,7 @@ public class KafkaGetQueryResultStreamIT {
     @Test
     public void fromStart() throws Exception {
         // Create an ID for the query.
+        final String ryaInstance = UUID.randomUUID().toString();
         final UUID queryId = UUID.randomUUID();
 
         // Create a list of test VisibilityBindingSets.
@@ -106,7 +107,7 @@ public class KafkaGetQueryResultStreamIT {
         // Write some entries to the query result topic in Kafka.
         try(final Producer<?, VisibilityBindingSet> producer =
                 KafkaTestUtil.makeProducer(kafka, StringSerializer.class, VisibilityBindingSetSerializer.class)) {
-            final String resultTopic = KafkaTopics.queryResultsTopic(queryId);
+            final String resultTopic = KafkaTopics.queryResultsTopic(ryaInstance, queryId);
             for(final VisibilityBindingSet visBs : original) {
                 producer.send(new ProducerRecord<>(resultTopic, visBs));
             }
@@ -115,7 +116,7 @@ public class KafkaGetQueryResultStreamIT {
         // Use the interactor that is being tested to read all of the visibility binding sets.
         final GetQueryResultStream<VisibilityBindingSet> interactor =
                 new KafkaGetQueryResultStream<>(kafka.getKafkaHostname(), kafka.getKafkaPort(), VisibilityBindingSetDeserializer.class);
-        final List<VisibilityBindingSet> read = pollForResults(500, 3, 3, interactor.fromStart(queryId));
+        final List<VisibilityBindingSet> read = pollForResults(500, 3, 3, interactor.fromStart(ryaInstance, queryId));
 
         // Show the fetched binding sets match the original, as well as their order.
         assertEquals(original, read);
@@ -124,11 +125,12 @@ public class KafkaGetQueryResultStreamIT {
     @Test
     public void fromNow() throws Exception {
         // Create an ID for the query.
+        final String ryaInstance = UUID.randomUUID().toString();
         final UUID queryId = UUID.randomUUID();
 
         try(final Producer<?, VisibilityBindingSet> producer =
                 KafkaTestUtil.makeProducer(kafka, StringSerializer.class, VisibilityBindingSetSerializer.class)) {
-            final String resultTopic = KafkaTopics.queryResultsTopic(queryId);
+            final String resultTopic = KafkaTopics.queryResultsTopic(ryaInstance, queryId);
 
             // Write a single visibility binding set to the query's result topic. This will not appear in the expected results.
             final ValueFactory vf = new ValueFactoryImpl();
@@ -140,7 +142,7 @@ public class KafkaGetQueryResultStreamIT {
             // Use the interactor that is being tested to read all of the visibility binding sets that appear after this point.
             final GetQueryResultStream<VisibilityBindingSet> interactor =
                     new KafkaGetQueryResultStream<>(kafka.getKafkaHostname(), kafka.getKafkaPort(), VisibilityBindingSetDeserializer.class);
-            try(QueryResultStream<VisibilityBindingSet> results = interactor.fromNow(queryId)) {
+            try(QueryResultStream<VisibilityBindingSet> results = interactor.fromNow(ryaInstance, queryId)) {
                 // Read results from the stream.
                 List<VisibilityBindingSet> read = new ArrayList<>();
                 for(final VisibilityBindingSet visBs : results.poll(500)) {
@@ -178,12 +180,13 @@ public class KafkaGetQueryResultStreamIT {
     @Test(expected = IllegalStateException.class)
     public void pollClosedStream() throws Exception {
         // Create an ID for the query.
+        final String ryaInstance = UUID.randomUUID().toString();
         final UUID queryId = UUID.randomUUID();
 
         // Use the interactor that is being tested to create a result stream and immediately close it.
         final GetQueryResultStream<VisibilityBindingSet> interactor =
                 new KafkaGetQueryResultStream<>(kafka.getKafkaHostname(), kafka.getKafkaPort(), VisibilityBindingSetDeserializer.class);
-        final QueryResultStream<VisibilityBindingSet> results = interactor.fromStart(queryId);
+        final QueryResultStream<VisibilityBindingSet> results = interactor.fromStart(ryaInstance, queryId);
         results.close();
 
         // Try to poll the closed stream.
@@ -193,6 +196,7 @@ public class KafkaGetQueryResultStreamIT {
     @Test
     public void fromStart_visibilityStatements() throws Exception {
         // Create an ID for the query.
+        final String ryaInstance = UUID.randomUUID().toString();
         final UUID queryId = UUID.randomUUID();
 
         // Create some statements that will be written to the result topic.
@@ -205,7 +209,7 @@ public class KafkaGetQueryResultStreamIT {
         // Write the entries to the query result topic in Kafka.
         try(final Producer<?, VisibilityStatement> producer =
                 KafkaTestUtil.makeProducer(kafka, StringSerializer.class, VisibilityStatementSerializer.class)) {
-            final String resultTopic = KafkaTopics.queryResultsTopic(queryId);
+            final String resultTopic = KafkaTopics.queryResultsTopic(ryaInstance, queryId);
             for(final VisibilityStatement visStmt : original) {
                 producer.send(new ProducerRecord<>(resultTopic, visStmt));
             }
@@ -214,7 +218,7 @@ public class KafkaGetQueryResultStreamIT {
         // Use the interactor that is being tested to read all of the visibility binding sets.
         final GetQueryResultStream<VisibilityStatement> interactor =
                 new KafkaGetQueryResultStream<>(kafka.getKafkaHostname(), kafka.getKafkaPort(), VisibilityStatementDeserializer.class);
-        final List<VisibilityStatement> read = pollForResults(500, 3, 3, interactor.fromStart(queryId));
+        final List<VisibilityStatement> read = pollForResults(500, 3, 3, interactor.fromStart(ryaInstance, queryId));
 
         // Show the fetched binding sets match the original, as well as their order.
         assertEquals(original, read);

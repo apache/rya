@@ -62,7 +62,7 @@ public class KafkaTopics {
      * @param changeLogTopic - The topic to evaluate. (not null)
      * @return If the topic is well formatted, then the Rya instance name that was part of the topic name.
      */
-    public static Optional<String> getRyaInstance(final String changeLogTopic) {
+    public static Optional<String> getRyaInstanceFromQueryChangeLog(final String changeLogTopic) {
         requireNonNull(changeLogTopic);
 
         // Return absent if the provided topic does not represent a query change log topic.
@@ -93,9 +93,31 @@ public class KafkaTopics {
      * @param queryId - The id of the query the topic is for.
      * @return The name of the Kafka topic.
      */
-    public static String queryResultsTopic(final UUID queryId) {
+    public static String queryResultsTopic(final String ryaInstance, final UUID queryId) {
         requireNonNull(queryId);
-        return "QueryResults-" + queryId.toString();
+        return ryaInstance + "-QueryResults-" + queryId.toString();
+    }
+
+    /**
+     * TODO doc
+     *
+     * @param queryResultsTopic
+     * @return
+     */
+    public static String getRyaInstanceFromQueryResultsTopic(final String queryResultsTopic) {
+        // TODO
+        return "";
+    }
+
+    /**
+     * TODO doc
+     *
+     * @param queryResultsTopic
+     * @return
+     */
+    public static UUID getQueryIdFromQueryResultsTopic(final String queryResultsTopic) {
+        // TODO
+        return null;
     }
 
     /**

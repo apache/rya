@@ -171,11 +171,11 @@ public class KafkaQueryChangeLogSource extends AbstractScheduledService implemen
             final Set<String> changeLogTopics = new HashSet<>( listTopicsConsumer.listTopics().keySet() );
 
             // Remove all topics that are not valid Rya Query Change Log topic names.
-            changeLogTopics.removeIf( topic -> !KafkaTopics.getRyaInstance(topic).isPresent() );
+            changeLogTopics.removeIf( topic -> !KafkaTopics.getRyaInstanceFromQueryChangeLog(topic).isPresent() );
 
             // Extract the Rya instance names from the change log topics.
             final Set<String> ryaInstances = changeLogTopics.stream()
-                    .map(topic -> KafkaTopics.getRyaInstance(topic).get() )
+                    .map(topic -> KafkaTopics.getRyaInstanceFromQueryChangeLog(topic).get() )
                     .collect(Collectors.toSet());
 
             // Any Rya instances that are in the old set of topics, but not the new one, have been deleted.

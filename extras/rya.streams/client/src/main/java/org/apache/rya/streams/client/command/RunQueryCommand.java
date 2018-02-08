@@ -135,7 +135,7 @@ public class RunQueryCommand implements RyaStreamsCommand {
                 // Make sure the topics required by the application exists for the specified Rya instances.
                 final Set<String> topics = new HashSet<>();
                 topics.add( KafkaTopics.statementsTopic(params.ryaInstance) );
-                topics.add( KafkaTopics.queryResultsTopic(queryId) );
+                topics.add( KafkaTopics.queryResultsTopic(params.ryaInstance, queryId) );
                 KafkaTopics.createTopics(params.zookeeperServers, topics, 1, 1);
 
                 // Run the query that uses those topics.
@@ -143,7 +143,7 @@ public class RunQueryCommand implements RyaStreamsCommand {
                         params.kafkaIP,
                         params.kafkaPort,
                         KafkaTopics.statementsTopic(params.ryaInstance),
-                        KafkaTopics.queryResultsTopic(queryId),
+                        KafkaTopics.queryResultsTopic(params.ryaInstance, queryId),
                         queryRepo,
                         new TopologyFactory());
                 runQuery.run(queryId);

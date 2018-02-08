@@ -184,7 +184,7 @@ public class RunQueryCommandIT {
             loadStatements.fromCollection(statements);
 
             // Read the output of the streams program.
-            final String resultsTopic = KafkaTopics.queryResultsTopic(sQuery.getQueryId());
+            final String resultsTopic = KafkaTopics.queryResultsTopic(ryaInstance, sQuery.getQueryId());
             resultConsumer.subscribe( Lists.newArrayList(resultsTopic) );
             results = KafkaTestUtil.pollForResults(500, 6, 3, resultConsumer);
         } finally {

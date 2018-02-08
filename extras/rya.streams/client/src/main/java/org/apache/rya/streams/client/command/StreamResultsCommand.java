@@ -173,7 +173,7 @@ public class StreamResultsCommand implements RyaStreamsCommand {
         }
 
         // Iterate through the results and print them to the console until the program or the stream ends.
-        try (final QueryResultStream<?> stream = getQueryResultStream.fromStart(queryId)) {
+        try (final QueryResultStream<?> stream = getQueryResultStream.fromStart(params.ryaInstance, queryId)) {
             while(!finished.get()) {
                 for(final Object result : stream.poll(1000)) {
                     System.out.println(result);

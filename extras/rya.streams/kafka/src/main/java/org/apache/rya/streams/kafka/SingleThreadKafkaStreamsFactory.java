@@ -78,7 +78,7 @@ public class SingleThreadKafkaStreamsFactory implements KafkaStreamsFactory {
 
         // Setup the topology that processes the Query.
         final String statementsTopic = KafkaTopics.statementsTopic(ryaInstance);
-        final String resultsTopic = KafkaTopics.queryResultsTopic(query.getQueryId());
+        final String resultsTopic = KafkaTopics.queryResultsTopic(ryaInstance, query.getQueryId());
 
         try {
             final TopologyBuilder topologyBuilder = topologyFactory.build(query.getSparql(), statementsTopic, resultsTopic, new RandomUUIDFactory());

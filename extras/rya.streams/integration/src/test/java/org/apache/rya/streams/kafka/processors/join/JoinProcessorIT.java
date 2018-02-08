@@ -69,7 +69,7 @@ public class JoinProcessorIT {
         final String ryaInstance = UUID.randomUUID().toString();
         final UUID queryId = UUID.randomUUID();
         final String statementsTopic = KafkaTopics.statementsTopic(ryaInstance);
-        final String resultsTopic = KafkaTopics.queryResultsTopic(queryId);
+        final String resultsTopic = KafkaTopics.queryResultsTopic(ryaInstance, queryId);
 
         // Setup a topology.
         final String query =
@@ -120,7 +120,7 @@ public class JoinProcessorIT {
         final String ryaInstance = UUID.randomUUID().toString();
         final UUID queryId = UUID.randomUUID();
         final String statementsTopic = KafkaTopics.statementsTopic(ryaInstance);
-        final String resultsTopic = KafkaTopics.queryResultsTopic(queryId);
+        final String resultsTopic = KafkaTopics.queryResultsTopic(ryaInstance, queryId);
 
         // Setup a topology.
         final String query =
@@ -171,7 +171,7 @@ public class JoinProcessorIT {
         final String ryaInstance = UUID.randomUUID().toString();
         final UUID queryId = UUID.randomUUID();
         final String statementsTopic = KafkaTopics.statementsTopic(ryaInstance);
-        final String resultsTopic = KafkaTopics.queryResultsTopic(queryId);
+        final String resultsTopic = KafkaTopics.queryResultsTopic(ryaInstance, queryId);
 
         // Setup a topology.
         final String query =
@@ -228,7 +228,7 @@ public class JoinProcessorIT {
         final String ryaInstance = UUID.randomUUID().toString();
         final UUID queryId = UUID.randomUUID();
         final String statementsTopic = KafkaTopics.statementsTopic(ryaInstance);
-        final String resultsTopic = KafkaTopics.queryResultsTopic(queryId);
+        final String resultsTopic = KafkaTopics.queryResultsTopic(ryaInstance, queryId);
 
         // Setup a topology.
         final String query =
@@ -269,7 +269,7 @@ public class JoinProcessorIT {
         final String ryaInstance = UUID.randomUUID().toString();
         final UUID queryId = UUID.randomUUID();
         final String statementsTopic = KafkaTopics.statementsTopic(ryaInstance);
-        final String resultsTopic = KafkaTopics.queryResultsTopic(queryId);
+        final String resultsTopic = KafkaTopics.queryResultsTopic(ryaInstance, queryId);
 
         // Setup a topology.
         final String query =

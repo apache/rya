@@ -66,22 +66,22 @@ public class KafkaGetQueryResultStream<T> implements GetQueryResultStream<T> {
     }
 
     @Override
-    public QueryResultStream<T> fromStart(final UUID queryId) throws RyaStreamsException {
+    public QueryResultStream<T> fromStart(final String ryaInstance, final UUID queryId) throws RyaStreamsException {
         requireNonNull(queryId);
 
         // Always start at the earliest point within the topic.
-        return makeStream(queryId, "earliest");
+        return makeStream(ryaInstance, queryId, "earliest");
     }
 
     @Override
-    public QueryResultStream<T> fromNow(final UUID queryId) throws RyaStreamsException {
+    public QueryResultStream<T> fromNow(final String ryaInstance, final UUID queryId) throws RyaStreamsException {
         requireNonNull(queryId);
 
         // Always start at the latest point within the topic.
-        return makeStream(queryId, "latest");
+        return makeStream(ryaInstance, queryId, "latest");
     }
 
-    private QueryResultStream<T> makeStream(final UUID queryId, final String autoOffsetResetConfig) {
+    private QueryResultStream<T> makeStream(final String ryaInstance, final UUID queryId, final String autoOffsetResetConfig) {
         // Configure which instance of Kafka to connect to.
         final Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -106,7 +106,7 @@ public class KafkaGetQueryResultStream<T> implements GetQueryResultStream<T> {
         final KafkaConsumer<String, T> consumer = new KafkaConsumer<>(props);
 
         // Register the consumer for the query's results.
-        final String resultTopic = KafkaTopics.queryResultsTopic(queryId);
+        final String resultTopic = KafkaTopics.queryResultsTopic(ryaInstance, queryId);
         consumer.subscribe(Arrays.asList(resultTopic));
 
         // Return the result stream.

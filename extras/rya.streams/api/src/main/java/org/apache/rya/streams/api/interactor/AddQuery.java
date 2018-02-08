@@ -36,8 +36,10 @@ public interface AddQuery {
      * @param query - The SPARQL query that will be added. (not null)
      * @param isActive - {@code true} if the query needs to be maintained by
      *   Rya Streams; otherwise {@code false}.
+     * @param isInsert - {@code true} if the query's reuslts need to be inserted into
+     *   the Rya instance that originated the statements; otherwise {@code false}.
      * @return The {@link StreamsQuery} used by Rya Streams for this query.
      * @throws RyaStreamsException The query could not be added to Rya Streams.
      */
-    public StreamsQuery addQuery(final String query, boolean isActive) throws RyaStreamsException;
+    public StreamsQuery addQuery(final String query, boolean isActive, boolean isInsert) throws RyaStreamsException;
 }

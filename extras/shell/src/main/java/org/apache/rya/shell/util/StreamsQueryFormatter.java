@@ -63,6 +63,7 @@ public final class StreamsQueryFormatter {
         final StringBuilder builder = new StringBuilder();
         builder.append(" Query ID: ").append( query.getQueryId() ) .append("\n");
         builder.append("Is Active: ").append( query.isActive() ).append("\n");
+        builder.append("Is Insert: ").append( query.isInsert() ).append("\n");
         builder.append("   SPARQL: ").append( lines[0] ).append("\n");
 
         for(int i = 1; i < lines.length; i++) {

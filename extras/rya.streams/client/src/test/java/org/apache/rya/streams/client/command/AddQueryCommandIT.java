@@ -33,6 +33,7 @@ import org.apache.rya.streams.api.queries.InMemoryQueryRepository;
 import org.apache.rya.streams.api.queries.QueryChange;
 import org.apache.rya.streams.api.queries.QueryChangeLog;
 import org.apache.rya.streams.api.queries.QueryRepository;
+import org.apache.rya.streams.client.RyaStreamsCommand.ArgumentsException;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.queries.KafkaQueryChangeLog;
 import org.apache.rya.streams.kafka.serialization.queries.QueryChangeDeserializer;
@@ -78,7 +79,8 @@ public class AddQueryCommandIT {
                 "-i", kafka.getKafkaHostname(),
                 "-p", kafka.getKafkaPort(),
                 "-q", query,
-                "-a", "true"
+                "-a", "true",
+                "-n", "false"
         };
 
         // Execute the command.
@@ -100,7 +102,8 @@ public class AddQueryCommandIT {
                 "--kafkaHostname", kafka.getKafkaHostname(),
                 "--kafkaPort", kafka.getKafkaPort(),
                 "--query", query,
-                "--isActive", "true"
+                "--isActive", "true",
+                "--isInsert", "false"
         };
 
         // Execute the command.
@@ -111,5 +114,23 @@ public class AddQueryCommandIT {
         final Set<StreamsQuery> queries = queryRepo.list();
         assertEquals(1, queries.size());
         assertEquals(query, queries.iterator().next().getSparql());
+    }
+
+    @Test(expected = ArgumentsException.class)
+    public void canNotInsertQueries() throws Exception {
+        // Arguments that add a query to Rya Streams.
+        final String query = "SELECT * WHERE { ?person <urn:name> ?name }";
+        final String[] args = new String[] {
+                "--ryaInstance", "" + ryaInstance,
+                "--kafkaHostname", kafka.getKafkaHostname(),
+                "--kafkaPort", kafka.getKafkaPort(),
+                "--query", query,
+                "--isActive", "true",
+                "--isInsert", "true"
+        };
+
+        // Execute the command.
+        final AddQueryCommand command = new AddQueryCommand();
+        command.execute(args);
     }
 }

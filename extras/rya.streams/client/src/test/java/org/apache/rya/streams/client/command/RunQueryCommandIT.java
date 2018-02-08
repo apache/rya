@@ -116,7 +116,7 @@ public class RunQueryCommandIT {
     @Test
     public void runQuery() throws Exception {
         // Register a query with the Query Repository.
-        final StreamsQuery sQuery = queryRepo.add("SELECT * WHERE { ?person <urn:worksAt> ?business . }", true);
+        final StreamsQuery sQuery = queryRepo.add("SELECT * WHERE { ?person <urn:worksAt> ?business . }", true, false);
 
         // Arguments that run the query we just registered with Rya Streams.
         final String[] args = new String[] {

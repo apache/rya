@@ -28,13 +28,16 @@ import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.RyaStreamsDetails;
+import org.apache.rya.api.utils.QueryInvestigator;
 import org.apache.rya.shell.SharedShellState.ConnectionState;
+import org.apache.rya.shell.util.ConsolePrinter;
 import org.apache.rya.shell.util.SparqlPrompt;
 import org.apache.rya.shell.util.StreamsQueryFormatter;
 import org.apache.rya.streams.api.RyaStreamsClient;
 import org.apache.rya.streams.api.entity.StreamsQuery;
 import org.apache.rya.streams.api.exception.RyaStreamsException;
 import org.apache.rya.streams.kafka.KafkaRyaStreamsClientFactory;
+import org.openrdf.query.MalformedQueryException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
@@ -61,19 +64,23 @@ public class RyaStreamsCommands implements CommandMarker {
 
     private final SharedShellState state;
     private final SparqlPrompt sparqlPrompt;
+    private final ConsolePrinter consolePrinter;
 
     /**
      * Constructs an instance of {@link RyaStreamsCommands}.
      *
      * @param state - Holds shared state between all of the command classes. (not null)
      * @param sparqlPrompt - Prompts a user for a SPARQL query. (not null)
+     * @param consolePrinter - Prints messages to the console. (not null)
      */
     @Autowired
     public RyaStreamsCommands(
             final SharedShellState state,
-            final SparqlPrompt sparqlPrompt) {
+            final SparqlPrompt sparqlPrompt,
+            final ConsolePrinter consolePrinter) {
         this.state = requireNonNull(state);
         this.sparqlPrompt = requireNonNull(sparqlPrompt);
+        this.consolePrinter = requireNonNull(consolePrinter);
     }
 
     /**
@@ -172,7 +179,10 @@ public class RyaStreamsCommands implements CommandMarker {
     public String addQuery(
             @CliOption(key = {"inactive"}, mandatory = false, unspecifiedDefaultValue = "false", specifiedDefaultValue = "true",
                        help = "Setting this flag will add the query, but not run it. (default: false)")
-            final boolean inactive) {
+            final boolean inactive,
+            @CliOption(key = {"insert"}, mandatory = false, unspecifiedDefaultValue = "false", specifiedDefaultValue = "true",
+                       help = "Setting this flag will insert the query's results back into Rya. (default: false)")
+            final boolean isInsert) {
         final RyaStreamsClient streamsClient = state.getShellState().getRyaStreamsCommands().get();
 
         // Prompt the user for the SPARQL that defines the query.
@@ -184,10 +194,32 @@ public class RyaStreamsCommands implements CommandMarker {
                 return "";
             }
 
-            final StreamsQuery streamsQuery = streamsClient.getAddQuery().addQuery(sparql.get(), !inactive);
+            final boolean isConstructQuery = QueryInvestigator.isConstruct(sparql.get());
+            final boolean isInsertQuery = QueryInvestigator.isInsertWhere(sparql.get());
+
+            // If the user wants to insert a CONSTRUCT into Rya, print a warning.
+            if(isInsert && isConstructQuery) {
+                consolePrinter.println("WARNING: CONSTRUCT is part of the SPARQL Query API, so they do not normally");
+                consolePrinter.println("get written back to the triple store. Consider using an INSERT, which is");
+                consolePrinter.println("part of the SPARQL Update API, in the future.");
+            }
+
+            // If the user wants to use an INSERT query, but not insert it back into Rya, suggest using a construct.
+            if(!isInsert && isInsertQuery) {
+                consolePrinter.println("WARNING: INSERT is part of the SPARQL Update API, so they normally get written");
+                consolePrinter.println("back to the triple store. Consider using a CONSTRUCT, which is part of the");
+                consolePrinter.println("SPARQL Query API, in the future.");
+            }
+
+            // If the user wants to insert the query back into Rya, make sure it is a legal query to do that.
+            if(isInsert && !(isConstructQuery || isInsertQuery)) {
+                throw new RuntimeException("Only CONSTRUCT queries and INSERT updates may be inserted back to the triple store.");
+            }
+
+            final StreamsQuery streamsQuery = streamsClient.getAddQuery().addQuery(sparql.get(), !inactive, isInsert);
             return "The added query's ID is " + streamsQuery.getQueryId();
 
-        } catch (final IOException | RyaStreamsException e) {
+        } catch (final MalformedQueryException | IOException | RyaStreamsException e) {
             throw new RuntimeException("Unable to add the SPARQL query to the Rya Streams subsystem.", e);
         }
     }

@@ -79,13 +79,13 @@ public class LogEventWorkerTest {
 
         // Write a message that indicates a new query should be active.
         final UUID firstQueryId = UUID.randomUUID();
-        changeLog.write(QueryChange.create(firstQueryId, "select * where { ?a ?b ?c . }", true));
+        changeLog.write(QueryChange.create(firstQueryId, "select * where { ?a ?b ?c . }", true, false));
 
         // Write a message that adds an active query, but then makes it inactive. Because both of these
         // events are written to the log before the worker subscribes to the repository for updates, they
         // must result in a single query stopped event.
         final UUID secondQueryId = UUID.randomUUID();
-        changeLog.write(QueryChange.create(secondQueryId, "select * where { ?d ?e ?f . }", true));
+        changeLog.write(QueryChange.create(secondQueryId, "select * where { ?d ?e ?f . }", true, false));
         changeLog.write(QueryChange.update(secondQueryId, false));
 
         // Start the worker that will be tested.
@@ -103,7 +103,7 @@ public class LogEventWorkerTest {
             // Query 2, stopped.
             Set<QueryEvent> expectedEvents = new HashSet<>();
             expectedEvents.add(QueryEvent.executing("rya",
-                    new StreamsQuery(firstQueryId, "select * where { ?a ?b ?c . }", true)));
+                    new StreamsQuery(firstQueryId, "select * where { ?a ?b ?c . }", true, false)));
             expectedEvents.add(QueryEvent.stopped("rya", secondQueryId));
 
             Set<QueryEvent> queryEvents = new HashSet<>();
@@ -146,7 +146,7 @@ public class LogEventWorkerTest {
 
         // Write a message that indicates a new query should be active.
         final UUID firstQueryId = UUID.randomUUID();
-        changeLog.write(QueryChange.create(firstQueryId, "select * where { ?a ?b ?c . }", true));
+        changeLog.write(QueryChange.create(firstQueryId, "select * where { ?a ?b ?c . }", true, false));
 
         // Start the worker that will be tested.
         final Thread logEventWorker = new Thread(new LogEventWorker(logEventQueue,
@@ -165,7 +165,7 @@ public class LogEventWorkerTest {
             // second message was effectively skipped as it would have add its work added twice otherwise.
             final Set<QueryEvent> expectedEvents = new HashSet<>();
             expectedEvents.add(QueryEvent.executing("rya",
-                    new StreamsQuery(firstQueryId, "select * where { ?a ?b ?c . }", true)));
+                    new StreamsQuery(firstQueryId, "select * where { ?a ?b ?c . }", true, false)));
 
             final Set<QueryEvent> queryEvents = new HashSet<>();
             queryEvents.add( queryEventQueue.poll(500, TimeUnit.MILLISECONDS) );

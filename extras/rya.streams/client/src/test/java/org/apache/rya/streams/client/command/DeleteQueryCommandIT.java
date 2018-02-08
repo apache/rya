@@ -74,9 +74,9 @@ public class DeleteQueryCommandIT {
     @Test
     public void shortParams() throws Exception {
         // Add a few queries to Rya Streams.
-        queryRepo.add("query1", true);
-        final UUID query2Id = queryRepo.add("query2", false).getQueryId();
-        queryRepo.add("query3", true);
+        queryRepo.add("query1", true, true);
+        final UUID query2Id = queryRepo.add("query2", false, true).getQueryId();
+        queryRepo.add("query3", true, false);
 
         // Show that all three of the queries were added.
         Set<StreamsQuery> queries = queryRepo.list();
@@ -105,9 +105,9 @@ public class DeleteQueryCommandIT {
     @Test
     public void longParams() throws Exception {
         // Add a few queries to Rya Streams.
-        queryRepo.add("query1", true);
-        final UUID query2Id = queryRepo.add("query2", false).getQueryId();
-        queryRepo.add("query3", true);
+        queryRepo.add("query1", true, true);
+        final UUID query2Id = queryRepo.add("query2", false, true).getQueryId();
+        queryRepo.add("query3", true, false);
 
         // Show that all three of the queries were added.
         Set<StreamsQuery> queries = queryRepo.list();

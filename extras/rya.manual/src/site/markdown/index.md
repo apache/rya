@@ -34,6 +34,7 @@ This project contains documentation about Apache Rya, a scalable RDF triple stor
 - [MapReduce Interface](mapreduce.md)
 - [Shell Interface](shell.md)
 - [Incremental Join Maintenance Application (PCJ Updater)](pcj-updater.md)
+- [Rya Streams](rya-streams.md)
 
 # Samples
 - [Typical First Steps](sm-firststeps.md)

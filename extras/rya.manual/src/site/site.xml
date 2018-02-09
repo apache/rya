@@ -48,6 +48,7 @@ under the License.
         <item name="MapReduce Interface" href="mapreduce.html"/>
         <item name="Shell Interface" href="shell.html"/>
         <item name="Incremental Join Maintenance" href="pcj-updater.html"/>
+        <item name="Rya Streams" href="rya-streams.html"/>
     </menu>
 
     <menu name="Samples">

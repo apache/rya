@@ -32,6 +32,7 @@ This project contains documentation about Apache Rya, a scalable RDF triple stor
 - [Pre-computed Joins](loadPrecomputedJoin.md)
 - [Inferencing](infer.md)
 - [MapReduce Interface](mapreduce.md)
+- [Rya Streams](rya-streams.md)
 
 # Samples
 - [Typical First Steps](sm-firststeps.md)

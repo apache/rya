@@ -23,6 +23,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.rya.streams.api.entity.StreamsQuery;
 import org.apache.rya.streams.api.exception.RyaStreamsException;
 import org.apache.rya.streams.api.interactor.ListQueries;
@@ -115,7 +116,7 @@ public class ListQueriesCommand implements RyaStreamsCommand {
             sb.append("ID: ").append(query.getQueryId())
                 .append("    ")
                 .append("Is Active: ").append(query.isActive())
-                .append( query.isActive() ? "     " : "    " )
+                .append(StringUtils.rightPad("" + query.isActive(), 9))
                 .append("Query: ").append(query.getSparql()).append("\n");
         });
         return sb.toString();

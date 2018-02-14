@@ -26,6 +26,11 @@ import static java.util.Objects.requireNonNull;
 public class ThreadUtil {
 
     /**
+     * Private constructor to prevent instantiation.
+     */
+    private ThreadUtil() { }
+
+    /**
      * A utility function that returns whether a thread is alive or not after waiting
      * some specified period of time to join it.
      *

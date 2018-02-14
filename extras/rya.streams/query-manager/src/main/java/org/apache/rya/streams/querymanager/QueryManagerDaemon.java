@@ -92,7 +92,7 @@ public class QueryManagerDaemon implements Daemon {
 
         // Unmarshall the configuration file into an object.
         final QueryManagerConfig config;
-        try(InputStream stream = Files.newInputStream(configFile)) {
+        try(final InputStream stream = Files.newInputStream(configFile)) {
             config = QueryManagerConfigUnmarshaller.unmarshall(stream);
         } catch(final JAXBException | SAXException e) {
             throw new DaemonInitException("Unable to marshall the configuration XML file: " + configFile, e);

@@ -55,7 +55,7 @@ public class KafkaTopics {
     }
 
     /**
-     * Get the Rya instance name from a Kafka topic name that has been used for a {@link QueryChnageLog}.
+     * Get the Rya instance name from a Kafka topic name that has been used for a {@link QueryChangeLog}.
      * <p/>
      * This is the inverse function of {@link #queryChangeLogTopic(String)}.
      *

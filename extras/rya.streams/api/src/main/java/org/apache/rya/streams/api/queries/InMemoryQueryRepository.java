@@ -289,8 +289,8 @@ public class InMemoryQueryRepository extends AbstractScheduledService implements
             updateCache();
         } finally {
             lock.unlock();
+            log.trace("runOneIteration() - Exit");
         }
-        log.trace("runOneIteration() - Exit");
     }
 
     @Override

@@ -208,8 +208,8 @@ public class QueryManager extends AbstractService {
      */
     private static <T> boolean offerUntilAcceptedOrShutdown(
             final BlockingQueue<T> workQueue,
-            final T event, final
-            long offerValue,
+            final T event,
+            final long offerValue,
             final TimeUnit offerUnits,
             final AtomicBoolean shutdownSignal) {
         requireNonNull(workQueue);
@@ -307,7 +307,7 @@ public class QueryManager extends AbstractService {
          * @return A {@link LogEvent} built using the provided values.
          */
         public static LogEvent create(final String ryaInstance, final QueryChangeLog log) {
-            return new LogEvent(ryaInstance, LogEventType.CREATE ,Optional.of(log));
+            return new LogEvent(ryaInstance, LogEventType.CREATE, Optional.of(log));
         }
 
         /**
@@ -422,7 +422,7 @@ public class QueryManager extends AbstractService {
         public String toString() {
             final StringBuilder string = new StringBuilder();
             string.append("Query Event {\n")
-                  .append("    Rya Instance:").append(ryaInstance).append(",\n")
+                  .append("    Rya Instance: ").append(ryaInstance).append(",\n")
                   .append("    Type: ").append(type).append(",\n");
             switch(type) {
                 case EXECUTING:
@@ -811,7 +811,7 @@ public class QueryManager extends AbstractService {
         /**
          * Constructs an instance of {@link QueryEventWorker}.
          *
-         * @param logWorkQueue - A queue of {@link QueryEvent}s that will be worked by this object. (not null)
+         * @param workQueue - A queue of {@link QueryEvent}s that will be worked by this object. (not null)
          * @param queryExecutor - Responsible for executing the {@link StreamsQuery}s. (not null)
          * @param pollingValue - How long to wait when polling for new work.
          * @param pollingUnits - The units for the {@code pollingValue}. (not null)
@@ -867,11 +867,11 @@ public class QueryManager extends AbstractService {
                             break;
 
                         case STOP_ALL:
-                        try {
-                            queryExecutor.stopAll(event.getRyaInstance());
-                        } catch (final IllegalStateException | QueryExecutorException e) {
-                            log.error("Could not stop all queries represented by the following work: " + event, e);
-                        }
+                            try {
+                                queryExecutor.stopAll(event.getRyaInstance());
+                            } catch (final IllegalStateException | QueryExecutorException e) {
+                                log.error("Could not stop all queries represented by the following work: " + event, e);
+                            }
                         break;
                     }
                 } catch (final InterruptedException e) {

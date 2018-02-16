@@ -222,7 +222,7 @@ Once we've created a Rya repository and uploaded data, we can query Rya via the 
 
 ### Using the OpenRDF REST Service
 
-More information about the Sesame REST HTTP Protocol is availible in the [OpenRDF 2.7 Docs] (http://rdf4j.org/sesame/2.7/docs/system.docbook?view#The_Sesame_REST_HTTP_Protocol)
+More information about the Sesame REST HTTP Protocol is availible in the [OpenRDF 2.7 Docs](http://rdf4j.org/sesame/2.7/docs/system.docbook?view#The_Sesame_REST_HTTP_Protocol)
 
 ### Using Rya Java Client
 TODO
@@ -252,6 +252,6 @@ TODO
 TODO
 
 ### Resizing the VMs Disk space
-Instructions for resizing a Vagrant/VirtualBox image can be found [here] (http://www.midwesternmac.com/blogs/jeff-geerling/resizing-virtualbox-disk-image)
+Instructions for resizing a Vagrant/VirtualBox image can be found [here](http://www.midwesternmac.com/blogs/jeff-geerling/resizing-virtualbox-disk-image)
 
 [pathToVF]: Vagrantfile

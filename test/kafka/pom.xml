@@ -22,7 +22,7 @@ under the License.
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya.test.parent</artifactId>
-        <version>3.2.12-incubating-SNAPSHOT</version>
+        <version>3.2.12-incubating</version>
     </parent>
     
     <modelVersion>4.0.0</modelVersion>

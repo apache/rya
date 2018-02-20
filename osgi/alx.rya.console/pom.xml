@@ -24,7 +24,7 @@ under the License.
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya.osgi</artifactId>
-        <version>3.2.12-incubating</version>
+        <version>3.2.13-incubating-SNAPSHOT</version>
     </parent>
 
     <artifactId>alx.rya.console</artifactId>

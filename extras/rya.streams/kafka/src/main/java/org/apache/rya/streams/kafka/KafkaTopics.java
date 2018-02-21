@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,6 +20,7 @@ package org.apache.rya.streams.kafka;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
@@ -40,6 +41,8 @@ import kafka.utils.ZkUtils;
 @DefaultAnnotation(NonNull.class)
 public class KafkaTopics {
 
+    private static final String QUERY_CHANGE_LOG_TOPIC_SUFFIX = "-QueryChangeLog";
+
     /**
      * Creates the Kafka topic name that is used for a specific instance of Rya's {@link QueryChangeLog}.
      *
@@ -48,7 +51,28 @@ public class KafkaTopics {
      */
     public static String queryChangeLogTopic(final String ryaInstance) {
         requireNonNull(ryaInstance);
-        return ryaInstance + "-QueryChangeLog";
+        return ryaInstance + QUERY_CHANGE_LOG_TOPIC_SUFFIX;
+    }
+
+    /**
+     * Get the Rya instance name from a Kafka topic name that has been used for a {@link QueryChangeLog}.
+     * <p/>
+     * This is the inverse function of {@link #queryChangeLogTopic(String)}.
+     *
+     * @param changeLogTopic - The topic to evaluate. (not null)
+     * @return If the topic is well formatted, then the Rya instance name that was part of the topic name.
+     */
+    public static Optional<String> getRyaInstance(final String changeLogTopic) {
+        requireNonNull(changeLogTopic);
+
+        // Return absent if the provided topic does not represent a query change log topic.
+        if(!changeLogTopic.endsWith(QUERY_CHANGE_LOG_TOPIC_SUFFIX)) {
+            return Optional.empty();
+        }
+
+        // Everything before the suffix is the Rya instance name.
+        final int endIndex = changeLogTopic.length() - QUERY_CHANGE_LOG_TOPIC_SUFFIX.length();
+        return Optional.of( changeLogTopic.substring(0, endIndex) );
     }
 
     /**
@@ -82,7 +106,7 @@ public class KafkaTopics {
      * @param partitions - The number of partitions that each of the topics will have.
      * @param replicationFactor - The replication factor of the topics that are created.
      */
-    public static void createTopic(
+    public static void createTopics(
             final String zookeeperServers,
             final Set<String> topicNames,
             final int partitions,

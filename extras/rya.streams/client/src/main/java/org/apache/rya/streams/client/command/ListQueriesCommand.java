@@ -21,7 +21,9 @@ package org.apache.rya.streams.client.command;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.rya.streams.api.entity.StreamsQuery;
 import org.apache.rya.streams.api.exception.RyaStreamsException;
 import org.apache.rya.streams.api.interactor.ListQueries;
@@ -35,6 +37,7 @@ import org.apache.rya.streams.kafka.queries.KafkaQueryChangeLogFactory;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -83,8 +86,11 @@ public class ListQueriesCommand implements RyaStreamsCommand {
         final String topic = KafkaTopics.queryChangeLogTopic(params.ryaInstance);
         final QueryChangeLog queryChangeLog = KafkaQueryChangeLogFactory.make(bootstrapServers, topic);
 
+        //The ListQueries command doesn't use the scheduled service feature.
+        final Scheduler scheduler = Scheduler.newFixedRateSchedule(0L, 5, TimeUnit.SECONDS);
+        final QueryRepository queryRepo = new InMemoryQueryRepository(queryChangeLog, scheduler);
         // Execute the list queries command.
-        try(QueryRepository queryRepo = new InMemoryQueryRepository(queryChangeLog)) {
+        try {
             final ListQueries listQueries = new DefaultListQueries(queryRepo);
             try {
                 final Set<StreamsQuery> queries = listQueries.all();
@@ -107,12 +113,11 @@ public class ListQueriesCommand implements RyaStreamsCommand {
         sb.append("Queries in Rya Streams:\n");
         sb.append("---------------------------------------------------------\n");
         queries.forEach(query -> {
-            sb.append("ID: ");
-            sb.append(query.getQueryId());
-            sb.append("\t\t");
-            sb.append("Query: ");
-            sb.append(query.getSparql());
-            sb.append("\n");
+            sb.append("ID: ").append(query.getQueryId())
+                .append("    ")
+                .append("Is Active: ").append(query.isActive())
+                .append(StringUtils.rightPad("" + query.isActive(), 9))
+                .append("Query: ").append(query.getSparql()).append("\n");
         });
         return sb.toString();
     }

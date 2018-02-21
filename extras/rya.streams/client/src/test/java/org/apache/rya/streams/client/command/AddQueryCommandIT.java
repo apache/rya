@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.producer.Producer;
@@ -38,10 +39,11 @@ import org.apache.rya.streams.kafka.serialization.queries.QueryChangeDeserialize
 import org.apache.rya.streams.kafka.serialization.queries.QueryChangeSerializer;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.apache.rya.test.kafka.KafkaTestUtil;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
+import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
 
 /**
  * integration Test for adding a new query through a command.
@@ -64,12 +66,7 @@ public class AddQueryCommandIT {
         final Producer<?, QueryChange> queryProducer = KafkaTestUtil.makeProducer(kafka, StringSerializer.class, QueryChangeSerializer.class);
         final Consumer<?, QueryChange>queryConsumer = KafkaTestUtil.fromStartConsumer(kafka, StringDeserializer.class, QueryChangeDeserializer.class);
         final QueryChangeLog changeLog = new KafkaQueryChangeLog(queryProducer, queryConsumer, changeLogTopic);
-        queryRepo = new InMemoryQueryRepository(changeLog);
-    }
-
-    @After
-    public void cleanup() throws Exception {
-        queryRepo.close();
+        queryRepo = new InMemoryQueryRepository(changeLog, Scheduler.newFixedRateSchedule(0L, 5, TimeUnit.SECONDS));
     }
 
     @Test

@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.producer.Producer;
@@ -56,6 +57,7 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
 
 /**
  * Integration tests the methods of {@link RunQueryCommand}.
@@ -81,7 +83,7 @@ public class RunQueryCommandIT {
         final Producer<?, QueryChange> queryProducer = KafkaTestUtil.makeProducer(kafka, StringSerializer.class, QueryChangeSerializer.class);
         final Consumer<?, QueryChange>queryConsumer = KafkaTestUtil.fromStartConsumer(kafka, StringDeserializer.class, QueryChangeDeserializer.class);
         final QueryChangeLog changeLog = new KafkaQueryChangeLog(queryProducer, queryConsumer, changeLogTopic);
-        queryRepo = new InMemoryQueryRepository(changeLog);
+        queryRepo = new InMemoryQueryRepository(changeLog, Scheduler.newFixedRateSchedule(0L, 5, TimeUnit.SECONDS));
 
         // Initialize the Statements Producer and the Results Consumer.
         stmtProducer = KafkaTestUtil.makeProducer(kafka, StringSerializer.class, VisibilityStatementSerializer.class);
@@ -89,10 +91,10 @@ public class RunQueryCommandIT {
     }
 
     @After
-    public void cleanup() throws Exception{
+    public void cleanup() throws Exception {
+        queryRepo.stopAndWait();
         stmtProducer.close();
         resultConsumer.close();
-        queryRepo.close();
     }
 
     @Test(expected = ExecutionException.class)

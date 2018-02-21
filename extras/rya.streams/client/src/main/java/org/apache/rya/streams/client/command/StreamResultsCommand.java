@@ -22,6 +22,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.rya.streams.api.entity.QueryResultStream;
@@ -45,6 +46,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.google.common.base.Strings;
+import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -132,9 +134,12 @@ public class StreamResultsCommand implements RyaStreamsCommand {
             throw new ArgumentsException("Invalid Query ID " + params.queryId);
         }
 
+        //The DeleteQuery command doesn't use the scheduled service feature.
+        final Scheduler scheduler = Scheduler.newFixedRateSchedule(0L, 5, TimeUnit.SECONDS);
+        final QueryRepository queryRepo = new InMemoryQueryRepository(queryChangeLog, scheduler);
         // Fetch the SPARQL of the query whose results will be streamed.
         final String sparql;
-        try(QueryRepository queryRepo = new InMemoryQueryRepository(queryChangeLog)) {
+        try {
             final Optional<StreamsQuery> sQuery = queryRepo.get(queryId);
             if(!sQuery.isPresent()) {
                 throw new ExecutionException("Could not read the results for query with ID " + queryId +
@@ -168,7 +173,7 @@ public class StreamResultsCommand implements RyaStreamsCommand {
         }
 
         // Iterate through the results and print them to the console until the program or the stream ends.
-        try (final QueryResultStream<?> stream = getQueryResultStream.fromStart(queryId)) {
+        try (final QueryResultStream<?> stream = getQueryResultStream.fromStart(params.ryaInstance, queryId)) {
             while(!finished.get()) {
                 for(final Object result : stream.poll(1000)) {
                     System.out.println(result);

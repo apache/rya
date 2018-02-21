@@ -75,6 +75,7 @@ public class EmbeddedKafkaInstance {
         brokerProps.setProperty(KafkaConfig$.MODULE$.PortProp(), brokerPort);
         brokerProps.setProperty(KafkaConfig$.MODULE$.ZkConnectProp(), zookeperConnect);
         brokerProps.setProperty(KafkaConfig$.MODULE$.LogDirsProp(), Files.createTempDirectory(getClass().getSimpleName() + "-").toAbsolutePath().toString());
+        brokerProps.setProperty(KafkaConfig$.MODULE$.DeleteTopicEnableProp(), "true");
         final KafkaConfig config = new KafkaConfig(brokerProps);
         final Time mock = new MockTime();
         kafkaServer = TestUtils.createServer(config, mock);

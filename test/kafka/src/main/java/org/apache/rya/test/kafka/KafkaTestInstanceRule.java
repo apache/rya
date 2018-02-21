@@ -19,9 +19,15 @@
 package org.apache.rya.test.kafka;
 
 import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.kafka.clients.CommonClientConfigs;
+import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,6 +98,52 @@ public class KafkaTestInstanceRule extends ExternalResource {
         finally {
             if(zkUtils != null) {
                 zkUtils.close();
+            }
+        }
+    }
+
+    /**
+     * Marks a topic for deletion. You may have to wait some time for the delete to actually complete.
+     *
+     * @param topicName - The topic that will be deleted. (not null)
+     */
+    public void deleteTopic(final String topicName) {
+        ZkUtils zkUtils = null;
+        try {
+            logger.info("Deleting Kafka Topic: '{}'", topicName);
+            zkUtils = ZkUtils.apply(new ZkClient(kafkaInstance.getZookeeperConnect(), 30000, 30000, ZKStringSerializer$.MODULE$), false);
+            AdminUtils.deleteTopic(zkUtils, topicName);
+        }
+        finally {
+            if(zkUtils != null) {
+                zkUtils.close();
+            }
+        }
+    }
+
+    /**
+     * Delete all of the topics that are in the embedded Kafka instance.
+     *
+     * @throws InterruptedException Interrupted while waiting for the topics to be deleted.
+     */
+    public void deleteAllTopics() throws InterruptedException {
+        // Setup the consumer that is used to list topics for the source.
+        final Properties consumerProperties = createBootstrapServerConfig();
+        consumerProperties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
+        consumerProperties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumerProperties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+
+        try(final Consumer<String, String> listTopicsConsumer = new KafkaConsumer<>(consumerProperties)) {
+            // Mark all existing topics for deletion.
+            Set<String> topics = listTopicsConsumer.listTopics().keySet();
+            for(final String topic : topics) {
+                deleteTopic(topic);
+            }
+
+            // Loop and wait until they are all gone.
+            while(!topics.isEmpty()) {
+                Thread.sleep(100);
+                topics = listTopicsConsumer.listTopics().keySet();
             }
         }
     }

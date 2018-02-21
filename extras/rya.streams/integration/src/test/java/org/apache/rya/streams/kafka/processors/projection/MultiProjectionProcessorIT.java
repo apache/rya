@@ -28,7 +28,6 @@ import org.apache.kafka.streams.processor.TopologyBuilder;
 import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.RyaStreamsTestUtil;
-import org.apache.rya.streams.kafka.processors.projection.MultiProjectionProcessorSupplier;
 import org.apache.rya.streams.kafka.processors.projection.MultiProjectionProcessorSupplier.MultiProjectionProcessor;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserializer;
 import org.apache.rya.streams.kafka.topology.TopologyFactory;
@@ -54,7 +53,7 @@ public class MultiProjectionProcessorIT {
         final String ryaInstance = UUID.randomUUID().toString();
         final UUID queryId = UUID.randomUUID();
         final String statementsTopic = KafkaTopics.statementsTopic(ryaInstance);
-        final String resultsTopic = KafkaTopics.queryResultsTopic(queryId);
+        final String resultsTopic = KafkaTopics.queryResultsTopic(ryaInstance, queryId);
 
         // Create a topology for the Query that will be tested.
         final String sparql =

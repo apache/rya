@@ -88,7 +88,7 @@ public class GeoFilterIT {
         final String ryaInstance = UUID.randomUUID().toString();
         final UUID queryId = UUID.randomUUID();
         final String statementsTopic = KafkaTopics.statementsTopic(ryaInstance);
-        final String resultsTopic = KafkaTopics.queryResultsTopic(queryId);
+        final String resultsTopic = KafkaTopics.queryResultsTopic(ryaInstance, queryId);
 
         // Get the RDF model objects that will be used to build the query.
         final String sparql =

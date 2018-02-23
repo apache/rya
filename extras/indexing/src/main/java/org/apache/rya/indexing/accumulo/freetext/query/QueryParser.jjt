@@ -29,7 +29,7 @@
   MULTI = true;  JDK_VERSION = "1.5";  IGNORE_CASE = true;  NODE_DEFAULT_VOID=true;
   static = false;
 //  DEBUG_PARSER = true;
-//  DEBUG_LOOKAHEAD = true;}PARSER_BEGIN(QueryParser)package mvm.rya.indexing.accumulo.freetext.query;
+//  DEBUG_LOOKAHEAD = true;}PARSER_BEGIN(QueryParser)package org.apache.rya.indexing.accumulo.freetext.query;
 import java.io.StringReader;
 public class QueryParser{
   // Helper method to parse Strings (instead of streams)

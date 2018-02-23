@@ -125,7 +125,7 @@ under the License.
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <!--<Main-Class>mvm.rya.accumulo.mr.merge.MergeTool</Main-Class>-->
+                                        <!--<Main-Class>org.apache.rya.accumulo.mr.merge.MergeTool</Main-Class>-->
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
@@ -182,7 +182,7 @@ under the License.
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib</classpathPrefix>
                             <!--Removing main-class from manifest so hadoop command will be able to call multiple main classes-->
-                            <!--<mainClass>mvm.rya.accumulo.mr.merge.MergeTool</mainClass>-->
+                            <!--<mainClass>org.apache.rya.accumulo.mr.merge.MergeTool</mainClass>-->
                         </manifest>
                         <manifestEntries>
                             <Built-By />

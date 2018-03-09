@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -25,14 +25,20 @@ import java.util.UUID;
 import org.apache.rya.streams.api.entity.StreamsQuery;
 import org.apache.rya.streams.api.exception.RyaStreamsException;
 
+import com.google.common.util.concurrent.Service;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Repository for adding, deleting, and listing active queries in Rya Streams.
+ *
+ * This service only needs to be started if it is being subscribed to. An
+ * {@link IllegalStateException} will be thrown if the service is subscribed to
+ * and used without being started.
  */
 @DefaultAnnotation(NonNull.class)
-public interface QueryRepository extends AutoCloseable {
+public interface QueryRepository extends Service {
 
     /**
      * Adds a new query to Rya Streams.
@@ -40,10 +46,13 @@ public interface QueryRepository extends AutoCloseable {
      * @param query - The SPARQL query to add. (not null)
      * @param isActive - {@code true} if the query should be processed after it is added
      *   otherwise {@code false}.
+     * @param isInsert - {@code true} if the query's results should be inserted back into
+     *   the Rya instance the originating statements came from; otherwise {@code false}.
      * @return The {@link StreamsQuery} used in Rya Streams.
      * @throws QueryRepositoryException Could not add the query.
+     * @throws IllegalStateException The Service has not been started, but has been subscribed to.
      */
-    public StreamsQuery add(final String query, boolean isActive) throws QueryRepositoryException;
+    public StreamsQuery add(final String query, boolean isActive, boolean isInsert) throws QueryRepositoryException, IllegalStateException;
 
     /**
      * Updates the isActive state of a {@link StreamsQuery}. Setting this value to {@code true}
@@ -53,8 +62,9 @@ public interface QueryRepository extends AutoCloseable {
      * @param queryId - Identifies which query will be updated. (not null)
      * @param isActive - The new isActive state for the query.
      * @throws QueryRepositoryException If the query does not exist or something else caused the change to fail.
+     * @throws IllegalStateException The Service has not been started, but has been subscribed to.
      */
-    public void updateIsActive(UUID queryId, boolean isActive) throws QueryRepositoryException;
+    public void updateIsActive(UUID queryId, boolean isActive) throws QueryRepositoryException, IllegalStateException;
 
     /**
      * Get an existing query from Rya Streams.
@@ -62,24 +72,42 @@ public interface QueryRepository extends AutoCloseable {
      * @param queryId - Identifies which query will be fetched.
      * @return the {@link StreamsQuery} for the id if one exists; otherwise empty.
      * @throws QueryRepositoryException The query could not be fetched.
+     * @throws IllegalStateException The Service has not been started, but has been subscribed to.
      */
-    public Optional<StreamsQuery> get(UUID queryId) throws QueryRepositoryException;
+    public Optional<StreamsQuery> get(UUID queryId) throws QueryRepositoryException, IllegalStateException;
 
     /**
      * Removes an existing query from Rya Streams.
      *
      * @param queryID - The {@link UUID} of the query to remove. (not null)
      * @throws QueryRepositoryException Could not delete the query.
+     * @throws IllegalStateException The Service has not been started, but has been subscribed to.
      */
-    public void delete(UUID queryID) throws QueryRepositoryException;
+    public void delete(UUID queryID) throws QueryRepositoryException, IllegalStateException;
 
     /**
      * Lists all existing queries in Rya Streams.
      *
      * @return - A List of the current {@link StreamsQuery}s
      * @throws QueryRepositoryException The {@link StreamsQuery}s could not be listed.
+     * @throws IllegalStateException The Service has not been started, but has been subscribed to.
      */
-    public Set<StreamsQuery> list() throws QueryRepositoryException;
+    public Set<StreamsQuery> list() throws QueryRepositoryException, IllegalStateException;
+
+    /**
+     * Subscribes a {@link QueryChangeLogListener} to the {@link QueryRepository}.
+     *
+     * @param listener - The {@link QueryChangeLogListener} to subscribe to this {@link QueryRepository}. (not null)
+     * @return The current state of the repository in the form of {@link StreamsQuery}s.
+     */
+    public Set<StreamsQuery> subscribe(final QueryChangeLogListener listener);
+
+    /**
+     * Unsubscribe a {@link QueryChangeLogListener} from the {@link QueryRepository}.
+     *
+     * @param listener - The {@link QueryChangeLogListener} to unsubscribe from this {@link QueryRepository}. (not null)
+     */
+    public void unsubscribe(final QueryChangeLogListener listener);
 
     /**
      * A function of {@link QueryRepository} was unable to perform a function.

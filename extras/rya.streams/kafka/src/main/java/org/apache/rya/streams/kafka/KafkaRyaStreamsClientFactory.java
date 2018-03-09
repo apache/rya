@@ -22,6 +22,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -54,6 +55,8 @@ import org.apache.rya.streams.kafka.serialization.queries.QueryChangeSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -63,6 +66,8 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 @DefaultAnnotation(NonNull.class)
 public final class KafkaRyaStreamsClientFactory {
     private static final Logger log = LoggerFactory.getLogger(KafkaRyaStreamsClientFactory.class);
+
+    private static final Scheduler SCHEDULER = Scheduler.newFixedDelaySchedule(0, 5, TimeUnit.SECONDS);
 
     /**
      * Initialize a {@link RyaStreamsClient} that will interact with an instance of Rya Streams
@@ -87,7 +92,7 @@ public final class KafkaRyaStreamsClientFactory {
                 fromStartConsumer(kafkaHostname, kafkaPort, StringDeserializer.class, QueryChangeDeserializer.class);
         final String changeLogTopic = KafkaTopics.queryChangeLogTopic(ryaInstance);
         final QueryChangeLog changeLog = new KafkaQueryChangeLog(queryProducer, queryConsumer, changeLogTopic);
-        final QueryRepository queryRepo = new InMemoryQueryRepository(changeLog);
+        final QueryRepository queryRepo = new InMemoryQueryRepository(changeLog, SCHEDULER);
 
         // Create the Rya Streams client that is backed by a Kafka Query Change Log.
         return new RyaStreamsClient(
@@ -106,7 +111,7 @@ public final class KafkaRyaStreamsClientFactory {
             @Override
             public void close() {
                 try {
-                    queryRepo.close();
+                    queryRepo.stopAndWait();
                 } catch (final Exception e) {
                     log.warn("Couldn't close a QueryRepository.", e);
                 }

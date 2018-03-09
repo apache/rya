@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <parent>
+        <groupId>org.apache.rya</groupId>
+        <artifactId>rya.streams.parent</artifactId>
+        <version>3.2.12-incubating-SNAPSHOT</version>
+    </parent>
+    
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>rya.streams.query-manager</artifactId>
+    
+    <name>Apache Rya Streams Query Manager</name>
+    <description>
+        This module contains the Rya Streams Query Manager.
+    </description>
+
+    <properties>
+        <rpm.staging.path>${project.build.directory}/${project.artifactId}-${project.version}-rpm-staging</rpm.staging.path>
+    </properties>
+
+    <dependencies>
+        <!-- Rya dependencies -->
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.streams.kafka</artifactId>
+        </dependency>
+
+        <!-- Apache Daemon dependencies -->
+        <dependency>
+            <groupId>commons-daemon</groupId>
+            <artifactId>commons-daemon</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>jcommander</artifactId>
+        </dependency>
+        
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.test.kafka</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <!-- Add the XSD directory as a resource so that it will be packaged in the jar. 
+           - Required so that the marshalling code is able to find the schema it is 
+           - validating XML against. -->
+        <resources>
+            <resource>
+                <directory>src/main/xsd</directory>
+            </resource>
+        </resources>
+    
+        <plugins>
+            <!-- Generate the XML marshalling java code from the XSD file defining its structure. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxb2-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>xjc</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <packageName>org.apache.rya.streams.querymanager.xml</packageName>
+                </configuration>
+            </plugin>
+         
+            <!-- Ensure the generated java source contains the license header. -->   
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <header>${project.basedir}/src/license/header.txt</header>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>update-generated-source-headers</id>
+                        <configuration>
+                            <basedir>${project.build.directory}/generated-sources/jaxb</basedir>
+                            <mapping>
+                                <sun-jaxb.episode>XML_STYLE</sun-jaxb.episode>
+                            </mapping>
+                        </configuration>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        
+            <!-- Create a shaded jar that is able to execute the Daemon. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                          <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>org.apache.rya.streams.querymanager.QueryManagerDaemon</mainClass>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <!-- Use the assembly plugin to create the binary and RPM distributions. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <!-- Stage the files for the RPM construction. -->
+                    <execution>
+                        <id>stage-content-for-rpms</id>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <!-- This is only staging, so don't attach the built folder to the project. -->
+                            <attach>false</attach>
+                            <descriptors>
+                                <descriptor>src/assembly/rpm-staging.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>de.dentrassi.maven</groupId>
+                <artifactId>rpm</artifactId>
+                <version>0.10.0</version>
+                <executions>
+                    <execution>
+                        <id>create-rpm-properties</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>rpm</goal>
+                        </goals>
+                        <configuration>
+                            <attach>false</attach> <!-- don't attach RPM -->
+                            <group>${project.groupId}/${project.artifactId}</group> <!-- set RPM group -->
+                            <architecture>noarch</architecture>
+
+                            <signature>
+                                <skip>true</skip>
+                            </signature>
+
+                            <!-- (Un)Install scripts that enable/disable the daemon.-->
+                            <afterInstallation>
+                                <file>${rpm.staging.path}/bin/rpm/postinstall.sh</file>
+                            </afterInstallation>
+                            <beforeRemoval>
+                                <file>${rpm.staging.path}/bin/rpm/preremove.sh</file>
+                            </beforeRemoval>
+
+                             <!-- This project requires the Apache Commons Daemon applications. -->
+                            <requires>
+                                <require>jsvc</require>
+                            </requires>
+
+                            <rulesets>
+                                <ruleset>
+                                    <id>default-ruleset</id>
+                                    <rules>
+                                        <rule>
+                                            <when>
+                                                <type>directory</type>
+                                            </when>
+                                            <mode>0755</mode>
+                                        </rule>
+                                        <rule>
+                                            <when>
+                                                <type>file</type>
+                                            </when>
+                                            <mode>0644</mode>
+                                        </rule>
+                                        <file>
+                                            <when>
+                                                <suffix>configuration.xml</suffix>
+                                            </when>
+                                            <configuration>true</configuration>
+                                        </file>
+                                        <file>
+                                            <when>
+                                                <suffix>log4j.xml</suffix>
+                                            </when>
+                                            <configuration>true</configuration>
+                                        </file>
+                                        <file>
+                                            <when>
+                                                <suffix>README.txt</suffix>
+                                            </when>
+                                            <readme>true</readme>
+                                        </file>
+                                    </rules>
+                                </ruleset>
+                            </rulesets>
+                            <entries>
+                                <!-- Copy everything over to the /opt directory, except for the scripts. -->
+                                <entry>
+                                    <name>/opt/rya-streams-query-manager-${project.version}/bin/systemd</name>
+                                    <collect>
+                                        <from>${rpm.staging.path}/bin/systemd</from>
+                                        <directories>true</directories>
+                                    </collect>
+                                    <ruleset>default-ruleset</ruleset>
+                                </entry>
+                                <entry>
+                                    <name>/opt/rya-streams-query-manager-${project.version}/config</name>
+                                    <collect>
+                                        <from>${rpm.staging.path}/config</from>
+                                        <directories>true</directories>
+                                    </collect>
+                                    <ruleset>default-ruleset</ruleset>
+                                </entry>
+                                <entry>
+                                    <name>/opt/rya-streams-query-manager-${project.version}/lib</name>
+                                    <collect>
+                                        <from>${rpm.staging.path}/lib</from>
+                                        <directories>true</directories>
+                                    </collect>
+                                    <ruleset>default-ruleset</ruleset>
+                                </entry>
+                                <entry>
+                                    <name>/opt/rya-streams-query-manager-${project.version}/README.txt</name>
+                                    <collect>
+                                        <from>${rpm.staging.path}/README.txt</from>
+                                    </collect>
+                                    <ruleset>default-ruleset</ruleset>
+                                </entry>
+                                <entry>
+                                    <name>/opt/rya-streams-query-manager-${project.version}/bin/rya-streams-query-manager.sh</name>
+                                    <collect>
+                                        <from>${rpm.staging.path}/bin/rya-streams-query-manager.sh</from>
+                                    </collect>
+                                    <mode>0544</mode>
+                                </entry>
+                            </entries>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+     </build>
+</project>

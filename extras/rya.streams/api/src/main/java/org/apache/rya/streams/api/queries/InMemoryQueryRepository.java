@@ -20,7 +20,9 @@ package org.apache.rya.streams.api.queries;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -32,6 +34,8 @@ import org.apache.rya.streams.api.entity.StreamsQuery;
 import org.apache.rya.streams.api.queries.QueryChangeLog.QueryChangeLogException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.util.concurrent.AbstractScheduledService;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -46,10 +50,10 @@ import info.aduna.iteration.CloseableIteration;
  * Thread safe.
  */
 @DefaultAnnotation(NonNull.class)
-public class InMemoryQueryRepository implements QueryRepository {
-    private static final Logger LOG = LoggerFactory.getLogger(InMemoryQueryRepository.class);
+public class InMemoryQueryRepository extends AbstractScheduledService implements QueryRepository {
+    private static final Logger log = LoggerFactory.getLogger(InMemoryQueryRepository.class);
 
-    private final ReentrantLock lock = new ReentrantLock();
+    private final ReentrantLock lock = new ReentrantLock(true);
 
     /**
      * The change log that is the ground truth for describing what the queries look like.
@@ -67,23 +71,37 @@ public class InMemoryQueryRepository implements QueryRepository {
     private final Map<UUID, StreamsQuery> queriesCache = new HashMap<>();
 
     /**
+     * The listeners to be notified when new QueryChangeLogs come in.
+     */
+    private final List<QueryChangeLogListener> listeners = new ArrayList<>();
+
+    /**
+     * The {@link Scheduler} the repository uses to periodically poll for query updates.
+     */
+    private final Scheduler scheduler;
+
+    /**
      * Constructs an instance of {@link InMemoryQueryRepository}.
      *
      * @param changeLog - The change log that this repository will maintain and be based on. (not null)
+     * @param scheduler - The {@link Scheduler} this service uses to periodically check for query updates. (not null)
      */
-    public InMemoryQueryRepository(final QueryChangeLog changeLog) {
+    public InMemoryQueryRepository(final QueryChangeLog changeLog, final Scheduler scheduler) {
         this.changeLog = requireNonNull(changeLog);
+        this.scheduler = requireNonNull(scheduler);
     }
 
     @Override
-    public StreamsQuery add(final String query, final boolean isActive) throws QueryRepositoryException {
+    public StreamsQuery add(final String query, final boolean isActive, final boolean isInsert)
+            throws QueryRepositoryException, IllegalStateException {
         requireNonNull(query);
 
         lock.lock();
         try {
+            checkState();
             // First record the change to the log.
             final UUID queryId = UUID.randomUUID();
-            final QueryChange change = QueryChange.create(queryId, query, isActive);
+            final QueryChange change = QueryChange.create(queryId, query, isActive, isInsert);
             changeLog.write(change);
 
             // Update the cache to represent what is currently in the log.
@@ -100,11 +118,12 @@ public class InMemoryQueryRepository implements QueryRepository {
     }
 
     @Override
-    public Optional<StreamsQuery> get(final UUID queryId) throws QueryRepositoryException {
+    public Optional<StreamsQuery> get(final UUID queryId) throws QueryRepositoryException, IllegalStateException {
         requireNonNull(queryId);
 
         lock.lock();
         try {
+            checkState();
             // Update the cache to represent what is currently in the log.
             updateCache();
 
@@ -115,11 +134,13 @@ public class InMemoryQueryRepository implements QueryRepository {
     }
 
     @Override
-    public void updateIsActive(final UUID queryId, final boolean isActive) throws QueryRepositoryException {
+    public void updateIsActive(final UUID queryId, final boolean isActive)
+            throws QueryRepositoryException, IllegalStateException {
         requireNonNull(queryId);
 
         lock.lock();
         try {
+            checkState();
             // Update the cache to represent what is currently in the log.
             updateCache();
 
@@ -140,11 +161,12 @@ public class InMemoryQueryRepository implements QueryRepository {
     }
 
     @Override
-    public void delete(final UUID queryId) throws QueryRepositoryException {
+    public void delete(final UUID queryId) throws QueryRepositoryException, IllegalStateException {
         requireNonNull(queryId);
 
         lock.lock();
         try {
+            checkState();
             // First record the change to the log.
             final QueryChange change = QueryChange.delete(queryId);
             changeLog.write(change);
@@ -157,16 +179,17 @@ public class InMemoryQueryRepository implements QueryRepository {
     }
 
     @Override
-    public Set<StreamsQuery> list() throws QueryRepositoryException {
+    public Set<StreamsQuery> list() throws QueryRepositoryException, IllegalStateException {
         lock.lock();
         try {
+            checkState();
             // Update the cache to represent what is currently in the log.
             updateCache();
 
             // Our internal cache is already up to date, so just return its values.
             return queriesCache.values()
-                        .stream()
-                        .collect(Collectors.toSet());
+                    .stream()
+                    .collect(Collectors.toSet());
 
         } finally {
             lock.unlock();
@@ -174,7 +197,7 @@ public class InMemoryQueryRepository implements QueryRepository {
     }
 
     @Override
-    public void close() throws Exception {
+    protected void shutDown() throws Exception {
         lock.lock();
         try {
             changeLog.close();
@@ -187,11 +210,12 @@ public class InMemoryQueryRepository implements QueryRepository {
      * Updates the {@link #queriesCache} to reflect the latest position within the {@link #changeLog}.
      */
     private void updateCache() {
-        requireNonNull(changeLog);
+        log.trace("updateCache() - Enter");
 
         CloseableIteration<ChangeLogEntry<QueryChange>, QueryChangeLogException> it = null;
         try {
             // Iterate over everything since the last position that was handled within the change log.
+            log.debug("Starting cache position:" + cachePosition);
             if(cachePosition.isPresent()) {
                 it = changeLog.readFromPosition(cachePosition.get() + 1);
             } else {
@@ -204,12 +228,15 @@ public class InMemoryQueryRepository implements QueryRepository {
                 final QueryChange change = entry.getEntry();
                 final UUID queryId = change.getQueryId();
 
+                log.debug("Updating the cache to reflect:\n" + change);
+
                 switch(change.getChangeType()) {
                     case CREATE:
                         final StreamsQuery query = new StreamsQuery(
                                 queryId,
                                 change.getSparql().get(),
-                                change.getIsActive().get());
+                                change.getIsActive().get(),
+                                change.getIsInsert().get());
                         queriesCache.put(queryId, query);
                         break;
 
@@ -219,7 +246,8 @@ public class InMemoryQueryRepository implements QueryRepository {
                             final StreamsQuery updated = new StreamsQuery(
                                     old.getQueryId(),
                                     old.getSparql(),
-                                    change.getIsActive().get());
+                                    change.getIsActive().get(),
+                                    old.isInsert());
                             queriesCache.put(queryId, updated);
                         }
                         break;
@@ -229,12 +257,17 @@ public class InMemoryQueryRepository implements QueryRepository {
                         break;
                 }
 
+                log.debug("Notifying listeners with the updated state.");
+                final Optional<StreamsQuery> newQueryState = Optional.ofNullable(queriesCache.get(queryId));
+                listeners.forEach(listener -> listener.notify(entry, newQueryState));
+
                 cachePosition = Optional.of( entry.getPosition() );
+                log.debug("New chache position: " + cachePosition);
             }
 
         } catch (final QueryChangeLogException e) {
             // Rethrow the exception because the object the supplier tried to create could not be created.
-            throw new RuntimeException("Could not initialize the " + InMemoryQueryRepository.class.getName(), e);
+            throw new RuntimeException("Could not update the cache of " + InMemoryQueryRepository.class.getName(), e);
 
         } finally {
             // Try to close the iteration if it was opened.
@@ -243,8 +276,68 @@ public class InMemoryQueryRepository implements QueryRepository {
                     it.close();
                 }
             } catch (final QueryChangeLogException e) {
-                LOG.error("Could not close the " + CloseableIteration.class.getName(), e);
+                log.error("Could not close the " + CloseableIteration.class.getName(), e);
             }
+
+            log.trace("updateCache() - Exit");
+        }
+    }
+
+    @Override
+    protected void runOneIteration() throws Exception {
+        log.trace("runOneIteration() - Enter");
+        lock.lock();
+        try {
+            updateCache();
+        } finally {
+            lock.unlock();
+            log.trace("runOneIteration() - Exit");
+        }
+    }
+
+    @Override
+    protected Scheduler scheduler() {
+        return scheduler;
+    }
+
+    @Override
+    public Set<StreamsQuery> subscribe(final QueryChangeLogListener listener) {
+        log.trace("subscribe(listener) - Enter");
+
+        //locks to prevent the current state from changing while subscribing.
+        lock.lock();
+        log.trace("subscribe(listener) - Acquired lock");
+        try {
+            listeners.add(listener);
+            log.trace("subscribe(listener) - Listener Registered");
+
+            //return the current state of the query repository
+            final Set<StreamsQuery> queries = queriesCache.values()
+                    .stream()
+                    .collect(Collectors.toSet());
+            log.trace("subscribe(listener) - Returning " + queries.size() + " existing queries");
+            return queries;
+        } finally {
+            log.trace("subscribe(listener) - Releasing lock");
+            lock.unlock();
+            log.trace("subscribe(listener) - Exit");
+        }
+    }
+
+    @Override
+    public void unsubscribe(final QueryChangeLogListener listener) {
+        lock.lock();
+        try {
+            listeners.remove(listener);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void checkState() {
+        if (!super.isRunning() && !listeners.isEmpty()) {
+            throw new IllegalStateException(
+                    "The Query Repository is subscribed to, but the service has not been started.");
         }
     }
 }

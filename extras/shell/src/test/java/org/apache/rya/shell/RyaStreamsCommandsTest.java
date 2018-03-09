@@ -36,6 +36,7 @@ import org.apache.rya.api.client.SetRyaStreamsConfiguration;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.RyaStreamsDetails;
+import org.apache.rya.shell.util.ConsolePrinter;
 import org.apache.rya.shell.util.SparqlPrompt;
 import org.apache.rya.streams.api.RyaStreamsClient;
 import org.apache.rya.streams.api.entity.StreamsQuery;
@@ -72,7 +73,7 @@ public class RyaStreamsCommandsTest {
 
         try {
             // Execute the command.
-            final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class));
+            final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class), mock(ConsolePrinter.class));
             final String message = commands.configureRyaStreams("localhost", 6);
 
             // Verify the request was forwarded to the mocked interactor.
@@ -107,7 +108,7 @@ public class RyaStreamsCommandsTest {
         state.connectedToInstance("unitTest");
 
         // Execute the command.
-        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class));
+        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class), mock(ConsolePrinter.class));
         final String message = commands.printRyaStreamsDetails();
         final String expected = "This instance does not have any Rya Details, so it is unable to be connected to the Rya Streams subsystem.";
         assertEquals(expected, message);
@@ -131,7 +132,7 @@ public class RyaStreamsCommandsTest {
         state.connectedToInstance("unitTest");
 
         // Execute the command.
-        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class));
+        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class), mock(ConsolePrinter.class));
         final String message = commands.printRyaStreamsDetails();
         final String expected = "This instance of Rya has not been configured to use a Rya Streams subsystem.";
         assertEquals(expected, message);
@@ -155,7 +156,7 @@ public class RyaStreamsCommandsTest {
         state.connectedToInstance("unitTest");
 
         // Execute the command.
-        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class));
+        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class), mock(ConsolePrinter.class));
         final String message = commands.printRyaStreamsDetails();
         final String expected = "Kafka Hostname: localhost, Kafka Port: 6";
         assertEquals(expected, message);
@@ -179,26 +180,28 @@ public class RyaStreamsCommandsTest {
         state.connectedToRyaStreams(mockClient);
 
         // Execute the command.
-        final RyaStreamsCommands commands = new RyaStreamsCommands(state, prompt);
-        final String message = commands.addQuery(false);
+        final RyaStreamsCommands commands = new RyaStreamsCommands(state, prompt, mock(ConsolePrinter.class));
+        final String message = commands.addQuery(false, false);
 
         // Verify a message is printed to the user.
         assertEquals("", message);
     }
 
     @Test
-    public void addQuery() throws Exception {
+    public void addQuery_doNotInsertQuery() throws Exception {
         // Mock the object that performs the rya streams operation.
         final RyaStreamsClient mockClient = mock(RyaStreamsClient.class);
         final AddQuery addQuery = mock(AddQuery.class);
         when(mockClient.getAddQuery()).thenReturn(addQuery);
 
-        final StreamsQuery addedQuery = new StreamsQuery(UUID.randomUUID(), "query", true);
-        when(addQuery.addQuery(eq("query"), eq(true))).thenReturn(addedQuery);
+        final String sparql = "SELECT * WHERE { ?a ?b ?c }";
+
+        final StreamsQuery addedQuery = new StreamsQuery(UUID.randomUUID(), sparql, true, false);
+        when(addQuery.addQuery(eq(sparql), eq(true), eq(false))).thenReturn(addedQuery);
 
         // Mock a SPARQL prompt that a user entered a query through.
         final SparqlPrompt prompt = mock(SparqlPrompt.class);
-        when(prompt.getSparql()).thenReturn(Optional.of("query"));
+        when(prompt.getSparql()).thenReturn(Optional.of(sparql));
 
         // Mock a shell state and connect it to a Rya instance.
         final SharedShellState state = new SharedShellState();
@@ -207,15 +210,133 @@ public class RyaStreamsCommandsTest {
         state.connectedToRyaStreams(mockClient);
 
         // Execute the command.
-        final RyaStreamsCommands commands = new RyaStreamsCommands(state, prompt);
-        final String message = commands.addQuery(false);
+        final RyaStreamsCommands commands = new RyaStreamsCommands(state, prompt, mock(ConsolePrinter.class));
+        final String message = commands.addQuery(false, false);
 
         // Verify the interactor was invoked with the provided input.
-        verify(addQuery).addQuery("query", true);
+        verify(addQuery).addQuery(sparql, true, false);
 
         // Verify a message is printed to the user.
         final String expected = "The added query's ID is " + addedQuery.getQueryId();
         assertEquals(expected, message);
+    }
+
+    @Test
+    public void addQuery_insertConstructQuery() throws Exception {
+        // Mock the object that performs the rya streams operation.
+        final RyaStreamsClient mockClient = mock(RyaStreamsClient.class);
+        final AddQuery addQuery = mock(AddQuery.class);
+        when(mockClient.getAddQuery()).thenReturn(addQuery);
+
+        final String sparql =
+                "PREFIX vCard: <http://www.w3.org/2001/vcard-rdf/3.0#> " +
+                "PREFIX foaf: <http://xmlns.com/foaf/0.1/> " +
+                "CONSTRUCT { " +
+                    "?X vCard:FN ?name . " +
+                    "?X vCard:URL ?url . " +
+                    "?X vCard:TITLE ?title . " +
+                "} " +
+                "FROM <http://www.w3.org/People/Berners-Lee/card> " +
+                "WHERE { " +
+                    "OPTIONAL { ?X foaf:name ?name . FILTER isLiteral(?name) . } " +
+                    "OPTIONAL { ?X foaf:homepage ?url . FILTER isURI(?url) . } " +
+                    "OPTIONAL { ?X foaf:title ?title . FILTER isLiteral(?title) . } " +
+                "}";
+
+        final StreamsQuery addedQuery = new StreamsQuery(UUID.randomUUID(), sparql, true, true);
+        when(addQuery.addQuery(eq(sparql), eq(false), eq(true))).thenReturn(addedQuery);
+
+        // Mock a SPARQL prompt that a user entered a query through.
+        final SparqlPrompt prompt = mock(SparqlPrompt.class);
+        when(prompt.getSparql()).thenReturn(Optional.of(sparql));
+
+        // Mock a shell state and connect it to a Rya instance.
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mock(RyaClient.class));
+        state.connectedToInstance("unitTest");
+        state.connectedToRyaStreams(mockClient);
+
+        // Execute the command.
+        final RyaStreamsCommands commands = new RyaStreamsCommands(state, prompt, mock(ConsolePrinter.class));
+        final String message = commands.addQuery(true, true);
+
+        // Verify the interactor was invoked with the provided input.
+        verify(addQuery).addQuery(sparql, false, true);
+
+        // Verify a message is printed to the user.
+        final String expected = "The added query's ID is " + addedQuery.getQueryId();
+        assertEquals(expected, message);
+    }
+
+    @Test
+    public void addQuery_doNotInsertInsertUpdate() throws Exception {
+        // Mock the object that performs the rya streams operation.
+        final RyaStreamsClient mockClient = mock(RyaStreamsClient.class);
+        final AddQuery addQuery = mock(AddQuery.class);
+        when(mockClient.getAddQuery()).thenReturn(addQuery);
+
+        final String sparql =
+                "PREFIX Sensor: <http://example.com/Equipment.owl#> " +
+                "INSERT { " +
+                    "?subject Sensor:test2 ?newValue " +
+                "} WHERE {" +
+                    "values (?oldValue ?newValue) {" +
+                        "('testValue1' 'newValue1')" +
+                        "('testValue2' 'newValue2')" +
+                    "}" +
+                    "?subject Sensor:test1 ?oldValue" +
+                "}";
+
+        final StreamsQuery addedQuery = new StreamsQuery(UUID.randomUUID(), sparql, true, false);
+        when(addQuery.addQuery(eq(sparql), eq(false), eq(false))).thenReturn(addedQuery);
+
+        // Mock a SPARQL prompt that a user entered a query through.
+        final SparqlPrompt prompt = mock(SparqlPrompt.class);
+        when(prompt.getSparql()).thenReturn(Optional.of(sparql));
+
+        // Mock a shell state and connect it to a Rya instance.
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mock(RyaClient.class));
+        state.connectedToInstance("unitTest");
+        state.connectedToRyaStreams(mockClient);
+
+        // Execute the command.
+        final RyaStreamsCommands commands = new RyaStreamsCommands(state, prompt, mock(ConsolePrinter.class));
+        final String message = commands.addQuery(true, false);
+
+        // Verify the interactor was invoked with the provided input.
+        verify(addQuery).addQuery(sparql, false, false);
+
+        // Verify a message is printed to the user.
+        final String expected = "The added query's ID is " + addedQuery.getQueryId();
+        assertEquals(expected, message);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void addQuery_insertQueryNotCorrectType() throws Exception {
+        // Mock the object that performs the rya streams operation.
+        final RyaStreamsClient mockClient = mock(RyaStreamsClient.class);
+        final AddQuery addQuery = mock(AddQuery.class);
+        when(mockClient.getAddQuery()).thenReturn(addQuery);
+
+        final String sparql = "SELECT * WHERE { ?a ?b ?c }";
+
+        final StreamsQuery addedQuery = new StreamsQuery(UUID.randomUUID(), sparql, true, true);
+        when(addQuery.addQuery(eq(sparql), eq(false), eq(true))).thenReturn(addedQuery);
+
+        // Mock a SPARQL prompt that a user entered a query through.
+        final SparqlPrompt prompt = mock(SparqlPrompt.class);
+        when(prompt.getSparql()).thenReturn(Optional.of(sparql));
+
+        // Mock a shell state and connect it to a Rya instance.
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mock(RyaClient.class));
+        state.connectedToInstance("unitTest");
+        state.connectedToRyaStreams(mockClient);
+
+        // Execute the command.
+        final RyaStreamsCommands commands = new RyaStreamsCommands(state, prompt, mock(ConsolePrinter.class));
+        commands.addQuery(true, true);
     }
 
     @Test
@@ -232,7 +353,7 @@ public class RyaStreamsCommandsTest {
         state.connectedToRyaStreams(mockClient);
 
         // Execute the command.
-        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class));
+        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class), mock(ConsolePrinter.class));
         final UUID queryId = UUID.randomUUID();
         final String message = commands.deleteQuery(queryId.toString());
 
@@ -261,10 +382,10 @@ public class RyaStreamsCommandsTest {
 
         // Report the query as not running.
         final UUID queryId = UUID.randomUUID();
-        when(getQuery.getQuery(eq(queryId))).thenReturn(java.util.Optional.of(new StreamsQuery(queryId, "sparql", false)));
+        when(getQuery.getQuery(eq(queryId))).thenReturn(java.util.Optional.of(new StreamsQuery(queryId, "sparql", false, false)));
 
         // Execute the command.
-        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class));
+        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class), mock(ConsolePrinter.class));
         final String message = commands.startQuery(queryId.toString());
 
         // Verify the interactor was invoked with the provided parameters.
@@ -292,10 +413,10 @@ public class RyaStreamsCommandsTest {
 
         // Report the query as running.
         final UUID queryId = UUID.randomUUID();
-        when(getQuery.getQuery(eq(queryId))).thenReturn(java.util.Optional.of(new StreamsQuery(queryId, "sparql", true)));
+        when(getQuery.getQuery(eq(queryId))).thenReturn(java.util.Optional.of(new StreamsQuery(queryId, "sparql", true, false)));
 
         // Execute the command.
-        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class));
+        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class), mock(ConsolePrinter.class));
         final String message = commands.startQuery(queryId.toString());
 
         // Verify the interactor was not invoked.
@@ -323,10 +444,10 @@ public class RyaStreamsCommandsTest {
 
         // Report the query as running.
         final UUID queryId = UUID.randomUUID();
-        when(getQuery.getQuery(eq(queryId))).thenReturn(java.util.Optional.of(new StreamsQuery(queryId, "sparql", true)));
+        when(getQuery.getQuery(eq(queryId))).thenReturn(java.util.Optional.of(new StreamsQuery(queryId, "sparql", true, false)));
 
         // Execute the command.
-        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class));
+        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class), mock(ConsolePrinter.class));
         final String message = commands.stopQuery(queryId.toString());
 
         // Verify the interactor was invoked with the provided parameters.
@@ -354,10 +475,10 @@ public class RyaStreamsCommandsTest {
 
         // Report the query as not running.
         final UUID queryId = UUID.randomUUID();
-        when(getQuery.getQuery(eq(queryId))).thenReturn(java.util.Optional.of(new StreamsQuery(queryId, "sparql", false)));
+        when(getQuery.getQuery(eq(queryId))).thenReturn(java.util.Optional.of(new StreamsQuery(queryId, "sparql", false, false)));
 
         // Execute the command.
-        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class));
+        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class), mock(ConsolePrinter.class));
         final String message = commands.stopQuery(queryId.toString());
 
         // Verify the interactor was not invoked with the provided parameters.
@@ -379,15 +500,15 @@ public class RyaStreamsCommandsTest {
                 new StreamsQuery(
                         UUID.fromString("33333333-3333-3333-3333-333333333333"),
                         "SELECT * WHERE { ?person <urn:worksAt> ?business . }",
-                        true),
+                        true, false),
                 new StreamsQuery(
                         UUID.fromString("11111111-1111-1111-1111-111111111111"),
                         "SELECT * WHERE { ?a ?b ?c . }",
-                        true),
+                        true, false),
                 new StreamsQuery(
                         UUID.fromString("22222222-2222-2222-2222-222222222222"),
                         "SELECT * WHERE { ?d ?e ?f . }",
-                        false));
+                        false, false));
         when(listQueries.all()).thenReturn(queries);
 
         // Mock a shell state and connect it to a Rya instance.
@@ -397,7 +518,7 @@ public class RyaStreamsCommandsTest {
         state.connectedToRyaStreams(mockClient);
 
         // Execute the command.
-        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class));
+        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class), mock(ConsolePrinter.class));
         final String message = commands.listQueries();
 
         // Verify the correct report is returned.
@@ -405,6 +526,7 @@ public class RyaStreamsCommandsTest {
                 "-----------------------------------------------\n" +
                 " Query ID: 11111111-1111-1111-1111-111111111111\n" +
                 "Is Active: true\n" +
+                "Is Insert: false\n" +
                 "   SPARQL: select ?a ?b ?c\n" +
                 "           where {\n" +
                 "             ?a ?b ?c.\n" +
@@ -412,6 +534,7 @@ public class RyaStreamsCommandsTest {
                 "-----------------------------------------------\n" +
                 " Query ID: 22222222-2222-2222-2222-222222222222\n" +
                 "Is Active: false\n" +
+                "Is Insert: false\n" +
                 "   SPARQL: select ?d ?e ?f\n" +
                 "           where {\n" +
                 "             ?d ?e ?f.\n" +
@@ -419,6 +542,7 @@ public class RyaStreamsCommandsTest {
                 "-----------------------------------------------\n" +
                 " Query ID: 33333333-3333-3333-3333-333333333333\n" +
                 "Is Active: true\n" +
+                "Is Insert: false\n" +
                 "   SPARQL: select ?person ?business\n" +
                 "           where {\n" +
                 "             ?person <urn:worksAt> ?business.\n" +
@@ -435,7 +559,7 @@ public class RyaStreamsCommandsTest {
         when(mockClient.getGetQuery()).thenReturn(getQuery);
 
         final UUID queryId = UUID.fromString("da55cea5-c21c-46a5-ab79-5433eef4efaa");
-        final StreamsQuery query = new StreamsQuery(queryId, "SELECT * WHERE { ?a ?b ?c . }", true);
+        final StreamsQuery query = new StreamsQuery(queryId, "SELECT * WHERE { ?a ?b ?c . }", true, false);
         when(getQuery.getQuery(queryId)).thenReturn(java.util.Optional.of(query));
 
         // Mock a shell state and connect it to a Rya instance.
@@ -445,13 +569,14 @@ public class RyaStreamsCommandsTest {
         state.connectedToRyaStreams(mockClient);
 
         // Execute the command.
-        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class));
+        final RyaStreamsCommands commands = new RyaStreamsCommands(state, mock(SparqlPrompt.class), mock(ConsolePrinter.class));
         final String message = commands.printQueryDetails(queryId.toString());
 
         // Verify the correct report is returned.
         final String expected =
                 " Query ID: da55cea5-c21c-46a5-ab79-5433eef4efaa\n" +
                 "Is Active: true\n" +
+                "Is Insert: false\n" +
                 "   SPARQL: select ?a ?b ?c\n" +
                 "           where {\n" +
                 "             ?a ?b ?c.\n" +

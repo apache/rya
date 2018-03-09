@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.producer.Producer;
@@ -52,6 +53,7 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
 
 /**
  * Integration tests the methods of {@link KafkaRunQuery}.
@@ -83,12 +85,12 @@ public class KafkaRunQueryIT {
         final String statementsTopic = KafkaTopics.statementsTopic(ryaInstance);
 
         // This query is completely in memory, so it doesn't need to be closed.
-        final QueryRepository queries = new InMemoryQueryRepository( new InMemoryQueryChangeLog() );
+        final QueryRepository queries = new InMemoryQueryRepository( new InMemoryQueryChangeLog(), Scheduler.newFixedRateSchedule(0L, 5, TimeUnit.SECONDS) );
 
         // Add the query to the query repository.
-        final StreamsQuery sQuery = queries.add("SELECT * WHERE { ?person <urn:worksAt> ?business . }", true);
+        final StreamsQuery sQuery = queries.add("SELECT * WHERE { ?person <urn:worksAt> ?business . }", true, false);
         final UUID queryId = sQuery.getQueryId();
-        final String resultsTopic = KafkaTopics.queryResultsTopic(queryId);
+        final String resultsTopic = KafkaTopics.queryResultsTopic(ryaInstance, queryId);
 
         // The thread that will run the tested interactor.
         final Thread testThread = new Thread() {

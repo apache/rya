@@ -40,17 +40,14 @@ indexing  -- the following are grouped as one project:
 entity
 freetext
 temporal
-org/apache/rya/indexing/entity
-
-org/apache/rya/indexing/smarturi
-org/apache/rya/indexing/statement
-
-rya.forwardchain
+yes rya.forwardchain
+Yes
 rya.geoindexing/geo.common
 rya.geoindexing/geo.geomesa
 rya.geoindexing/geo.geowave
 rya.geoindexing/geo.mongo
-rya.giraph
+
+No rya.giraph
 
 shell
 ```
@@ -62,7 +59,7 @@ Each section will describe the how to enable its index.  There are two install m
 
 #### Legacy - on the fly configuration
 
-The legacy method is not recommended for new Rya implementations. It loads configuration data in memory from an XML file or setter methods. Most Rya features will detect missing persistent storage components and lazily create them.  This includes the core indexes and any optional indexes that are enabled in the configuration.  For example if one starts by connecting to new Accumulo installation with no tables, Rya will create the SPO, POS and OSP tables when they are needed.  This is not the recommended because the configuration of the Rya application code can get out of sync with the backing database causing serialization errors and incomplete indexes. For example, if one run of Rya uses and maintains a Geo index, and a second run connects to the same backing store, and disables Geo indexing, the index will be missing any new statement insertions made in the second run.  
+The legacy method is not recommended for new Rya installations. It relies on the Rya driver code loading a consistent set of configuration data in memory from an XML file or setter methods. Most Rya features will detect missing persistent storage components and lazily create them.  This includes the core indexes and any optional indexes that are enabled in the configuration.  For example if one starts by connecting to new Accumulo installation with no tables, Rya will create the SPO, POS and OSP tables when they are needed.  This is not the recommended because the configuration of the Rya application code can get out of sync with the backing database causing serialization errors and incomplete indexes. For example, if one run of Rya uses and maintains a Geo index, and a second run connects to the same backing store, and disables Geo indexing, the index will be missing any new statement insertions made in the second run.  
 
 #### Installer - persisted RyaDetails
 
@@ -195,7 +192,7 @@ This section covers two aspects of Entity indexing:
    - The entity model API that allows containing an entity and it's properties, and
    - entity centric queries.
 
-#### Entity API
+##### Entity API
 
 An **Entity** is a named concept that has at least one defined structure
 and multiple values that fit within each of those structures. A structure is
@@ -265,7 +262,7 @@ Accumulo's `DocumentIndexIntersectingIterator` facilitates document-partitioned 
 A PDF presentation exists on the Rya wiki: [Entity Centric Indexing in Rya](https://cwiki.apache.org/confluence/display/RYA/Rya+Office+Hours)
 
 ### Index: Free Text
-This index allows searching the words in stored RDF objects that contain text.  
+This index allows searching the words (terms) in stored RDF objects that contain text.  
 
 #### Free Text Enable and Options
 FreeText indexing is enabled in the installer configuration builder by setting
@@ -301,16 +298,153 @@ It defaults to empty, which will match all predicates.
 
 ######  Free Text Option: FREE_TEXT_QUERY_TERM_LIMIT
 The maximum number of terms allowed per query.
-If a query contains more than this number, this IO error will be thrown.
+If a query contains more than this number, this IO error will be thrown:
 ```
 Query contains too many terms.  Term limit: 999.  Term Count: 999
 ```
 It defaults to 100 terms.
 
 #### Free Text Usage
-TODO ????
+<!--
+# TODO any of this syntax relevent?
+#  https://www.elastic.co/guide/en/elasticsearch/reference/5.6/query-dsl-query-string-query.html#query-string-syntax
+-->
+
+*This section comes from the now defunct web site **opensahara.com** via the web archive: https://web.archive.org/web/20160303214007/https://dev.opensahara.com/projects/useekm/wiki/IndexingSail
+*
+
+Full text search (FTS) is done via the FILTER function `fts:text` .  For example:
+
+```SQL
+    PREFIX fts: <http://rdf.useekm.com/fts#>
+    SELECT DISTINCT ?result WHERE {
+      ?result rdf:label ?label.
+      FILTER(fts:text(?label, "keyword"))
+    }
+```
+
+The first argument to this function is the variable that will be filtered by an FTS. The second argument the FTS filter, and the optional third argument the full text search configuration that should be used. If you pass an FTS configuration (such as simple, dutch, english, etc.), it should match the configuration that was used for indexing the statements. The FTS filter currently supports:
+
+Operator | Description
+---------|-------------
+& 	     | AND operator: search for multiple words that must occur, for example: `florence & machine & band`. This operator is the default, and can therefore be omitted. The following search is exactly the same: `florence machine band`
+&brvbar; | OR operator: search for word varitions (only one word must occur), for example: `florence` &brvbar; `machine` &brvbar; `band`
+* 	     | PREFIX search, for example: `floren*`
+
+These operators can be combined, as in:
+
+    floren* & band | singer
+
+Use parentheses to change the order in which operators are evaluated, as in:
+
+    floren* & (band | singer)
+
 #### Free Text Architecture
-TODO ????
+
+##### Accumulo Free Text Architecture
+
+The `AccumuloFreeTextIndexer` stores and queries "free text" data from statements into tables in Accumulo. Specifically, this class
+stores data into two different Accumulo Tables. This is the <b>document table</b> (default name: triplestore_text) and the <b>terms
+table</b> (default name: triplestore_terms).
+
+The document table stores the document (i.e. a triple statement), document properties, and the terms within the document. This is the
+main table used for processing a text search by using document partitioned indexing. See Accumulo class `IntersectingIterator`.
+
+For each document, the document table will store the following information:
+
+Row (partition) | Column Family  | Column Qualifier | Value
+----------------|----------------|------------------|--------
+shardID         | d\x00          | documentHash     | Document
+shardID         | s\x00Subject   | documentHash     | (empty)
+shardID         | p\x00Predicate | documentHash     | (empty)
+shardID         | o\x00Object    | documentHash     | (empty)
+shardID         | c\x00Context   | documentHash     | (empty)
+shardID         | t\x00token     | documentHash     | (empty)
+
+
+Note: documentHash is a sha256 Hash of the Document's Content
+
+The terms table is used for expanding wildcard search terms. For each token in the document table, the table will store the following
+information:
+
+
+Row (partition)   | CF/CQ/Value
+----------------- | -----------
+l\x00token        | (empty)
+r\x00Reversetoken | (empty)
+
+
+There are two prefixes in the table, "token list" (keys with an "l" prefix) and "reverse token list" (keys with a "r" prefix). This table
+is uses the "token list" to expand foo* into terms like food, foot, and football. This table uses the "reverse token list" to expand \*ar
+into car, bar, and far.
+
+Example: Given these three statements as inputs:
+
+```
+    <uri:paul> rdfs:label "paul smith"@en <uri:graph1>
+    <uri:steve> rdfs:label "steven anthony miller"@en <uri:graph1>
+    <uri:steve> rdfs:label "steve miller"@en <uri:graph1>
+```
+
+Here's what the tables would look like: (Note: the hashes aren't real, the rows are not sorted, and the partition ids will vary.)
+
+Triplestore_text
+
+Row (partition) | Column Family                   | Column Qualifier | Value
+---------------|---------------------------------|------------------|----------
+000000         | d\x00                           | 08b3d233a        | uri:graph1x00uri:paul\x00rdfs:label\x00"paul smith"@en
+000000          | s\x00uri:paul                   | 08b3d233a        | (empty)
+000000          | p\x00rdfs:label                 | 08b3d233a        | (empty)
+000000          | o\x00"paul smith"@en            | 08b3d233a        | (empty)
+000000          | c\x00uri:graph1                 | 08b3d233a        | (empty)
+000000          | t\x00paul                       | 08b3d233a        | (empty)
+000000          | t\x00smith                      | 08b3d233a        | (empty)
+000000          | d\x00                           | 3a575534b        | uri:graph1x00uri:steve\x00rdfs:label\x00"steven anthony miller"@en
+000000          | s\x00uri:steve                  | 3a575534b        | (empty)
+000000          | p\x00rdfs:label                 | 3a575534b        | (empty)
+000000          | o\x00"steven anthony miller"@en | 3a575534b        | (empty)
+000000          | c\x00uri:graph1                 | 3a575534b        | (empty)
+000000          | t\x00steven                     | 3a575534b        | (empty)
+000000          | t\x00anthony                    | 3a575534b        | (empty)
+000000          | t\x00miller                     | 3a575534b        | (empty)
+000001          | d\x00                           | 7bf670d06        | uri:graph1x00uri:steve\x00rdfs:label\x00"steve miller"@en
+000001          | s\x00uri:steve                  | 7bf670d06        | (empty)
+000001          | p\x00rdfs:label                 | 7bf670d06        | (empty)
+000001          | o\x00"steve miller"@en          | 7bf670d06        | (empty)
+000001          | c\x00uri:graph1                 | 7bf670d06        | (empty)
+000001          | t\x00steve                      | 7bf670d06        | (empty)
+000001          | t\x00miller                     | 7bf670d06        | (empty)
+
+triplestore_terms
+
+
+Row (partition)   | CF/CQ/Value
+------------------|------------
+l\x00paul         | (empty)
+l\x00smith        | (empty)
+l\x00steven       | (empty)
+l\x00anthony      | (empty)
+l\x00miller       | (empty)
+l\x00steve        | (empty)
+r\x00luap         | (empty)
+r\x00htims        | (empty)
+r\x00nevets       | (empty)
+r\x00ynohtna      | (empty)
+r\x00rellim       | (empty)
+r\x00evets        | (empty)
+
+The query interface is based on the useekm library which use capability provided by Lucene/Elasticsearch
+
+##### MongoDB Free Text Architecture
+MongoDB backed Apache Rya implements free text indexing by creating a new collection whose name ends with "freetext".  Any statements ingested whose predicate is in the configured predicates are also inserted in this freetext collection, with the addition of the field "text".  The "text" field is assigned the statement's object.  A native MongoDB Text Index is created for the "text" field, as [described in the MongoDB documentation](https://docs.mongodb.com/manual/core/index-text/#create-text-index).
+
+For queries, the search filter is described as the `$text` operator's [``$search` parameter in the MongoDB documentation ](https://docs.mongodb.com/manual/reference/operator/query/text/#op._S_text)
+
+In contrast with the Accumulo backed FreeText filter, the MongoDB implementation treats spaces as `OR` operations. If the search string is a space-delimited string, the filter performs a logical `OR` for each term and returns documents that contains any of the terms.  The `phrase` approximates the `AND`: put each of the AND'ed terms inside there own double quotes, for example ``"toast" "bread"``.  [You can find examples.](https://stackoverflow.com/questions/23985464/how-to-and-and-not-in-mongodb-text-search/)  
+
+The search expression: "\"ssl certificate\" authority key"
+
+searches for the phrase "ssl certificate" and ("authority" or "key" or "ssl" or "certificate" ).
 
 =============template==============
 ### Index: ????

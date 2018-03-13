@@ -24,10 +24,10 @@ under the License.
         <artifactId>rya.streams.parent</artifactId>
         <version>3.2.13-incubating-SNAPSHOT</version>
     </parent>
-    
+
     <modelVersion>4.0.0</modelVersion>
     <artifactId>rya.streams.query-manager</artifactId>
-    
+
     <name>Apache Rya Streams Query Manager</name>
     <description>
         This module contains the Rya Streams Query Manager.
@@ -58,7 +58,7 @@ under the License.
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
         </dependency>
-        
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>junit</groupId>
@@ -103,7 +103,7 @@ under the License.
                     <packageName>org.apache.rya.streams.querymanager.xml</packageName>
                 </configuration>
             </plugin>
-         
+
             <!-- Ensure the generated java source contains the license header. -->   
             <plugin>
                 <groupId>com.mycila</groupId>
@@ -127,7 +127,7 @@ under the License.
                     </execution>
                 </executions>
             </plugin>
-        
+
             <!-- Create a shaded jar that is able to execute the Daemon. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -149,7 +149,7 @@ under the License.
                     </execution>
                 </executions>
             </plugin>
-            
+
             <!-- Use the assembly plugin to create the binary and RPM distributions. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -174,6 +174,19 @@ under the License.
             </plugin>
 
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>rpm-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>set-rpm-properties</id>
+                        <goals>
+                            <goal>version</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>de.dentrassi.maven</groupId>
                 <artifactId>rpm</artifactId>
                 <version>0.10.0</version>
@@ -185,8 +198,8 @@ under the License.
                             <goal>rpm</goal>
                         </goals>
                         <configuration>
-                            <attach>false</attach> <!-- don't attach RPM -->
-                            <group>${project.groupId}/${project.artifactId}</group> <!-- set RPM group -->
+                            <attach>true</attach>
+                            <group>${project.groupId}/${project.artifactId}</group>
                             <architecture>noarch</architecture>
 
                             <signature>
@@ -246,7 +259,7 @@ under the License.
                             <entries>
                                 <!-- Copy everything over to the /opt directory, except for the scripts. -->
                                 <entry>
-                                    <name>/opt/rya-streams-query-manager-${project.version}/bin/systemd</name>
+                                    <name>/opt/rya-streams-query-manager-${rpm.version}/bin/systemd</name>
                                     <collect>
                                         <from>${rpm.staging.path}/bin/systemd</from>
                                         <directories>true</directories>
@@ -254,7 +267,7 @@ under the License.
                                     <ruleset>default-ruleset</ruleset>
                                 </entry>
                                 <entry>
-                                    <name>/opt/rya-streams-query-manager-${project.version}/config</name>
+                                    <name>/opt/rya-streams-query-manager-${rpm.version}/config</name>
                                     <collect>
                                         <from>${rpm.staging.path}/config</from>
                                         <directories>true</directories>
@@ -262,7 +275,7 @@ under the License.
                                     <ruleset>default-ruleset</ruleset>
                                 </entry>
                                 <entry>
-                                    <name>/opt/rya-streams-query-manager-${project.version}/lib</name>
+                                    <name>/opt/rya-streams-query-manager-${rpm.version}/lib</name>
                                     <collect>
                                         <from>${rpm.staging.path}/lib</from>
                                         <directories>true</directories>
@@ -270,14 +283,14 @@ under the License.
                                     <ruleset>default-ruleset</ruleset>
                                 </entry>
                                 <entry>
-                                    <name>/opt/rya-streams-query-manager-${project.version}/README.txt</name>
+                                    <name>/opt/rya-streams-query-manager-${rpm.version}/README.txt</name>
                                     <collect>
                                         <from>${rpm.staging.path}/README.txt</from>
                                     </collect>
                                     <ruleset>default-ruleset</ruleset>
                                 </entry>
                                 <entry>
-                                    <name>/opt/rya-streams-query-manager-${project.version}/bin/rya-streams-query-manager.sh</name>
+                                    <name>/opt/rya-streams-query-manager-${rpm.version}/bin/rya-streams-query-manager.sh</name>
                                     <collect>
                                         <from>${rpm.staging.path}/bin/rya-streams-query-manager.sh</from>
                                     </collect>

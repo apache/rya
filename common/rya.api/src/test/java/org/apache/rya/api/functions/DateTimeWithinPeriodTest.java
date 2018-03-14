@@ -38,12 +38,13 @@ public class DateTimeWithinPeriodTest {
     private static final ValueFactory vf = new ValueFactoryImpl();
     private static final Literal TRUE = vf.createLiteral(true);
     private static final Literal FALSE = vf.createLiteral(false);
+    private static final ZonedDateTime testThisTimeDate = ZonedDateTime.parse("2018-02-03T14:15:16+07:00");
 
     @Test
     public void testSeconds() throws DatatypeConfigurationException, ValueExprEvaluationException {
         DatatypeFactory dtf = DatatypeFactory.newInstance();
 
-        ZonedDateTime zTime = ZonedDateTime.now();
+        ZonedDateTime zTime = testThisTimeDate;
         String time = zTime.format(DateTimeFormatter.ISO_INSTANT);
 
         ZonedDateTime zTime1 = zTime.minusSeconds(1);
@@ -64,7 +65,7 @@ public class DateTimeWithinPeriodTest {
 
         DatatypeFactory dtf = DatatypeFactory.newInstance();
 
-        ZonedDateTime zTime = ZonedDateTime.now();
+        ZonedDateTime zTime = testThisTimeDate;
         String time = zTime.format(DateTimeFormatter.ISO_INSTANT);
 
         ZonedDateTime zTime1 = zTime.minusMinutes(1);
@@ -85,7 +86,7 @@ public class DateTimeWithinPeriodTest {
     public void testHours() throws DatatypeConfigurationException, ValueExprEvaluationException {
         DatatypeFactory dtf = DatatypeFactory.newInstance();
 
-        ZonedDateTime zTime = ZonedDateTime.now();
+        ZonedDateTime zTime = testThisTimeDate;
         String time = zTime.format(DateTimeFormatter.ISO_INSTANT);
 
         ZonedDateTime zTime1 = zTime.minusHours(1);
@@ -106,7 +107,7 @@ public class DateTimeWithinPeriodTest {
     public void testDays() throws DatatypeConfigurationException, ValueExprEvaluationException {
         DatatypeFactory dtf = DatatypeFactory.newInstance();
 
-        ZonedDateTime zTime = ZonedDateTime.now();
+        ZonedDateTime zTime = testThisTimeDate;
         String time = zTime.format(DateTimeFormatter.ISO_INSTANT);
 
         ZonedDateTime zTime1 = zTime.minusDays(1);
@@ -122,11 +123,12 @@ public class DateTimeWithinPeriodTest {
         assertEquals(TRUE, func.evaluate(vf, now, nowMinusOne, vf.createLiteral(2), OWLTime.DAYS_URI));
     }
 
+    // Note that this test fails if the week under test spans a DST when the USA springs forward.
     @Test
     public void testWeeks() throws DatatypeConfigurationException, ValueExprEvaluationException {
         DatatypeFactory dtf = DatatypeFactory.newInstance();
 
-        ZonedDateTime zTime = ZonedDateTime.now();
+        ZonedDateTime zTime = testThisTimeDate;
         String time = zTime.format(DateTimeFormatter.ISO_INSTANT);
 
         ZonedDateTime zTime1 = zTime.minusWeeks(1);
@@ -151,7 +153,7 @@ public class DateTimeWithinPeriodTest {
     public void testTimeZone() throws DatatypeConfigurationException, ValueExprEvaluationException {
         DatatypeFactory dtf = DatatypeFactory.newInstance();
 
-        ZonedDateTime now = ZonedDateTime.now();
+        ZonedDateTime now = testThisTimeDate;
         String time = now.format(DateTimeFormatter.ISO_INSTANT);
 
         ZonedDateTime zTime1 = now.withZoneSameInstant(ZoneId.of("Europe/London"));
@@ -175,6 +177,5 @@ public class DateTimeWithinPeriodTest {
         assertEquals(FALSE, func.evaluate(vf, nowLocal, nowAsiaTZMinusOne, vf.createLiteral(1), OWLTime.DAYS_URI));
         assertEquals(TRUE, func.evaluate(vf, nowLocal, nowAsiaTZMinusOne, vf.createLiteral(2), OWLTime.DAYS_URI));
     }
-
 
 }

@@ -140,6 +140,7 @@ under the License.
         
         <!-- set profile property defaults -->
         <skip.rya.it>true</skip.rya.it>  <!-- modified by  -P enable-it  -->
+        <skip.rpm.distribution>true</skip.rpm.distribution> <!-- modify by -P build-rpms -->
     </properties>
     
     <!-- Enable this profile if you want to include Geo functions within Rya. "mvn ... -P geoindexing" -->
@@ -229,6 +230,14 @@ under the License.
             <id>enable-it</id>
             <properties>
                 <skip.rya.it>false</skip.rya.it>
+            </properties>
+        </profile>
+        
+        <!-- enable this profile "mvn ... -P build-rpms" -->
+        <profile>
+            <id>build-rpms</id>
+            <properties>
+                <skip.rpm.distribution>false</skip.rpm.distribution>
             </properties>
         </profile>
 

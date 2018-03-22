@@ -24,7 +24,7 @@ This section covers the optional indexes implemented in Apache Accumulo and Mong
 
 ## Overview of indexing
 
-The non-optional core indexes are SPO, POS, OSP.  These quickly find statements where any combination of one, two, or three of the subject, predicate, and object are known.  ALso, since each of these core indexes contain the entire statement and context graph for all statements, each index acts as the repository for the entire RDF store.
+The non-optional core indexes are SPO, POS, OSP.  These quickly find statements where any combination of one, two, or three of the subject, predicate, and object are known.  Also, since each of these core indexes contain the entire statement and context graph for all statements, each index acts as the repository for the entire RDF store.
 
 Apache Rya has a variety of optional indexes that can be enabled.  
 
@@ -33,24 +33,21 @@ Other indexes find groups of related statements as in the Geo-temporal, smarturi
 
 The following is a list of the index projects. All are under the extras folder since they are optional: rya/extras/
 
-indexing  -- the following are grouped as one project:
+The following sections cover indexes:
 
+  - Entity
+  - Freetext
+  - Temporal
+  - Reasoning
+    - Backward Chaining
+    - Forward Chaining
+  - Geo
+    - rya.geoindexing/geo.common
+    - rya.geoindexing/geo.geomesa
+    - rya.geoindexing/geo.geowave
+    - rya.geoindexing/geo.mongo
+  - shell
 
-```
-entity
-freetext
-temporal
-yes rya.forwardchain
-Yes
-rya.geoindexing/geo.common
-rya.geoindexing/geo.geomesa
-rya.geoindexing/geo.geowave
-rya.geoindexing/geo.mongo
-
-No rya.giraph
-
-shell
-```
 ### Enabling Indexing
 Each section will describe the how to enable its index.  There are two install methods for Rya that impact how indexes are configured:  
 - legacy - on the fly configuration
@@ -59,7 +56,7 @@ Each section will describe the how to enable its index.  There are two install m
 
 #### Legacy - on the fly configuration
 
-The legacy method is not recommended for new Rya installations. It relies on the Rya driver code loading a consistent set of configuration data in memory from an XML file or setter methods. Most Rya features will detect missing persistent storage components and lazily create them.  This includes the core indexes and any optional indexes that are enabled in the configuration.  For example if one starts by connecting to new Accumulo installation with no tables, Rya will create the SPO, POS and OSP tables when they are needed.  This is not the recommended because the configuration of the Rya application code can get out of sync with the backing database causing serialization errors and incomplete indexes. For example, if one run of Rya uses and maintains a Geo index, and a second run connects to the same backing store, and disables Geo indexing, the index will be missing any new statement insertions made in the second run.  
+The legacy method is not recommended for new Rya installations. It relies on the Rya driver code loading a consistent set of configuration data in memory from an XML file or setter methods. Most Rya features will detect missing persistent storage components and lazily create them.  This includes the core indexes and any optional indexes that are enabled in the configuration.  For example if one starts by connecting to new Accumulo installation with no tables, Rya will create the SPO, POS and OSP tables when they are needed.  This is not recommended because the configuration of the Rya application code can get out of sync with the backing database causing serialization errors and incomplete indexes. For example, if one run of Rya uses and maintains a Geo index, and a second run connects to the same backing store, and disables Geo indexing, the index will be missing any new statement insertions made in the second run.  
 
 #### Installer - persisted RyaDetails
 
@@ -87,7 +84,7 @@ The following are found in: extras/indexingExample/src/main/java
 ### 2. Index: Temporal
 The temporal index quickly locates dates and times (instants) or ranges of contiguous instants (intervals) using an expression using temporal relations.  
 
-#### Enable and Options
+#### Configuration
 Temporal indexing is enabled in the installer configuration builder by setting
 method `setUseAccumuloTemporalIndex()` to true.  For example:
 ```java
@@ -142,7 +139,7 @@ WHERE {
 FILTER( tempo:after(?time, '2001-01-01T01:01:03-08:00') ) .
 }
 ```
-#### Temporal Architecture Accumulo
+#### Temporal Implementation Accumulo
 Temporal under Accumulo is maintained in a single table.  Each statement that is indexed has four entries in the temporal table: O, SPO, SO and PO.  Where O is the object that is always a datetime, S is subject, and P is predicate.
 Row Keys are in these two forms. Brackets denotes optional: [x] denotes x is optional:
    1. constraintPrefix datetime
@@ -160,14 +157,14 @@ It will Log a warning if the object is not parse-able.
 It attempts to parse with OpenRdf's Literal.calendarValue() .
 If that fails, tries: org.joda.time.DateTime.parse() .
 
-#### Temporal Architecture MongoDB
+#### Temporal Implementation MongoDB
 MongoDB uses its native indexing on the core collection.
 
 ### 3. Index: Entity
 Improves queries on **Entities**, also known as "star" queries, using the Accumulo's DocumentIndexIntersectingIterator.
 
 
-#### Entity Enable and Options
+#### Entity Configuration
 Entity indexing is enabled in the installer configuration builder by setting
 method `setUseAccumuloEntityIndex()` to true.  For example:
 ```java

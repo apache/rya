@@ -1,4 +1,4 @@
-**Reasoning**
+org.apache.rya**Reasoning**
 
 # Overview
 
@@ -324,59 +324,36 @@ then that means that “propA subPropertyOf propB AND propB subPropertyOf
 propA”.
 
 Sample code:
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS,
-"undergradDegreeFrom"),
-
-RDFS.SUBPROPERTYOF, vf.createURI(litdupsNS, "degreeFrom")));
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "gradDegreeFrom"),
-
-RDFS.SUBPROPERTYOF, vf.createURI(litdupsNS, "degreeFrom")));
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "degreeFrom"),
-RDFS.SUBPROPERTYOF,
-
-vf.createURI(litdupsNS, "memberOf")));
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "memberOf"),
-RDFS.SUBPROPERTYOF,
-
-vf.createURI(litdupsNS, "associatedWith")));
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "UgradA"),
-vf.createURI(litdupsNS,
-
-"undergradDegreeFrom"), vf.createURI(litdupsNS, "Harvard")));
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "GradB"),
-vf.createURI(litdupsNS,
-
-"gradDegreeFrom"), vf.createURI(litdupsNS, "Yale")));
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "ProfessorC"),
-
-vf.createURI(litdupsNS, "memberOf"), vf.createURI(litdupsNS,
-"Harvard")));
-
-conn.commit();
-
+```
+  conn.add(new StatementImpl(vf.createURI(litdupsNS,"undergradDegreeFrom"),
+    RDFS.SUBPROPERTYOF, vf.createURI(litdupsNS, "degreeFrom")));
+  conn.add(new StatementImpl(vf.createURI(litdupsNS, "gradDegreeFrom"),
+    RDFS.SUBPROPERTYOF, vf.createURI(litdupsNS, "degreeFrom")));
+  conn.add(new StatementImpl(vf.createURI(litdupsNS, "degreeFrom"),
+    RDFS.SUBPROPERTYOF, vf.createURI(litdupsNS, "memberOf")));
+  conn.add(new StatementImpl(vf.createURI(litdupsNS, "memberOf"),
+    RDFS.SUBPROPERTYOF, vf.createURI(litdupsNS, "associatedWith")));
+  conn.add(new StatementImpl(vf.createURI(litdupsNS, "UgradA"),
+    vf.createURI(litdupsNS, "undergradDegreeFrom"),
+    vf.createURI(litdupsNS, "Harvard")));
+  conn.add(new StatementImpl(vf.createURI(litdupsNS, "GradB"),
+    vf.createURI(litdupsNS, "gradDegreeFrom"), vf.createURI(litdupsNS, "Yale")));
+  conn.add(new StatementImpl(vf.createURI(litdupsNS, "ProfessorC"),
+    vf.createURI(litdupsNS, "memberOf"), vf.createURI(litdupsNS, "Harvard")));
+  conn.commit();
+```
 With query:
-
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-
-PREFIX lit: <urn:test:litdups#>
-
-select * where {?s lit:memberOf lit:Harvard.}
-
+```
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX lit: <urn:test:litdups#>
+  select * where {?s lit:memberOf lit:Harvard.}
+```
 Will return results:
-
-[s=urn:test:litdups#UgradA]
-
-[s=urn:test:litdups#ProfessorC]
-
+```
+  [s=urn:test:litdups#UgradA]
+  [s=urn:test:litdups#ProfessorC]
+```
 Since UgradA has undergraduateDegreeFrom Harvard and ProfessorC is
 memberOf Harvard.
 
@@ -388,35 +365,22 @@ second part of the Join checks for triples with those properties and
 with object \"\`Harvard\`\".
 
 Query plan:
-
+```
 QueryRoot
-
-Projection
-
-ProjectionElemList
-
-ProjectionElem "s"
-
-Join
-
-FixedStatementPattern
-
-Var (name=0bad69f3-4769-4293-8318-e828b23dc52a)
-
-Var (name=c-0bad69f3-4769-4293-8318-e828b23dc52a,
-
-value=http://www.w3.org/2000/01/rdf-schema#subPropertyOf)
-
-Var (name=-const-1, value=urn:test:litdups#memberOf, anonymous)
-
-DoNotExpandSP
-
-Var (name=s)
-
-Var (name=0bad69f3-4769-4293-8318-e828b23dc52a)
-
-Var (name=-const-2, value=urn:test:litdups#Harvard, anonymous)
-
+   Projection
+      ProjectionElemList
+         ProjectionElem "s"
+      Join
+         FixedStatementPattern
+            Var (name=0bad69f3-4769-4293-8318-e828b23dc52a)
+            Var (name=c-0bad69f3-4769-4293-8318-e828b23dc52a,
+                value=http://www.w3.org/2000/01/rdf-schema#subPropertyOf)
+            Var (name=-const-1, value=urn:test:litdups#memberOf, anonymous)
+         DoNotExpandSP
+            Var (name=s)
+            Var (name=0bad69f3-4769-4293-8318-e828b23dc52a)
+            Var (name=-const-2, value=urn:test:litdups#Harvard, anonymous)
+```
 #### owl:inverseOf
 
 InverseOf defines a property that is an inverse relation of another
@@ -424,155 +388,102 @@ property. For example, a student who has a degreeFrom a University also
 means that the University hasAlumnus student.
 
 Code:
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "degreeFrom"),
-OWL.INVERSEOF,
-
-vf.createURI(litdupsNS, "hasAlumnus")));
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "UgradA"),
-vf.createURI(litdupsNS,
-
-"degreeFrom"), vf.createURI(litdupsNS, "Harvard")));
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "GradB"),
-vf.createURI(litdupsNS,
-
-"degreeFrom"), vf.createURI(litdupsNS, "Harvard")));
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "Harvard"),
-vf.createURI(litdupsNS,
-
-"hasAlumnus"), vf.createURI(litdupsNS, "AlumC")));
-
+```
+conn.add(new StatementImpl(vf.createURI(litdupsNS, "degreeFrom"), OWL.INVERSEOF,
+    vf.createURI(litdupsNS, "hasAlumnus")));
+conn.add(new StatementImpl(vf.createURI(litdupsNS, "UgradA"), vf.createURI(litdupsNS,
+    "degreeFrom"), vf.createURI(litdupsNS, "Harvard")));
+conn.add(new StatementImpl(vf.createURI(litdupsNS, "GradB"), vf.createURI(litdupsNS,
+    "degreeFrom"), vf.createURI(litdupsNS, "Harvard")));
+conn.add(new StatementImpl(vf.createURI(litdupsNS, "Harvard"), vf.createURI(litdupsNS,
+    "hasAlumnus"), vf.createURI(litdupsNS, "AlumC")));
 conn.commit();
-
+```
 Query:
-
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-
-PREFIX lit: <urn:test:litdups#>
-
-select * where {lit:Harvard lit:hasAlumnus ?s.}
-
+```
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX lit: <urn:test:litdups#>
+  select * where {lit:Harvard lit:hasAlumnus ?s.}
+```
 Result:
-
-[s=urn:test:litdups#AlumC]
-
-[s=urn:test:litdups#GradB]
-
-[s=urn:test:litdups#UgradA]
-
-The query planner will expand the statement pattern “Harvard hasAlumnus
-?s” to a Union between “Harvard hasAlumnus ?s” and “?s degreeFrom
-Harvard”.
+```
+  [s=urn:test:litdups#AlumC]
+  [s=urn:test:litdups#GradB]
+  [s=urn:test:litdups#UgradA]
+```
+The query planner will expand the statement pattern “`Harvard hasAlumnus
+?s`” to a Union between “`Harvard hasAlumnus ?s`” and “`?s degreeFrom
+Harvard`”.
 
 As a caveat, it is important to note that in general Union queries do
 not have the best performance, so having a property that has both an
-inverseOf and subPropertyOf, could cause a query plan that might take a
+`inverseOf` and `subPropertyOf`, could cause a query plan that might take a
 long time to execute, depending on how the query planner orders the
 joins.
 
 Query plan:
-
+```
 QueryRoot
-
-Projection
-
-ProjectionElemList
-
-ProjectionElem "s"
-
-InferUnion
-
-StatementPattern
-
-Var (name=-const-1, value=urn:test:litdups#Harvard, anonymous)
-
-Var (name=-const-2, value=urn:test:litdups#hasAlumnus, anonymous)
-
-Var (name=s)
-
-StatementPattern
-
-Var (name=s)
-
-Var (name=-const-2, value=urn:test:litdups#degreeFrom)
-
-Var (name=-const-1, value=urn:test:litdups#Harvard, anonymous)
-
+   Projection
+      ProjectionElemList
+         ProjectionElem "s"
+      InferUnion
+         StatementPattern
+            Var (name=-const-1, value=urn:test:litdups#Harvard, anonymous)
+            Var (name=-const-2, value=urn:test:litdups#hasAlumnus, anonymous)
+            Var (name=s)
+         StatementPattern
+            Var (name=s)
+            Var (name=-const-2, value=urn:test:litdups#degreeFrom)
+            Var (name=-const-1, value=urn:test:litdups#Harvard, anonymous)
+```
 #### SymmetricProperty
 
 SymmetricProperty defines a relationship where, for example, if Bob is a
 friendOf Jeff, then Jeff is a friendOf Bob.
 
 Code:
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "friendOf"),
-RDF.TYPE,
-
-OWL.SYMMETRICPROPERTY));
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "Bob"),
-vf.createURI(litdupsNS,
-
-"friendOf"), vf.createURI(litdupsNS, "Jeff")));
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "James"),
-vf.createURI(litdupsNS,
-
-"friendOf"), vf.createURI(litdupsNS, "Jeff")));
-
+```
+conn.add(new StatementImpl(vf.createURI(litdupsNS, "friendOf"), RDF.TYPE,
+    OWL.SYMMETRICPROPERTY));
+conn.add(new StatementImpl(vf.createURI(litdupsNS, "Bob"), vf.createURI(litdupsNS,
+    "friendOf"), vf.createURI(litdupsNS, "Jeff")));
+conn.add(new StatementImpl(vf.createURI(litdupsNS, "James"), vf.createURI(litdupsNS,
+    "friendOf"), vf.createURI(litdupsNS, "Jeff")));
 conn.commit();
-
+```
 Query:
-
+```
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-
 PREFIX lit: <urn:test:litdups#>
-
 select * where {?s lit:friendOf lit:Bob.}
-
+```
 Results:
-
+```
 [s=urn:test:litdups#Jeff]
-
+```
 The query planner will recognize that `friendOf` is a
 SymmetricProperty and devise a Union to find the specified relationship
 and inverse.
 
 Query plan:
-
+```
 QueryRoot
-
-Projection
-
-ProjectionElemList
-
-ProjectionElem "s"
-
-InferUnion
-
-StatementPattern
-
-Var (name=s)
-
-Var (name=-const-1, value=urn:test:litdups#friendOf, anonymous)
-
-Var (name=-const-2, value=urn:test:litdups#Bob, anonymous)
-
-StatementPattern
-
-Var (name=-const-2, value=urn:test:litdups#Bob, anonymous)
-
-Var (name=-const-1, value=urn:test:litdups#friendOf, anonymous)
-
-Var (name=s)
-
+   Projection
+      ProjectionElemList
+         ProjectionElem "s"
+      InferUnion
+         StatementPattern
+            Var (name=s)
+            Var (name=-const-1, value=urn:test:litdups#friendOf, anonymous)
+            Var (name=-const-2, value=urn:test:litdups#Bob, anonymous)
+         StatementPattern
+            Var (name=-const-2, value=urn:test:litdups#Bob, anonymous)
+            Var (name=-const-1, value=urn:test:litdups#friendOf, anonymous)
+            Var (name=s)
+```
 #### owl:TransitiveProperty
 
 TransitiveProperty provides a transitive relationship between resources.
@@ -580,90 +491,57 @@ For example, if Queens is subRegionOf NYC and NYC is subRegionOf NY,
 then Queens is transitively a subRegionOf NY.
 
 Code:
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "subRegionOf"),
-RDF.TYPE,
-
-OWL.TRANSITIVEPROPERTY));
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "Queens"),
-vf.createURI(litdupsNS,
-
-"subRegionOf"), vf.createURI(litdupsNS, "NYC")));
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "NYC"),
-vf.createURI(litdupsNS,
-
-"subRegionOf"), vf.createURI(litdupsNS, "NY")));
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "NY"),
-vf.createURI(litdupsNS,
-
-"subRegionOf"), vf.createURI(litdupsNS, "US")));
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "US"),
-vf.createURI(litdupsNS,
-
-"subRegionOf"), vf.createURI(litdupsNS, "NorthAmerica")));
-
-conn.add(new StatementImpl(vf.createURI(litdupsNS, "NorthAmerica"),
-
-vf.createURI(litdupsNS, "subRegionOf"), vf.createURI(litdupsNS,
-"World")));
-
-conn.commit();
-
+```
+QueryRoot
+   Projection
+      ProjectionElemList
+         ProjectionElem "s"
+      InferUnion
+         StatementPattern
+            Var (name=s)
+            Var (name=-const-1, value=urn:test:litdups#friendOf, anonymous)
+            Var (name=-const-2, value=urn:test:litdups#Bob, anonymous)
+         StatementPattern
+            Var (name=-const-2, value=urn:test:litdups#Bob, anonymous)
+            Var (name=-const-1, value=urn:test:litdups#friendOf, anonymous)
+            Var (name=s)
+```
 Query:
-
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-
-PREFIX lit: <urn:test:litdups#>
-
-select * where {?s lit:subRegionOf lit:NorthAmerica.}
-
+```SQL
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX lit: <urn:test:litdups#>
+  select * where {?s lit:subRegionOf lit:NorthAmerica.}
+```
 Results:
-
-[s=urn:test:litdups#Queens]
-
-[s=urn:test:litdups#NYC]
-
-[s=urn:test:litdups#NY]
-
-[s=urn:test:litdups#US]
-
-The TransitiveProperty relationship works by running recursive queries
+```
+  [s=urn:test:litdups#Queens]
+  [s=urn:test:litdups#NYC]
+  [s=urn:test:litdups#NY]
+  [s=urn:test:litdups#US]
+```
+The `TransitiveProperty` relationship works by running recursive queries
 till all the results are returned.
 
-It is important to note that certain TransitiveProperty relationships
+It is important to note that certain `TransitiveProperty` relationships
 will not work:
 
-  - Open ended property: “?s subRegionOf ?o” (At least one of the
+  - Open ended property: “`?s subRegionOf ?o`” (At least one of the
     properties must be filled or will be filled as the query gets
     answered.)
 
-  - Closed property: “Queens subRegionOf NY” (At least one of the
+  - Closed property: “`Queens subRegionOf NY`” (At least one of the
     properties must be empty.)
-
-Query plan:
-
+```
 QueryRoot
-
-Projection
-
-ProjectionElemList
-
-ProjectionElem "s"
-
-TransitivePropertySP
-
-Var (name=s)
-
-Var (name=-const-1, value=urn:test:litdups#subRegionOf, anonymous)
-
-Var (name=-const-2, value=urn:test:litdups#NorthAmerica, anonymous)
-
+   Projection
+      ProjectionElemList
+         ProjectionElem "s"
+      TransitivePropertySP
+         Var (name=s)
+         Var (name=-const-1, value=urn:test:litdups#subRegionOf, anonymous)
+         Var (name=-const-2, value=urn:test:litdups#NorthAmerica, anonymous)
+```
 # **Forward-Chaining Reasoner**
 
 The Rya Forward Chaining Reasoner is implemented as a forward-chaining
@@ -680,7 +558,7 @@ intended for scalable rule-based reasoning.
 ## Rules
 
 These are the OWL RL (Rule Language) rules currently implemented. Those
-rules not implemented include any rule involving owl:sameAs, rules
+rules not implemented include any rule involving `owl:sameAs`, rules
 inferring and checking datatypes, any rule operating on a list
 construct, and the few other rules requiring a complex join of instance
 triples that do not all share any single node.
@@ -692,53 +570,37 @@ forward chaining step.
 
   - **scm-cls**: Every class is its own subclass and equivalent class,
     and is a subclass of owl:Thing.
-
   - **scm-eqc1**: If two classes are equivalent, they are also
     subclasses of each other.
-
   - **scm-eqc2**: If two classes are each other's subclasses, they are
     also equivalent classes.
-
   - **scm-op**: Every object property is its own subproperty and
     equivalent property.
-
   - **scm-dp**: Every datatype property is its own subproperty and
     equivalent property.
-
   - **scm-eqp1**: If two properties are equivalent, they are also
     subproperties of each other.
-
   - **scm-eqp2**: If two properties are each other's subproperties, they
     are also equivalent properties.
-
   - **scm-spo**: subPropertyOf is transitive.
-
   - **scm-dom1**: A property with domain c also has as domain any of c's
     superclasses.
-
   - **scm-dom2**: A subproperty inherits its superproperties' domains.
-
   - **scm-rng1**: A property with range c also has as range any of c's
     superclasses.
-
   - **scm-rng2**: A subproperty inherits its superproperties' ranges.
-
   - **scm-svf1**: A property restriction c1 is a subclass of another c2
     if they are both someValuesFrom restrictions on the same property
     and c1's target class is a subclass of c2's target class.
-
   - **scm-avf1**: A property restriction c1 is a subclass of another c2
     if they are both allValuesFrom restrictions on the same property and
     c1's target class is a subclass of c2's target class.
-
   - **scm-hv**: A property restriction c1 is a subclass of another c2 if
     they are both hasValue restrictions with the same value where c1's
     target property is a subproperty of c2's target property.
-
   - **scm-svf2**: A property restriction c1 is a subclass of another c2
     if they are both someValuesFrom restrictions on the same class where
     c1's target property is a subproperty of c2's target property.
-
   - **scm-avf2**: A property restriction c1 is a subclass of another c2
     if they are both allValuesFrom restrictions on the same class where
     c2's target property is a subproperty of c1's target property.
@@ -749,38 +611,16 @@ These rules are applied by the local reasoner immediately upon reading
 in the appropriate instance triple.
 
   - **prp-dom**: Infer subject's type from predicate's domain.
-
   - **prp-rng**: Infer object's type from predicate's range.
-
-  - **prp-irp**: If **?p** is irreflexive, **?x ?p ?x** is inconsistent.
-
-  - **prp-symp**: If **?p** is symmetric, **?x ?p ?y** implies **?y ?p
-    ?x** .
-
-  - **prp-spo1**: If **?p1** has superproperty **p2** , **?x ?p1 ?y**
-    implies **?x ?p2 ?**y .
-
-  - **prp-inv1**: If **?p1** and **?p2** are inverse properties, **?x
-    ?p1 ?y** implies **?y ?p1 ?x** .
-
-  - **prp-inv2**: If **?p1** and **?p2** are inverse properties, **?x
-    ?p2 ?y** implies **?y ?p1 ?x** .
-
-  - **cls-svf2**: If **?x** is a someValuesFrom restriction on property
-    **?p** with respect to owl:Thing , **?u ?p ?v** implies **?u
-    rdf:type ?x** for any **?u** , **?v** .
-
-  - **cls-hv1**: If **?x** is a hasValue restriction on property **?p**
-    with value **?v** , **?u rdf:type ?x** implies **?u ?p ?v** for any
-    **?u** .
-
-  - **cls-hv2**: If **?x** is a hasValue restriction on property **?p**
-    with value **?v** , **?u ?p ?v** implies **?u rdf:type ?x** for any
-    **?u** .
-
-  - **cls-nothing2**: Anything having type **owl:Nothing** is an
-    inconsistency.
-
+  - **prp-irp**: If `?p` is irreflexive, `?x ?p ?x` is inconsistent.
+  - **prp-symp**: If `?p` is symmetric, `?x ?p ?y` implies `?y ?p ?x` .
+  - **prp-spo1**: If `?p1` has superproperty `p2` , `?x ?p1 ?y`  implies `?x ?p2 ?`y .
+  - **prp-inv1**: If `?p1` and `?p2` are inverse properties, `?x ?p1 ?y` implies `?y ?p1 ?x` .
+  - **prp-inv2**: If `?p1` and `?p2` are inverse properties, `?x  ?p2 ?y` implies `?y ?p1 ?x` .
+  - **cls-svf2**: If `?x` is a someValuesFrom restriction on property `?p` with respect to owl:Thing , `?u ?p ?v` implies `?u rdf:type ?x` for any `?u` , `?v` .
+  - **cls-hv1**: If `?x` is a hasValue restriction on property `?p` with value `?v` , `?u rdf:type ?x` implies `?u ?p ?v` for any`?u` .
+  - **cls-hv2**: If `?x` is a hasValue restriction on property `?p` with value `?v` , `?u ?p ?v` implies `?u rdf:type ?x` for any `?u` .
+  - **cls-nothing2**: Anything having type `owl:Nothing` is an inconsistency.
   - **cax-sco**: Whenever a type is seen, inherit any supertypes.
 
 ### Join Rules
@@ -792,39 +632,20 @@ later during the same phase. Since the reducer assumes incoming triples
 are received before outgoing triples, only the former need to be held in
 memory.
 
-  - **prp-asyp**: If **?p** is asymmetric, **?x ?p ?y** and **?y ?p ?x**
-    is inconsistent.
-
-  - **prp-trp**: If **?p** is transitive, **?x ?p ?y** and **?y ?p ?z**
-    implies **?x ?p ?z**.
-
-  - **prp-pdw**: If properties **?p** and **?q** are disjoint, **?x ?p
-    ?y** and **?x ?q ?y** is inconsistent
-
-  - **cax-dw**: If classes **c1** and **c2** are disjoint, having both
-    types is inconsistent.
-
-  - **cls-com**: If classes **c1** and **c2** are complementary, having
-    both types is inconsistent.
-
-  - **cls-svf1**: If **?x** is a someValuesFrom restriction on property
-    **?p** with respect to type **?y**, **?u ?p ?v** and **?v rdf:type
-    ?y** imply **?u rdf:type ?x**.
-
-  - **cls-avf**: If **?x** is an allValuesFrom restriction on property
-    **?p** with respect to type **?y**, **?u** **?p ?v** and **?u
-    rdf:type ?x** imply **?v rdf:type ?y**.
-
-  - **cls-maxc1**: **?x ?p ?y** is inconsistent if **?p** has maximum
-    cardinality 0.
-
-  - **cls-maxqc2**: **?x ?p ?y** is inconsistent if **?p** has maximum
-    qualified cardinality 0 with respect to **owl:Thing**.
+  - **prp-asyp**: If `?p` is asymmetric, `?x ?p ?y` and `?y ?p ?x` is inconsistent.
+  - **prp-trp**: If `?p` is transitive, `?x ?p ?y` and `?y ?p ?z` implies `?x ?p ?z`.
+  - **prp-pdw**: If properties `?p` and `?q` are disjoint, `?x ?p ?y` and `?x ?q ?y` is inconsistent
+  - **cax-dw**: If classes **c1** and **c2** are disjoint, having both types is inconsistent.
+  - **cls-com**: If classes **c1** and **c2** are complementary, having both types is inconsistent.
+  - **cls-svf1**: If `?x` is a someValuesFrom restriction on property  `?p` with respect to type `?y`, `?u ?p ?v` and `?v rdf:type  ?y` imply `?u rdf:type ?x`.
+  - **cls-avf**: If `?x` is an allValuesFrom restriction on property  `?p` with respect to type `?y`, `?u` `?p ?v` and `?u  rdf:type ?x` imply `?v rdf:type ?y`.
+  - **cls-maxc1**: `?x ?p ?y` is inconsistent if `?p` has maximum  cardinality 0.
+  - **cls-maxqc2**: `?x ?p ?y` is inconsistent if `?p` has maximum qualified cardinality 0 with respect to `owl:Thing`.
 
 ## Usage
 
 The complete forward-chaining inference task is performed by the class
-**mvm.rya.reasoning.mr.ReasoningDriver**. This will run a series of
+`org.apache.rya.reasoning.mr.ReasoningDriver`. This will run a series of
 MapReduce jobs on the input until no further inferences can be made.
 Input must be configured using properties given in a Hadoop
 configuration file and/or through command line parameters. Optional
@@ -835,20 +656,16 @@ parameters control the output generated.
 The following properties are all required to connect to Accumulo:
 
   - **ac.instance** (instance name)
-
   - **ac.zk** (Zookeepers)
-
   - **ac.username**
-
   - **ac.pwd**
-
   - **rdf.tablePrefix** (e.g. **rya_**: the dataset to perform
     inference on)
 
 File input is not generally recommended, but is implemented for testing
 purposes. To read from a file instead of an Accumulo table, specify
-either **input** to use a file/directory on Hadoop Distributed File
-System (HDFS), or C) **reasoning.inputLocal** to use a local
+either `input` to use a file/directory on Hadoop Distributed File
+System (HDFS), or C) `reasoning.inputLocal` to use a local
 file/directory (it will be uploaded to HDFS). This requires that the
 data can be loaded entirely in memory, and does not correctly handle
 bnodes in instance data. Each individual MapReduce job parses the file
@@ -860,25 +677,20 @@ The following properties are optional:
 
   - **reasoning.workingDir**: An HDFS path to which all intermediate
     files and outputs will be written (defaults to **tmp/reasoning**)
-
   - **reasoning.debug**: Keep intermediate sequence files and print
     detailed information about individual input output records to output
     files starting with **debug** (defaults to false)
-
   - **reasoning.output**: Run the OutputTool job to collect inferred
     triples and inconsistencies in respective output files (defaults to
     true, set to false if the content of the inferred data is not
     important)
-
   - **reasoning.stats**: Print a table of detailed metrics to standard
     out instead of the default information about the run (defaults to
     false).
-
   - **reasoning.step**: Used internally to keep track of which iteration
     the reasoning engine is on. Can be set manually to resume a previous
     execution (defaults to 0, meaning reasoning starts from the
     beginning -- set to the previously completed step to resume).
-
   - **rdf.format**: When using file input, use this to specify the RDF
     serialization format (defaults to RDF/XML)
 
@@ -908,86 +720,66 @@ Useful MapReduce properties include (Hadoop 2 versions):
 
 ### Example
 
-Given the following **conf.xml** (assuming a running Accumulo instance
+Given the following `conf.xml` (assuming a running Accumulo instance
 with these parameters):
-
-> **<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>**
->
-> **<configuration>**
->
-> **<property>**
->
-> **<name>ac.instance</name>**
->
-> **<value>dev</value>**
->
-> **</property>**
->
-> **<property>**
->
-> **<name>ac.zk</name>**
->
-> **<value>localhost:2181</value>**
->
-> **</property>**
->
-> **<property>**
->
-> **<name>ac.username</name>**
->
-> **<value>root</value>**
->
-> **</property>**
->
-> **<property>**
->
-> **<name>ac.pwd</name>**
->
-> **<value>root</value>**
->
-> **</property>**
->
-> **<property>**
->
-> **<name>reasoning.workingDir</name>**
->
-> **<value>example_output</value>**
->
-> **</property>**
->
-> **</configuration>**
-
+```
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <property>
+        <name>ac.instance</name>
+        <value>dev</value>
+    </property>
+    <property>
+        <name>ac.zk</name>
+        <value>localhost:2181</value>
+    </property>
+    <property>
+        <name>ac.username</name>
+        <value>root</value>
+    </property>
+    <property>
+        <name>ac.pwd</name>
+        <value>root</value>
+    </property>
+    <property>
+        <name>reasoning.workingDir</name>
+        <value>example_output</value>
+    </property>
+</configuration>
+```
 The following command will run the reasoner on the triples found in Rya
-table **rya_spo** and produce file output in HDFS under
-**example_output/final**:
+table rya_spo and produce file output in HDFS under
+example_output/final.  Be sure to change the version to whatever you are using.
 
-> **hadoop jar target/rya.reasoning-3.2.10-SNAPSHOT-shaded.jar
-> mvm.rya.reasoning.mr.ReasoningDriver -conf conf.xml
-> -Drdf.tablePrefix=rya_**
+```
+hadoop jar target/rya.reasoning-3.2.13-SNAPSHOT-shaded.jar  \
+    org.apache.rya.reasoning.mr.ReasoningDriver -conf conf.xml  \
+    -Drdf.tablePrefix=rya_
+```
 
 ### Output
 
 Summary statistics will be printed to standard out, including the number
 of instance triples inferred and the number of inconsistencies found. By
 default, this information will be printed at each iteration's
-completion. If **reasoning.stats** is set to true, detailed statistics
+completion. If `reasoning.stats` is set to true, detailed statistics
 will be printed at the end instead.
 
 The inferences themselves will be written to files under
-**${reasoning.workingDir}/final**, unless output was disabled. Triples
+`${reasoning.workingDir}/final`, unless output was disabled. Triples
 are written as raw N-Triples, while inconsistencies are printed with
 their derivations. Triples and inconsistencies will be written to
 different files; each file will only exist if at least one of the
 corresponding fact types was generated.
 
 If debug was set to true, data files and additional info for each step
-**i** will be written to **${reasoning.workingDir}/step-${i}a** (output
+**i** will be written to `${reasoning.workingDir}/step-${i}a` (output
 of the forward chaining reasoner for that step) and
-**${reasoning.workingDir}/step-${i}** (output of the duplicate
+`${reasoning.workingDir}/step-${i}` (output of the duplicate
 elimination job for that step).
 
 Some additional information can be found in the Hadoop logs if the log
-level was set to DEBUG (with the **mapreduce.{map/reduce}.log.level**
+level was set to DEBUG (with the `mapreduce.{map/reduce}.log.level`
 properties).
 
 ### Conformance Testing
@@ -1005,23 +797,23 @@ by the reasoner, contained in the schema (since the current
 implementation is mainly concerned with consistency detection, it may
 correctly derive a schema fact but will not manifest it as a triple), or
 trivially implied (e.g. parsing a conclusion specified in XML using the
-**<owl:Ontology>** tag will result in a triple **[bnode] rdf:type
-owl:Ontology** , which the reasoner would not explicitly generate). Once
+`<owl:Ontology>` tag will result in a triple `[bnode] rdf:type owl:Ontology` ,
+which the reasoner would not explicitly generate). Once
 all tests are run, either success or failure is reported for each. If a
 test has multiple types, e.g. both consistency and entailment, success
 requires passing all appropriate checks.
 
 The command expects two arguments: the input file containing the tests,
 and a path to use for a temporary working directory for Mini Accumulo.
-Input format can be specified with **rdf.format**; defaults to RDF/XML.
+Input format can be specified with `rdf.format`; defaults to RDF/XML.
 HDFS is still used for intermediate storage and reasoner output
-(**reasoning.workingDir**).
+(`reasoning.workingDir`).
 
 Example:
 
 ```
 hadoop jar rya.reasoning-3.2.10-SNAPSHOT-shaded.jar \
- mvm.rya.reasoning.mr.ConformanceTest -conf conf.xml \
+ org.apache.rya.reasoning.mr.ConformanceTest -conf conf.xml \
  owl-test/profile-RL.rdf temp
 ```
 ## Design
@@ -1036,7 +828,7 @@ practice, full OWL reasoners exist, but have limited scalability.
 Most traditional reasoners use tableau algorithms, which maintain a set
 of logical assertions as a tree, and repeatedly reduce them to entail
 new assertions. Each time a reduction requires a nondeterministic choice
--- e.g. A or B -- this corresponds to a branch in the tree. When a
+-- for example: A or B -- this corresponds to a branch in the tree. When a
 reduction results in an atomic assertion that would create a
 contradiction, the current branch is inconsistent, and the search for
 alternative reductions backtracks and chooses a new path. When all paths
@@ -1048,13 +840,13 @@ designed to support scalable if/then rules, so this is a natural choice.
 RL allows almost all of the OWL modeling vocabulary but its semantics
 are limited specifically so that nondeterministic inferences are never
 necessary. For example, no RL rule will imply that an individual must
-belong to one of two different classes. One might assert that c1 is a
-subclass of (c2 union c3), but this does not entail any inferences under
-RL. (However, if (c1 union c2) is a subclass of c3, the RL rules do
-entail that both c1 and c2 are subclasses of c3. The union construct can
+belong to one of two different classes. One might assert that `c1` is a
+subclass of (`c2 union c3`), but this does not entail any inferences under
+RL. (However, if (`c1 union c2`) is a subclass of `c3`, the RL rules do
+entail that both `c1` and `c2` are subclasses of `c3`. The union construct can
 have implications in RL, but only deterministic ones.)
 
-Our approach is similar to that of WebPie[1] (Web-scale Parallel
+Our approach is similar to that of [WebPie[1]](http://www.few.vu.nl/~jui200/webpie.html) (Web-scale Parallel
 Inference Engine), with one notable difference being that we apply all
 rules on instance data in the same MapReduce job, using one standard
 partitioning scheme (by single node: a triple is partitioned based on
@@ -1090,12 +882,11 @@ example, with transitivity).
 
 Many of the RL rules can be applied this way, if we can additionally
 assume that each reducer has access to the complete schema, or TBox. For
-example, if **:c1** and **:c2** are known to be disjoint classes, a
-reasoner responsible for processing triples involving node **:x** can
-detect an inconsistency if it receives both **:x rdf:type :c** and **:x
-rdf:type :y** . But this only works if the disjoint class relationship
+example, if `:c1` and `:c2` are known to be disjoint classes, a
+reasoner responsible for processing triples involving node `:x` can
+detect an inconsistency if it receives both `:x rdf:type :c` and `:x rdf:type :y` . But this only works if the disjoint class relationship
 was passed to that reducer, and if we process the input in parallel, the
-mapper that sees **:c1 owl:disjointWith :c2** has no way of predicting
+mapper that sees `:c1 owl:disjointWith :c2` has no way of predicting
 which reducers will need this information. Therefore, we do an initial
 pass through the data to aggregate all semantically meaningful
 information about classes and properties (the schema), and ensure that
@@ -1125,9 +916,9 @@ Together, this yields the following MapReduce jobs and workflow:
 
     1) Setup: Distribute Schema object to every mapper and reducer.
 
-    2) Map: Reads triples from Accumulo and any previous steps. For a given   triple, use the schema to determine whether local reasoners for the     subject and/or object might be able to use that triple. If so,     output the triple with the subject and/or object as a key. (For example, if the triple is **:s :p :o** and the schema has a domain for **:p** , output **<:s, (:s :p :o)>** so the reducer for **:s** can apply the domain rule. If the triple has a range as well, also output **<:o, (:s :p :o)> )**.
+    2) Map: Reads triples from Accumulo and any previous steps. For a given   triple, use the schema to determine whether local reasoners for the     subject and/or object might be able to use that triple. If so,     output the triple with the subject and/or object as a key. (For example, if the triple is `:s :p :o` and the schema has a domain for `:p` , output `<:s, (:s :p :o)>` so the reducer for `:s` can apply the domain rule. If the triple has a range as well, also output `<:o, (:s :p :o)> )`.
 
-    3) Shuffle/Sort: pairs are grouped based on the key (node) and sorted    based on how the node relates to the triple: incoming edges precede    outgoing edges. (For example, if both **(:a :b :c)** and **(:c :d    :e)** are relevant to the reducer for **:c** , then **<:c, (:a :b    :c)>** will be received before **<:c, (:c :d :e)>** .) This allows joins to use less memory than they would otherwise need.
+    3) Shuffle/Sort: pairs are grouped based on the key (node) and sorted    based on how the node relates to the triple: incoming edges precede    outgoing edges. (For example, if both `(:a :b :c)` and `(:c :d    :e)` are relevant to the reducer for `:c` , then `<:c, (:a :b    :c)>` will be received before `<:c, (:c :d :e)>` .) This allows joins to use less memory than they would otherwise need.
 
     4) Reduce: Receives a series of triples involving a single URI. Creates
     a LocalReasoner object for that URI, which combines those triples
@@ -1166,229 +957,137 @@ one, and then by applying schema inference rules to add inferred schema
 information.
 ```
 SchemaFilter: # MapReduce job
-  Map:
-    for triple in input:
-      if isSchemaTriple(triple):
-        output(null, triple)
-        Reduce(null, triples): # Single reducer
+    Map:
+        for triple in input:
+            if isSchemaTriple(triple):
+                output(null, triple)
+    Reduce(null, triples):  # Single reducer
         schema <- new Schema()
-      for triple in triples:
-        schema.processTriple(triple)
-      schema.computeClosure()
-      output(schema) to file
+        for triple in triples:
+            schema.processTriple(triple)
+        schema.computeClosure()
+        output(schema) to file
 ```
 Where:
 ```
 isSchemaTriple(triple):
-(s p o) <- triple
-if (p is rdf:type AND o in { owl:TransitiveProperty,
-  owl:IrreflexiveProperty, owl:SymmetricProperty, ... })
-  OR (p in { rdfs:subClassOf, rdfs:subPropertyOf, owl:inverseOf,
-  owl:disjointWith, ... }):
-  return true
-else:
-  return false
+    (s p o) <- triple
+    if (p is rdf:type AND o in { owl:TransitiveProperty, owl:IrreflexiveProperty, owl:SymmetricProperty, ... })
+        OR (p in { rdfs:subClassOf, rdfs:subPropertyOf, owl:inverseOf, owl:disjointWith, ... }):
+        return true
+    else:
+        return false
+
 Schema.processTriple(s, p, o):
-  (s p o) <- triple
+    (s p o) <- triple
+    # If this is a schema-relevant type assignment
+    if p is rdf:type:
+        if o in { owl:TransitiveProperty, owl:IrreflexiveProperty, ... }:
+            # then s is a property with that characteristic
+            properties[s] <- initialize property s if necessary
+            if o == owl:TransitiveProperty:
+                properties[s].transitive <- true
+            ... # Repeat for each characteristic
 
-  # If this is a schema-relevant type assignment
-  if p is rdf:type:
-    if o in { owl:TransitiveProperty, owl:IrreflexiveProperty, ... }:
-      # then s is a property with that characteristic
+    # If this connects two schema constructs
+    else if p in { rdfs:subClassOf, owl:disjointWith, owl:onProperty, ... }:
+        initialize s if necessary (class or property, depending on p)
+        initialize o if necessary (class or property, depending on p)
+        # Connect s to o according to p:
+        switch(p):
+            case rdfs:subClassOf: classes[s].superclasses.add(classes[o])
+            case rdfs:subPropertyOf: properties[s].superproperties.add(properties[o])
+            case rdfs:domain: properties[s].domain.add(classes[o])
+            case rdfs:range: properties[s].range.add(classes[o])
 
-properties[s] <- initialize property s if necessary
+            # Rules scm-eqc1, scm-eqc2: equivalent class is equivalent to mutual subClassOf:
+            case owl:equivalentClass:
+                classes[s].superclasses.add(classes[o])
+                classes[o].superclasses.add(classes[s])
+            # Rules scm-eqp1, scm-eqp2: equivalent property is equivalent to mutual subPropertyOf:
+            case owl:equivalentProperty:
+                properties[s].superproperties.add(properties[o])
+                properties[o].superproperties.add(properties[s])
 
-if o == owl:TransitiveProperty:
+            # inverse, disjoint, complement relations are all symmetric:
+            case owl:inverseOf:
+                properties[s].inverseproperties.add(properties[o])
+                properties[o].inverseproperties.add(properties[s])
+            case owl:disjointWith:
+                classes[s].disjointclasses.add(o)
+                classes[o].disjointclasses.add(s)
+            case owl:complementOf:
+                classes[s].complementaryclasses.add(o)
+                classes[o].complementaryclasses.add(s)
+            case owl:propertyDisjointWith:
+                properties[s].disjointproperties.add(properties[o])
+                properties[o].disjointproperties.add(properties[s])
 
-properties[s].transitive <- true
+            case owl:onProperty:
+                classes[s].onProperty.add(properties[o])
+                # Link properties back to their property restrictions
+                properties[o].addRestriction.(properties[s])
 
-... # Repeat for each characteristic
+            case owl:someValuesFrom: classes[s].someValuesFrom.add(o)
+            case owl:allValuesFrom: classes[s].allValuesFrom.add(o)
+            case owl:hasValue: classes[s].hasValue.add(o)
+            case owl:maxCardinality: classes[s].maxCardinality <- (int) o
+            case owl:maxQualifiedCardinality: classes[s].maxQualifiedCardinality <- (int) o
+            case owl:onClass: classes[s].onClass.add(classes[o])
 
-# If this connects two schema constructs
 
-else if p in { rdfs:subClassOf, owl:disjointWith, owl:onProperty, ...
-}:
-
-initialize s if necessary (class or property, depending on p)
-
-initialize o if necessary (class or property, depending on p)
-
-# Connect s to o according to p:
-
-switch(p):
-
-case rdfs:subClassOf: classes[s].superclasses.add(classes[o])
-
-case rdfs:subPropertyOf:
-properties[s].superproperties.add(properties[o])
-
-case rdfs:domain: properties[s].domain.add(classes[o])
-
-case rdfs:range: properties[s].range.add(classes[o])
-
-# Rules scm-eqc1, scm-eqc2: equivalent class is equivalent to mutual
-subClassOf:
-
-case owl:equivalentClass:
-
-classes[s].superclasses.add(classes[o])
-
-classes[o].superclasses.add(classes[s])
-
-# Rules scm-eqp1, scm-eqp2: equivalent property is equivalent to
-mutual subPropertyOf:
-
-case owl:equivalentProperty:
-
-properties[s].superproperties.add(properties[o])
-
-properties[o].superproperties.add(properties[s])
-
-# inverse, disjoint, complement relations are all symmetric:
-
-case owl:inverseOf:
-
-properties[s].inverseproperties.add(properties[o])
-
-properties[o].inverseproperties.add(properties[s])
-
-case owl:disjointWith:
-
-classes[s].disjointclasses.add(o)
-
-classes[o].disjointclasses.add(s)
-
-case owl:complementOf:
-
-classes[s].complementaryclasses.add(o)
-
-classes[o].complementaryclasses.add(s)
-
-case owl:propertyDisjointWith:
-
-properties[s].disjointproperties.add(properties[o])
-
-properties[o].disjointproperties.add(properties[s])
-
-case owl:onProperty:
-
-classes[s].onProperty.add(properties[o])
-
-# Link properties back to their property restrictions
-
-properties[o].addRestriction.(properties[s])
-
-case owl:someValuesFrom: classes[s].someValuesFrom.add(o)
-
-case owl:allValuesFrom: classes[s].allValuesFrom.add(o)
-
-case owl:hasValue: classes[s].hasValue.add(o)
-
-case owl:maxCardinality: classes[s].maxCardinality <- (int) o
-
-case owl:maxQualifiedCardinality: classes[s].maxQualifiedCardinality
-<- (int) o
-
-case owl:onClass: classes[s].onClass.add(classes[o])
 
 computeSchemaClosure():
+    # Rule scm-spo states that owl:subPropertyOf relationships are transitive.
+    # For each property, do a BFS to find all its superproperties.
+    for p in properties:
+        frontier <- { sp | sp in p.superproperties }
+        while frontier is not empty:
+            ancestors <- UNION{ f.superproperties | f in frontier }
+            p.superproperties <- p.superproperties UNION ancestors
+            frontier <- UNION{ a.superproperties | a in ancestors } - p.superproperties
 
-# Rule scm-spo states that owl:subPropertyOf relationships are
-transitive.
+    # Rules scm-hv, scm-svf2, and scm-avf2 use sub/superproperty information to
+    # infer sub/superclass relations between property restrictions:
+    for c1, c2 in classes:
+        # Rules apply if c1 is a restriction on a subproperty and c2 is a restriction on a superproperty.
+        if c1 is property restriction AND c2 is property restriction AND c1.onProperty.superproperties contains c2.onProperty:
+            if v exists such that c1.hasValue(v) and c2.hasValue(v):
+                c1.superclasses.add(c2)
+            else if c3 exists such that c1.someValuesFrom(c3) and c2.someValuesFrom(c3):
+                c1.superclasses.add(c2)
+            if c3 exists such that c1.allValuesFrom(c3) and c2.allValuesFrom(c3):
+                c2.superclasses.add(c1)
 
-# For each property, do a BFS to find all its superproperties.
+    # Repeatedly apply rules that operate on the subclass graph until complete:
+    do:
+        # scm-sco: subclass relationship is transitive
+        compute owl:subClassOf hierarchy    # same BFS algorithm as owl:subPropertyOf
 
-for p in properties:
+        # scm-svf1, scm-avf1: restrictions on subclasses
+        for p in properties:
+            for r1, r2 in property restrictions on p:
+                if c1, c2 exist such that c1.superclasses contains c2:
+                    AND ( (r1.someValuesFrom(c1) AND r2.someValuesFrom(c2))
+                        OR (r1.someValuesFrom(c1) AND r2.someValuesFrom(c2)) ):
+                    r1.superclasses.add(r2)
+    until no new information generated
 
-frontier <- { sp | sp in p.superproperties }
+    # Once all subclass and subproperty connections have been made, use them to
+    # apply domain and range inheritance (scm-dom1, scm-dom2, scm-rng1, scm-rng2):
+    for p in properties:
+        for parent in p.superproperties:
+            p.domain <- p.domain UNION parent.domain
+            p.range <- p.range UNION parent.range
+        for c in p.domain:
+            p.domain <- p.domain UNION c.superclasses
+        for c in p.range:
+            p.range <- p.range UNION c.superclasses
 
-while frontier is not empty:
-
-ancestors <- UNION{ f.superproperties | f in frontier }
-
-p.superproperties <- p.superproperties UNION ancestors
-
-frontier <- UNION{ a.superproperties | a in ancestors } -
-p.superproperties
-
-# Rules scm-hv, scm-svf2, and scm-avf2 use sub/superproperty
-information to
-
-# infer sub/superclass relations between property restrictions:
-
-for c1, c2 in classes:
-
-# Rules apply if c1 is a restriction on a subproperty and c2 is a
-restriction on a superproperty.
-
-if c1 is property restriction AND c2 is property restriction AND
-c1.onProperty.superproperties contains c2.onProperty:
-
-if v exists such that c1.hasValue(v) and c2.hasValue(v):
-
-c1.superclasses.add(c2)
-
-else if c3 exists such that c1.someValuesFrom(c3) and
-c2.someValuesFrom(c3):
-
-c1.superclasses.add(c2)
-
-if c3 exists such that c1.allValuesFrom(c3) and
-c2.allValuesFrom(c3):
-
-c2.superclasses.add(c1)
-
-# Repeatedly apply rules that operate on the subclass graph until
-complete:
-
-do:
-
-# scm-sco: subclass relationship is transitive
-
-compute owl:subClassOf hierarchy # same BFS algorithm as
-owl:subPropertyOf
-
-# scm-svf1, scm-avf1: restrictions on subclasses
-
-for p in properties:
-
-for r1, r2 in property restrictions on p:
-
-if c1, c2 exist such that c1.superclasses contains c2:
-
-AND ( (r1.someValuesFrom(c1) AND r2.someValuesFrom(c2))
-
-OR (r1.someValuesFrom(c1) AND r2.someValuesFrom(c2)) ):
-
-r1.superclasses.add(r2)
-
-until no new information generated
-
-# Once all subclass and subproperty connections have been made, use
-them to
-
-# apply domain and range inheritance (scm-dom1, scm-dom2, scm-rng1,
-scm-rng2):
-
-for p in properties:
-
-for parent in p.superproperties:
-
-p.domain <- p.domain UNION parent.domain
-
-p.range <- p.range UNION parent.range
-
-for c in p.domain:
-
-p.domain <- p.domain UNION c.superclasses
-
-for c in p.range:
-
-p.range <- p.range UNION c.superclasses
 ```
 #### Forward Chaining Instance Reasoning
 
-The ForwardChain MapReduce job scans through both the input triples and
+The `ForwardChain` `MapReduce` job scans through both the input triples and
 any triples that have been derived in any previous iterations, maps
 triples according to their subject or object (depending on which might
 be able to use them for reasoning: can be both or neither, resulting in
@@ -1396,222 +1095,129 @@ be able to use them for reasoning: can be both or neither, resulting in
 resources, and saves all generated triples and inconsistencies to an
 intermediate output directory.
 
-Main ForwardChain logic:
+Main `ForwardChain` logic:
+```
+ForwardChain(i):    # MapReduce job, iteration i
+    Setup: distribute schema file to each node
 
-**ForwardChain(i): # MapReduce job, iteration i**
+    Map(triples):    # from input or previous job
+        schema <- load from file
+        for fact in facts:
+            (s p o) <- fact.triple
+            relevance <- getRelevance(fact.triple, schema)
+            if relevance.relevantToSubject == true:
+                output(s, fact)
+            if relevance.relevantToObject == true:
+                output(o, fact)
 
-**Setup: distribute schema file to each node**
+    Group (node, fact) according to node;
+    Sort such that incoming edges (with respect to node) come first:
+        (c, (a b c)) < (c, (c d e))
 
-**Map(triples): # from input or previous job**
-
-**schema <- load from file**
-
-**for fact in facts:**
-
-**(s p o) <- fact.triple**
-
-**relevance <- getRelevance(fact.triple, schema)**
-
-**if relevance.relevantToSubject == true:**
-
-**output(s, fact)**
-
-**if relevance.relevantToObject == true:**
-
-**output(o, fact)**
-
-**Group (node, fact) according to node;**
-
-**Sort such that incoming edges (with respect to node) come first:**
-
-**(c, (a b c)) < (c, (c d e))**
-
-**Reduce(node, facts): # from map output**
-
-**schema <- load from file**
-
-**reasoner <- new LocalReasoner(node, i)**
-
-**for fact in facts:**
-
-**reasoner.processFact(fact)**
-
-**output(node.collectOutput)**
-
+    Reduce(node, facts):    # from map output
+        schema <- load from file
+        reasoner <- new LocalReasoner(node, i)
+        for fact in facts:
+            reasoner.processFact(fact)
+        output(node.collectOutput)
+```
 Where a fact consists of a triple, iteration generated (if any), and
 sources (if any), and where:
-
-**getRelevance(triple, schema):**
-
-**# Determine relevance according to rules and their implementations in
-the reasoner**
-
-**(s p o) <- triple**
-
-**if p is rdf:type:**
-
-**# If this triple is a schema-relevant type assignment**
-
-**if o in schema.classes:**
-
-**relevantToSubject <- true**
-
-**if p in schema.properties:**
-
-**if schema.properties[p].domain is not empty:**
-
-**relevantToSubject = true**
-
-**if schema.properties[p].range is not empty:**
-
-**relevantToObject = true**
-
-**if schema.properties[p].isTransitive:**
-
-**relevantToSubject = true**
-
-**relevantToObject = true**
-
-**... # Check for all implemented rules**
-
+```
+getRelevance(triple, schema):
+    # Determine relevance according to rules and their implementations in the reasoner
+    (s p o) <- triple
+    if p is rdf:type:
+        # If this triple is a schema-relevant type assignment
+        if o in schema.classes:
+            relevantToSubject <- true
+    if p in schema.properties:
+        if schema.properties[p].domain is not empty:
+            relevantToSubject = true
+        if schema.properties[p].range is not empty:
+            relevantToObject = true
+        if schema.properties[p].isTransitive:
+            relevantToSubject = true
+            relevantToObject = true
+        ...     # Check for all implemented rules
+```
 Some examples of LocalReasoner rule application:
 
-**processFact(fact):**
+```
+processFact(fact):
+    (s p o) <- fact.triple
+    newFacts = {}
+    if reasoner.node == o:
+        # Limit recursion on self-referential edges
+        unless s==o AND fact.iteration == reasoner.currentIteration:
+            newFacts <- newFacts UNION processIncomingEdge(fact)
+    if reasoner.node == s:
+        if p is rdf:type:
+            newFacts <- newFacts UNION processType(fact)
+        else:
+            newFacts <- newFacts UNION processOutgoingEdge(fact)
+    results = {}
+    for newFact in newFacts:
+        results <- results UNION processFact(newFact)
+    return results
 
-**(s p o) <- fact.triple**
+processIncomingEdge(fact):
+    (s p o) <- fact.triple
+    # Range rule
+    for c in schema.properties[p].range:
+        generate fact ((reasoner.node rdf:type c), source:fact, iteration:reasoner.currentIteration)
+    # Inverse property rule
+    for p2 in schema.properties[p].inverseOf:
+        generate fact ((reasoner.node p2 s), source:fact, iteration:reasoner.currentIteration)
+    # Symmetric property rule
+    if schema.properties[p].isSymmetric:
+        generate fact ((reasoner.node p s), source:fact, iteration:reasoner.currentIteration)
+    # Irreflexive property rule
+    if schema.properties[p].isIrreflexive:
+        if s == o:
+            generate inconsistency (source:fact, iteration:reasoner.currentIteration)
+    # Transitive property rule (part 1/2)
+    if schema.properties[p].isTransitive:
+        if fact.distance() >= 2^(reasoner.currentIteration-1):  # smart transitive closure
+            reasoner.transitiveEdges.put(p, fact)
+    ...  # Apply each supported rule applying to incoming edges
 
-**newFacts = {}**
+processOutgoingEdge(fact):
+    (s p o) <- fact.triple
+    # Domain rule
+    for c in schema.properties[p].domain:
+        generate fact ((reasoner.node rdf:type c), source:fact, iteration:reasoner.currentIteration)
+    # Transitive property rule (part 2/2)
+    if schema.properties[p].isTransitive:
+        for leftFact in reasoner.transitiveEdges[p]:
+            (s0 p node) <- leftFact
+            generate fact ((s0 p o), source:{fact, leftFact}, iteration:reasoner.currentIteration)
+    ... # Apply each supported rule applying to outgoing edges
 
-**if reasoner.node == o:**
+processType(fact):
+    (reasoner.node rdf:type c) <- fact.triple
+    reasoner.typeFacts.put(c, fact)
+    # Disjoint class rule
+    for c2 in schema.classes[c].disjointclasses:
+        if reasoner.typeFacts contains c2:
+            generate inconsistency (source:{fact, reasoner.typeFacts[c]}, iteration:reasoner.currentIteration)
+    # Subclass rule
+    for parent in schema.classes[c].superclasses:
+        processType(fact((reasoner.node rdf:type parent), source:fact, iteration:reasoner.currentIteration))
+    ... # Apply each supported rule applying to types
 
-**# Limit recursion on self-referential edges**
-
-**unless s==o AND fact.iteration == reasoner.currentIteration:**
-
-**newFacts <- newFacts UNION processIncomingEdge(fact)**
-
-**if reasoner.node == s:**
-
-**if p is rdf:type:**
-
-**newFacts <- newFacts UNION processType(fact)**
-
-**else:**
-
-**newFacts <- newFacts UNION processOutgoingEdge(fact)**
-
-**results = {}**
-
-**for newFact in newFacts:**
-
-**results <- results UNION processFact(newFact)**
-
-**return results**
-
-**processIncomingEdge(fact):**
-
-**(s p o) <- fact.triple**
-
-**# Range rule**
-
-**for c in schema.properties[p].range:**
-
-**generate fact ((reasoner.node rdf:type c), source:fact,
-iteration:reasoner.currentIteration)**
-
-**# Inverse property rule**
-
-**for p2 in schema.properties[p].inverseOf:**
-
-**generate fact ((reasoner.node p2 s), source:fact,
-iteration:reasoner.currentIteration)**
-
-**# Symmetric property rule**
-
-**if schema.properties[p].isSymmetric:**
-
-**generate fact ((reasoner.node p s), source:fact,
-iteration:reasoner.currentIteration)**
-
-**# Irreflexive property rule**
-
-**if schema.properties[p].isIrreflexive:**
-
-**if s == o:**
-
-**generate inconsistency (source:fact,
-iteration:reasoner.currentIteration)**
-
-**# Transitive property rule (part 1/2)**
-
-**if schema.properties[p].isTransitive:**
-
-**if fact.distance() >= 2^(reasoner.currentIteration-1): # smart
-transitive closure**
-
-**reasoner.transitiveEdges.put(p, fact)**
-
-**... # Apply each supported rule applying to incoming edges**
-
-**processOutgoingEdge(fact):**
-
-**(s p o) <- fact.triple**
-
-**# Domain rule**
-
-**for c in schema.properties[p].domain:**
-
-**generate fact ((reasoner.node rdf:type c), source:fact,
-iteration:reasoner.currentIteration)**
-
-**# Transitive property rule (part 2/2)**
-
-**if schema.properties[p].isTransitive:**
-
-**for leftFact in reasoner.transitiveEdges[p]:**
-
-**(s0 p node) <- leftFact**
-
-**generate fact ((s0 p o), source:{fact, leftFact},
-iteration:reasoner.currentIteration)**
-
-**... # Apply each supported rule applying to outgoing edges**
-
-**processType(fact):**
-
-**(reasoner.node rdf:type c) <- fact.triple**
-
-**reasoner.typeFacts.put(c, fact)**
-
-**# Disjoint class rule**
-
-**for c2 in schema.classes[c].disjointclasses:**
-
-**if reasoner.typeFacts contains c2:**
-
-**generate inconsistency (source:{fact, reasoner.typeFacts[c]},
-iteration:reasoner.currentIteration)**
-
-**# Subclass rule**
-
-**for parent in schema.classes[c].superclasses:**
-
-**processType(fact((reasoner.node rdf:type parent), source:fact,
-iteration:reasoner.currentIteration))**
-
-**... # Apply each supported rule applying to types**
-
+```
 ### Classes
 
-The main reasoning logic is located in **mvm.rya.reasoning**, while
+The main reasoning logic is located in `org.apache.rya.reasoning`, while
 MapReduce tools and utilities for interacting with Accumulo are located
-in **mvm.rya.reasoning.mr**. Reasoning logic makes use of RDF constructs
-in the **org.openrdf.model** API, in particular: Statement, URI,
+in `org.apache.rya.reasoning.mr`. Reasoning logic makes use of RDF constructs
+in the `org.openrdf.model` API, in particular: Statement, URI,
 Resource, and Value.
 
-#### mvm.rya.reasoning
+#### org.apache.rya.reasoning
 
-  - **OWL2**: In general, the Sesame/OpenRDF[2] Application
+  - **OWL2**: In general, [the Sesame/OpenRDF/RDF4J[2]](http://archive.rdf4j.org) Application
     Programming Interface (API) is used to represent RDF constructs and
     refer to the RDF, RDFS (Resource Description Framework Schema), and
     OWL vocabularies. However, the API only covers OWL 1 constructs. The
@@ -1625,62 +1231,62 @@ Resource, and Value.
     relationships. The Schema object maps URIs to instances of
     OwlProperty and Resources to instances of OwlClass.
 
-> The schema is built one triple at a time: the Schema takes in a single
-> triple, determines what kind of schema information it represents, and
-> instantiates and/or connects class and/or property objects
-> accordingly. Some RL rules are applied during this process. An example
-> of this is the rule that an equivalentClass relationship is equivalent
-> to mutual subClassOf relationships. The remainder of the RL schema
-> rules (those that require traversing multiple levels of the schema
-> graph) must be applied explicitly. Invoke the closure() method after
-> all triples are incorporated to fully apply these rules (e.g., the
-> rules that infer a property's domain based on the domains of its
-> superproperties and/or the superclasses of its domains).
->
-> Once the schema has been constructed, it can be used in reasoning. The
-> Schema object serves as a repository for OwlClass and OwlProperty
-> objects, accessed by their URIs (or Resources), which in turn contain
-> detailed schema information about themselves.
->
-> The Schema class also provides static method isSchemaTriple for
-> checking whether a triple contains schema-relevant information at all.
+    The schema is built one triple at a time: the Schema takes in a single
+    triple, determines what kind of schema information it represents, and
+    instantiates and/or connects class and/or property objects
+    accordingly. Some RL rules are applied during this process. An example
+    of this is the rule that an equivalentClass relationship is equivalent
+    to mutual subClassOf relationships. The remainder of the RL schema
+    rules (those that require traversing multiple levels of the schema
+    graph) must be applied explicitly. Invoke the closure() method after
+    all triples are incorporated to fully apply these rules (e.g., the
+    rules that infer a property's domain based on the domains of its
+    superproperties and/or the superclasses of its domains).
 
-  - An **OwlProperty** or **OwlClass** represents a property or a class,
+    Once the schema has been constructed, it can be used in reasoning. The
+    Schema object serves as a repository for OwlClass and OwlProperty
+    objects, accessed by their URIs (or Resources), which in turn contain
+    detailed schema information about themselves.
+
+    The Schema class also provides static method isSchemaTriple for
+    checking whether a triple contains schema-relevant information at all.
+
+  - An `OwlProperty` or `OwlClass` represents a property or a class,
     respectively. Each object holds a reference to the RDF entity that
     identifies it (using to the openrdf api): a URI for each
     OwlProperty, and a Resource for each class (because a class is more
     general, it can be a URI or a bnode).
 
-> Both maintain connections to other schema constructs, according to the
-> relevant schema connections that can be made for each type. In
-> general, these correspond to outgoing edges with the appropriate
-> schema triple. Internally, they are represented as sets of those
-> entities they are connected to, one set for each type of relationship.
-> For example, each OwlClass contains a set of its superclasses. These
-> are accessed via getter methods that return sets of URIs or Resources,
-> as appropriate. Both also apply some RL schema rules. Some rules are
-> applied by the getter methods (for example, every class being its own
-> subclass), while others must be explicitly invoked by the Schema (for
-> example, determining that one property restriction is a subclass of
-> another based on the relationships between their corresponding
-> properties and classes).
->
-> OwlProperty also includes boolean fields corresponding to whether the
-> property is transitive, symmetric, asymmetric, etc. (All default to
-> false.) An OwlProperty also contains a set of references to any
-> property restrictions that apply to it.
->
-> In addition to common connections to other classes like superclasses
-> and disjoint classes, OwlClass instances can also represent property
-> restriction information. This is represented in the same way as the
-> other schema connections: a set of classes corresponding to any
-> allValuesFrom triples, a set of classes corresponding to any
-> someValuesFrom triples, etc. Typically, only one such connection
-> should exist (plus one onProperty relationship to specify what
-> property this restriction applies to), but this representation is used
-> for the sake of generality. In principle, an RDF graph could contain
-> two such triples, though the semantic implications are not
-> well-defined.
+    Both maintain connections to other schema constructs, according to the
+    relevant schema connections that can be made for each type. In
+    general, these correspond to outgoing edges with the appropriate
+    schema triple. Internally, they are represented as sets of those
+    entities they are connected to, one set for each type of relationship.
+    For example, each OwlClass contains a set of its superclasses. These
+    are accessed via getter methods that return sets of URIs or Resources,
+    as appropriate. Both also apply some RL schema rules. Some rules are
+    applied by the getter methods (for example, every class being its own
+    subclass), while others must be explicitly invoked by the Schema (for
+    example, determining that one property restriction is a subclass of
+    another based on the relationships between their corresponding
+    properties and classes).
+
+    OwlProperty also includes boolean fields corresponding to whether the
+    property is transitive, symmetric, asymmetric, etc. (All default to
+    false.) An OwlProperty also contains a set of references to any
+    property restrictions that apply to it.
+
+    In addition to common connections to other classes like superclasses
+    and disjoint classes, OwlClass instances can also represent property
+    restriction information. This is represented in the same way as the
+    other schema connections: a set of classes corresponding to any
+    allValuesFrom triples, a set of classes corresponding to any
+    someValuesFrom triples, etc. Typically, only one such connection
+    should exist (plus one onProperty relationship to specify what
+    property this restriction applies to), but this representation is used
+    for the sake of generality. In principle, an RDF graph could contain
+    two such triples, though the semantic implications are not
+    well-defined.
 
   - **Fact** and **Derivation**: A Fact represents a piece of
     information, typically a triple, that either was contained in the
@@ -1725,20 +1331,20 @@ Resource, and Value.
     the property is transitive, it will be relevant to both subject and
     object.
 
-> When the reasoner receives a triple, it determines the direction of
-> the edge, checks it against the appropriate set of RL rules, applies
-> those rules if necessary, and recursively processes any facts newly
-> generated. The LocalReasoner will perform as much inference as it can
-> in its neighborhood, but many triples may ultimately need to be passed
-> to reasoners for other nodes in order to produce all implied
-> information.
->
-> Most RL rules are handled in the LocalReasoner object itself, but it
-> also contains a TypeReasoner specifically responsible for those rules
-> involving the central node's types. Unlike other facts, the type facts
-> aren't collected automatically and must be explicitly gathered with a
-> call to collectTypes. (Collecting type assignments one at a time would
-> lead to a great deal of redundancy.)
+    When the reasoner receives a triple, it determines the direction of
+    the edge, checks it against the appropriate set of RL rules, applies
+    those rules if necessary, and recursively processes any facts newly
+    generated. The LocalReasoner will perform as much inference as it can
+    in its neighborhood, but many triples may ultimately need to be passed
+    to reasoners for other nodes in order to produce all implied
+    information.
+
+    Most RL rules are handled in the LocalReasoner object itself, but it
+    also contains a TypeReasoner specifically responsible for those rules
+    involving the central node's types. Unlike other facts, the type facts
+    aren't collected automatically and must be explicitly gathered with a
+    call to collectTypes. (Collecting type assignments one at a time would
+    lead to a great deal of redundancy.)
 
   - **TypeReasoner**: Conducts reasoning having to do with a single
     node's types. Several rules involve types, so they are all handled
@@ -1751,12 +1357,12 @@ Resource, and Value.
     domain rule will generate the same type assignment for every
     outgoing edge with the associated predicate.
 
-> Also has the ability to hold information that should be asserted if
-> and only if the node turns out to be a particular type, and return
-> that information if/when that happens. This is particularly useful for
-> property restriction rules.
+    Also has the ability to hold information that should be asserted if
+    and only if the node turns out to be a particular type, and return
+    that information if/when that happens. This is particularly useful for
+    property restriction rules.
 
-#### mvm.rya.reasoning.mr
+#### org.apache.rya.reasoning.mr
 
 Contains MapReduce tools and utilities for interacting with HDFS,
 Accumulo, and Rya tables in Accumulo.
@@ -1779,15 +1385,15 @@ otherwise.
 
 The individual MapReduce jobs each have different mappers for different
 kinds of input: Accumulo (main source of initial input, takes in
-**<org.apache.accumulo.core.data.Key,
-org.apache.accumulo.core.data.Value>** ), RDF file (alternative initial
-input source, takes in **<LongWritable, RyaStatementWritable>** ), and
-HDFS sequence file (intermediate output/input, takes in **<Fact,
-NullWritable>** or **<Derivation, NullWritable>** ).
+`<org.apache.accumulo.core.data.Key, org.apache.accumulo.core.data.Value>` ),
+RDF file (alternative initial
+input source, takes in` <LongWritable, RyaStatementWritable>` ), and
+HDFS sequence file (intermediate output/input, takes in
+`<Fact, NullWritable>` or `<Derivation, NullWritable>` ).
 
   - **ReasoningDriver**: Main driver class for reasoning application.
-    Executes high-level algorithm by running **SchemaFilter**,
-    **ForwardChain**, **DuplicateElimination**, and **OutputTool**.
+    Executes high-level algorithm by running `SchemaFilter`,
+    `ForwardChain`, `DuplicateElimination`, and `OutputTool`.
 
   - **MRReasoningUtils**: Defines configuration parameters and contains
     static methods for configuring input and output (using those
@@ -1797,8 +1403,8 @@ NullWritable>** or **<Derivation, NullWritable>** ).
   - **ResourceWritable**: WritableComparable wrapper for
     org.openrdf.model.Resource, so it can be used as a key/value in
     MapReduce tasks. Also contains an integer field to enable arbitrary
-    secondary sort. Provides static classes **PrimaryComparator** to use
-    the Resource alone, and **SecondaryComparator** to use resource
+    secondary sort. Provides static classes `PrimaryComparator` to use
+    the Resource alone, and `SecondaryComparator` to use resource
     followed by key.
 
   - **SchemaWritable**: Writable subclass of Schema, allowing the schema
@@ -1818,20 +1424,19 @@ NullWritable>** or **<Derivation, NullWritable>** ).
 
       - Mappers call Schema.isSchemaTriple on each input triple, and
         output those triples found to contain schema information. One
-        mapper is defined for each input source: **SchemaTableMapper**,
-        **SchemaRdfMapper**, and **SchemaFileMapper**.
+        mapper is defined for each input source: `SchemaTableMapper`,
+        `SchemaRdfMapper`, and `SchemaFileMapper`.
 
-      - The reducer **SchemaFilterReducer** receives all schema-relevant
+      - The reducer `SchemaFilterReducer` receives all schema-relevant
         triples, feeds them one at a time into a Schema object, invokes
         Schema.closure() to do final schema reasoning, and writes that
         one Schema object to file output.
 
-      - Mapper inputs: **<Key, Value>** , **<LongWritable,
-        RyaStatementWritable>** , **<Fact, NullWritable>**
+      - Mapper inputs: `<Key, Value>` , `<LongWritable,         RyaStatementWritable>` , `<Fact, NullWritable>`
 
-      - Mapper output/reducer input: **<NullWritable, Fact> **
+      - Mapper output/reducer input: `<NullWritable, Fact> `
 
-      - Reducer output: **<NullWritable, SchemaWritable>**
+      - Reducer output: `<NullWritable, SchemaWritable>`
 
   - **ForwardChain:** MapReduce job responsible for actual
     forward-chaining reasoning.
@@ -1841,8 +1446,8 @@ NullWritable>** or **<Derivation, NullWritable>** ).
         Fact as the value and the subject and/or object as the key,
         depending on the relevance. (For each triple, the mapper can
         produce zero, one, or two outputs.) Defined by generic class
-        **ForwardChainMapper** and its subclasses for different inputs:
-        **TableMapper**, **RdfMapper**, and **FileMapper**.
+        `ForwardChainMapper` and its subclasses for different inputs:
+        `TableMapper`, `RdfMapper`, and `FileMapper`.
 
       - Reducers receive a node, instantiate a LocalReasoner for that
         node, and feed a stream of facts/edges involving that node to
@@ -1851,34 +1456,32 @@ NullWritable>** or **<Derivation, NullWritable>** ).
         collects any newly generated facts or inconsistencies and
         outputs them. After reading all triples, the reducer calls
         LocalReasoner.getTypes to get any more new facts involving
-        types. Defined by **ReasoningReducer**.
+        types. Defined by `ReasoningReducer`.
 
-      - Mapper inputs: **<Key, Value>** , **<LongWritable,
-        RyaStatementWritable>** , **<Fact, NullWritable>**
+      - Mapper inputs: `<Key, Value>` , `<LongWritable, RyaStatementWritable>` , `<Fact, NullWritable>`
 
-      - Mapper output/reducer input: **<ResourceWritable, Fact> **
+      - Mapper output/reducer input: `<ResourceWritable, Fact> `
 
-      - Reducer outputs: **<Fact, NullWritable>** , **<Derivation,
-        NullWritable>**
+      - Reducer outputs: `<Fact, NullWritable>` , `<Derivation,         NullWritable>`
 
   - **DuplicateElimination**: MapReduce job responsible for eliminating
     redundant information. This includes redundant inconsistencies, so
     unlike ForwardChain, this job needs to take inconsistencies
     (Derivations) as input.
 
-      - Map phase (generic class **DuplicateEliminationMapper** with
+      - Map phase (generic class `DuplicateEliminationMapper` with
         subclasses for different inputs): Output Facts and their
-        Derivations. For input triples (**DuplicateTableMapper** and
-        **DuplicateRdfMapper**), wrap the triple in a Fact and output an
+        Derivations. For input triples (`DuplicateTableMapper` and
+        `DuplicateRdfMapper`), wrap the triple in a Fact and output an
         empty Derivation. For intermediate triples
-        (**DuplicateFileMapper**), split the Fact and Derivation,
+        (`DuplicateFileMapper`), split the Fact and Derivation,
         sending the Fact with no Derivation as the key, and the
         Derivation itself as the value. For inconsistencies
-        (**InconsistencyMapper**), wrap the Derivation in an empty Fact
+        (`InconsistencyMapper`), wrap the Derivation in an empty Fact
         (a Fact with no triple), use that as a key, and use the
         Derivation itself as the value.
 
-      - Reducers (**DuplicateEliminationReducer**) receive a Fact and a
+      - Reducers (`DuplicateEliminationReducer`) receive a Fact and a
         sequence of possible Derivations. If any of the Derivations are
         empty, it's an input fact and shouldn't be output at all
         (because it is already known). Otherwise, output the Fact plus
@@ -1887,14 +1490,11 @@ NullWritable>** or **<Derivation, NullWritable>** ).
         except that the output should be the Derivation alone, as an
         inconsistency.
 
-      - Mapper inputs: **<Key, Value>** , **<LongWritable,
-        RyaStatementWritable>** , <**Fact, NullWritable>** ,
-        **<Derivation, NullWritable>**
+      - Mapper inputs: `<Key, Value>` , `<LongWritable, RyaStatementWritable>` , <`Fact, NullWritable>` ,  `<Derivation, NullWritable>`
 
-      - Mapper output/reducer input: **<Fact, Derivation> **
+      - Mapper output/reducer input: `<Fact, Derivation> `
 
-      - Reducer outputs: **<Fact, NullWritable>** , **<Derivation,
-        NullWritable>**
+      - Reducer outputs: `<Fact, NullWritable>` , `<Derivation, NullWritable>`
 
   - **OutputTool**: MapReduce job that collects output from all previous
     iterations in one place.
@@ -1909,12 +1509,11 @@ NullWritable>** or **<Derivation, NullWritable>** ).
         representations for each. The reducer then writes those String
         representations to two different output files.
 
-      - Mapper inputs: **<Fact, NullWritable>** , **<Derivation,
-        NullWritable>**
+      - Mapper inputs: `<Fact, NullWritable>` , `<Derivation, NullWritable>`
 
-      - Mapper output/reducer input: **<Text, Text> **
+      - Mapper output/reducer input: `<Text, Text> `
 
-      - Reducer output: **<NullWritable, Text>**
+      - Reducer output: `<NullWritable, Text>`
 
   - **RunStatistics**: Simple tool to collect statistics from each job
     executed during the run. Uses Hadoop counters to get the number of

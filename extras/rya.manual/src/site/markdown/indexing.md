@@ -443,6 +443,126 @@ The search expression: "\"ssl certificate\" authority key"
 
 searches for the phrase "ssl certificate" and ("authority" or "key" or "ssl" or "certificate" ).
 
+
+### Index: Geo
+This index allows optimized searching for objects that are geo literals, Well Known Text (WKT) and Geospatial  Markup Language (GML).  
+
+There are three immplementations of geo indexing in Rya:
+
+  - rya.geoindexing/geo.geomesa
+
+      Accumulo only using the [GeoMesa library](http://www.geomesa.org/)[3]
+
+  - rya.geoindexing/geo.geowave
+
+      Accumulo only using the [GeoWave library](https://locationtech.github.io/geowave/)[4]
+
+  - rya.geoindexing/geo.mongo
+
+      MongoDB only, using MongoDB's native support for geo.
+
+[3] http://www.geomesa.org/
+
+[4] https://locationtech.github.io/geowave/
+
+To enable any of the Geo indexes, there three things you must do:
+- build Rya with the geo profile
+- use two replacement classes
+- enable specific geo implementation in ConfigUtils
+
+#### Building with the Geo profile
+Any of the Geo implementations must be built since they use an incompatible license and so can not be distributed as part of an Apache project.  Use the profile '''geoindexing''' in the maven command:
+
+    mvn clean install  -P geoindexing
+
+This will set up the correct dependencies and build the geo jar.
+
+#### Geo Sail and Optional Config Utils
+The following two classes should be substituted when using a Geo indexe:
+
+  - ```RyaSailFactory``` replace with: ```GeoRyaSailFactory```
+  - ```ConfigUtils``` replace with: ```org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils```
+
+#### Geo Enable and Options
+
+Geo indexing is enabled in the installer configuration builder by setting
+method `setUse Index()` to true.  For example:
+
+```java
+AccumuloIndexingConfiguration.builder().setUseAccumuloTemporalIndex(true);
+```
+When using Rya with the shell command: install-with-parameters, or in legacy (not recommended) set the configuration key:
+
+
+```java
+OptionalConfigUtils.USE_GEO = "sc.use_geo"
+```
+
+
+To Limit the indexing of inserted statements particular predicates, set the following configuration key to a list of predicate URI's.
+
+```java
+OptionalConfigUtils.GEO_PREDICATES_LIST = "sc.geo.predicates"
+```
+
+##### Geo Option: ???
+
+#### Geo Usage
+##### Query Language
+Geospatial “Simple Functions”:
+Within, Equals, Disjoint, Intersects, Touches, Crosses, Contains, Overlaps
+Well-know Text Representation:
+Point, Linestring, Polygon 
+
+SPARQL Integration
+GeoSPARQL for storage and query
+
+Data View
+Workhorse: GeoMesa by CCRI
+Open Source Spatio-Temporal Indexing layer
+GeoTools interface, Accumulo storage
+Model as RDF “Feature Types” with SPOC “Attributes”
+Single table, server side iterators
+
+##### GeoMesa Data Model
+OpenGIS spatial features model
+Features: points, lines, polygons
+E.g.: Fire hydrant, river, political boundaries
+Attributes of a feature: Strings, numbers, etc
+E.g.: color, river flow rate, political state name
+GeoTools provides the DataStore interfaces and tools
+RDF “Feature Type” with SPOC “Attributes”
+
+Submit Queries using GeoTools Filters
+Language: Extended Common Query Language (ECQL)
+API: Filter Factory
+
+DataStore Implementation: Accumulo Data Layer
+Single partitioned table
+Server side iterators
+Space Filling curve index
+Geohashed spatial components
+
+#### Geo Architecture
+Space Filling Curve and GeoHashing
+
+Interleave bits from Latitude and Longitude into Geohash string.  
+
+![hash the lat long](../images/GeoHash1.png "From Lat,Long to geohash string")
+![hash the lat long](../images/GeoHash2.png "Lat,Long to 6 bit geohash string")
+
+The sequence of all strings form single dimensional curve that corresponds to the planet's surface.
+
+![hash the lat long](../images/GeoSpaceFillingCurve.png "Lat,Long to 6 bit geohash string")
+
+Points nearby on surface are likely to be nearby on the curve.
+
+![hash the lat long](../images/GeoNearSimilarGeoHash.png "nearby places likely have similar geohash")
+
+Bounded areas can be decomposed into a list of geohash ranges, searched as Accumulo range scans.
+
+![bounded areas range of geohashes](../images/GeoAreasDecomposed.png "bounded areas described by a list geohash ranges")
+
 =============template==============
 ### Index: ????
 This index allows optimized searching ????.  

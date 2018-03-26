@@ -486,56 +486,62 @@ The following two classes should be substituted when using a Geo indexe:
 #### Geo Enable and Options
 
 Geo indexing is enabled in the installer configuration builder by setting
-method `setUse Index()` to true.  For example:
+method `setUse TODO Index()` to true.  For example:
 
 ```java
-AccumuloIndexingConfiguration.builder().setUseAccumuloTemporalIndex(true);
+AccumuloIndexingConfiguration.builder().setUse TODO Index(true);
 ```
-When using Rya with the shell command: install-with-parameters, or in legacy (not recommended) set the configuration key:
 
+When using Rya with the shell command: install-with-parameters, or in legacy (not recommended) set the configuration key:
 
 ```java
 OptionalConfigUtils.USE_GEO = "sc.use_geo"
 ```
+For Mongo backed Rya, the above ```USE_GEO``` is enough.  If you intend to use the Accumulo backed Rya there are two geo implementations: GeoMesa and GeoWave.  GeoMesa is the default, so no further configuraton is needed. If you intend to use Accumulo with GeoWave, or you have a custom Geo implementation, set the `geo_indexer_type`:
 
+```java
+GEO_INDEXER_TYPE = "sc.geo.geo_indexer_type"
+conf.set(OptionalConfigUtils.GEO_INDEXER_TYPE, GeoIndexerType.GEO_MESA.toString());
+```
+The built in geo_indexer_type's supported in Rya are:
+```java
+//  rya/extras/rya.geoindexing/geo.common/src/main/java/org/apache/rya/indexing/GeoIndexerType.java
+public enum GeoIndexerType {
+GEO_MESA("org.apache.rya.indexing.accumulo.geo.GeoMesaGeoIndexer"),
+GEO_WAVE("org.apache.rya.indexing.accumulo.geo.GeoWaveGeoIndexer"),
+MONGO_DB("org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer"),
+```
 
-To Limit the indexing of inserted statements particular predicates, set the following configuration key to a list of predicate URI's.
+To Limit the indexing of inserted statements with particular predicates, set the following configuration key to a list of predicate URI's.
 
 ```java
 OptionalConfigUtils.GEO_PREDICATES_LIST = "sc.geo.predicates"
 ```
 
+
 ##### Geo Option: ???
 
 #### Geo Usage
-##### Query Language
-Geospatial “Simple Functions”:
+##### Query Language Accumulo GeoMesa
+GeoMesa is an Open Source Spatio-Temporal Indexing layer by CCRI.
+It uses the GeoTools API, and an Accumulo storage Model.  the model stores RDF “Feature Type” with Subject, Predicate, Object, Context as “Attributes”
+It stores this in a single table, using server side iterators.
+
+It supports Geospatial “Simple Functions” in SPARQL filters:
 Within, Equals, Disjoint, Intersects, Touches, Crosses, Contains, Overlaps
 Well-know Text Representation:
 Point, Linestring, Polygon 
 
-SPARQL Integration
-GeoSPARQL for storage and query
-
-Data View
-Workhorse: GeoMesa by CCRI
-Open Source Spatio-Temporal Indexing layer
-GeoTools interface, Accumulo storage
-Model as RDF “Feature Types” with SPOC “Attributes”
-Single table, server side iterators
+The SPARQL Integration uses GeoSPARQL for storage and query.
 
 ##### GeoMesa Data Model
 OpenGIS spatial features model
 Features: points, lines, polygons
-E.g.: Fire hydrant, river, political boundaries
-Attributes of a feature: Strings, numbers, etc
-E.g.: color, river flow rate, political state name
-GeoTools provides the DataStore interfaces and tools
-RDF “Feature Type” with SPOC “Attributes”
+For example: Fire hydrant, river, political boundaries.
 
-Submit Queries using GeoTools Filters
-Language: Extended Common Query Language (ECQL)
-API: Filter Factory
+Features may have Attributes: Strings, numbers, and others.  For example: color, river flow rate, political state name.  GeoTools provides the DataStore interfaces and tools.
+
+Submit Queries using GeoTools Filters (API: Filter Factory) translated from SPARQL filters. This is expressed using *Extended Common Query Language (ECQL)*
 
 DataStore Implementation: Accumulo Data Layer
 Single partitioned table

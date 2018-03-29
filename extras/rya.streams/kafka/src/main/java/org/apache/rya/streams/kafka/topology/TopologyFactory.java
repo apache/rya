@@ -157,6 +157,10 @@ public class TopologyFactory implements TopologyBuilderFactory {
             }
         }
 
+        if (entry == null) {
+            throw new TopologyBuilderException("No valid processor entries found.");
+        }
+
         // Add a formatter that converts the ProcessorResults into the output format.
         final SinkEntry<?,?> sinkEntry = visitor.getSinkEntry();
         builder.addProcessor("OUTPUT_FORMATTER", sinkEntry.getFormatterSupplier(), entry.getID());
@@ -479,7 +483,7 @@ public class TopologyFactory implements TopologyBuilderFactory {
          * @return The {@link Side} the current node is on.
          */
         private Optional<Side> getSide(final QueryModelNode node) {
-            // if query parent is a binary operator, need to determine if its left or right.
+            // if query parent is a binary operator, need to determine if it's left or right.
             if (node.getParentNode() instanceof BinaryTupleOperator) {
                 final BinaryTupleOperator binary = (BinaryTupleOperator) node.getParentNode();
                 if (node.equals(binary.getLeftArg())) {

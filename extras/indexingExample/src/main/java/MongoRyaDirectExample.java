@@ -17,7 +17,10 @@
  * under the License.
  */
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import org.apache.commons.lang.Validate;
@@ -27,6 +30,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+import org.apache.rya.api.utils.LubmQuery;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration.MongoDBIndexingConfigBuilder;
@@ -55,6 +59,8 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
+import org.openrdf.rio.RDFFormat;
+import org.openrdf.rio.RDFParseException;
 import org.openrdf.sail.Sail;
 
 import de.flapdoodle.embed.mongo.config.IMongoConfig;
@@ -66,6 +72,10 @@ public class MongoRyaDirectExample {
     private static final Logger log = Logger.getLogger(MongoRyaDirectExample.class);
 
     private static final boolean IS_DETAILED_LOGGING_ENABLED = false;
+
+    private static final boolean USE_LUBM_QUERIES = true;
+    private static final Path LUBM_FILE = Paths.get("src/main/resources/lubm-1uni-withschema.nt");
+    private static final String LUBM_PREFIX = "http://swat.cse.lehigh.edu/onto/univ-bench.owl#";
 
     //
     // Connection configuration parameters
@@ -108,6 +118,10 @@ public class MongoRyaDirectExample {
             conn = repository.getConnection();
 
             final long start = System.currentTimeMillis();
+            if (USE_LUBM_QUERIES) {
+                log.info("Running LUBM Sample Queries");
+                testLubmFile(conn);
+            }
             log.info("Running SPARQL Example: Add and Delete");
             testAddAndDelete(conn);
             testAddAndDeleteNoContext(conn);
@@ -803,6 +817,38 @@ public class MongoRyaDirectExample {
         log.info("Result count : " + resultHandler.getCount());
 
         Validate.isTrue(resultHandler.getCount() == 0);
+    }
+
+    public static void testLubmFile(final SailRepositoryConnection conn) throws MalformedQueryException, RepositoryException,
+    UpdateExecutionException, QueryEvaluationException, TupleQueryResultHandlerException, RDFParseException, IOException {
+
+        final String query = LubmQuery.LUBM_QUERY_14.getSparqlQuery();
+//            "PREFIX lubm: <" + LUBM_PREFIX + "> \n" +
+//            "SELECT * WHERE \n" +
+//            "{ \n" +
+//            "  ?graduateStudent a lubm:GraduateStudent . \n" +
+//            "  ?underGradUniversity a lubm:University . \n"  +
+//            "  ?graduateStudent lubm:undergraduateDegreeFrom ?underGradUniversity . \n" +
+//            "}";
+
+        log.info("Query to be Performed on LUBM Data :\n\n" + query + "\n");
+
+        log.info("Adding LUBM Data from: " + LUBM_FILE.toAbsolutePath());
+        addTriples(conn, LUBM_FILE.toFile(), RDFFormat.NTRIPLES);
+
+        log.info("Executing LUBM Query");
+        final CountingResultHandler resultHandler = new CountingResultHandler();
+        final TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
+        tupleQuery.evaluate(resultHandler);
+        log.info("Result count : " + resultHandler.getCount());
+
+        Validate.isTrue(resultHandler.getCount() > 0);
+    }
+
+    private static void addTriples(final SailRepositoryConnection conn, final File triplesFile, final RDFFormat rdfFormat) throws RDFParseException, RepositoryException, IOException {
+        conn.begin();
+        conn.add(triplesFile, "", rdfFormat);
+        conn.commit();
     }
 
     private static class CountingResultHandler implements TupleQueryResultHandler {

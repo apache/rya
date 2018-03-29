@@ -77,7 +77,12 @@ public class KeyValueJoinStateStore implements JoinStateStore {
     /**
      * This is the maximum value of a UTF-8 character.
      */
-    private static final String END_RANGE_SUFFIX = new String(new byte[] { (byte) 0XFF }, Charsets.UTF_8);
+    private static final String END_RANGE_SUFFIX = new String(new byte[] { (byte) 0xFF }, Charsets.UTF_8);
+
+    /**
+     * Indicates where the end of the join variables occurs.
+     */
+    private static final String JOIN_VAR_END_MARKER = new String("~!^~".getBytes(Charsets.UTF_8), Charsets.UTF_8);
 
     /**
      * A default empty value that is stored for a start of range or end of range marker.
@@ -85,6 +90,7 @@ public class KeyValueJoinStateStore implements JoinStateStore {
     private static final VisibilityBindingSet RANGE_MARKER_VALUE = new VisibilityBindingSet(new MapBindingSet(), "");
 
     private final KeyValueStore<String, VisibilityBindingSet> store;
+    private final String id;
     private final List<String> joinVars;
     private final List<String> allVars;
 
@@ -92,15 +98,18 @@ public class KeyValueJoinStateStore implements JoinStateStore {
      * Constructs an instance of {@link KeyValueJoinStateStore}.
      *
      * @param store - The state store that will be used. (not null)
+     * @param id - The ID used for the state store. (not null)
      * @param joinVars - The variables that are used to build grouping keys. (not null)
      * @param allVars - The variables that are used to build full value keys. (not null)
      * @throws IllegalArgumentException Thrown if {@code allVars} does not start with {@code joinVars}.
      */
     public KeyValueJoinStateStore(
             final KeyValueStore<String, VisibilityBindingSet> store,
+            final String id,
             final List<String> joinVars,
             final List<String> allVars) throws IllegalArgumentException {
         this.store = requireNonNull(store);
+        this.id = requireNonNull(id);
         this.joinVars = requireNonNull(joinVars);
         this.allVars = requireNonNull(allVars);
 
@@ -120,16 +129,18 @@ public class KeyValueJoinStateStore implements JoinStateStore {
         // This is a prefix for every row that holds values for a specific set of join variable values.
         final Side side = result.getSide();
         final VisibilityBindingSet bs = result.getResult();
-        final String joinKeyPrefix = makeCommaDelimitedValues(side, joinVars, bs);
+
+        final String joinKeyPrefix = makeCommaDelimitedValues(side, joinVars, bs, joinVars.size());
 
         final List<KeyValue<String, VisibilityBindingSet>> values = new ArrayList<>();
 
-        // For each join variable set, we need a start key for scanning,
+        // For each join variable set, we need a start key for scanning.
         final String startKey = joinKeyPrefix + START_RANGE_SUFFIX;
         values.add( new KeyValue<>(startKey, RANGE_MARKER_VALUE) );
 
         // The actual value that was emitted as a result.
-        final String valueKey = makeCommaDelimitedValues(side, allVars, bs);
+        final String valueKey = makeCommaDelimitedValues(side, allVars, bs, joinVars.size());
+
         values.add( new KeyValue<>(valueKey, bs) );
 
         // And the end key for scanning.
@@ -148,10 +159,11 @@ public class KeyValueJoinStateStore implements JoinStateStore {
         // Get an iterator over the values that start with the join variables for the other side.
         final Side otherSide = result.getSide() == Side.LEFT ? Side.RIGHT : Side.LEFT;
         final VisibilityBindingSet bs = result.getResult();
-        final String joinKeyPrefix = makeCommaDelimitedValues(otherSide, joinVars, bs);
+        final String joinKeyPrefix = makeCommaDelimitedValues(otherSide, joinVars, bs, joinVars.size());
 
         final String startKey = joinKeyPrefix + START_RANGE_SUFFIX;
         final String endKey = joinKeyPrefix + END_RANGE_SUFFIX;
+
         final KeyValueIterator<String, VisibilityBindingSet> rangeIt = store.range(startKey, endKey);
 
         // Return a CloseableIterator over the range's value fields, skipping the start and end entry.
@@ -241,21 +253,57 @@ public class KeyValueJoinStateStore implements JoinStateStore {
      * @param side - The side value for the key. (not null)
      * @param vars - Which variables within the binding set to use for the key's values. (not null)
      * @param bindingSet - The binding set the key is being constructed from. (not null)
+     * @param joinVarSize - the number of join variables at the beginning of
+     * {@code vars}.
      * @return A comma delimited list of the binding values, leading with the side.
      */
-    private static String makeCommaDelimitedValues(final Side side, final List<String> vars, final VisibilityBindingSet bindingSet) {
+    private String makeCommaDelimitedValues(final Side side, final List<String> vars, final VisibilityBindingSet bindingSet, final int joinVarSize) {
         requireNonNull(side);
         requireNonNull(vars);
         requireNonNull(bindingSet);
 
         // Make a an ordered list of the binding set variables.
         final List<String> values = new ArrayList<>();
+        values.add(id);
         values.add(side.toString());
+        int count = 0;
         for(final String var : vars) {
-            values.add( bindingSet.hasBinding(var) ? bindingSet.getBinding(var).getValue().toString() : "" );
+            count++;
+            String value = bindingSet.hasBinding(var) ? bindingSet.getBinding(var).getValue().toString() : "";
+            if (count == joinVarSize) {
+                // Place the marker at the end of the last joinVar String (and
+                // before the remaining "allVars")
+                // A marker is needed to indicate where the join vars end so
+                // that a range search from "urn:Student9[0x00]" to "urn:Student9[0xFF]"
+                // does not return "urn:Student95,[remainingBindingValues]".
+                value += JOIN_VAR_END_MARKER;
+            }
+            values.add(value);
         }
 
         // Return a comma delimited list of those values.
         return Joiner.on(",").join(values);
+    }
+
+    private void printStateStoreRange(final String startKey, final String endKey) {
+        final KeyValueIterator<String, VisibilityBindingSet> rangeIt = store.range(startKey, endKey);
+        printStateStoreKeyValueIterator(rangeIt);
+    }
+
+    private void printStateStoreAll() {
+        final KeyValueIterator<String, VisibilityBindingSet> rangeIt = store.all();
+        printStateStoreKeyValueIterator(rangeIt);
+    }
+
+    private static void printStateStoreKeyValueIterator(final KeyValueIterator<String, VisibilityBindingSet> rangeIt) {
+        log.info("----------------");
+        while (rangeIt.hasNext()) {
+            final KeyValue<String, VisibilityBindingSet> keyValue = rangeIt.next();
+            log.info(keyValue.key + " :::: " + keyValue.value);
+        }
+        log.info("----------------\n\n");
+        if (rangeIt != null) {
+            rangeIt.close();
+        }
     }
 }

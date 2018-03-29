@@ -57,8 +57,21 @@ public interface TopologyBuilderFactory {
     public static class TopologyBuilderException extends Exception {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * Creates a new instance of {@link TopologyBuilderException}.
+         * @param message the detailed message.
+         * @param cause the {@link Throwable} cause.
+         */
         public TopologyBuilderException(final String message, final Throwable cause) {
             super(message, cause);
+        }
+
+        /**
+         * Creates a new instance of {@link TopologyBuilderException}.
+         * @param message the detailed message.
+         */
+        public TopologyBuilderException(final String message) {
+            super(message);
         }
     }
 }

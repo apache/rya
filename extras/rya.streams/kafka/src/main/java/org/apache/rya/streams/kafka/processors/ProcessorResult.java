@@ -58,7 +58,7 @@ public class ProcessorResult {
      * @param unary - The unary result if that is this object's type. (not null)
      * @param binary - The binary result if that is this object's type. (not null)
      */
-    private  ProcessorResult(
+    private ProcessorResult(
             final ResultType type,
             final Optional<UnaryResult> unary,
             final Optional<BinaryResult> binary) {
@@ -235,7 +235,7 @@ public class ProcessorResult {
         }
 
         /**
-         * A label that is used to by the downstream binary prcoessor to distinguish which upstream processor
+         * A label that is used by the downstream binary processor to distinguish which upstream processor
          * produced the {@link BinaryResult}.
          */
         public static enum Side {

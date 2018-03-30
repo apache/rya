@@ -206,7 +206,6 @@ public class RunQueryCommandIT {
 
     @Test
     public void runQueryFromFile() throws Exception {
-        // TODO: Maybe test with org.apache.rya.api.utils.LubmQuery.LUBM_QUERY_1,2,3,etc...
         // NOTE: the order of the query statements previously lead to join
         // issues. When "lubm:undergraduateDegreeFrom" was the first statement
         // in the where clause (as opposed to the last) the

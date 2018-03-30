@@ -823,13 +823,6 @@ public class MongoRyaDirectExample {
     UpdateExecutionException, QueryEvaluationException, TupleQueryResultHandlerException, RDFParseException, IOException {
 
         final String query = LubmQuery.LUBM_QUERY_14.getSparqlQuery();
-//            "PREFIX lubm: <" + LUBM_PREFIX + "> \n" +
-//            "SELECT * WHERE \n" +
-//            "{ \n" +
-//            "  ?graduateStudent a lubm:GraduateStudent . \n" +
-//            "  ?underGradUniversity a lubm:University . \n"  +
-//            "  ?graduateStudent lubm:undergraduateDegreeFrom ?underGradUniversity . \n" +
-//            "}";
 
         log.info("Query to be Performed on LUBM Data :\n\n" + query + "\n");
 
@@ -838,11 +831,28 @@ public class MongoRyaDirectExample {
 
         log.info("Executing LUBM Query");
         final CountingResultHandler resultHandler = new CountingResultHandler();
-        final TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
         tupleQuery.evaluate(resultHandler);
         log.info("Result count : " + resultHandler.getCount());
 
         Validate.isTrue(resultHandler.getCount() > 0);
+
+        resultHandler.resetCount();
+
+        final String deleteQuery = "DELETE WHERE { ?s ?p ?o }";
+
+        log.info("Deleting LUBM Data");
+        final Update update = conn.prepareUpdate(QueryLanguage.SPARQL, deleteQuery);
+        update.execute();
+
+        final String selectAllQuery = "SELECT * WHERE { ?s ?p ?o }";
+
+        log.info("Confirming LUBM Data Cleared");
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, selectAllQuery);
+        tupleQuery.evaluate(resultHandler);
+        log.info("Result count : " + resultHandler.getCount());
+
+        Validate.isTrue(resultHandler.getCount() == 0);
     }
 
     private static void addTriples(final SailRepositoryConnection conn, final File triplesFile, final RDFFormat rdfFormat) throws RDFParseException, RepositoryException, IOException {

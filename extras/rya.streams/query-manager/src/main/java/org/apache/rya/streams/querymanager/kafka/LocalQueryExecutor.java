@@ -24,6 +24,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
@@ -131,7 +132,9 @@ public class LocalQueryExecutor extends AbstractIdleService implements QueryExec
                     KafkaTopics.queryResultsTopic(ryaInstance, query.getQueryId()));
 
             // Make sure the Query Results topic exists for the query.
-            createKafkaTopic.createTopics(topics, 1, 1);
+            // Since this is running in the JVM, the properties are left empty
+            //   so the cleanup.policy will default to delete to reduce memory usage.
+            createKafkaTopic.createTopics(topics, 1, 1, Optional.empty());
 
             // Setup the Kafka Streams job that will execute.
             final KafkaStreams streams = streamsFactory.make(ryaInstance, query);

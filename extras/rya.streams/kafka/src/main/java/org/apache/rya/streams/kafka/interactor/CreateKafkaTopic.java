@@ -20,6 +20,8 @@ package org.apache.rya.streams.kafka.interactor;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.rya.streams.kafka.KafkaTopics;
@@ -50,11 +52,13 @@ public class CreateKafkaTopic {
      * @param topicNames - The topics that will be created. (not null)
      * @param partitions - The number of partitions that each of the topics will have.
      * @param replicationFactor - The replication factor of the topics that are created.
+     * @param topicProperties - The optional properties of the topics to create.
      */
     public void createTopics(
             final Set<String> topicNames,
             final int partitions,
-            final int replicationFactor) {
-        KafkaTopics.createTopics(zookeeperServers, topicNames, partitions, replicationFactor);
+            final int replicationFactor,
+            final Optional<Properties> topicProperties) {
+        KafkaTopics.createTopics(zookeeperServers, topicNames, partitions, replicationFactor, topicProperties);
     }
 }

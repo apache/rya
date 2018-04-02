@@ -127,12 +127,14 @@ public class KafkaTopics {
      * @param topicNames - The topics that will be created. (not null)
      * @param partitions - The number of partitions that each of the topics will have.
      * @param replicationFactor - The replication factor of the topics that are created.
+     * @param topicProperties - The optional properties of the topics to create.
      */
     public static void createTopics(
             final String zookeeperServers,
             final Set<String> topicNames,
             final int partitions,
-            final int replicationFactor) {
+            final int replicationFactor,
+            final Optional<Properties> topicProperties) {
         requireNonNull(zookeeperServers);
         requireNonNull(topicNames);
 
@@ -141,7 +143,7 @@ public class KafkaTopics {
             zkUtils = ZkUtils.apply(new ZkClient(zookeeperServers, 30000, 30000, ZKStringSerializer$.MODULE$), false);
             for(final String topicName : topicNames) {
                 if(!AdminUtils.topicExists(zkUtils, topicName)) {
-                    AdminUtils.createTopic(zkUtils, topicName, partitions, replicationFactor, new Properties(), RackAwareMode.Disabled$.MODULE$);
+                    AdminUtils.createTopic(zkUtils, topicName, partitions, replicationFactor, topicProperties.orElse(new Properties()), RackAwareMode.Disabled$.MODULE$);
                 }
             }
         }

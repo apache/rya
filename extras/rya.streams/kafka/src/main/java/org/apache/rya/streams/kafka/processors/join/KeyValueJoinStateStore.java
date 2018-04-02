@@ -53,12 +53,14 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * next to each other within the store. This isn't enough information to fetch that group, though. We must provide a
  * start and end key to bound the range that is fetched back. To accomplish this, we place a start of range marker
  * as the first key for all unique [side]/[join values] groups, and an end of range marker as the last key for each
- * of those groups.
+ * of those groups. All keys in between the start and end markers separate their
+ * [joinVars] from their [remainingBindingValues] with the join variable end
+ * marker, {@link #JOIN_VAR_END_MARKER}.
  * </p>
  * The rows follow this pattern:
  * <pre>
  * [side],[joinVar1 value], [joinVar2 value], ..., [joinVarN value]0x00
- * [side],[joinVar1 value], [joinVar2 value], ..., [joinVarN value],[remainingBindingValues]
+ * [side],[joinVar1 value], [joinVar2 value], ..., [joinVarN value][JOIN_VAR_END_MARKER],[remainingBindingValues]
  * [side],[joinVar1 value], [joinVar2 value], ..., [joinVarN value]0xFF
  * </pre>
  * </p>
@@ -80,9 +82,10 @@ public class KeyValueJoinStateStore implements JoinStateStore {
     private static final String END_RANGE_SUFFIX = new String(new byte[] { (byte) 0xFF }, Charsets.UTF_8);
 
     /**
-     * Indicates where the end of the join variables occurs.
+     * Indicates where the end of the join variables occurs and the start of
+     * the remaining binding values should begin.
      */
-    private static final String JOIN_VAR_END_MARKER = new String("~!^~".getBytes(Charsets.UTF_8), Charsets.UTF_8);
+    private static final String JOIN_VAR_END_MARKER = new String(new byte[] { (byte) 0x06, (byte) 0x10, (byte) 0x03, (byte) 0x04}, Charsets.UTF_8);
 
     /**
      * A default empty value that is stored for a start of range or end of range marker.
@@ -275,7 +278,8 @@ public class KeyValueJoinStateStore implements JoinStateStore {
                 // before the remaining "allVars")
                 // A marker is needed to indicate where the join vars end so
                 // that a range search from "urn:Student9[0x00]" to "urn:Student9[0xFF]"
-                // does not return "urn:Student95,[remainingBindingValues]".
+                // does not return "urn:Student95,[remainingBindingValues]"
+                // when we want "urn:Student9,[remainingBindingValues]".
                 value += JOIN_VAR_END_MARKER;
             }
             values.add(value);

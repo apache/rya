@@ -19,7 +19,6 @@
 package org.apache.rya.streams.client.command;
 
 import static java.util.Objects.requireNonNull;
-import static org.apache.rya.streams.kafka.interactor.KafkaTopicPropertiesBuilder.CLEANUP_POLICY_COMPACT;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -47,6 +46,7 @@ import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import kafka.log.LogConfig;
 
 /**
  * A command that runs a Rya Streams processing topology on the node the client is executed on until it has finished.
@@ -141,7 +141,7 @@ public class RunQueryCommand implements RyaStreamsCommand {
                 topics.add( KafkaTopics.queryResultsTopic(params.ryaInstance, queryId) );
 
                 final Properties topicProps = new KafkaTopicPropertiesBuilder()
-                    .setCleanupPolicy(CLEANUP_POLICY_COMPACT)
+                    .setCleanupPolicy(LogConfig.Compact())
                     .build();
                 KafkaTopics.createTopics(params.zookeeperServers, topics, 1, 1, Optional.of(topicProps));
 

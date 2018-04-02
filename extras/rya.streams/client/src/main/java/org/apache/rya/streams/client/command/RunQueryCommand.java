@@ -19,9 +19,11 @@
 package org.apache.rya.streams.client.command;
 
 import static java.util.Objects.requireNonNull;
+import static org.apache.rya.streams.kafka.interactor.KafkaTopicPropertiesBuilder.CLEANUP_POLICY_COMPACT;
 
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +35,7 @@ import org.apache.rya.streams.api.queries.QueryRepository;
 import org.apache.rya.streams.client.RyaStreamsCommand;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.interactor.KafkaRunQuery;
+import org.apache.rya.streams.kafka.interactor.KafkaTopicPropertiesBuilder;
 import org.apache.rya.streams.kafka.queries.KafkaQueryChangeLogFactory;
 import org.apache.rya.streams.kafka.topology.TopologyFactory;
 
@@ -136,7 +139,11 @@ public class RunQueryCommand implements RyaStreamsCommand {
                 final Set<String> topics = new HashSet<>();
                 topics.add( KafkaTopics.statementsTopic(params.ryaInstance) );
                 topics.add( KafkaTopics.queryResultsTopic(params.ryaInstance, queryId) );
-                KafkaTopics.createTopics(params.zookeeperServers, topics, 1, 1);
+
+                final Properties topicProps = new KafkaTopicPropertiesBuilder()
+                    .setCleanupPolicy(CLEANUP_POLICY_COMPACT)
+                    .build();
+                KafkaTopics.createTopics(params.zookeeperServers, topics, 1, 1, Optional.of(topicProps));
 
                 // Run the query that uses those topics.
                 final KafkaRunQuery runQuery = new KafkaRunQuery(

@@ -206,7 +206,7 @@ public class RunQueryCommandIT {
 
     @Test
     public void runQueryFromFile() throws Exception {
-        // NOTE: the order of the query statements previously lead to join
+        // NOTE: the order of the query statements previously led to join
         // issues. When "lubm:undergraduateDegreeFrom" was the first statement
         // in the where clause (as opposed to the last) the
         // KeyValueJoinStateStore blew up.

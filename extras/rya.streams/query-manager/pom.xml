@@ -199,8 +199,23 @@ under the License.
                         </goals>
                         <configuration>
                             <attach>true</attach>
-                            <group>${project.groupId}/${project.artifactId}</group>
+                            <group>Applications/Databases</group>
+                            <version>${rpm.version}</version>
                             <architecture>noarch</architecture>
+                            <!--
+                                 The org.codehaus.mojo rpm-maven-plugin version goal overrides this
+                                 plugin's default here since they use the same property name, ${rpm.release}.
+                                 To get it back uncomment the line below.
+                                 We'll use the value from rpm-maven-plugin for snapshots and releases though.
+                             -->
+                            <!--<release>1</release>-->
+                            <!--
+                                 Need to enable <forceRelease> to get the <version> property defined above to be read.
+                                 Otherwise, without the flag the project version is used and may include "-incubating"
+                                 which RPM's don't like "-" as part of the version.
+                                 An alternative could also be to replace every "-" with "_" in <version>.
+                             -->
+                            <forceRelease>true</forceRelease>
 
                             <signature>
                                 <skip>true</skip>
@@ -257,6 +272,30 @@ under the License.
                                 </ruleset>
                             </rulesets>
                             <entries>
+                                <!--
+                                     Explicitly add all the directories that should be created
+                                     first so they can be removed during an uninstall.
+                                 -->
+                                <entry>
+                                    <name>/opt/rya-streams-query-manager-${rpm.version}/</name>
+                                    <directory>true</directory>
+                                </entry>
+                                <entry>
+                                    <name>/opt/rya-streams-query-manager-${rpm.version}/bin/</name>
+                                    <directory>true</directory>
+                                </entry>
+                                <entry>
+                                    <name>/opt/rya-streams-query-manager-${rpm.version}/bin/systemd/</name>
+                                    <directory>true</directory>
+                                </entry>
+                                <entry>
+                                    <name>/opt/rya-streams-query-manager-${rpm.version}/config/</name>
+                                    <directory>true</directory>
+                                </entry>
+                                <entry>
+                                    <name>/opt/rya-streams-query-manager-${rpm.version}/lib/</name>
+                                    <directory>true</directory>
+                                </entry>
                                 <!-- Copy everything over to the /opt directory, except for the scripts. -->
                                 <entry>
                                     <name>/opt/rya-streams-query-manager-${rpm.version}/bin/systemd</name>

@@ -27,14 +27,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.rya.api.client.ExecuteSparqlQuery;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.shell.SharedShellState.ShellState;
 import org.apache.rya.shell.util.ConsolePrinter;
 import org.apache.rya.shell.util.SparqlPrompt;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.TupleQueryResult;
 import org.openrdf.rio.RDFFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +51,8 @@ import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Optional;
+
+import joptsimple.internal.Strings;
 
 /**
  * Rya Shell commands that have to do with common tasks (loading and querying data)
@@ -150,6 +157,7 @@ public class RyaCommands implements CommandMarker {
         final RyaClient commands = shellState.getConnectedCommands().get();
         final Optional<String> ryaInstanceName = shellState.getRyaInstanceName();
 
+        final ExecuteSparqlQuery queryCommand = commands.getExecuteSparqlQuery();
         try {
             // file option specified
             String sparqlQuery;
@@ -169,10 +177,55 @@ public class RyaCommands implements CommandMarker {
 
             consolePrinter.println("Executing Query...");
             consolePrinter.flush();
-            return commands.getExecuteSparqlQuery().executeSparqlQuery(ryaInstanceName.get(), sparqlQuery);
+            final TupleQueryResult rezIter = queryCommand.executeSparqlQuery(ryaInstanceName.get(), sparqlQuery);
+
+            final List<String> bindings = new ArrayList<>();
+            if(rezIter.hasNext()) {
+                consolePrinter.println("Query Results:");
+                final BindingSet bs = rezIter.next();
+                for(final String name : rezIter.next().getBindingNames()) {
+                    bindings.add(name);
+                }
+                consolePrinter.println(Strings.join(bindings, ","));
+                consolePrinter.println(formatLine(bs, bindings));
+            } else {
+                consolePrinter.println("No Results Found.");
+            }
+
+            int count = 0;
+            while(rezIter.hasNext()) {
+                final BindingSet bs = rezIter.next();
+                consolePrinter.println(formatLine(bs, bindings));
+                count++;
+                if(count == 20) {
+                    final Optional<String> rez = sparqlPrompt.getSparqlWithResults();
+                    if(rez.isPresent()) {
+                        break;
+                    }
+                }
+            }
+            rezIter.close();
+            return "Done.";
         } catch (final RyaClientException | IOException e) {
             log.error("Error", e);
             throw new RuntimeException("Can not execute the SPARQL Query. Reason: " + e.getMessage(), e);
+        } catch(final Exception e) {
+            log.error("Failed to close the results iterator.", e);
+            return "";
+        } finally {
+            try {
+                queryCommand.close();
+            } catch (final IOException e) {
+                log.error("Failed to close the sail resources used.", e);
+            }
         }
+    }
+
+    private String formatLine(final BindingSet bs, final List<String> bindings) {
+        final List<String> bindingValues = new ArrayList<>();
+        for(final String bindingName : bindings) {
+            bindingValues.add(bs.getBinding(bindingName).getValue().toString());
+        }
+        return Strings.join(bindingValues, ",");
     }
 }

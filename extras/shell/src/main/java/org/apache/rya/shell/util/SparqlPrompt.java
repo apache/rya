@@ -41,6 +41,14 @@ public interface SparqlPrompt {
     public Optional<String> getSparql() throws IOException;
 
     /**
+     * Prompt the user for a SPARQL query, wait for their input, and then get the value they entered.
+     *
+     * @return The user entered SPARQL query, or an empty string if the user aborts.
+     * @throws IOException There was a problem reading the user's input.
+     */
+    public Optional<String> getSparqlWithResults() throws IOException;
+
+    /**
      * Prompts a user for a SPARQL query using a JLine {@link ConsoleReader}.
      */
     @DefaultAnnotation(NonNull.class)
@@ -48,6 +56,8 @@ public interface SparqlPrompt {
 
         private final String EXECUTE_COMMAND = "\\e";
         private final String CLEAR_COMMAND = "\\c";
+        private final String NEXT_RESULTS_COMMAND = "ENTER";
+        private final String STOP_COMMAND = "\\s";
 
         @Override
         public Optional<String> getSparql() throws IOException {
@@ -70,6 +80,27 @@ public interface SparqlPrompt {
                 if (line.endsWith(EXECUTE_COMMAND)) {
                     sb.append(line.substring(0, line.length() - EXECUTE_COMMAND.length()));
                     return Optional.of(sb.toString());
+                }
+                return Optional.absent();
+            } finally {
+                reader.setHistoryEnabled(true);      // restore the ConsoleReader's settings
+                reader.setCopyPasteDetection(false); // restore tab completion
+            }
+        }
+
+        @Override
+        public Optional<String> getSparqlWithResults() throws IOException {
+            final ConsoleReader reader = getReader();
+            reader.setCopyPasteDetection(true); // disable tab completion from activating
+            reader.setHistoryEnabled(false);    // don't store SPARQL fragments in the command history
+            try {
+                reader.println("To see more results press [Enter].");
+                reader.println("Type '" + STOP_COMMAND + "' to stop showing results.");
+                reader.flush();
+
+                final String line = reader.readLine("> ");
+                if(line.endsWith(STOP_COMMAND)) {
+                    return Optional.of(STOP_COMMAND);
                 }
                 return Optional.absent();
             } finally {

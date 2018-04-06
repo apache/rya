@@ -18,6 +18,11 @@
  */
 package org.apache.rya.api.client;
 
+import java.io.Closeable;
+
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.TupleQueryResult;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -25,15 +30,16 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * Loads a SPARQL Query and executes the query against an instance of Rya.
  */
 @DefaultAnnotation(NonNull.class)
-public interface ExecuteSparqlQuery {
+public interface ExecuteSparqlQuery extends Closeable {
+
     /**
-     * Loads a SPARQL Query and executes the query against an instance of Rya.
+     * Executes a SPARQL Query against an instance of Rya.
      *
      * @param ryaInstanceName - The name of the Rya instance the query will be executed against. (not null)
-     * @param sparqlQuery - A single SPARQL Query. (not null)
-     * @return A user-friendly String representation of the query results.
+     * @param sparqlQuery - A SPARQL Query. (not null)
+     * @return A {@link TupleQueryResult} of the resulting {@link BindingSet}s.
      * @throws InstanceDoesNotExistException No instance of Rya exists for the provided name.
      * @throws RyaClientException Something caused the command to fail.
      */
-    public String executeSparqlQuery(String ryaInstanceName, String sparqlQuery) throws InstanceDoesNotExistException, RyaClientException;
+    public TupleQueryResult executeSparqlQuery(String ryaInstanceName, String sparqlQuery) throws InstanceDoesNotExistException, RyaClientException;
 }

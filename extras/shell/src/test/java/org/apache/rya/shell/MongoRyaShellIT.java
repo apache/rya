@@ -21,20 +21,29 @@ package org.apache.rya.shell;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.apache.rya.api.client.Install.InstallConfiguration;
+import org.apache.rya.api.client.RyaClient;
+import org.apache.rya.api.client.mongo.MongoConnectionDetails;
+import org.apache.rya.api.client.mongo.MongoRyaClientFactory;
 import org.apache.rya.shell.SharedShellState.ConnectionState;
 import org.apache.rya.shell.SharedShellState.ShellState;
+import org.apache.rya.shell.util.ConsolePrinter;
 import org.apache.rya.shell.util.InstallPrompt;
 import org.apache.rya.shell.util.PasswordPrompt;
+import org.apache.rya.shell.util.SparqlPrompt;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
+
+import com.mongodb.MongoClient;
 
 /**
  * Integration tests the functions of the Mongo Rya Shell.
@@ -191,4 +200,49 @@ public class MongoRyaShellIT extends RyaShellMongoITBase {
     }
 
     // TODO the rest of them?
+
+
+    @Test
+    public void blah() throws Exception {
+        final MongoConnectionDetails details =
+                new MongoConnectionDetails(
+                        "localhost",
+                        27017,
+                        Optional.empty(),
+                        Optional.empty());
+        final RyaClient client = MongoRyaClientFactory.build(details, new MongoClient("localhost", 27017));
+        final SharedShellState state = new SharedShellState();
+        state.connectedToMongo(details, client);
+        state.connectedToInstance("rya_");
+        final ShellState shell = state.getShellState();
+        final SparqlPrompt sparqlPrompt = mock(SparqlPrompt.class);
+        when(sparqlPrompt.getSparql()).thenReturn(
+                com.google.common.base.Optional.<String>of("SELECT * WHERE { ?a ?b ?c }"));
+        final RyaCommands cmnds = new RyaCommands
+                (state, sparqlPrompt, systemPrinter);
+        cmnds.sparqlQuery(null);
+    }
+
+    private static final ConsolePrinter systemPrinter = new ConsolePrinter() {
+
+        @Override
+        public void print(final CharSequence cs) throws IOException {
+            System.out.print(cs);
+        }
+
+        @Override
+        public void println(final CharSequence cs) throws IOException {
+            System.out.println(cs);
+        }
+
+        @Override
+        public void println() throws IOException {
+            System.out.println();
+        }
+
+        @Override
+        public void flush() throws IOException {
+            System.out.flush();
+        }
+    };
 }

@@ -38,6 +38,7 @@ import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.shell.util.ConsolePrinter;
 import org.apache.rya.shell.util.SparqlPrompt;
 import org.junit.Test;
+import org.openrdf.query.TupleQueryResult;
 import org.openrdf.rio.RDFFormat;
 
 import com.google.common.base.Optional;
@@ -102,7 +103,7 @@ public class RyaCommandsTest {
 
         // Verify the values that were provided to the command were passed through to LoadStatementsFile
         // using a user rooted filename.
-        String rootedFile = System.getProperty("user.home") + "/statements.nt";
+        final String rootedFile = System.getProperty("user.home") + "/statements.nt";
         verify(mockLoadStatementsFile).loadStatements(instanceName, Paths.get(rootedFile), RDFFormat.NTRIPLES);
 
         // Verify a message is returned that explains what was created.
@@ -197,10 +198,10 @@ public class RyaCommandsTest {
         final String instanceName = "unitTest";
         final String queryFile = "src/test/resources/Query1.sparql";
         final String queryContent = FileUtils.readFileToString(new File(queryFile), StandardCharsets.UTF_8);
-        final String expectedMessage = "MockAnswer";
+        final TupleQueryResult expectedResult = mock(TupleQueryResult.class);
 
         final ExecuteSparqlQuery mockExecuteSparqlQuery = mock(ExecuteSparqlQuery.class);
-        when(mockExecuteSparqlQuery.executeSparqlQuery(instanceName, queryContent)).thenReturn(expectedMessage);
+        when(mockExecuteSparqlQuery.executeSparqlQuery(instanceName, queryContent)).thenReturn(expectedResult);
 
         final RyaClient mockCommands = mock(RyaClient.class);
         when(mockCommands.getExecuteSparqlQuery()).thenReturn(mockExecuteSparqlQuery);
@@ -221,7 +222,7 @@ public class RyaCommandsTest {
         // Verify the values that were provided to the command were passed through to LoadStatementsFile.
         verify(mockExecuteSparqlQuery).executeSparqlQuery(instanceName, queryContent);
 
-        assertEquals(expectedMessage, message);
+        assertEquals("Done.", message);
         // Verify a message is returned that explains what was created.
     }
 
@@ -252,10 +253,10 @@ public class RyaCommandsTest {
         final String instanceName = "unitTest";
         final String queryContent = "SELECT * WHERE { ?person <http://isA> ?noun }";
         final String queryFile = null;
-        final String expectedMessage = "MockAnswer";
+        final TupleQueryResult expectedResult = mock(TupleQueryResult.class);
 
         final ExecuteSparqlQuery mockExecuteSparqlQuery = mock(ExecuteSparqlQuery.class);
-        when(mockExecuteSparqlQuery.executeSparqlQuery(instanceName, queryContent)).thenReturn(expectedMessage);
+        when(mockExecuteSparqlQuery.executeSparqlQuery(instanceName, queryContent)).thenReturn(expectedResult);
 
         final RyaClient mockCommands = mock(RyaClient.class);
         when(mockCommands.getExecuteSparqlQuery()).thenReturn(mockExecuteSparqlQuery);
@@ -277,7 +278,7 @@ public class RyaCommandsTest {
         // Verify the values that were provided to the command were passed through to LoadStatementsFile.
         verify(mockExecuteSparqlQuery).executeSparqlQuery(instanceName, queryContent);
 
-        assertEquals(expectedMessage, message);
+        assertEquals("Done.", message);
         // Verify a message is returned that explains what was created.
     }
 
@@ -288,7 +289,10 @@ public class RyaCommandsTest {
         final String queryFile = null;
         final String expectedMessage = "";
 
+        //since the ExecuteSparqlQuery is closed by the shell, a mock needs to be created
+        final ExecuteSparqlQuery mockQuery = mock(ExecuteSparqlQuery.class);
         final RyaClient mockCommands = mock(RyaClient.class);
+        when(mockCommands.getExecuteSparqlQuery()).thenReturn(mockQuery);
 
         final SharedShellState state = new SharedShellState();
         state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockCommands);

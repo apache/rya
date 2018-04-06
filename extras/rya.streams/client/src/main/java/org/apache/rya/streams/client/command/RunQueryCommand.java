@@ -22,6 +22,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +34,7 @@ import org.apache.rya.streams.api.queries.QueryRepository;
 import org.apache.rya.streams.client.RyaStreamsCommand;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.interactor.KafkaRunQuery;
+import org.apache.rya.streams.kafka.interactor.KafkaTopicPropertiesBuilder;
 import org.apache.rya.streams.kafka.queries.KafkaQueryChangeLogFactory;
 import org.apache.rya.streams.kafka.topology.TopologyFactory;
 
@@ -44,6 +46,7 @@ import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import kafka.log.LogConfig;
 
 /**
  * A command that runs a Rya Streams processing topology on the node the client is executed on until it has finished.
@@ -136,7 +139,11 @@ public class RunQueryCommand implements RyaStreamsCommand {
                 final Set<String> topics = new HashSet<>();
                 topics.add( KafkaTopics.statementsTopic(params.ryaInstance) );
                 topics.add( KafkaTopics.queryResultsTopic(params.ryaInstance, queryId) );
-                KafkaTopics.createTopics(params.zookeeperServers, topics, 1, 1);
+
+                final Properties topicProps = new KafkaTopicPropertiesBuilder()
+                    .setCleanupPolicy(LogConfig.Compact())
+                    .build();
+                KafkaTopics.createTopics(params.zookeeperServers, topics, 1, 1, Optional.of(topicProps));
 
                 // Run the query that uses those topics.
                 final KafkaRunQuery runQuery = new KafkaRunQuery(

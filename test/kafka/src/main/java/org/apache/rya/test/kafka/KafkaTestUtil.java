@@ -49,7 +49,7 @@ public final class KafkaTestUtil {
     /**
      * Create a {@link Producer} that is able to write to a topic that is hosted within an embedded instance of Kafka.
      *
-     * @param kafka - The Kafka rule used to connect to the embedded Kafkfa instance. (not null)
+     * @param kafka - The Kafka rule used to connect to the embedded Kafka instance. (not null)
      * @param keySerializerClass - Serializes the keys. (not null)
      * @param valueSerializerClass - Serializes the values. (not null)
      * @return A {@link Producer} that can be used to write records to a topic.
@@ -72,7 +72,7 @@ public final class KafkaTestUtil {
      * Create a {@link Consumer} that has a unique group ID and reads everything from a topic that is hosted within an
      * embedded instance of Kafka starting at the earliest point by default.
      *
-     * @param kafka - The Kafka rule used to connect to the embedded Kafkfa instance. (not null)
+     * @param kafka - The Kafka rule used to connect to the embedded Kafka instance. (not null)
      * @param keyDeserializerClass - Deserializes the keys. (not null)
      * @param valueDeserializerClass - Deserializes the values. (not null)
      * @return A {@link Consumer} that can be used to read records from a topic.
@@ -95,14 +95,14 @@ public final class KafkaTestUtil {
     }
 
     /**
-     * Polls a {@link Consumer> until it has either polled too many times without hitting the target number
+     * Polls a {@link Consumer} until it has either polled too many times without hitting the target number
      * of results, or it hits the target number of results.
      *
      * @param pollMs - How long each poll could take.
      * @param pollIterations - The maximum number of polls that will be attempted.
      * @param targetSize - The number of results to read before stopping.
      * @param consumer - The consumer that will be polled.
-     * @return The results that were read frmo the consumer.
+     * @return The results that were read from the consumer.
      * @throws Exception If the poll failed.
      */
     public static <K, V> List<V> pollForResults(

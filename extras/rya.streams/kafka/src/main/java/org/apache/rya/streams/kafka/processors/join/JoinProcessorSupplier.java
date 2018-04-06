@@ -22,6 +22,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
@@ -29,6 +30,7 @@ import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.rya.api.function.join.IterativeJoin;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.utils.CloseableIterator;
+import org.apache.rya.api.utils.UuidUtils;
 import org.apache.rya.streams.kafka.processors.ProcessorResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult.Side;
@@ -138,13 +140,16 @@ public class JoinProcessorSupplier extends RyaStreamsProcessorSupplier {
 
         @Override
         public void init(final ProcessorContext context) {
-            // Hold onto the context so that we can foward results.
+            // Hold onto the context so that we can forward results.
             this.context = context;
+
+            final String appId = context.applicationId();
+            final UUID queryId = UuidUtils.extractUuidFromStringEnd(appId);
 
             // Get a reference to the state store that keeps track of what can be joined with.
             final KeyValueStore<String, VisibilityBindingSet> stateStore =
                     (KeyValueStore<String, VisibilityBindingSet>) context.getStateStore( stateStoreName );
-            joinStateStore = new KeyValueJoinStateStore( stateStore, joinVars, allVars );
+            joinStateStore = new KeyValueJoinStateStore( stateStore, queryId.toString(), joinVars, allVars );
         }
 
         @Override

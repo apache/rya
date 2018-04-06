@@ -61,7 +61,7 @@ public class KafkaRunQuery implements RunQuery {
      * @param kafkaHostname - The hostname of the Kafka Broker to connect to. (not null)
      * @param kafkaPort - The port of the Kafka Broker to connect to. (not null)
      * @param statementsTopic - The name of the topic that statements will be read from. (not null)
-     * @param resultsTopic - The name of the topic that query results will be writen to. (not null)
+     * @param resultsTopic - The name of the topic that query results will be written to. (not null)
      * @param queryRepo - The query repository that holds queries that are registered. (not null)
      * @param topologyFactory - Builds Kafka Stream processing topologies from SPARQL. (not null)
      */

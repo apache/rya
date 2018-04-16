@@ -18,23 +18,22 @@
  */
 package org.apache.rya.api.client.mongo;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.rya.api.client.ExecuteSparqlQuery;
-import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.RyaClient;
-import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.mongodb.MongoITBase;
 import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
-
-import com.mongodb.MongoException;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.TupleQueryResult;
+import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Integration tests the methods of {@link }.
@@ -42,7 +41,7 @@ import com.mongodb.MongoException;
 public class MongoExecuteSparqlQueryIT extends MongoITBase {
 
     @Test
-    public void ExecuteSparqlQuery_exec() throws MongoException, DuplicateInstanceNameException, RyaClientException {
+    public void ExecuteSparqlQuery_exec() throws Exception {
         // Install an instance of Rya.
         final MongoConnectionDetails connectionDetails = getConnectionDetails();
         final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, getMongoClient());
@@ -64,20 +63,18 @@ public class MongoExecuteSparqlQueryIT extends MongoITBase {
         // Execute the SPARQL against the Rya instance.
         final ExecuteSparqlQuery executeSparql = ryaClient.getExecuteSparqlQuery();
         final String sparql = "SELECT * where { ?a ?b ?c }";
-        final String results = executeSparql.executeSparqlQuery(conf.getRyaInstanceName(), sparql);
+        final TupleQueryResult results = executeSparql.executeSparqlQuery(conf.getRyaInstanceName(), sparql);
 
-        // Show the result matches what is expected.
-        assertTrue("result has header.", results.startsWith("Query Result:"));
-        assertTrue("result has column headings.", results.contains("a,b,c"));
-        assertTrue("result has footer.", results.contains("Retrieved 3 results in"));
-        for (final Statement expect : statements) {
-            assertTrue("All results should contain expected subjects:",
-                    results.contains(expect.getSubject().stringValue()));
-            assertTrue("All results should contain expected predicates:",
-                    results.contains(expect.getPredicate().stringValue()));
-            assertTrue("All results should contain expected objects:",
-                    results.contains(expect.getObject().stringValue()));
+        final List<BindingSet> expected = makeExpectedResults();
+        final List<BindingSet> actual = new ArrayList<>();
+
+        while(results.hasNext()) {
+            actual.add(results.next());
         }
+        results.close();
+        executeSparql.close();
+
+        assertEquals(expected, actual);
     }
 
     /**
@@ -94,6 +91,30 @@ public class MongoExecuteSparqlQueryIT extends MongoITBase {
         loadMe.add(vf.createStatement(vf.createURI("http://example#charlie"), vf.createURI("http://example#likes"), vf
                 .createURI("http://example#icecream")));
         return loadMe;
+    }
+
+    private List<BindingSet> makeExpectedResults() {
+        final List<BindingSet> expected = new ArrayList<>();
+        final ValueFactory vf = new ValueFactoryImpl();
+        MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("a", vf.createURI("http://example#alice"));
+        bs.addBinding("b", vf.createURI("http://example#talksTo"));
+        bs.addBinding("c", vf.createURI("http://example#bob"));
+        expected.add(bs);
+
+        bs = new MapBindingSet();
+        bs.addBinding("a", vf.createURI("http://example#bob"));
+        bs.addBinding("b", vf.createURI("http://example#talksTo"));
+        bs.addBinding("c", vf.createURI("http://example#charlie"));
+        expected.add(bs);
+
+        bs = new MapBindingSet();
+        bs.addBinding("a", vf.createURI("http://example#charlie"));
+        bs.addBinding("b", vf.createURI("http://example#likes"));
+        bs.addBinding("c", vf.createURI("http://example#icecream"));
+        expected.add(bs);
+
+        return expected;
     }
 
     private MongoConnectionDetails getConnectionDetails() {

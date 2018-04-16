@@ -20,10 +20,7 @@ package org.apache.rya.api.client.mongo;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.text.DecimalFormat;
+import java.io.IOException;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -35,13 +32,11 @@ import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
-import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.query.resultio.text.csv.SPARQLResultsCSVWriter;
+import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
@@ -62,6 +57,8 @@ public class MongoExecuteSparqlQuery implements ExecuteSparqlQuery {
 
     private final MongoConnectionDetails connectionDetails;
     private final InstanceExists instanceExists;
+    private Sail sail = null;
+    private SailRepositoryConnection sailRepoConn = null;
 
     /**
      * Constructs an instance of {@link MongoExecuteSparqlQuery}.
@@ -77,7 +74,7 @@ public class MongoExecuteSparqlQuery implements ExecuteSparqlQuery {
     }
 
     @Override
-    public String executeSparqlQuery(final String ryaInstanceName, final String sparqlQuery) throws InstanceDoesNotExistException, RyaClientException {
+    public TupleQueryResult executeSparqlQuery(final String ryaInstanceName, final String sparqlQuery) throws InstanceDoesNotExistException, RyaClientException {
         requireNonNull(ryaInstanceName);
         requireNonNull(sparqlQuery);
 
@@ -86,8 +83,6 @@ public class MongoExecuteSparqlQuery implements ExecuteSparqlQuery {
             throw new InstanceDoesNotExistException(String.format("There is no Rya instance named '%s'.", ryaInstanceName));
         }
 
-        Sail sail = null;
-        SailRepositoryConnection sailRepoConn = null;
         try {
             // Get a Sail object that is connected to the Rya instance.
             final MongoDBRdfConfiguration ryaConf = connectionDetails.build(ryaInstanceName);
@@ -97,71 +92,31 @@ public class MongoExecuteSparqlQuery implements ExecuteSparqlQuery {
             sailRepoConn = sailRepo.getConnection();
 
             // Execute the query.
-            final long start = System.currentTimeMillis();
             final TupleQuery tupleQuery = sailRepoConn.prepareTupleQuery(QueryLanguage.SPARQL, sparqlQuery);
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            final CountingSPARQLResultsCSVWriter handler = new CountingSPARQLResultsCSVWriter(baos);
-            tupleQuery.evaluate(handler);
-            final long end = System.currentTimeMillis();
-
-            // Format and return the result of the query.
-            final String queryResult = new String(baos.toByteArray(), StandardCharsets.UTF_8);
-            final String queryDuration = new DecimalFormat("0.0##").format((end - start) / 1000.0);
-
-            return "Query Result:\n" +
-                    queryResult +
-                    "Retrieved " + handler.getCount() + " results in " + queryDuration + " seconds.";
-
+            return tupleQuery.evaluate();
         } catch (SailException | RyaDAOException | InferenceEngineException | AccumuloException | AccumuloSecurityException e) {
             throw new RyaClientException("Could not create the Sail object used to query the RYA instance.", e);
-        } catch (final MalformedQueryException | QueryEvaluationException | TupleQueryResultHandlerException | RepositoryException e) {
+        } catch (final MalformedQueryException | QueryEvaluationException | RepositoryException e) {
             throw new RyaClientException("Could not execute the SPARQL query.", e);
-        }  finally {
-            // Close the resources that were opened.
-            if(sailRepoConn != null) {
-                try {
-                    sailRepoConn.close();
-                } catch (final RepositoryException e) {
-                    log.error("Couldn't close the SailRepositoryConnection object.", e);
-                }
-            }
-
-            if(sail != null) {
-                try {
-                    sail.shutDown();
-                } catch (final SailException e) {
-                    log.error("Couldn't close the Sail object.", e);
-                }
-            }
         }
     }
 
-    /**
-     * Subclasses {@link SPARQLResultsCSVWriter} to keep track of the total count of handled {@link BindingSet} objects.
-     */
-    private static class CountingSPARQLResultsCSVWriter extends SPARQLResultsCSVWriter {
-
-        private int count = 0;
-
-        /**
-         * @param out - The OutputStream for results to be written to.
-         */
-        public CountingSPARQLResultsCSVWriter(final OutputStream out) {
-            super(out);
+    @Override
+    public void close() throws IOException {
+        if(sailRepoConn != null) {
+            try {
+                sailRepoConn.close();
+            } catch (final RepositoryException e) {
+                log.error("Couldn't close the SailRepositoryConnection object.", e);
+            }
         }
 
-        @Override
-        public void handleSolution(final BindingSet bindingSet) throws TupleQueryResultHandlerException {
-            super.handleSolution(bindingSet);
-            count++;
-        }
-
-        /**
-         *
-         * @return The number of BindingSets that were handled by {@link #handleSolution(BindingSet)}.
-         */
-        public int getCount() {
-            return count;
+        if(sail != null) {
+            try {
+                sail.shutDown();
+            } catch (final SailException e) {
+                log.error("Couldn't close the Sail object.", e);
+            }
         }
     }
 }

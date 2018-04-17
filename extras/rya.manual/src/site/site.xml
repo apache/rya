@@ -49,6 +49,7 @@ under the License.
         <item name="Shell Interface" href="shell.html"/>
         <item name="Incremental Join Maintenance" href="pcj-updater.html"/>
         <item name="Rya Streams" href="rya-streams.html"/>
+        <item name="Kafka Connect Integration" href="kafka-connect-integration.html"/>
     </menu>
 
     <menu name="Samples">

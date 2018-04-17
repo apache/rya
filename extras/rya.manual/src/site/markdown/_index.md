@@ -33,6 +33,7 @@ This project contains documentation about Apache Rya, a scalable RDF triple stor
 - [Inferencing](infer.md)
 - [MapReduce Interface](mapreduce.md)
 - [Rya Streams](rya-streams.md)
+- [Kafka Connect Integration](kafka-connect-integration.md)
 
 # Samples
 - [Typical First Steps](sm-firststeps.md)

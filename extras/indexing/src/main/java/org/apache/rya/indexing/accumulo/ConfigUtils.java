@@ -438,6 +438,9 @@ public class ConfigUtils {
         return Optional.fromNullable(conf.get(FLUO_APP_NAME));
     }
 
+    public static void setUseMongo(final Configuration conf, final boolean useMongo) {
+        conf.setBoolean(USE_MONGO, useMongo);
+    }
 
     public static boolean getUseMongo(final Configuration conf) {
         return conf.getBoolean(USE_MONGO, false);

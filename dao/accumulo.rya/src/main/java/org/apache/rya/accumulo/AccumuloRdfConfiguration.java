@@ -62,14 +62,14 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
         super();
     }
 
-    public AccumuloRdfConfiguration(Configuration other) {
+    public AccumuloRdfConfiguration(final Configuration other) {
         super(other);
     }
 
-    public AccumuloRdfConfigurationBuilder getBuilder() {
+    public static AccumuloRdfConfigurationBuilder getBuilder() {
     	return new AccumuloRdfConfigurationBuilder();
     }
-    
+
     /**
      * Creates an AccumuloRdfConfiguration object from a Properties file.  This method assumes
      * that all values in the Properties file are Strings and that the Properties file uses the keys below.
@@ -94,26 +94,26 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * @param props - Properties file containing Accumulo specific configuration parameters
      * @return AccumumuloRdfConfiguration with properties set
      */
-    
-    public static AccumuloRdfConfiguration fromProperties(Properties props) {
+
+    public static AccumuloRdfConfiguration fromProperties(final Properties props) {
     	return AccumuloRdfConfigurationBuilder.fromProperties(props).build();
     }
-    
+
     @Override
     public AccumuloRdfConfiguration clone() {
         return new AccumuloRdfConfiguration(this);
     }
-    
+
     /**
      * Sets the Accumulo username from the configuration object that is meant to
      * be used when connecting a {@link Connector} to Accumulo.
      *
      */
-    public void setAccumuloUser(String user) {
+    public void setAccumuloUser(final String user) {
     	Preconditions.checkNotNull(user);
     	set(CLOUDBASE_USER, user);
     }
-    
+
     /**
      * Get the Accumulo username from the configuration object that is meant to
      * be used when connecting a {@link Connector} to Accumulo.
@@ -121,19 +121,19 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * @return The username if one could be found; otherwise {@code null}.
      */
     public String getAccumuloUser(){
-    	return get(CLOUDBASE_USER); 
+    	return get(CLOUDBASE_USER);
     }
-    
+
     /**
      * Sets the Accumulo password from the configuration object that is meant to
      * be used when connecting a {@link Connector} to Accumulo.
      *
      */
-    public void setAccumuloPassword(String password) {
+    public void setAccumuloPassword(final String password) {
     	Preconditions.checkNotNull(password);
     	set(CLOUDBASE_PASSWORD, password);
     }
-    
+
     /**
      * Get the Accumulo password from the configuration object that is meant to
      * be used when connecting a {@link Connector} to Accumulo.
@@ -143,18 +143,18 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     public String getAccumuloPassword() {
     	return get(CLOUDBASE_PASSWORD);
     }
-    
+
     /**
      * Sets a comma delimited list of the names of the Zookeeper servers from
      * the configuration object that is meant to be used when connecting a
      * {@link Connector} to Accumulo.
      *
      */
-    public void setAccumuloZookeepers(String zookeepers) {
+    public void setAccumuloZookeepers(final String zookeepers) {
     	Preconditions.checkNotNull(zookeepers);
     	set(CLOUDBASE_ZOOKEEPERS, zookeepers);
     }
-    
+
     /**
      * Get a comma delimited list of the names of the Zookeeper servers from
      * the configuration object that is meant to be used when connecting a
@@ -165,17 +165,17 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     public String getAccumuloZookeepers() {
     	return get(CLOUDBASE_ZOOKEEPERS);
     }
-    
+
     /**
      * Sets the Accumulo instance name from the configuration object that is
      * meant to be used when connecting a {@link Connector} to Accumulo.
      *
      */
-    public void setAccumuloInstance(String instance) {
+    public void setAccumuloInstance(final String instance) {
     	Preconditions.checkNotNull(instance);
     	set(CLOUDBASE_INSTANCE, instance);
     }
-    
+
     /**
      * Get the Accumulo instance name from the configuration object that is
      * meant to be used when connecting a {@link Connector} to Accumulo.
@@ -185,15 +185,15 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     public String getAccumuloInstance() {
     	return get(CLOUDBASE_INSTANCE);
     }
-    
+
     /**
      * Tells the Rya instance to use a Mock instance of Accumulo as its backing.
      *
      */
-    public void setUseMockAccumulo(boolean useMock) {
+    public void setUseMockAccumulo(final boolean useMock) {
     	setBoolean(USE_MOCK_INSTANCE, useMock);
     }
-    
+
     /**
      * Indicates that a Mock instance of Accumulo is being used to back the Rya instance.
      *
@@ -202,12 +202,12 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     public boolean getUseMockAccumulo() {
     	return getBoolean(USE_MOCK_INSTANCE, false);
     }
-    
+
 
     /**
      * @param enabled - {@code true} if the Rya instance is backed by a mock Accumulo; otherwise {@code false}.
      */
-    public void useMockInstance(boolean enabled) {
+    public void useMockInstance(final boolean enabled) {
         super.setBooleanIfUnset(USE_MOCK_INSTANCE, enabled);
     }
 
@@ -224,7 +224,7 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * @param username - The Accumulo username from the configuration object that is meant to
      *   be used when connecting a {@link Connector} to Accumulo.
      */
-    public void setUsername(String username) {
+    public void setUsername(final String username) {
         super.set(CLOUDBASE_USER, username);
     }
 
@@ -242,7 +242,7 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * @param password - The Accumulo password from the configuration object that is meant to
      * be used when connecting a {@link Connector} to Accumulo.
      */
-    public void setPassword(String password) {
+    public void setPassword(final String password) {
         super.set(CLOUDBASE_PASSWORD, password);
     }
 
@@ -260,7 +260,7 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * @param instanceName - The Accumulo instance name from the configuration object that is
      * meant to be used when connecting a {@link Connector} to Accumulo.
      */
-    public void setInstanceName(String instanceName) {
+    public void setInstanceName(final String instanceName) {
         super.set(CLOUDBASE_INSTANCE, instanceName);
     }
 
@@ -279,7 +279,7 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * the configuration object that is meant to be used when connecting a
      * {@link Connector} to Accumulo.
      */
-    public void setZookeepers(String zookeepers) {
+    public void setZookeepers(final String zookeepers) {
         super.set(CLOUDBASE_ZOOKEEPERS, zookeepers);
     }
 
@@ -295,14 +295,14 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     }
 
     public Authorizations getAuthorizations() {
-        String[] auths = getAuths();
+        final String[] auths = getAuths();
         if (auths == null || auths.length == 0) {
             return AccumuloRdfConstants.ALL_AUTHORIZATIONS;
         }
         return new Authorizations(auths);
     }
 
-    public void setMaxRangesForScanner(Integer max) {
+    public void setMaxRangesForScanner(final Integer max) {
         setInt(MAXRANGES_SCANNER, max);
     }
 
@@ -310,9 +310,9 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
         return getInt(MAXRANGES_SCANNER, 2);
     }
 
-    public void setAdditionalIndexers(Class<? extends AccumuloIndexer>... indexers) {
-        List<String> strs = Lists.newArrayList();
-        for (Class<? extends AccumuloIndexer> ai : indexers){
+    public void setAdditionalIndexers(final Class<? extends AccumuloIndexer>... indexers) {
+        final List<String> strs = Lists.newArrayList();
+        for (final Class<? extends AccumuloIndexer> ai : indexers){
             strs.add(ai.getName());
         }
 
@@ -326,25 +326,25 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
         return getBoolean(CONF_FLUSH_EACH_UPDATE, true);
     }
 
-    public void setFlush(boolean flush){
+    public void setFlush(final boolean flush){
         setBoolean(CONF_FLUSH_EACH_UPDATE, flush);
     }
 
-    public void setAdditionalIterators(IteratorSetting... additionalIterators){
+    public void setAdditionalIterators(final IteratorSetting... additionalIterators){
         //TODO do we need to worry about cleaning up
         this.set(ITERATOR_SETTINGS_SIZE, Integer.toString(additionalIterators.length));
         int i = 0;
-        for(IteratorSetting iterator : additionalIterators) {
+        for(final IteratorSetting iterator : additionalIterators) {
             this.set(String.format(ITERATOR_SETTINGS_NAME, i), iterator.getName());
             this.set(String.format(ITERATOR_SETTINGS_CLASS, i), iterator.getIteratorClass());
             this.set(String.format(ITERATOR_SETTINGS_PRIORITY, i), Integer.toString(iterator.getPriority()));
-            Map<String, String> options = iterator.getOptions();
+            final Map<String, String> options = iterator.getOptions();
 
             this.set(String.format(ITERATOR_SETTINGS_OPTIONS_SIZE, i), Integer.toString(options.size()));
-            Iterator<Entry<String, String>> it = options.entrySet().iterator();
+            final Iterator<Entry<String, String>> it = options.entrySet().iterator();
             int j = 0;
             while(it.hasNext()) {
-                Entry<String, String> item = it.next();
+                final Entry<String, String> item = it.next();
                 this.set(String.format(ITERATOR_SETTINGS_OPTIONS_KEY, i, j), item.getKey());
                 this.set(String.format(ITERATOR_SETTINGS_OPTIONS_VALUE, i, j), item.getValue());
                 j++;
@@ -354,22 +354,22 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     }
 
     public IteratorSetting[] getAdditionalIterators(){
-        int size = Integer.valueOf(this.get(ITERATOR_SETTINGS_SIZE, "0"));
+        final int size = Integer.valueOf(this.get(ITERATOR_SETTINGS_SIZE, "0"));
         if(size == 0) {
             return new IteratorSetting[0];
         }
 
-        IteratorSetting[] settings = new IteratorSetting[size];
+        final IteratorSetting[] settings = new IteratorSetting[size];
         for(int i = 0; i < size; i++) {
-            String name = this.get(String.format(ITERATOR_SETTINGS_NAME, i));
-            String iteratorClass = this.get(String.format(ITERATOR_SETTINGS_CLASS, i));
-            int priority = Integer.valueOf(this.get(String.format(ITERATOR_SETTINGS_PRIORITY, i)));
+            final String name = this.get(String.format(ITERATOR_SETTINGS_NAME, i));
+            final String iteratorClass = this.get(String.format(ITERATOR_SETTINGS_CLASS, i));
+            final int priority = Integer.valueOf(this.get(String.format(ITERATOR_SETTINGS_PRIORITY, i)));
 
-            int optionsSize = Integer.valueOf(this.get(String.format(ITERATOR_SETTINGS_OPTIONS_SIZE, i)));
-            Map<String, String> options = new HashMap<>(optionsSize);
+            final int optionsSize = Integer.valueOf(this.get(String.format(ITERATOR_SETTINGS_OPTIONS_SIZE, i)));
+            final Map<String, String> options = new HashMap<>(optionsSize);
             for(int j = 0; j < optionsSize; j++) {
-                String key = this.get(String.format(ITERATOR_SETTINGS_OPTIONS_KEY, i, j));
-                String value = this.get(String.format(ITERATOR_SETTINGS_OPTIONS_VALUE, i, j));
+                final String key = this.get(String.format(ITERATOR_SETTINGS_OPTIONS_KEY, i, j));
+                final String value = this.get(String.format(ITERATOR_SETTINGS_OPTIONS_VALUE, i, j));
                 options.put(key, value);
             }
             settings[i] = new IteratorSetting(priority, name, iteratorClass, options);

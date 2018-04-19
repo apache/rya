@@ -38,9 +38,6 @@ import org.apache.fluo.api.mini.MiniFluo;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
-import org.apache.rya.accumulo.MiniAccumuloSingleton;
-import org.apache.rya.accumulo.RyaTestInstanceRule;
 import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
 import org.apache.rya.api.client.Install.InstallConfiguration;
@@ -56,6 +53,9 @@ import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternIdCacheSupplie
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
+import org.apache.rya.test.accumulo.MiniAccumuloClusterInstance;
+import org.apache.rya.test.accumulo.MiniAccumuloSingleton;
+import org.apache.rya.test.accumulo.RyaTestInstanceRule;
 import org.apache.zookeeper.ClientCnxn;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
@@ -94,7 +94,7 @@ public abstract class FluoITBase {
     protected RepositoryConnection ryaConn = null;
 
     @Rule
-    public RyaTestInstanceRule testInstance = new RyaTestInstanceRule(false);
+    public RyaTestInstanceRule testInstance = new RyaTestInstanceRule();
 
     @BeforeClass
     public static void beforeClass() throws Exception {

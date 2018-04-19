@@ -21,12 +21,12 @@ package org.apache.rya.api.client.accumulo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import org.apache.rya.accumulo.AccumuloITBase;
 import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.instance.RyaDetails.RyaStreamsDetails;
+import org.apache.rya.test.accumulo.AccumuloITBase;
 import org.junit.Test;
 
 /**

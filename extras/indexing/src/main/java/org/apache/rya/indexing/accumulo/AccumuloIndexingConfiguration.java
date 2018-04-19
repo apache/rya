@@ -255,7 +255,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
 
     /**
      * Sets the predicates used for freetext indexing
-     * @param predicates - Array of predicate URI strings used for freetext indexing
+     * @param predicates - Array of predicate IRI strings used for freetext indexing
      */
     public void setAccumuloFreeTextPredicates(final String[] predicates) {
         Preconditions.checkNotNull(predicates, "Freetext predicates cannot be null.");
@@ -264,7 +264,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
 
     /**
      * Gets the predicates used for freetext indexing
-     * @return Array of predicate URI strings used for freetext indexing
+     * @return Array of predicate IRI strings used for freetext indexing
      */
     public String[] getAccumuloFreeTextPredicates() {
         return getStrings(ConfigUtils.FREETEXT_PREDICATES_LIST);
@@ -272,7 +272,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
 
     /**
      * Sets the predicates used for temporal indexing
-     * @param predicates - Array of predicate URI strings used for temporal indexing
+     * @param predicates - Array of predicate IRI strings used for temporal indexing
      */
     public void setAccumuloTemporalPredicates(final String[] predicates) {
         Preconditions.checkNotNull(predicates, "Freetext predicates cannot be null.");
@@ -281,7 +281,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
 
     /**
      * Gets the predicates used for temporal indexing
-     * @return Array of predicate URI strings used for temporal indexing
+     * @return Array of predicate IRI strings used for temporal indexing
      */
     public String[] getAccumuloTemporalPredicates() {
         return getStrings(ConfigUtils.TEMPORAL_PREDICATES_LIST);

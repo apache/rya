@@ -132,7 +132,7 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
         for (final StatementPattern matchStatement: matchStatements.matchStatements) {
             final Var subject = matchStatement.getSubjectVar();
             if (subject.hasValue() && !(subject.getValue() instanceof Resource)) {
-                throw new IllegalArgumentException("Query error: Found " + subject.getValue() + ", expected an URI or BNode");
+                throw new IllegalArgumentException("Query error: Found " + subject.getValue() + ", expected an IRI or BNode");
             }
             Validate.isTrue(subject.hasValue() || subject.getName() != null);
             Validate.isTrue(!matchStatement.getObjectVar().hasValue() && matchStatement.getObjectVar().getName() != null);

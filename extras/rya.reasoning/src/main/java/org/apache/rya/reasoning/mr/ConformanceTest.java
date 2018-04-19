@@ -378,15 +378,15 @@ public class ConformanceTest extends Configured implements Tool {
         final TupleQueryResult queryResult = query.evaluate();
         while (queryResult.hasNext()) {
             final BindingSet bindings = queryResult.next();
-            final Value uri = bindings.getValue("test");
-            if (testURIs.contains(uri)) {
+            final Value iri = bindings.getValue("test");
+            if (testURIs.contains(iri)) {
                 OwlTest test;
-                if (tests.containsKey(uri)) {
-                    test = tests.get(uri);
+                if (tests.containsKey(iri)) {
+                    test = tests.get(iri);
                 }
                 else {
                     test = new OwlTest();
-                    test.uri = uri;
+                    test.uri = iri;
                     test.name = bindings.getValue("name").stringValue();
                     test.description = bindings.getValue("description").stringValue();
                     test.premise = bindings.getValue("graph").stringValue();
@@ -396,7 +396,7 @@ public class ConformanceTest extends Configured implements Tool {
                     if (bindings.hasBinding("nonentailed")) {
                         test.compareTo = bindings.getValue("nonentailed").stringValue();
                     }
-                    tests.put(uri, test);
+                    tests.put(iri, test);
                 }
                 test.types.add(bindings.getValue("testType").stringValue());
             }

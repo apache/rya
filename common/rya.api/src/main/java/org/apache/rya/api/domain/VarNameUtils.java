@@ -25,6 +25,8 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.helpers.TupleExprs;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
+
 /**
  * Utility methods and constants for RDF {@link Var} names.
  */
@@ -54,7 +56,7 @@ public final class VarNameUtils {
      * @param value the value to add the constant prefix to.
      * @return the value with the constant prefix attached before it.
      */
-    public static String prependConstant(final String value) {
+    public static @Nullable String prependConstant(@Nullable final String value) {
         if (value != null) {
             return CONSTANT_PREFIX + value;
         }
@@ -67,7 +69,7 @@ public final class VarNameUtils {
      * @return {@code true} if the name begins with the constant prefix.
      * {@code false} otherwise.
      */
-    public static boolean isConstant(final String name) {
+    public static boolean isConstant(@Nullable final String name) {
         if (name != null) {
             return name.startsWith(CONSTANT_PREFIX) || name.startsWith(LEGACY_CONSTANT_PREFIX);
         }
@@ -80,7 +82,7 @@ public final class VarNameUtils {
      * @return the string with the constant prefix removed. Otherwise returns
      * the original string.
      */
-    public static String removeConstant(final String name) {
+    public static @Nullable String removeConstant(@Nullable final String name) {
         if (isConstant(name)) {
             String removed = StringUtils.removeStart(name, CONSTANT_PREFIX);
             if (name.equals(removed)) {
@@ -96,7 +98,7 @@ public final class VarNameUtils {
      * @param value the value to add the anonymous prefix to.
      * @return the value with the anonymous prefix attached before it.
      */
-    public static String prependAnonymous(final String value) {
+    public static @Nullable String prependAnonymous(@Nullable final String value) {
         if (value != null) {
             return ANONYMOUS_PREFIX + value;
         }
@@ -109,7 +111,7 @@ public final class VarNameUtils {
      * @return {@code true} if the name begins with the anonymous prefix.
      * {@code false} otherwise.
      */
-    public static boolean isAnonymous(final String name) {
+    public static boolean isAnonymous(@Nullable final String name) {
         if (name != null) {
             return name.startsWith(ANONYMOUS_PREFIX) || name.startsWith(LEGACY_ANONYMOUS_PREFIX);
         }
@@ -122,7 +124,7 @@ public final class VarNameUtils {
      * @return the string with the anonymous prefix removed. Otherwise returns
      * the original string.
      */
-    public static String removeAnonymous(final String name) {
+    public static @Nullable String removeAnonymous(@Nullable final String name) {
         if (isAnonymous(name)) {
             String removed = StringUtils.removeStart(name, ANONYMOUS_PREFIX);
             if (name.equals(removed)) {
@@ -176,7 +178,7 @@ public final class VarNameUtils {
      * @param var the {@link Var}.
      * @return the simple constant var name.
      */
-    public static String createSimpleConstVarName(final Var var) {
+    public static @Nullable String createSimpleConstVarName(@Nullable final Var var) {
         String varName = null;
         if (var != null) {
             if (var.getValue() != null && isConstant(var.getName())) {

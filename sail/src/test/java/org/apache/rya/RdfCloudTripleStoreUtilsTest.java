@@ -38,8 +38,8 @@
 //
 //	public void testWriteReadURI() throws Exception {
 //		final ValueFactory vf = SimpleValueFactory.getInstance();
-//		IRI uri = vf.createIRI("http://www.example.org/test/rel");
-//		byte[] value = writeValue(uri);
+//		IRI iri = vf.createIRI("http://www.example.org/test/rel");
+//		byte[] value = writeValue(iri);
 //
 //		Value readValue = readValue(ByteStreams
 //				.newDataInput(value), vf);

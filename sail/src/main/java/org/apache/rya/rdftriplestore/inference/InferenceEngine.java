@@ -1223,8 +1223,8 @@ public class InferenceEngine {
 
     /**
      * Return whether a given property is known to be reflexive.
-     * @param prop A URI
-     * @return True if the given URI corresponds to an owl:ReflexiveProperty
+     * @param prop A IRI
+     * @return True if the given IRI corresponds to an owl:ReflexiveProperty
      */
     public boolean isReflexiveProperty(final IRI prop) {
         return (reflexivePropertySet != null) && reflexivePropertySet.contains(prop);

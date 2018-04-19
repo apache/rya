@@ -181,7 +181,7 @@ public final class RyaTypeUtils {
 
     /**
      *
-     * Creates a URI {@link RyaType} object.
+     * Creates a IRI {@link RyaType} object.
      * @param value the {@link IRI} object.
      * @return the {@link RyaType} with the data type set to
      * {@link XMLSchema#ANYURI} and the data set to the specified {@code value}.

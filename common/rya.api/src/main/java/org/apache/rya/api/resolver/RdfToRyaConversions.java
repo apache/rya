@@ -60,7 +60,7 @@ public class RdfToRyaConversions {
 
     public static RyaType convertValue(Value value) {
         if (value == null) return null;
-        //assuming either uri or Literal here
+        //assuming either IRI or Literal here
         if(value instanceof Resource) {
             return convertResource((Resource) value);
         }

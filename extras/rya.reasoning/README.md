@@ -333,7 +333,7 @@ triples or inconsistencies generated.
 
 Reasoning is distributed according to URI: Mappers read in triples from Accumulo
 and from previous iterations, and partition triples according to their subject
-and object. Reducers perform reasoning around one URI at a time, receiving as
+and object. Reducers perform reasoning around one IRI at a time, receiving as
 input only triples involving that URI. This enables us to use MapReduce, but
 requires making several passes through the data in cases where information
 needs to be propagated several steps through the graph (for example, with
@@ -710,8 +710,8 @@ tools and utilities for interacting with Accumulo are located in
 
 - An **OwlProperty** or **OwlClass** represents a property or a class, respectively.
     Each object holds a reference to the RDF entity that identifies it (using to
-    the RDF4J api): a URI for each OwlProperty, and a Resource for each class
-    (because a class is more general; it can be a URI or a bnode).
+    the RDF4J api): an IRI for each OwlProperty, and a Resource for each class
+    (because a class is more general; it can be an IRI or a bnode).
 
     Both maintain connections to other schema constructs, according to the
     relevant schema connections that can be made for each type. In general,

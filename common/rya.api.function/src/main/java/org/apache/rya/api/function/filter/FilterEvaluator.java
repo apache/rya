@@ -109,7 +109,7 @@ public class FilterEvaluator {
         } catch (final QueryEvaluationException e) {
             //False returned because for whatever reason, the ValueExpr could not be evaluated.
             //In the event that the ValueExpr is a FunctionCall, this Exception will be generated if
-            //the Function URI is a valid URI that was found in the FunctionRegistry, but the arguments
+            //the Function IRI is a valid IRI that was found in the FunctionRegistry, but the arguments
             //for that Function could not be parsed.
             log.error("Could not evaluate a Filter.", e);
             return false;

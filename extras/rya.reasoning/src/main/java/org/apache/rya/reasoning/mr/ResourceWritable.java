@@ -29,7 +29,7 @@ import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 /**
- * Allows us to use a URI or bnode for a key.
+ * Allows us to use an IRI or bnode for a key.
  */
 public class ResourceWritable implements WritableComparable<ResourceWritable> {
     private Resource val;

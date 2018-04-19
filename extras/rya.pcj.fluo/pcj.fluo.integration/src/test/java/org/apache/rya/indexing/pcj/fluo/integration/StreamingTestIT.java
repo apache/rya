@@ -83,10 +83,10 @@ public class StreamingTestIT extends RyaExportITBase {
 	private void addRandomQueryStatementPairs(final int numPairs) throws Exception {
 		final Set<Statement> statementPairs = new HashSet<>();
 		for (int i = 0; i < numPairs; i++) {
-			final String uri = "http://uuid_" + UUID.randomUUID().toString();
-			final Statement statement1 = VF.createStatement(VF.createIRI(uri), VF.createIRI("http://pred1"),
+			final String iri = "http://uuid_" + UUID.randomUUID().toString();
+			final Statement statement1 = VF.createStatement(VF.createIRI(iri), VF.createIRI("http://pred1"),
 					VF.createLiteral("number_" + (i + 1)));
-			final Statement statement2 = VF.createStatement(VF.createIRI(uri), VF.createIRI("http://pred2"), VF.createLiteral("literal"));
+			final Statement statement2 = VF.createStatement(VF.createIRI(iri), VF.createIRI("http://pred2"), VF.createLiteral("literal"));
 			statementPairs.add(statement1);
 			statementPairs.add(statement2);
 		}

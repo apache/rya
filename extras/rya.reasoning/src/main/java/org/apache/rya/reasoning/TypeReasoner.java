@@ -199,11 +199,11 @@ public class TypeReasoner extends AbstractReasoner {
     public String getDiagnostics() {
         int total = 0;
         int incTotal = 0;
-        for (Resource uri : possibleInferences.keySet()) {
-            total += possibleInferences.get(uri).size();
+        for (Resource iri : possibleInferences.keySet()) {
+            total += possibleInferences.get(iri).size();
         }
-        for (Resource uri : possibleInconsistencies.keySet()) {
-            incTotal += possibleInconsistencies.get(uri).size();
+        for (Resource iri : possibleInconsistencies.keySet()) {
+            incTotal += possibleInconsistencies.get(iri).size();
         }
         StringBuilder sb = new StringBuilder();
         sb.append(knownTypes.size()).append(" total types known\n");

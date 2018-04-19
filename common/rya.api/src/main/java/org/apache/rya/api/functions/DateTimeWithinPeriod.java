@@ -37,7 +37,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * This {@link Function} determines whether two {@link XMLSchema#DATETIME}s occur within a specified period of time of
  * one another. The method {@link Function#evaluate(ValueFactory, Value...)} expects four values, where the first two
  * values are the datetimes, the third value is an integer indicating the period, and the fourth value is a URI
- * indicating the time unit of the period. The URI must be of Type DurationDescription in the OWL-Time ontology (see
+ * indicating the time unit of the period. The IRI must be of Type DurationDescription in the OWL-Time ontology (see
  * <a href ="https://www.w3.org/TR/owl-time/">https://www.w3.org/TR/owl-time/</a>). Examples of valid time unit URIs can
  * be found in the class {@link OWLTime} and below
  * <ul>
@@ -60,7 +60,7 @@ public class DateTimeWithinPeriod implements Function {
     /**
      * Determines whether two datetimes occur within a specified period of time of one another. This method expects four
      * values, where the first two values are the datetimes, the third value is an integer indicating the period, and
-     * the fourth value is a URI indicating the time unit of the period. The URI must be of Type DurationDescription in
+     * the fourth value is an IRI indicating the time unit of the period. The IRI must be of Type DurationDescription in
      * the OWL-Time ontology (see <a href ="https://www.w3.org/TR/owl-time/">https://www.w3.org/TR/owl-time/</a>).
      * Examples of valid time unit URIs can be found in the class {@link OWLTime} and below
      * <ul>
@@ -118,7 +118,7 @@ public class DateTimeWithinPeriod implements Function {
      * Converts the period duration to milliseconds.
      *
      * @param duration - duration of temporal period
-     * @param unit - URI indicating the time unit (URI must be of type DurationDescription in the OWL-Time ontology
+     * @param unit - IRI indicating the time unit (URI must be of type DurationDescription in the OWL-Time ontology
      *            indicated by the namespace <http://www.w3.org/2006/time#>)
      * @return - duration in milliseconds
      */

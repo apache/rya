@@ -74,38 +74,38 @@ public class OWLTime {
     }
 
     /**
-     * Verifies whether URI is a valid OWL-Time URI that is supported by this class.
-     * @param durationURI - OWLTime URI indicating the time unit (not null)
-     * @return - {@code true} if this URI indicates a supported OWLTime time unit
+     * Verifies whether IRI is a valid OWL-Time IRI that is supported by this class.
+     * @param durationIRI - OWLTime IRI indicating the time unit (not null)
+     * @return - {@code true} if this IRI indicates a supported OWLTime time unit
      */
-    public static boolean isValidDurationType(IRI durationURI) {
-        checkNotNull(durationURI);
-        return DURATION_MAP.containsKey(durationURI);
+    public static boolean isValidDurationType(IRI durationIRI) {
+        checkNotNull(durationIRI);
+        return DURATION_MAP.containsKey(durationIRI);
     }
 
     /**
      * Returns the duration in milliseconds
      *
-     * @param duration - amount of time in the units indicated by the provided {@link OWLTime} URI
-     * @param uri - OWLTime URI indicating the time unit of duration (not null)
+     * @param duration - amount of time in the units indicated by the provided {@link OWLTime} IRI
+     * @param iri - OWLTime IRI indicating the time unit of duration (not null)
      * @return - the amount of time in milliseconds
      * @throws IllegalArgumentException if provided {@link IRI} is not a valid, supported OWL-Time time unit.
      */
-    public static long getMillis(int duration, IRI uri) throws IllegalArgumentException {
-        Optional<ChronoUnit> unit = getChronoUnitFromURI(uri);
+    public static long getMillis(int duration, IRI iri) throws IllegalArgumentException {
+        Optional<ChronoUnit> unit = getChronoUnitFromURI(iri);
         checkArgument(unit.isPresent(),
-                String.format("URI %s does not indicate a valid OWLTime time unit.  URI must of be of type %s, %s, %s, %s, or %s .", uri,
+                String.format("IRI %s does not indicate a valid OWLTime time unit.  IRI must of be of type %s, %s, %s, %s, or %s .", iri,
                         SECONDS_URI, MINUTES_URI, HOURS_URI, DAYS_URI, WEEKS_URI));
         return duration * unit.get().getDuration().toMillis();
     }
 
     /**
-     * Converts the {@link OWLTime} URI time unit to a {@link ChronoUnit} time unit
+     * Converts the {@link OWLTime} IRI time unit to a {@link ChronoUnit} time unit
      *
-     * @param durationURI - OWLTime time unit URI (not null)
+     * @param durationIRI - OWLTime time unit IRI (not null)
      * @return - corresponding ChronoUnit time unit
      */
-    public static Optional<ChronoUnit> getChronoUnitFromURI(IRI durationURI) {
-        return Optional.ofNullable(DURATION_MAP.get(durationURI));
+    public static Optional<ChronoUnit> getChronoUnitFromURI(IRI durationIRI) {
+        return Optional.ofNullable(DURATION_MAP.get(durationIRI));
     }
 }

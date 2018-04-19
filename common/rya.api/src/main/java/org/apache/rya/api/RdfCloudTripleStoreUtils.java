@@ -335,9 +335,9 @@ public class RdfCloudTripleStoreUtils {
 //        if (s == null)
 //            return null;
 //
-//        for (String uri : s) {
-//            if (predicate.stringValue().equals(uri)) {
-//                return (Class<? extends TtlValueConverter>) RdfCloudTripleStoreUtils.class.getClassLoader().loadClass(conf.get(uri));
+//        for (String iri : s) {
+//            if (predicate.stringValue().equals(iri)) {
+//                return (Class<? extends TtlValueConverter>) RdfCloudTripleStoreUtils.class.getClassLoader().loadClass(conf.get(iri));
 //            }
 //        }
 //        return null;

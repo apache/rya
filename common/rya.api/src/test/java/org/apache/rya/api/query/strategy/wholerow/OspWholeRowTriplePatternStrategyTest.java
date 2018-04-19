@@ -27,8 +27,9 @@
 //import org.apache.rya.api.resolver.triple.TripleRow;
 //import org.apache.accumulo.core.data.Key;
 //import org.apache.accumulo.core.data.Range;
+//import org.eclipse.rdf4j.model.ValueFactory;
+//import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 //import org.apache.hadoop.io.Text;
-//import org.eclipse.rdf4j.model.impl.URIImpl;
 //
 //import java.util.Map;
 //
@@ -37,14 +38,16 @@
 // * Time: 11:46 AM
 // */
 //public class OspWholeRowTriplePatternStrategyTest extends TestCase {
+//    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+//
 //    RyaURI uri = new RyaURI("urn:test#1234");
 //    RyaURI uri2 = new RyaURI("urn:test#1235");
 //    RyaURIRange rangeURI = new RyaURIRange(uri, uri2);
 //    RyaURIRange rangeURI2 = new RyaURIRange(new RyaURI("urn:test#1235"), new RyaURI("urn:test#1236"));
 //
-//    RyaType customType1 = new RyaType(new URIImpl("urn:custom#type"), "1234");
-//    RyaType customType2 = new RyaType(new URIImpl("urn:custom#type"), "1235");
-//    RyaType customType3 = new RyaType(new URIImpl("urn:custom#type"), "1236");
+//    RyaType customType1 = new RyaType(VF.createIRI("urn:custom#type"), "1234");
+//    RyaType customType2 = new RyaType(VF.createIRI("urn:custom#type"), "1235");
+//    RyaType customType3 = new RyaType(VF.createIRI("urn:custom#type"), "1236");
 //    RyaTypeRange customTypeRange1 = new RyaTypeRange(customType1, customType2);
 //    RyaTypeRange customTypeRange2 = new RyaTypeRange(customType2, customType3);
 //

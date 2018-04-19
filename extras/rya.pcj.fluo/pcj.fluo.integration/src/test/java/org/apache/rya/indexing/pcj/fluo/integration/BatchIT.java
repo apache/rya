@@ -145,8 +145,8 @@ public class BatchIT extends RyaExportITBase {
             VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
 
             //create sharded span for deletion
-            IRI uri = VF.createIRI("urn:subject_1");
-            Bytes prefixBytes = BindingHashShardingFunction.getShardedScanPrefix(rightSp, uri);
+            IRI iri = VF.createIRI("urn:subject_1");
+            Bytes prefixBytes = BindingHashShardingFunction.getShardedScanPrefix(rightSp, iri);
             Span span = Span.prefix(prefixBytes);
 
             // Stream the data into Fluo.
@@ -194,8 +194,8 @@ public class BatchIT extends RyaExportITBase {
             bs.addBinding("object1", VF.createIRI("urn:object_0"));
             VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
 
-            IRI uri = VF.createIRI("urn:subject_1");
-            Bytes prefixBytes = BindingHashShardingFunction.getShardedScanPrefix(rightSp, uri);
+            IRI iri = VF.createIRI("urn:subject_1");
+            Bytes prefixBytes = BindingHashShardingFunction.getShardedScanPrefix(rightSp, iri);
             Span span = Span.prefix(prefixBytes);
 
             // Stream the data into Fluo.
@@ -368,8 +368,8 @@ public class BatchIT extends RyaExportITBase {
             for (int i = 0; i < ids.size(); i++) {
                 String id = ids.get(i);
                 String bsPrefix = prefixes.get(i);
-                IRI uri = VF.createIRI(bsPrefix);
-                Bytes prefixBytes = BindingHashShardingFunction.getShardedScanPrefix(id, uri);
+                IRI iri = VF.createIRI(bsPrefix);
+                Bytes prefixBytes = BindingHashShardingFunction.getShardedScanPrefix(id, iri);
                 NodeType type = NodeType.fromNodeId(id).get();
                 Column bsCol = type.getResultColumn();
                 SpanBatchDeleteInformation.Builder builder = SpanBatchDeleteInformation.builder().setBatchSize(batchSize)

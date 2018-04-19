@@ -126,14 +126,14 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 
 //    public void testAddAuth() throws Exception {
 //        RepositoryConnection conn = repository.getConnection();
-//        URI cpu = vf.createIRI(litdupsNS, "cpu");
-//        URI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
-//        URI uri1 = vf.createIRI(litdupsNS, "uri1");
-//        URI uri2 = vf.createIRI(litdupsNS, "uri2");
-//        URI uri3 = vf.createIRI(litdupsNS, "uri3");
-//        URI auth1 = vf.createIRI(RdfCloudTripleStoreConstants.AUTH_NAMESPACE, "1");
-//        URI auth2 = vf.createIRI(RdfCloudTripleStoreConstants.AUTH_NAMESPACE, "2");
-//        URI auth3 = vf.createIRI(RdfCloudTripleStoreConstants.AUTH_NAMESPACE, "3");
+//        IRI cpu = vf.createIRI(litdupsNS, "cpu");
+//        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
+//        IRI uri1 = vf.createIRI(litdupsNS, "uri1");
+//        IRI uri2 = vf.createIRI(litdupsNS, "uri2");
+//        IRI uri3 = vf.createIRI(litdupsNS, "uri3");
+//        IRI auth1 = vf.createIRI(RdfCloudTripleStoreConstants.AUTH_NAMESPACE, "1");
+//        IRI auth2 = vf.createIRI(RdfCloudTripleStoreConstants.AUTH_NAMESPACE, "2");
+//        IRI auth3 = vf.createIRI(RdfCloudTripleStoreConstants.AUTH_NAMESPACE, "3");
 //        conn.add(cpu, loadPerc, uri1, auth1, auth2, auth3);
 //        conn.add(cpu, loadPerc, uri2, auth2, auth3);
 //        conn.add(cpu, loadPerc, uri3, auth3);
@@ -975,7 +975,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 //    public void testNamedGraphLoadWInlineAuth() throws Exception {
 //        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("namedgraphs.trig");
 //        assertNotNull(stream);
-//        URI auth1 = vf.createIRI(RdfCloudTripleStoreConstants.AUTH_NAMESPACE, "1");
+//        IRI auth1 = vf.createIRI(RdfCloudTripleStoreConstants.AUTH_NAMESPACE, "1");
 //        RepositoryConnection conn = repository.getConnection();
 //        conn.add(stream, "", RDFFormat.TRIG, auth1);
 //        conn.commit();

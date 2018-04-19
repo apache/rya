@@ -28,8 +28,6 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
-import org.apache.rya.accumulo.AccumuloITBase;
-import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
@@ -45,6 +43,8 @@ import org.apache.rya.api.instance.RyaDetailsRepository.AlreadyInitializedExcept
 import org.apache.rya.api.instance.RyaDetailsRepository.ConcurrentUpdateException;
 import org.apache.rya.api.instance.RyaDetailsRepository.NotInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
+import org.apache.rya.test.accumulo.AccumuloITBase;
+import org.apache.rya.test.accumulo.MiniAccumuloClusterInstance;
 import org.junit.Test;
 
 import com.google.common.base.Optional;

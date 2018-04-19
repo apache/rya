@@ -21,8 +21,8 @@ package org.apache.rya.api.client.accumulo;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.apache.rya.accumulo.AccumuloITBase;
 import org.apache.rya.api.client.Install.InstallConfiguration;
+import org.apache.rya.test.accumulo.AccumuloITBase;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
 import org.apache.rya.api.client.RyaClient;
 import org.junit.Test;

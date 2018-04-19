@@ -32,9 +32,15 @@ import java.util.stream.Collectors;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.rya.accumulo.AccumuloRyaITBase;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
+import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
+import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import org.apache.rya.api.instance.RyaDetailsRepository;
 import org.apache.rya.api.instance.RyaDetailsRepository.NotInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
@@ -46,13 +52,18 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageExce
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.ShiftVarOrderFactory;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.test.accumulo.MiniAccumuloClusterInstance;
+import org.apache.rya.test.accumulo.MiniAccumuloSingleton;
+import org.apache.rya.test.accumulo.RyaTestInstanceRule;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.junit.Rule;
 import org.junit.Test;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -61,14 +72,41 @@ import com.google.common.collect.ImmutableMap;
  * These tests ensures that the PCJ tables are maintained and that these operations
  * also update the Rya instance's details.
  */
-public class AccumuloPcjStorageIT extends AccumuloRyaITBase {
+public class AccumuloPcjStorageIT {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
+    @Rule
+    public RyaTestInstanceRule testInstance = new RyaTestInstanceRule(ryaInstanceName -> {
+        // Create Rya Details for the instance name.
+        final MiniAccumuloClusterInstance cluster = MiniAccumuloSingleton.getInstance();
+        final RyaDetailsRepository detailsRepo = new AccumuloRyaInstanceDetailsRepository(cluster.getConnector(), ryaInstanceName);
+        final RyaDetails details = RyaDetails.builder()
+                .setRyaInstanceName(ryaInstanceName)
+                .setRyaVersion("0.0.0.0")
+                .setFreeTextDetails(new FreeTextIndexDetails(true))
+                .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
+                //RYA-215                .setGeoIndexDetails( new GeoIndexDetails(true) )
+                .setTemporalIndexDetails(new TemporalIndexDetails(true))
+                .setPCJIndexDetails(PCJIndexDetails.builder().setEnabled(true))
+                .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.absent()))
+                .setProspectorDetails(new ProspectorDetails(Optional.absent()))
+                .build();
+
+        detailsRepo.initialize(details);
+    });
+
+    /**
+     * @return The {@link MiniAccumuloClusterInstance} used by the tests.
+     */
+    private MiniAccumuloClusterInstance getClusterInstance() {
+        return MiniAccumuloSingleton.getInstance();
+    }
 
     @Test
     public void createPCJ() throws AccumuloException, AccumuloSecurityException, PCJStorageException, NotInitializedException, RyaDetailsRepositoryException {
         // Setup the PCJ storage that will be tested against.
-        final Connector connector = super.getClusterInstance().getConnector();
-        final String ryaInstanceName = super.getRyaInstanceName();
+        final Connector connector = getClusterInstance().getConnector();
+        final String ryaInstanceName = testInstance.getRyaInstanceName();
         try(final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(connector, ryaInstanceName)) {
             // Create a PCJ.
             final String pcjId = pcjStorage.createPcj("SELECT * WHERE { ?a <http://isA> ?b } ");
@@ -91,8 +129,8 @@ public class AccumuloPcjStorageIT extends AccumuloRyaITBase {
     @Test
     public void dropPCJ() throws AccumuloException, AccumuloSecurityException, PCJStorageException, NotInitializedException, RyaDetailsRepositoryException {
         // Setup the PCJ storage that will be tested against.
-        final Connector connector = super.getClusterInstance().getConnector();
-        final String ryaInstanceName = super.getRyaInstanceName();
+        final Connector connector = getClusterInstance().getConnector();
+        final String ryaInstanceName = testInstance.getRyaInstanceName();
         try(final PrecomputedJoinStorage pcjStorage =  new AccumuloPcjStorage(connector, ryaInstanceName)) {
             // Create a PCJ.
             final String pcjId = pcjStorage.createPcj("SELECT * WHERE { ?a <http://isA> ?b } ");
@@ -114,8 +152,8 @@ public class AccumuloPcjStorageIT extends AccumuloRyaITBase {
     @Test
     public void listPcjs() throws AccumuloException, AccumuloSecurityException, PCJStorageException {
         // Setup the PCJ storage that will be tested against.
-        final Connector connector = super.getClusterInstance().getConnector();
-        final String ryaInstanceName = super.getRyaInstanceName();
+        final Connector connector = getClusterInstance().getConnector();
+        final String ryaInstanceName = testInstance.getRyaInstanceName();
         try(final PrecomputedJoinStorage pcjStorage =  new AccumuloPcjStorage(connector, ryaInstanceName)) {
             // Create a few PCJs and hold onto their IDs.
             final List<String> expectedIds = new ArrayList<>();
@@ -142,8 +180,8 @@ public class AccumuloPcjStorageIT extends AccumuloRyaITBase {
     @Test
     public void getPcjMetadata() throws AccumuloException, AccumuloSecurityException, PCJStorageException, MalformedQueryException {
         // Setup the PCJ storage that will be tested against.
-        final Connector connector = super.getClusterInstance().getConnector();
-        final String ryaInstanceName = super.getRyaInstanceName();
+        final Connector connector = getClusterInstance().getConnector();
+        final String ryaInstanceName = testInstance.getRyaInstanceName();
         try(final PrecomputedJoinStorage pcjStorage =  new AccumuloPcjStorage(connector, ryaInstanceName)) {
             // Create a PCJ.
             final String sparql = "SELECT * WHERE { ?a <http://isA> ?b }";
@@ -162,8 +200,8 @@ public class AccumuloPcjStorageIT extends AccumuloRyaITBase {
     @Test
     public void addResults() throws AccumuloException, AccumuloSecurityException, PCJStorageException, MalformedQueryException {
         // Setup the PCJ storage that will be tested against.
-        final Connector connector = super.getClusterInstance().getConnector();
-        final String ryaInstanceName = super.getRyaInstanceName();
+        final Connector connector = getClusterInstance().getConnector();
+        final String ryaInstanceName = testInstance.getRyaInstanceName();
         try(final PrecomputedJoinStorage pcjStorage =  new AccumuloPcjStorage(connector, ryaInstanceName)) {
             // Create a PCJ.
             final String sparql = "SELECT * WHERE { ?a <http://isA> ?b }";
@@ -196,8 +234,8 @@ public class AccumuloPcjStorageIT extends AccumuloRyaITBase {
     @Test
     public void listResults() throws Exception {
         // Setup the PCJ storage that will be tested against.
-        final Connector connector = super.getClusterInstance().getConnector();
-        final String ryaInstanceName = super.getRyaInstanceName();
+        final Connector connector = getClusterInstance().getConnector();
+        final String ryaInstanceName = testInstance.getRyaInstanceName();
         try(final PrecomputedJoinStorage pcjStorage =  new AccumuloPcjStorage(connector, ryaInstanceName)) {
             // Create a PCJ.
             final String sparql = "SELECT * WHERE { ?a <http://isA> ?b }";
@@ -238,8 +276,8 @@ public class AccumuloPcjStorageIT extends AccumuloRyaITBase {
     @Test
     public void purge() throws Exception {
         // Setup the PCJ storage that will be tested against.
-        final Connector connector = super.getClusterInstance().getConnector();
-        final String ryaInstanceName = super.getRyaInstanceName();
+        final Connector connector = getClusterInstance().getConnector();
+        final String ryaInstanceName = testInstance.getRyaInstanceName();
         try(final PrecomputedJoinStorage pcjStorage =  new AccumuloPcjStorage(connector, ryaInstanceName)) {
             // Create a PCJ.
             final String sparql = "SELECT * WHERE { ?a <http://isA> ?b }";

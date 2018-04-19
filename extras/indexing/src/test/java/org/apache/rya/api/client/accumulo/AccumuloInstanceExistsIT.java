@@ -27,11 +27,10 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.junit.Test;
-
-import org.apache.rya.accumulo.AccumuloITBase;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.client.RyaClientException;
+import org.apache.rya.test.accumulo.AccumuloITBase;
 
 /**
  * Integration tests the methods of {@link AccumuloInstanceExists}.

@@ -25,8 +25,8 @@ import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.rya.accumulo.MiniAccumuloSingleton;
-import org.apache.rya.accumulo.RyaTestInstanceRule;
+import org.apache.rya.test.accumulo.MiniAccumuloSingleton;
+import org.apache.rya.test.accumulo.RyaTestInstanceRule;
 import org.apache.zookeeper.ClientCnxn;
 import org.junit.After;
 import org.junit.Before;
@@ -34,8 +34,6 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.JLineShellComponent;
-
-import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
 
 /**
  * All Rya Shell integration tests should extend this one. It provides startup
@@ -55,7 +53,7 @@ public class RyaShellAccumuloITBase {
     private JLineShellComponent shell;
 
     @Rule
-    public RyaTestInstanceRule testInstance = new RyaTestInstanceRule(false);
+    public RyaTestInstanceRule testInstance = new RyaTestInstanceRule();
 
     @BeforeClass
     public static void killLoudLogs() {

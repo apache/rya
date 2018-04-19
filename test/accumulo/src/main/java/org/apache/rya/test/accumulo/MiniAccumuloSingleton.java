@@ -16,14 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.accumulo;
+package org.apache.rya.test.accumulo;
+
+import java.io.IOException;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 public final class MiniAccumuloSingleton {
 
@@ -61,24 +61,23 @@ public final class MiniAccumuloSingleton {
                     public void run() {
                         try {
                             InstanceHolder.this.instance.stopMiniAccumulo();
-                        } catch (Throwable t) {
+                        } catch (final Throwable t) {
                             // logging frameworks will likely be shut down
                             t.printStackTrace(System.err);
                         }
                     }
                 });
 
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 Thread.currentThread().interrupt();
                 log.error("Interrupted while starting mini accumulo", e);
             } catch (IOException | AccumuloException | AccumuloSecurityException e) {
                 log.error("Unexpected error while starting mini accumulo", e);
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
                 // catching throwable because failure to construct an enum
                 // instance will lead to another error being thrown downstream
                 log.error("Unexpected throwable while starting mini accumulo", e);
             }
         }
     }
-
 }

@@ -41,9 +41,6 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
-import org.apache.rya.accumulo.MiniAccumuloSingleton;
-import org.apache.rya.accumulo.RyaTestInstanceRule;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.utils.CloseableIterator;
@@ -53,6 +50,9 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageExce
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
+import org.apache.rya.test.accumulo.MiniAccumuloClusterInstance;
+import org.apache.rya.test.accumulo.MiniAccumuloSingleton;
+import org.apache.rya.test.accumulo.RyaTestInstanceRule;
 import org.apache.zookeeper.ClientCnxn;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -87,14 +87,14 @@ public class PcjTablesIT {
     private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
 
     // The MiniAccumuloCluster is re-used between tests.
-    private MiniAccumuloClusterInstance cluster = MiniAccumuloSingleton.getInstance();
+    private final MiniAccumuloClusterInstance cluster = MiniAccumuloSingleton.getInstance();
 
     // Rya data store and connections.
     protected RyaSailRepository ryaRepo = null;
     protected RepositoryConnection ryaConn = null;
 
     @Rule
-    public RyaTestInstanceRule testInstance = new RyaTestInstanceRule(false);
+    public RyaTestInstanceRule testInstance = new RyaTestInstanceRule();
 
     @BeforeClass
     public static void killLoudLogs() {

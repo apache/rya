@@ -23,7 +23,6 @@ import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 /**

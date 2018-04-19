@@ -42,9 +42,9 @@ public class RdfCloudTripleStoreUtils {
 ////        if (value == null)
 ////            return new byte[]{};
 ////        ByteArrayDataOutput dataOut = ByteStreams.newDataOutput();
-////        if (value instanceof URI) {
+////        if (value instanceof IRI) {
 ////            dataOut.writeByte(RdfCloudTripleStoreConstants.URI_MARKER);
-////            writeString(((URI) value).toString(), dataOut);
+////            writeString(((IRI) value).toString(), dataOut);
 ////        } else if (value instanceof BNode) {
 ////            dataOut.writeByte(RdfCloudTripleStoreConstants.BNODE_MARKER);
 ////            writeString(((BNode) value).getID(), dataOut);
@@ -53,7 +53,7 @@ public class RdfCloudTripleStoreUtils {
 ////
 ////            String label = lit.getLabel();
 ////            String language = lit.getLanguage();
-////            URI datatype = lit.getDatatype();
+////            IRI datatype = lit.getDatatype();
 ////
 ////            if (datatype != null) {
 ////                dataOut.writeByte(RdfCloudTripleStoreConstants.DATATYPE_LITERAL_MARKER);
@@ -100,7 +100,7 @@ public class RdfCloudTripleStoreUtils {
 ////            ret = vf.createLiteral(label, language);
 ////        } else if (valueTypeMarker == RdfCloudTripleStoreConstants.DATATYPE_LITERAL_MARKER) {
 ////            String label = readString(dataIn);
-////            URI datatype = (URI) readValue(dataIn, vf);
+////            IRI datatype = (IRI) readValue(dataIn, vf);
 ////            ret = vf.createLiteral(label, datatype);
 ////        } else {
 ////            throw new InvalidValueTypeMarkerRuntimeException(valueTypeMarker, "Invalid value type marker: "
@@ -148,27 +148,27 @@ public class RdfCloudTripleStoreUtils {
 
 //    public static Statement translateStatementFromRow(ByteArrayDataInput input, Text context, TABLE_LAYOUT tble, ValueFactory vf) throws IOException {
 //        Resource subject;
-//        URI predicate;
+//        IRI predicate;
 //        Value object;
 //        if (TABLE_LAYOUT.SPO.equals(tble)) {
 //            subject = (Resource) RdfCloudTripleStoreUtils.readValue(input, vf);
-//            predicate = (URI) RdfCloudTripleStoreUtils.readValue(input, vf);
+//            predicate = (IRI) RdfCloudTripleStoreUtils.readValue(input, vf);
 //            object = RdfCloudTripleStoreUtils.readValue(input, vf);
 //        } else if (TABLE_LAYOUT.OSP.equals(tble)) {
 //            object = RdfCloudTripleStoreUtils.readValue(input, vf);
 //            subject = (Resource) RdfCloudTripleStoreUtils.readValue(input, vf);
-//            predicate = (URI) RdfCloudTripleStoreUtils.readValue(input, vf);
+//            predicate = (IRI) RdfCloudTripleStoreUtils.readValue(input, vf);
 //        } else if (TABLE_LAYOUT.PO.equals(tble)) {
-//            predicate = (URI) RdfCloudTripleStoreUtils.readValue(input, vf);
+//            predicate = (IRI) RdfCloudTripleStoreUtils.readValue(input, vf);
 //            object = RdfCloudTripleStoreUtils.readValue(input, vf);
 //            subject = (Resource) RdfCloudTripleStoreUtils.readValue(input, vf);
 //        } else {
 //            throw new IllegalArgumentException("Table[" + tble + "] is not valid");
 //        }
 //        if (context == null || INFO_TXT.equals(context))
-//            return new StatementImpl(subject, predicate, object); //default graph
+//            return vf.createStatement(subject, predicate, object); //default graph
 //        else
-//            return new ContextStatementImpl(subject, predicate, object, (Resource) readValue(ByteStreams.newDataInput(context.getBytes()), vf)); //TODO: Seems like a perf hog
+//            return vf.createStatement(subject, predicate, object, (Resource) readValue(ByteStreams.newDataInput(context.getBytes()), vf)); //TODO: Seems like a perf hog
 //    }
 
 //    public static byte[] buildRowWith(byte[] bytes_one, byte[] bytes_two, byte[] bytes_three) throws IOException {
@@ -252,7 +252,7 @@ public class RdfCloudTripleStoreUtils {
     }
 
     /**
-     * If value is a URI, then return as URI, otherwise return namespace/value as the URI
+     * If value is a IRI, then return as IRI, otherwise return namespace/value as the IRI
      *
      * @param namespace
      * @param value
@@ -315,7 +315,7 @@ public class RdfCloudTripleStoreUtils {
 //    }
 
 
-//    public static void addTimeIndexUri(Configuration conf, URI timeUri, Class<? extends TtlValueConverter> ttlValueConvClass) {
+//    public static void addTimeIndexUri(Configuration conf, IRI timeUri, Class<? extends TtlValueConverter> ttlValueConvClass) {
 //        String[] timeIndexUris = conf.getStrings(RdfCloudTripleStoreConfiguration.CONF_TIMEINDEXURIS);
 //        if (timeIndexUris == null)
 //            timeIndexUris = new String[0];
@@ -327,7 +327,7 @@ public class RdfCloudTripleStoreUtils {
 //        conf.set(timeUri_s, ttlValueConvClass.getName());
 //    }
 
-//    public static Class<? extends TtlValueConverter> getTtlValueConverter(Configuration conf, URI predicate) throws ClassNotFoundException {
+//    public static Class<? extends TtlValueConverter> getTtlValueConverter(Configuration conf, IRI predicate) throws ClassNotFoundException {
 //        if (predicate == null)
 //            return null;
 //

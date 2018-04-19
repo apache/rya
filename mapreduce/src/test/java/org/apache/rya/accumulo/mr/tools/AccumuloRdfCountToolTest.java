@@ -150,19 +150,19 @@ public class AccumuloRdfCountToolTest {
     }
 
 //    public void testMRObject() throws Exception {
-//        URI pred1 = VF.createIRI(litdupsNS, "pred1");
+//        IRI pred1 = VF.createIRI(litdupsNS, "pred1");
 //        Literal literal = VF.createLiteral(0);
-//        dao.add(new StatementImpl(VF.createIRI(litdupsNS, "test0"), pred1, literal));
-//        dao.add(new StatementImpl(VF.createIRI(litdupsNS, "test1"), pred1, literal));
-//        dao.add(new StatementImpl(VF.createIRI(litdupsNS, "test2"), pred1, literal));
-//        dao.add(new StatementImpl(VF.createIRI(litdupsNS, "test3"), pred1, literal));
-//        dao.add(new StatementImpl(VF.createIRI(litdupsNS, "test4"), pred1, literal));
-//        dao.add(new StatementImpl(VF.createIRI(litdupsNS, "test5"), pred1, literal));
-//        dao.add(new StatementImpl(VF.createIRI(litdupsNS, "test6"), pred1, literal));
-//        dao.add(new StatementImpl(VF.createIRI(litdupsNS, "test7"), pred1, literal));
-//        dao.add(new StatementImpl(VF.createIRI(litdupsNS, "test8"), pred1, literal));
-//        dao.add(new StatementImpl(VF.createIRI(litdupsNS, "test9"), pred1, literal));
-//        dao.add(new StatementImpl(VF.createIRI(litdupsNS, "test10"), pred1, literal));
+//        dao.add(VF.createStatement(VF.createIRI(litdupsNS, "test0"), pred1, literal));
+//        dao.add(VF.createStatement(VF.createIRI(litdupsNS, "test1"), pred1, literal));
+//        dao.add(VF.createStatement(VF.createIRI(litdupsNS, "test2"), pred1, literal));
+//        dao.add(VF.createStatement(VF.createIRI(litdupsNS, "test3"), pred1, literal));
+//        dao.add(VF.createStatement(VF.createIRI(litdupsNS, "test4"), pred1, literal));
+//        dao.add(VF.createStatement(VF.createIRI(litdupsNS, "test5"), pred1, literal));
+//        dao.add(VF.createStatement(VF.createIRI(litdupsNS, "test6"), pred1, literal));
+//        dao.add(VF.createStatement(VF.createIRI(litdupsNS, "test7"), pred1, literal));
+//        dao.add(VF.createStatement(VF.createIRI(litdupsNS, "test8"), pred1, literal));
+//        dao.add(VF.createStatement(VF.createIRI(litdupsNS, "test9"), pred1, literal));
+//        dao.add(VF.createStatement(VF.createIRI(litdupsNS, "test10"), pred1, literal));
 //        dao.commit();
 //
 //        AccumuloRdfCountTool.main(new String[]{

@@ -66,7 +66,7 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
     private static final Logger log = Logger.getLogger(BaseEntityIndexer.class);
 
     /**
-     * When this URI is the Predicate of a Statement, it indicates a {@link Type} for an {@link Entity}.
+     * When this IRI is the Predicate of a Statement, it indicates a {@link Type} for an {@link Entity}.
      */
     private static final RyaURI TYPE_URI = new RyaURI( RDF.TYPE.toString() );
 

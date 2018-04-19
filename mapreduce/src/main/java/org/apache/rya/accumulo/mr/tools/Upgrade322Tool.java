@@ -61,7 +61,7 @@ public class Upgrade322Tool extends AbstractAccumuloMRTool implements Tool {
         setupAccumuloInput(job);
         AccumuloInputFormat.setInputTableName(job, MRUtils.getTablePrefix(conf) + TBL_OSP_SUFFIX);
 
-        //we do not need to change any row that is a string, custom, or uri type
+        //we do not need to change any row that is a string, custom, or iri type
         IteratorSetting regex = new IteratorSetting(30, "regex",
                                                     RegExFilter.class);
         RegExFilter.setRegexs(regex, "\\w*" + TYPE_DELIM + "[\u0003|\u0008|\u0002]", null, null, null, false);

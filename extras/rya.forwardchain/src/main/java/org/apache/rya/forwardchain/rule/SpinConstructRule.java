@@ -80,7 +80,7 @@ public class SpinConstructRule extends AbstractConstructRule {
     private Set<StatementPattern> consequentStatementPatterns = null;
 
     /**
-     * Instantiate a SPIN construct rule given its associated type, URI or bnode
+     * Instantiate a SPIN construct rule given its associated type, IRI or bnode
      * identifier, and construct query tree. Modifies the query tree to
      * incorporate the fact that ?this must belong to the associated type, and
      * traverses the modified tree to find antecedent and consequent triple
@@ -116,7 +116,7 @@ public class SpinConstructRule extends AbstractConstructRule {
     }
 
     /**
-     * Get the URI or bnode associated with this rule in the data.
+     * Get the IRI or bnode associated with this rule in the data.
      * @return The rule's identifier.
      */
     public Resource getId() {

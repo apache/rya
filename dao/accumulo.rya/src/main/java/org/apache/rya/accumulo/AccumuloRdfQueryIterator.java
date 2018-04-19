@@ -93,7 +93,7 @@
 //        open = true;
 //    }
 //
-//    public AccumuloRdfQueryIterator(Resource subject, URI predicate, Value object, Connector connector,
+//    public AccumuloRdfQueryIterator(Resource subject, IRI predicate, Value object, Connector connector,
 //                                    AccumuloRdfConfiguration conf, Resource[] contexts) throws RdfDAOException {
 //        this(Collections.<Entry<Statement, BindingSet>>singleton(new RdfCloudTripleStoreUtils.CustomEntry<Statement, BindingSet>(
 //                new NullableStatementImpl(subject, predicate, object, contexts),
@@ -114,7 +114,7 @@
 //            for (Entry<Statement, BindingSet> stmtbs : statements) {
 //                Statement stmt = stmtbs.getKey();
 //                Resource subject = stmt.getSubject();
-//                URI predicate = stmt.getPredicate();
+//                IRI predicate = stmt.getPredicate();
 //                Value object = stmt.getObject();
 //                context = stmt.getContext(); //TODO: assumes the same context for all statements
 //                logger.debug("Batch Scan, lookup subject[" + subject + "] predicate[" + predicate + "] object[" + object + "] combination");

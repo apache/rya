@@ -122,7 +122,7 @@ public class BindingSetStringConverter implements BindingSetConverter<String> {
         final String dataString = valueAndType[0];
         final String typeString = valueAndType[1];
 
-        // Convert the String Type into a URI that describes the type.
+        // Convert the String Type into a IRI that describes the type.
         final IRI typeURI = VF.createIRI(typeString);
 
         // Convert the String Value into a Value.

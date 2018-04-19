@@ -89,11 +89,11 @@ public class Schema {
     };
 
     static {
-        for (IRI uri : schemaPredicateURIs) {
-            schemaPredicates.add(uri);
+        for (IRI iri : schemaPredicateURIs) {
+            schemaPredicates.add(iri);
         }
-        for (Resource uri : schemaTypeURIs) {
-            schemaTypes.add(uri);
+        for (Resource iri : schemaTypeURIs) {
+            schemaTypes.add(iri);
         }
     }
 

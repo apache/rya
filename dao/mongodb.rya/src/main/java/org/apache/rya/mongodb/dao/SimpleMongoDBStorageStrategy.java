@@ -65,7 +65,7 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
 
     /**
      * Generate the hash that will be used to index and retrieve a given value.
-     * @param value  A value to be stored or accessed (e.g. a URI or literal).
+     * @param value  A value to be stored or accessed (e.g. a IRI or literal).
      * @return the hash associated with that value in MongoDB.
      */
     public static String hash(String value) {

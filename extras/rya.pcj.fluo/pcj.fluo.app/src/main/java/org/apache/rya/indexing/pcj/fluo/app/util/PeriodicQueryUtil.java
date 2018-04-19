@@ -55,7 +55,7 @@ import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import com.google.common.base.Preconditions;
 
 /**
- * Utility class for creating and executing Perioid Queries.
+ * Utility class for creating and executing Periodic Queries.
  *
  */
 public class PeriodicQueryUtil {
@@ -70,7 +70,7 @@ public class PeriodicQueryUtil {
     /**
      * Returns a PeriodicQueryNode for all {@link FunctionCall}s that represent PeriodicQueryNodes, otherwise
      * an empty Optional is returned.
-     * @param functionCall - FunctionCall taken from a {@lin TupleExpr}
+     * @param functionCall - FunctionCall taken from a {@link TupleExpr}
      * @param arg - TupleExpr that will be the argument of the PeriodicQueryNode if it is created
      * @return - Optional containing a PeriodicQueryNode if FunctionCall represents PeriodicQueryNode and empty Optional otherwise
      * @throws Exception

@@ -55,7 +55,7 @@ public class RyaToRdfConversions {
     }
 
     public static Value convertValue(RyaType value) {
-        //assuming either uri or Literal here
+        //assuming either IRI or Literal here
         return (value instanceof RyaURI || value.getDataType().equals(XMLSchema.ANYURI)) ? convertURI(value) : convertLiteral(value);
     }
 

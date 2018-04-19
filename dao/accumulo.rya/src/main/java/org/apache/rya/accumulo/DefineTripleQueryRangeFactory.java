@@ -28,7 +28,7 @@
 //import org.apache.hadoop.io.Text;
 //import org.eclipse.rdf4j.model.Value;
 //import org.eclipse.rdf4j.model.ValueFactory;
-//import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+//import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 //
 //import java.io.IOException;
 //import java.util.Map;
@@ -43,7 +43,7 @@
 // */
 //public class DefineTripleQueryRangeFactory {
 //
-//    ValueFactory vf = ValueFactoryImpl.getInstance();
+//    ValueFactory vf = SimpleValueFactory.getInstance();
 //
 //    protected void fillRange(ByteArrayDataOutput startRowOut, ByteArrayDataOutput endRowOut, Value val, boolean empty)
 //            throws IOException {

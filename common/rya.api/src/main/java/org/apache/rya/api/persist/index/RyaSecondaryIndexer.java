@@ -31,10 +31,11 @@ import org.apache.rya.api.domain.RyaURI;
 import org.eclipse.rdf4j.model.IRI;
 
 public interface RyaSecondaryIndexer extends Closeable, Flushable, Configurable {
-	/**
-	 * initialize after setting configuration.
-	 */
-	public void init();
+    /**
+     * initialize after setting configuration.
+     */
+    public void init();
+
     /**
      * Returns the table name if the implementation supports it.
      * Note that some indexers use multiple tables, this only returns one.

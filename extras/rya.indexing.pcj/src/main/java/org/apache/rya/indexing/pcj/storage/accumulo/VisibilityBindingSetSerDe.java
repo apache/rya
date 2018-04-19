@@ -26,9 +26,7 @@ import java.io.ObjectOutputStream;
 
 import org.apache.commons.io.serialization.ValidatingObjectInputStream;
 import org.apache.fluo.api.data.Bytes;
-import org.apache.rya.api.model.BindingSetDecorator;
 import org.apache.rya.api.model.VisibilityBindingSet;
-import org.eclipse.rdf4j.query.AbstractBindingSet;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;

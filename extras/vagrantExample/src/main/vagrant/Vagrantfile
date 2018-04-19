@@ -52,10 +52,12 @@ Vagrant.configure(2) do |config|
     export ACCUMULO_VERSION=1.6.5
     ###export ACCUMULO_VERSION=1.7.1
     export HADOOP_VERSION=2.7.2
-    export RYA_EXAMPLE_VERSION=3.2.13-SNAPSHOT
+    export RYA_EXAMPLE_VERSION=4.0.0-incubating
     export RDF4J_VERSION=2.3.1
     export ZOOKEEPER_VERSION=3.4.5-cdh4.5.0
-    
+
+    mavenRepoUrl=http://repo1.maven.org/maven2/
+
     echo "Updating host file with permanent ip"
 	sudo sed -i 's/127.0.1.1/192.168.33.10/' /etc/hosts
     cat >> /etc/hosts <<EOF
@@ -295,25 +297,25 @@ EOF
     sudo ln --force -s /usr/share/tomcat7/.RDF4J/Server/logs /var/log/tomcat7/rdf4j-server
 	rdf4jwar=/var/lib/tomcat7/webapps/rdf4j-server.war
 	if [[ ! -s $rdf4jwar ]] ; then 
-		echo "Downloading"
-		download --output $rdf4jwar http://repo1.maven.org/maven2/org/eclipse/rdf4j/rdf4j-http-server/${RDF4J_VERSION}/rdf4j-http-server-${RDF4J_VERSION}.war || exit 110
+		echo "Downloading RDF4J Server"
+		download --output $rdf4jwar ${mavenRepoUrl}org/eclipse/rdf4j/rdf4j-http-server/${RDF4J_VERSION}/rdf4j-http-server-${RDF4J_VERSION}.war || exit 110
 	fi
 	echo "RDF4J http server deployed at http://rya-example-box:8080/rdf4j-server"
 	
 	echo "Installing RDF4J Workbench"
 	workbench=/var/lib/tomcat7/webapps/rdf4j-workbench.war
 	if [[ ! -s $workbench ]] ; then 
-		echo "Downloading"
-		download --output $workbench http://repo1.maven.org/maven2/org/eclipse/rdf4j/rdf4j-http-workbench/${RDF4J_VERSION}/rdf4j-http-workbench-${RDF4J_VERSION}.war || exit 111
+		echo "Downloading RDF4J Workbench"
+		download --output $workbench ${mavenRepoUrl}org/eclipse/rdf4j/rdf4j-http-workbench/${RDF4J_VERSION}/rdf4j-http-workbench-${RDF4J_VERSION}.war || exit 111
 	fi
 	echo "RDF4J workbench deployed at http://rya-example-box:8080/rdf4j-workbench"
 
 	echo "Installing Rya"
 	ryaIndexing=rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution
 	if [[ ! -s ${ryaIndexing}.zip ]] ; then
-		# Right now it's on dropbox, but eventually it'll be on maven...
-		echo "Downloading quietly, this will take some minutes with no output..."
-		download --output ${ryaIndexing}.zip https://dl.dropbox.com/s/7e74yiuq4jmu0od/${ryaIndexing}.zip?raw=1  || exit 112
+		# Eventually it'll be on maven...
+		echo "Downloading ${ryaIndexing} quietly, this will take some minutes with no output..."
+		download --output ${ryaIndexing}.zip ${mavenRepoUrl}org/apache/rya/rya.indexing.example/${RYA_EXAMPLE_VERSION}/${ryaIndexing}.zip?raw=1  || exit 112
 	fi
 	sudo mkdir --parents ${ryaIndexing}
 	sudo unzip -q -o ${ryaIndexing}.zip -d ${ryaIndexing}
@@ -338,8 +340,8 @@ EOF
 	echo "Downloading and installing new templates for RDF4J WorkBench"
 	ryaVagrant=rya.vagrant.example-${RYA_EXAMPLE_VERSION}
 	if [[ ! -s ${ryaVagrant}.jar ]] ; then
-		echo "Downloading"
-		download --output ${ryaVagrant}.jar  https://dl.dropbox.com/s/dgw63m66nubyy4z/${ryaVagrant}.jar?raw=1 || exit 120
+		echo "Downloading ${ryaVagrant}"
+		download --output ${ryaVagrant}.jar  ${mavenRepoUrl}org/apache/rya/rya.vagrant.example/${RYA_EXAMPLE_VERSION}/${ryaVagrant}.jar?raw=1 || exit 120
 	fi
 	sudo mkdir --parents ${ryaVagrant}
 	sudo unzip -q -o ${ryaVagrant}.jar -d ${ryaVagrant}
@@ -349,8 +351,8 @@ EOF
 	echo "Deploying Rya Web"
 	ryaWar=web.rya-${RYA_EXAMPLE_VERSION}.war
 	if [[ ! -s ${ryaWar} ]] ; then
-		echo "Downloading"
-		download https://dl.dropbox.com/s/332wr4b2f34dp6e/${ryaWar}?raw=1 --output ${ryaWar} || exit 121
+		echo "Downloading ${ryaWar}"
+		download ${mavenRepoUrl}org/apache/rya/web.rya/${RYA_EXAMPLE_VERSION}/${ryaWar}.jar?raw=1 --output ${ryaWar} || exit 121
 	fi
 	sudo cp ${ryaWar} /var/lib/tomcat7/webapps/web.rya.war
 	# Wait for the war to deploy

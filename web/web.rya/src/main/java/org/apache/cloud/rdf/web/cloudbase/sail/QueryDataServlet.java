@@ -23,7 +23,7 @@
 //import RdfCloudTripleStoreConstants;
 //import RdfCloudTripleStoreConstants;
 //import org.eclipse.rdf4j.model.ValueFactory;
-//import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+//import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 //import org.eclipse.rdf4j.query.GraphQuery;
 //import org.eclipse.rdf4j.query.QueryLanguage;
 //import org.eclipse.rdf4j.query.TupleQuery;

@@ -81,11 +81,11 @@ We will go through some quick samples on loading inferred relationships, seeing 
 First the code, which will load the following subclassof relationship: `UndergraduateStudent subclassof Student subclassof Person`. Then we will load into the tables three triples defining `UgradA rdf:type UndergraduateStudent, StudentB rdf:type Student, PersonC rdf:type Person`
 
 ``` JAVA
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "UndergraduateStudent"), RDFS.SUBCLASSOF, vf.createIRI(litdupsNS, "Student")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "Student"), RDFS.SUBCLASSOF, vf.createIRI(litdupsNS, "Person")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "UgradA"), RDF.TYPE, vf.createIRI(litdupsNS, "UndergraduateStudent")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "StudentB"), RDF.TYPE, vf.createIRI(litdupsNS, "Student")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "PersonC"), RDF.TYPE, vf.createIRI(litdupsNS, "Person")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "UndergraduateStudent"), RDFS.SUBCLASSOF, vf.createIRI(litdupsNS, "Student")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "Student"), RDFS.SUBCLASSOF, vf.createIRI(litdupsNS, "Person")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "UgradA"), RDF.TYPE, vf.createIRI(litdupsNS, "UndergraduateStudent")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "StudentB"), RDF.TYPE, vf.createIRI(litdupsNS, "Student")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "PersonC"), RDF.TYPE, vf.createIRI(litdupsNS, "Person")));
 conn.commit();
 ```
 
@@ -140,13 +140,13 @@ Also, EquivalentProperty can be thought of as specialized SubPropertyOf relation
 Sample Code:
 
 ``` JAVA
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "undergradDegreeFrom"), RDFS.SUBPROPERTYOF, vf.createIRI(litdupsNS, "degreeFrom")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "gradDegreeFrom"), RDFS.SUBPROPERTYOF, vf.createIRI(litdupsNS, "degreeFrom")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "degreeFrom"), RDFS.SUBPROPERTYOF, vf.createIRI(litdupsNS, "memberOf")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "memberOf"), RDFS.SUBPROPERTYOF, vf.createIRI(litdupsNS, "associatedWith")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "UgradA"), vf.createIRI(litdupsNS, "undergradDegreeFrom"), vf.createIRI(litdupsNS, "Harvard")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "GradB"), vf.createIRI(litdupsNS, "gradDegreeFrom"), vf.createIRI(litdupsNS, "Yale")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "ProfessorC"), vf.createIRI(litdupsNS, "memberOf"), vf.createIRI(litdupsNS, "Harvard")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "undergradDegreeFrom"), RDFS.SUBPROPERTYOF, vf.createIRI(litdupsNS, "degreeFrom")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "gradDegreeFrom"), RDFS.SUBPROPERTYOF, vf.createIRI(litdupsNS, "degreeFrom")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "degreeFrom"), RDFS.SUBPROPERTYOF, vf.createIRI(litdupsNS, "memberOf")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "memberOf"), RDFS.SUBPROPERTYOF, vf.createIRI(litdupsNS, "associatedWith")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "UgradA"), vf.createIRI(litdupsNS, "undergradDegreeFrom"), vf.createIRI(litdupsNS, "Harvard")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "GradB"), vf.createIRI(litdupsNS, "gradDegreeFrom"), vf.createIRI(litdupsNS, "Yale")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "ProfessorC"), vf.createIRI(litdupsNS, "memberOf"), vf.createIRI(litdupsNS, "Harvard")));
 conn.commit();
 ```
 
@@ -197,10 +197,10 @@ InverseOf defines a property that is an inverse relation of another property. Fo
 Code:
 
 ``` JAVA
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "degreeFrom"), OWL.INVERSEOF, vf.createIRI(litdupsNS, "hasAlumnus")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "UgradA"), vf.createIRI(litdupsNS, "degreeFrom"), vf.createIRI(litdupsNS, "Harvard")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "GradB"), vf.createIRI(litdupsNS, "degreeFrom"), vf.createIRI(litdupsNS, "Harvard")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "Harvard"), vf.createIRI(litdupsNS, "hasAlumnus"), vf.createIRI(litdupsNS, "AlumC")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "degreeFrom"), OWL.INVERSEOF, vf.createIRI(litdupsNS, "hasAlumnus")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "UgradA"), vf.createIRI(litdupsNS, "degreeFrom"), vf.createIRI(litdupsNS, "Harvard")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "GradB"), vf.createIRI(litdupsNS, "degreeFrom"), vf.createIRI(litdupsNS, "Harvard")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "Harvard"), vf.createIRI(litdupsNS, "hasAlumnus"), vf.createIRI(litdupsNS, "AlumC")));
 conn.commit();
 ```
 
@@ -252,9 +252,9 @@ SymmetricProperty defines a relationship where, for example, if Bob is a friendO
 Code:
 
 ``` JAVA
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "friendOf"), RDF.TYPE, OWL.SYMMETRICPROPERTY));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "Bob"), vf.createIRI(litdupsNS, "friendOf"), vf.createIRI(litdupsNS, "Jeff")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "James"), vf.createIRI(litdupsNS, "friendOf"), vf.createIRI(litdupsNS, "Jeff")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "friendOf"), RDF.TYPE, OWL.SYMMETRICPROPERTY));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "Bob"), vf.createIRI(litdupsNS, "friendOf"), vf.createIRI(litdupsNS, "Jeff")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "James"), vf.createIRI(litdupsNS, "friendOf"), vf.createIRI(litdupsNS, "Jeff")));
 conn.commit();
 ```
 
@@ -302,12 +302,12 @@ TransitiveProperty provides a transitive relationship between resources. For exa
 Code:
 
 ``` JAVA
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "subRegionOf"), RDF.TYPE, OWL.TRANSITIVEPROPERTY));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "Queens"), vf.createIRI(litdupsNS, "subRegionOf"), vf.createIRI(litdupsNS, "NYC")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "NYC"), vf.createIRI(litdupsNS, "subRegionOf"), vf.createIRI(litdupsNS, "NY")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "NY"), vf.createIRI(litdupsNS, "subRegionOf"), vf.createIRI(litdupsNS, "US")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "US"), vf.createIRI(litdupsNS, "subRegionOf"), vf.createIRI(litdupsNS, "NorthAmerica")));
-conn.add(new StatementImpl(vf.createIRI(litdupsNS, "NorthAmerica"), vf.createIRI(litdupsNS, "subRegionOf"), vf.createIRI(litdupsNS, "World")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "subRegionOf"), RDF.TYPE, OWL.TRANSITIVEPROPERTY));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "Queens"), vf.createIRI(litdupsNS, "subRegionOf"), vf.createIRI(litdupsNS, "NYC")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "NYC"), vf.createIRI(litdupsNS, "subRegionOf"), vf.createIRI(litdupsNS, "NY")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "NY"), vf.createIRI(litdupsNS, "subRegionOf"), vf.createIRI(litdupsNS, "US")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "US"), vf.createIRI(litdupsNS, "subRegionOf"), vf.createIRI(litdupsNS, "NorthAmerica")));
+conn.add(vf.createStatement(vf.createIRI(litdupsNS, "NorthAmerica"), vf.createIRI(litdupsNS, "subRegionOf"), vf.createIRI(litdupsNS, "World")));
 conn.commit();
 ```
 

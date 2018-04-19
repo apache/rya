@@ -28,7 +28,7 @@
 //import org.eclipse.rdf4j.model.Resource;
 //import org.eclipse.rdf4j.model.IRI;
 //import org.eclipse.rdf4j.model.Value;
-//import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+//import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 //
 //import com.google.common.io.ByteStreams;
 //
@@ -37,8 +37,8 @@
 //public class RdfCloudTripleStoreUtilsTest extends TestCase {
 //
 //	public void testWriteReadURI() throws Exception {
-//		final ValueFactoryImpl vf = SimpleValueFactory.getInstance();
-//		URI uri = vf.createIRI("http://www.example.org/test/rel");
+//		final ValueFactory vf = SimpleValueFactory.getInstance();
+//		IRI uri = vf.createIRI("http://www.example.org/test/rel");
 //		byte[] value = writeValue(uri);
 //
 //		Value readValue = readValue(ByteStreams
@@ -47,7 +47,7 @@
 //	}
 //
 //	public void testWriteReadBNode() throws Exception {
-//		final ValueFactoryImpl vf = SimpleValueFactory.getInstance();
+//		final ValueFactory vf = SimpleValueFactory.getInstance();
 //		Value val = vf.createBNode("bnodeid");
 //		byte[] value = writeValue(val);
 //
@@ -57,7 +57,7 @@
 //	}
 //
 //	public void testWriteReadLiteral() throws Exception {
-//		final ValueFactoryImpl vf = SimpleValueFactory.getInstance();
+//		final ValueFactory vf = SimpleValueFactory.getInstance();
 //		Value val = vf.createLiteral("myliteral");
 //		byte[] value = writeValue(val);
 //
@@ -67,7 +67,7 @@
 //	}
 //
 //	public void testContexts() throws Exception {
-//		final ValueFactoryImpl vf = SimpleValueFactory.getInstance();
+//		final ValueFactory vf = SimpleValueFactory.getInstance();
 //		BNode cont1 = vf.createBNode("cont1");
 //		BNode cont2 = vf.createBNode("cont2");
 //		BNode cont3 = vf.createBNode("cont3");

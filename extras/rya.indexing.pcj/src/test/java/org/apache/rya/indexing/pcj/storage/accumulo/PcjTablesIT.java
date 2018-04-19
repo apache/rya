@@ -82,7 +82,7 @@ public class PcjTablesIT {
     private static final String CLOUDBASE_INSTANCE = "sc.cloudbase.instancename";
     private static final String CLOUDBASE_USER = "sc.cloudbase.username";
     private static final String CLOUDBASE_PASSWORD = "sc.cloudbase.password";
-    private static final ValueFactory VF =  SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
 

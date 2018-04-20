@@ -43,7 +43,7 @@ import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 
 import junit.framework.TestCase;
 
@@ -98,9 +98,9 @@ public class StatementPatternStorageTest extends TestCase {
     }
 
     public void testSimplePredicateRange() throws Exception {
-        ryaDAO.add(new RyaStatement(new RyaURI(namespace, "a"),new RyaURI(namespace,"p"), new RyaType("l")));
-        ryaDAO.add(new RyaStatement(new RyaURI(namespace, "b"), new RyaURI(namespace, "p"), new RyaType("l")));
-        ryaDAO.add(new RyaStatement(new RyaURI(namespace, "c"), new RyaURI(namespace, "n"), new RyaType("l")));
+        ryaDAO.add(new RyaStatement(new RyaIRI(namespace, "a"),new RyaIRI(namespace,"p"), new RyaType("l")));
+        ryaDAO.add(new RyaStatement(new RyaIRI(namespace, "b"), new RyaIRI(namespace, "p"), new RyaType("l")));
+        ryaDAO.add(new RyaStatement(new RyaIRI(namespace, "c"), new RyaIRI(namespace, "n"), new RyaType("l")));
         
 
         int count = 0;
@@ -119,8 +119,8 @@ public class StatementPatternStorageTest extends TestCase {
     }
 
     public void testContext() throws Exception {
-        ryaDAO.add(new RyaStatement(new RyaURI(namespace, "a"), new RyaURI(namespace, "p"), new RyaType("l1")));
-        ryaDAO.add(new RyaStatement(new RyaURI(namespace, "a"), new RyaURI(namespace, "p"), new RyaType("l2"), new RyaURI(namespace, "g1")));
+        ryaDAO.add(new RyaStatement(new RyaIRI(namespace, "a"), new RyaIRI(namespace, "p"), new RyaType("l1")));
+        ryaDAO.add(new RyaStatement(new RyaIRI(namespace, "a"), new RyaIRI(namespace, "p"), new RyaType("l2"), new RyaIRI(namespace, "g1")));
         
 
         int count = 0;

@@ -27,7 +27,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
@@ -54,10 +54,10 @@ public class MongoEntityStorageIT extends MongoITBase {
     public void create_and_get() throws Exception {
         // An Entity that will be stored.
         final Entity entity = Entity.builder()
-                .setSubject(new RyaURI("urn:GTIN-14/00012345600012"))
-                .setExplicitType(new RyaURI("urn:icecream"))
-                .setProperty(new RyaURI("urn:icecream"), new Property(new RyaURI("urn:brand"), new RyaType(XMLSchema.STRING, "Awesome Icecream")))
-                .setProperty(new RyaURI("urn:icecream"), new Property(new RyaURI("urn:flavor"), new RyaType(XMLSchema.STRING, "Chocolate")))
+                .setSubject(new RyaIRI("urn:GTIN-14/00012345600012"))
+                .setExplicitType(new RyaIRI("urn:icecream"))
+                .setProperty(new RyaIRI("urn:icecream"), new Property(new RyaIRI("urn:brand"), new RyaType(XMLSchema.STRING, "Awesome Icecream")))
+                .setProperty(new RyaIRI("urn:icecream"), new Property(new RyaIRI("urn:flavor"), new RyaType(XMLSchema.STRING, "Chocolate")))
                 .build();
 
         // Create it.
@@ -65,7 +65,7 @@ public class MongoEntityStorageIT extends MongoITBase {
         storage.create(entity);
 
         // Get it.
-        final Optional<Entity> storedEntity = storage.get(new RyaURI("urn:GTIN-14/00012345600012"));
+        final Optional<Entity> storedEntity = storage.get(new RyaIRI("urn:GTIN-14/00012345600012"));
 
         // Verify the correct value was returned.
         assertEquals(entity, storedEntity.get());
@@ -75,10 +75,10 @@ public class MongoEntityStorageIT extends MongoITBase {
     public void can_not_create_with_same_subject() throws Exception {
         // A Type that will be stored.
         final Entity entity = Entity.builder()
-                .setSubject(new RyaURI("urn:GTIN-14/00012345600012"))
-                .setExplicitType(new RyaURI("urn:icecream"))
-                .setProperty(new RyaURI("urn:icecream"), new Property(new RyaURI("urn:brand"), new RyaType(XMLSchema.STRING, "Awesome Icecream")))
-                .setProperty(new RyaURI("urn:icecream"), new Property(new RyaURI("urn:flavor"), new RyaType(XMLSchema.STRING, "Chocolate")))
+                .setSubject(new RyaIRI("urn:GTIN-14/00012345600012"))
+                .setExplicitType(new RyaIRI("urn:icecream"))
+                .setProperty(new RyaIRI("urn:icecream"), new Property(new RyaIRI("urn:brand"), new RyaType(XMLSchema.STRING, "Awesome Icecream")))
+                .setProperty(new RyaIRI("urn:icecream"), new Property(new RyaIRI("urn:flavor"), new RyaType(XMLSchema.STRING, "Chocolate")))
                 .build();
 
         // Create it.
@@ -99,7 +99,7 @@ public class MongoEntityStorageIT extends MongoITBase {
     public void get_noneExisting() throws Exception {
         // Get a Type that hasn't been created.
         final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
-        final Optional<Entity> storedEntity = storage.get(new RyaURI("urn:GTIN-14/00012345600012"));
+        final Optional<Entity> storedEntity = storage.get(new RyaIRI("urn:GTIN-14/00012345600012"));
 
         // Verify nothing was returned.
         assertFalse(storedEntity.isPresent());
@@ -109,10 +109,10 @@ public class MongoEntityStorageIT extends MongoITBase {
     public void delete() throws Exception {
         // An Entity that will be stored.
         final Entity entity = Entity.builder()
-                .setSubject(new RyaURI("urn:GTIN-14/00012345600012"))
-                .setExplicitType(new RyaURI("urn:icecream"))
-                .setProperty(new RyaURI("urn:icecream"), new Property(new RyaURI("urn:brand"), new RyaType(XMLSchema.STRING, "Awesome Icecream")))
-                .setProperty(new RyaURI("urn:icecream"), new Property(new RyaURI("urn:flavor"), new RyaType(XMLSchema.STRING, "Chocolate")))
+                .setSubject(new RyaIRI("urn:GTIN-14/00012345600012"))
+                .setExplicitType(new RyaIRI("urn:icecream"))
+                .setProperty(new RyaIRI("urn:icecream"), new Property(new RyaIRI("urn:brand"), new RyaType(XMLSchema.STRING, "Awesome Icecream")))
+                .setProperty(new RyaIRI("urn:icecream"), new Property(new RyaIRI("urn:flavor"), new RyaType(XMLSchema.STRING, "Chocolate")))
                 .build();
 
         // Create it.
@@ -120,7 +120,7 @@ public class MongoEntityStorageIT extends MongoITBase {
         storage.create(entity);
 
         // Delete it.
-        final boolean deleted = storage.delete( new RyaURI("urn:GTIN-14/00012345600012") );
+        final boolean deleted = storage.delete( new RyaIRI("urn:GTIN-14/00012345600012") );
 
         // Verify a document was deleted.
         assertTrue( deleted );
@@ -130,7 +130,7 @@ public class MongoEntityStorageIT extends MongoITBase {
     public void delete_nonExisting() throws Exception {
         // Delete an Entity that has not been created.
         final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
-        final boolean deleted = storage.delete( new RyaURI("urn:GTIN-14/00012345600012") );
+        final boolean deleted = storage.delete( new RyaIRI("urn:GTIN-14/00012345600012") );
 
         // Verify no document was deleted.
         assertFalse( deleted );
@@ -141,50 +141,50 @@ public class MongoEntityStorageIT extends MongoITBase {
         final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
 
         // The Type we will search by.
-        final Type icecreamType = new Type(new RyaURI("urn:icecream"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:brand"))
-                    .add(new RyaURI("urn:flavor"))
-                    .add(new RyaURI("urn:cost"))
+        final Type icecreamType = new Type(new RyaIRI("urn:icecream"),
+                ImmutableSet.<RyaIRI>builder()
+                    .add(new RyaIRI("urn:brand"))
+                    .add(new RyaIRI("urn:flavor"))
+                    .add(new RyaIRI("urn:cost"))
                     .build());
 
         // Some Person typed entities.
         final Entity alice = Entity.builder()
-                .setSubject( new RyaURI("urn:SSN/111-11-1111") )
-                .setExplicitType(new RyaURI("urn:person"))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
+                .setSubject( new RyaIRI("urn:SSN/111-11-1111") )
+                .setExplicitType(new RyaIRI("urn:person"))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:age"), new RyaType(XMLSchema.INT, "30")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
                 .build();
 
         final Entity bob = Entity.builder()
-                .setSubject( new RyaURI("urn:SSN/222-22-2222") )
-                .setExplicitType(new RyaURI("urn:person"))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Bob")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "57")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
+                .setSubject( new RyaIRI("urn:SSN/222-22-2222") )
+                .setExplicitType(new RyaIRI("urn:person"))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:name"), new RyaType(XMLSchema.STRING, "Bob")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:age"), new RyaType(XMLSchema.INT, "57")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
                 .build();
 
         // Some Icecream typed objects.
         final Entity chocolateIcecream = Entity.builder()
-                .setSubject(new RyaURI("urn:GTIN-14/00012345600012"))
-                .setExplicitType(new RyaURI("urn:icecream"))
-                .setProperty(new RyaURI("urn:icecream"), new Property(new RyaURI("urn:brand"), new RyaType(XMLSchema.STRING, "Awesome Icecream")))
-                .setProperty(new RyaURI("urn:icecream"), new Property(new RyaURI("urn:flavor"), new RyaType(XMLSchema.STRING, "Chocolate")))
+                .setSubject(new RyaIRI("urn:GTIN-14/00012345600012"))
+                .setExplicitType(new RyaIRI("urn:icecream"))
+                .setProperty(new RyaIRI("urn:icecream"), new Property(new RyaIRI("urn:brand"), new RyaType(XMLSchema.STRING, "Awesome Icecream")))
+                .setProperty(new RyaIRI("urn:icecream"), new Property(new RyaIRI("urn:flavor"), new RyaType(XMLSchema.STRING, "Chocolate")))
                 .build();
 
         final Entity vanillaIcecream = Entity.builder()
-                .setSubject( new RyaURI("urn:GTIN-14/22356325213432") )
-                .setExplicitType(new RyaURI("urn:icecream"))
-                .setProperty(new RyaURI("urn:icecream"), new Property(new RyaURI("urn:brand"), new RyaType(XMLSchema.STRING, "Awesome Icecream")))
-                .setProperty(new RyaURI("urn:icecream"), new Property(new RyaURI("urn:flavor"), new RyaType(XMLSchema.STRING, "Vanilla")))
+                .setSubject( new RyaIRI("urn:GTIN-14/22356325213432") )
+                .setExplicitType(new RyaIRI("urn:icecream"))
+                .setProperty(new RyaIRI("urn:icecream"), new Property(new RyaIRI("urn:brand"), new RyaType(XMLSchema.STRING, "Awesome Icecream")))
+                .setProperty(new RyaIRI("urn:icecream"), new Property(new RyaIRI("urn:flavor"), new RyaType(XMLSchema.STRING, "Vanilla")))
                 .build();
 
 
         final Entity strawberryIcecream = Entity.builder()
-                .setSubject( new RyaURI("urn:GTIN-14/77544325436721") )
-                .setProperty(new RyaURI("urn:icecream"), new Property(new RyaURI("urn:brand"), new RyaType(XMLSchema.STRING, "Awesome Icecream")))
-                .setProperty(new RyaURI("urn:icecream"), new Property(new RyaURI("urn:flavor"), new RyaType(XMLSchema.STRING, "Strawberry")))
+                .setSubject( new RyaIRI("urn:GTIN-14/77544325436721") )
+                .setProperty(new RyaIRI("urn:icecream"), new Property(new RyaIRI("urn:brand"), new RyaType(XMLSchema.STRING, "Awesome Icecream")))
+                .setProperty(new RyaIRI("urn:icecream"), new Property(new RyaIRI("urn:flavor"), new RyaType(XMLSchema.STRING, "Strawberry")))
                 .build();
 
         // Create the objects in the storage.
@@ -204,8 +204,8 @@ public class MongoEntityStorageIT extends MongoITBase {
 
         // Verify the expected results were returned.
         final Set<TypedEntity> expected = Sets.newHashSet(
-                chocolateIcecream.makeTypedEntity(new RyaURI("urn:icecream")).get(),
-                vanillaIcecream.makeTypedEntity(new RyaURI("urn:icecream")).get());
+                chocolateIcecream.makeTypedEntity(new RyaIRI("urn:icecream")).get(),
+                vanillaIcecream.makeTypedEntity(new RyaIRI("urn:icecream")).get());
         assertEquals(expected, objects);
     }
 
@@ -214,67 +214,67 @@ public class MongoEntityStorageIT extends MongoITBase {
         final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
 
         // A Type that defines a Person.
-        final Type personType = new Type(new RyaURI("urn:person"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:name"))
-                    .add(new RyaURI("urn:age"))
-                    .add(new RyaURI("urn:eye"))
+        final Type personType = new Type(new RyaIRI("urn:person"),
+                ImmutableSet.<RyaIRI>builder()
+                    .add(new RyaIRI("urn:name"))
+                    .add(new RyaIRI("urn:age"))
+                    .add(new RyaIRI("urn:eye"))
                     .build());
 
         // Some Person typed objects.
         final Entity alice = Entity.builder()
-                .setSubject( new RyaURI("urn:SSN/111-11-1111") )
-                .setExplicitType(new RyaURI("urn:person"))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
+                .setSubject( new RyaIRI("urn:SSN/111-11-1111") )
+                .setExplicitType(new RyaIRI("urn:person"))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:age"), new RyaType(XMLSchema.INT, "30")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
                 .build();
 
         final Entity bob = Entity.builder()
-                .setSubject( new RyaURI("urn:SSN/222-22-2222") )
-                .setExplicitType(new RyaURI("urn:person"))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Bob")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "57")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
+                .setSubject( new RyaIRI("urn:SSN/222-22-2222") )
+                .setExplicitType(new RyaIRI("urn:person"))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:name"), new RyaType(XMLSchema.STRING, "Bob")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:age"), new RyaType(XMLSchema.INT, "57")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
                 .build();
 
 
         final Entity charlie = Entity.builder()
-                .setSubject( new RyaURI("urn:SSN/333-33-3333") )
-                .setExplicitType( new RyaURI("urn:person") )
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Charlie")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
+                .setSubject( new RyaIRI("urn:SSN/333-33-3333") )
+                .setExplicitType( new RyaIRI("urn:person") )
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:name"), new RyaType(XMLSchema.STRING, "Charlie")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:age"), new RyaType(XMLSchema.INT, "30")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
                 .build();
 
         final Entity david = Entity.builder()
-                .setSubject( new RyaURI("urn:SSN/444-44-4444") )
-                .setExplicitType( new RyaURI("urn:person") )
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "David")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "brown")))
+                .setSubject( new RyaIRI("urn:SSN/444-44-4444") )
+                .setExplicitType( new RyaIRI("urn:person") )
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:name"), new RyaType(XMLSchema.STRING, "David")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:age"), new RyaType(XMLSchema.INT, "30")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:eye"), new RyaType(XMLSchema.STRING, "brown")))
                 .build();
 
         final Entity eve = Entity.builder()
-                .setSubject( new RyaURI("urn:SSN/555-55-5555") )
-                .setExplicitType( new RyaURI("urn:person") )
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Eve")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
+                .setSubject( new RyaIRI("urn:SSN/555-55-5555") )
+                .setExplicitType( new RyaIRI("urn:person") )
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:name"), new RyaType(XMLSchema.STRING, "Eve")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:age"), new RyaType(XMLSchema.INT, "30")))
                 .build();
 
         final Entity frank = Entity.builder()
-                .setSubject( new RyaURI("urn:SSN/666-66-6666") )
-                .setExplicitType( new RyaURI("urn:person") )
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Frank")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
-                .setProperty(new RyaURI("urn:someOtherType"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
+                .setSubject( new RyaIRI("urn:SSN/666-66-6666") )
+                .setExplicitType( new RyaIRI("urn:person") )
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:name"), new RyaType(XMLSchema.STRING, "Frank")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
+                .setProperty(new RyaIRI("urn:someOtherType"), new Property(new RyaIRI("urn:age"), new RyaType(XMLSchema.INT, "30")))
                 .build();
 
         final Entity george = Entity.builder()
-                .setSubject( new RyaURI("urn:SSN/777-77-7777") )
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "George")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
+                .setSubject( new RyaIRI("urn:SSN/777-77-7777") )
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:name"), new RyaType(XMLSchema.STRING, "George")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:age"), new RyaType(XMLSchema.INT, "30")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
                 .build();
 
         // Create the objects in the storage.
@@ -290,8 +290,8 @@ public class MongoEntityStorageIT extends MongoITBase {
         final Set<TypedEntity> objects = new HashSet<>();
 
         final Set<Property> searchValues = Sets.newHashSet(
-                new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")),
-                new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")));
+                new Property(new RyaIRI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")),
+                new Property(new RyaIRI("urn:age"), new RyaType(XMLSchema.INT, "30")));
 
         try(final ConvertingCursor<TypedEntity> it = storage.search(Optional.empty(), personType, searchValues)) {
             while(it.hasNext()) {
@@ -301,8 +301,8 @@ public class MongoEntityStorageIT extends MongoITBase {
 
         // Verify the expected results were returned.
         assertEquals(2, objects.size());
-        assertTrue(objects.contains(alice.makeTypedEntity(new RyaURI("urn:person")).get()));
-        assertTrue(objects.contains(charlie.makeTypedEntity(new RyaURI("urn:person")).get()));
+        assertTrue(objects.contains(alice.makeTypedEntity(new RyaIRI("urn:person")).get()));
+        assertTrue(objects.contains(charlie.makeTypedEntity(new RyaIRI("urn:person")).get()));
     }
 
     @Test
@@ -311,29 +311,29 @@ public class MongoEntityStorageIT extends MongoITBase {
 
         // Store Alice in the repository.
         final Entity alice = Entity.builder()
-                .setSubject( new RyaURI("urn:SSN/111-11-1111") )
-                .setExplicitType(new RyaURI("urn:person"))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
+                .setSubject( new RyaIRI("urn:SSN/111-11-1111") )
+                .setExplicitType(new RyaIRI("urn:person"))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:age"), new RyaType(XMLSchema.INT, "30")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
                 .build();
 
         storage.create(alice);
 
         // Show Alice was stored.
-        Optional<Entity> latest = storage.get(new RyaURI("urn:SSN/111-11-1111"));
+        Optional<Entity> latest = storage.get(new RyaIRI("urn:SSN/111-11-1111"));
         assertEquals(alice, latest.get());
 
         // Change Alice's eye color to brown.
         final Entity updated = Entity.builder(alice)
                 .setVersion(latest.get().getVersion() + 1)
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "brown")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:eye"), new RyaType(XMLSchema.STRING, "brown")))
                 .build();
 
         storage.update(alice, updated);
 
         // Fetch the Alice object and ensure it has the new value.
-        latest = storage.get(new RyaURI("urn:SSN/111-11-1111"));
+        latest = storage.get(new RyaIRI("urn:SSN/111-11-1111"));
 
         assertEquals(updated, latest.get());
     }
@@ -344,17 +344,17 @@ public class MongoEntityStorageIT extends MongoITBase {
 
         // Store Alice in the repository.
         final Entity alice = Entity.builder()
-                .setSubject( new RyaURI("urn:SSN/111-11-1111") )
-                .setExplicitType(new RyaURI("urn:person"))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
+                .setSubject( new RyaIRI("urn:SSN/111-11-1111") )
+                .setExplicitType(new RyaIRI("urn:person"))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:age"), new RyaType(XMLSchema.INT, "30")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")))
                 .build();
 
         storage.create(alice);
 
         // Show Alice was stored.
-        final Optional<Entity> latest = storage.get(new RyaURI("urn:SSN/111-11-1111"));
+        final Optional<Entity> latest = storage.get(new RyaIRI("urn:SSN/111-11-1111"));
         assertEquals(alice, latest.get());
 
         // Create the wrong old state and try to change Alice's eye color to brown.
@@ -364,7 +364,7 @@ public class MongoEntityStorageIT extends MongoITBase {
 
         final Entity updated = Entity.builder(alice)
                 .setVersion(501)
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "brown")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:eye"), new RyaType(XMLSchema.STRING, "brown")))
                 .build();
 
         storage.update(wrongOld, updated);
@@ -374,13 +374,13 @@ public class MongoEntityStorageIT extends MongoITBase {
     public void update_differentSubjects() throws Exception {
         // Two objects that do not have the same Subjects.
         final Entity old = Entity.builder()
-                .setSubject( new RyaURI("urn:SSN/111-11-1111") )
-                .setExplicitType( new RyaURI("urn:person") )
+                .setSubject( new RyaIRI("urn:SSN/111-11-1111") )
+                .setExplicitType( new RyaIRI("urn:person") )
                 .build();
 
         final Entity updated = Entity.builder()
-                .setSubject( new RyaURI("urn:SSN/222-22-2222") )
-                .setExplicitType( new RyaURI("urn:person") )
+                .setSubject( new RyaIRI("urn:SSN/222-22-2222") )
+                .setExplicitType( new RyaIRI("urn:person") )
                 .build();
 
         // The update will fail.

@@ -34,7 +34,7 @@ import org.apache.rya.accumulo.RyaTableMutationsFactory;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -111,14 +111,14 @@ public class AccumuloDocIndexerTest {
           for (int i = 0; i < 20; i++) {
                       
               
-                    RyaStatement rs1 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf1"), new RyaType(XMLSchema.STRING, "cq1"));
-                    RyaStatement rs2 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"));
+                    RyaStatement rs1 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf1"), new RyaType(XMLSchema.STRING, "cq1"));
+                    RyaStatement rs2 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"));
                     RyaStatement rs3 = null;
                     RyaStatement rs4 = null;
                    
                     if(i == 5 || i == 15) {
-                        rs3 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)));
-                        rs4 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.STRING,Integer.toString(i)));
+                        rs3 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)));
+                        rs4 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.STRING,Integer.toString(i)));
                     }
         
                     Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Collection<Mutation>> serialize1 = rtm.serialize(rs1);
@@ -246,13 +246,13 @@ public class AccumuloDocIndexerTest {
           for (int i = 0; i < 30; i++) {
                       
               
-                    RyaStatement rs1 = new RyaStatement(new RyaURI("uri:cq1"), new RyaURI("uri:cf1"), new RyaURI("uri:" + i ));
-                    RyaStatement rs2 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"));
+                    RyaStatement rs1 = new RyaStatement(new RyaIRI("uri:cq1"), new RyaIRI("uri:cf1"), new RyaIRI("uri:" + i ));
+                    RyaStatement rs2 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"));
                     RyaStatement rs3 = null;
                   
                    
                     if(i == 5 || i == 10 || i == 15 || i == 20 || i == 25) {
-                        rs3 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)));
+                        rs3 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)));
                     }
         
                     Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Collection<Mutation>> serialize1 = rtm.serialize(rs1);
@@ -370,13 +370,13 @@ public class AccumuloDocIndexerTest {
           for (int i = 0; i < 30; i++) {
                       
               
-                    RyaStatement rs1 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf1"), new RyaType(XMLSchema.STRING, "cq1"));
-                    RyaStatement rs2 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"));
+                    RyaStatement rs1 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf1"), new RyaType(XMLSchema.STRING, "cq1"));
+                    RyaStatement rs2 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"));
                     RyaStatement rs3 = null;
                   
                    
                     if(i == 5 || i == 10 || i == 15 || i == 20 || i == 25) {
-                        rs3 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)));
+                        rs3 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)));
                     }
         
                     Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Collection<Mutation>> serialize1 = rtm.serialize(rs1);
@@ -484,13 +484,13 @@ public class AccumuloDocIndexerTest {
           for (int i = 0; i < 30; i++) {
                       
               
-                    RyaStatement rs1 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf1"), new RyaType(XMLSchema.STRING, "cq1"));
-                    RyaStatement rs2 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"));
+                    RyaStatement rs1 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf1"), new RyaType(XMLSchema.STRING, "cq1"));
+                    RyaStatement rs2 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"));
                     RyaStatement rs3 = null;
                     
                    
                     if(i == 5 || i == 10 || i == 15 || i == 20 || i == 25) {
-                        rs3 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)));
+                        rs3 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)));
                     }
         
                     Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Collection<Mutation>> serialize1 = rtm.serialize(rs1);
@@ -596,13 +596,13 @@ public class AccumuloDocIndexerTest {
           for (int i = 0; i < 30; i++) {
                       
               
-                    RyaStatement rs1 = new RyaStatement(new RyaURI("uri:cq1"), new RyaURI("uri:cf1"), new RyaURI("uri:" + i ));
-                    RyaStatement rs2 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"));
+                    RyaStatement rs1 = new RyaStatement(new RyaIRI("uri:cq1"), new RyaIRI("uri:cf1"), new RyaIRI("uri:" + i ));
+                    RyaStatement rs2 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"));
                     RyaStatement rs3 = null;
                   
                    
                     if(i == 5 || i == 10 || i == 15 || i == 20 || i == 25) {
-                        rs3 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)));
+                        rs3 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)));
                     }
         
                     Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Collection<Mutation>> serialize1 = rtm.serialize(rs1);
@@ -710,13 +710,13 @@ public class AccumuloDocIndexerTest {
           for (int i = 0; i < 30; i++) {
                       
               
-                    RyaStatement rs1 = new RyaStatement(new RyaURI("uri:cq1"), new RyaURI("uri:cf1"), new RyaURI("uri:" + i ));
-                    RyaStatement rs2 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"));
+                    RyaStatement rs1 = new RyaStatement(new RyaIRI("uri:cq1"), new RyaIRI("uri:cf1"), new RyaIRI("uri:" + i ));
+                    RyaStatement rs2 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"));
                     RyaStatement rs3 = null;
                   
                    
                     if(i == 5 || i == 10 || i == 15 || i == 20 || i == 25) {
-                        rs3 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)));
+                        rs3 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)));
                     }
         
                     Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Collection<Mutation>> serialize1 = rtm.serialize(rs1);
@@ -825,18 +825,18 @@ public class AccumuloDocIndexerTest {
           for (int i = 0; i < 30; i++) {
                       
               
-                    RyaStatement rs1 = new RyaStatement(new RyaURI("uri:cq1"), new RyaURI("uri:cf1"), new RyaURI("uri:" + i ), new RyaURI("uri:joe"));
-                    RyaStatement rs2 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaURI("uri:joe"));
+                    RyaStatement rs1 = new RyaStatement(new RyaIRI("uri:cq1"), new RyaIRI("uri:cf1"), new RyaIRI("uri:" + i ), new RyaIRI("uri:joe"));
+                    RyaStatement rs2 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaIRI("uri:joe"));
                     RyaStatement rs3 = null;
                     
-                    RyaStatement rs4 = new RyaStatement(new RyaURI("uri:cq1"), new RyaURI("uri:cf1"), new RyaURI("uri:" + i ), new RyaURI("uri:hank"));
-                    RyaStatement rs5 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaURI("uri:hank"));
+                    RyaStatement rs4 = new RyaStatement(new RyaIRI("uri:cq1"), new RyaIRI("uri:cf1"), new RyaIRI("uri:" + i ), new RyaIRI("uri:hank"));
+                    RyaStatement rs5 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaIRI("uri:hank"));
                     RyaStatement rs6 = null;
                   
                    
                     if(i == 5 || i == 10 || i == 15 || i == 20 || i == 25) {
-                        rs3 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaURI("uri:joe"));
-                        rs6 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaURI("uri:hank"));
+                        rs3 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaIRI("uri:joe"));
+                        rs6 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaIRI("uri:hank"));
                     }
         
                     Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Collection<Mutation>> serialize1 = rtm.serialize(rs1);
@@ -1002,18 +1002,18 @@ public class AccumuloDocIndexerTest {
           for (int i = 0; i < 30; i++) {
                       
               
-                    RyaStatement rs1 = new RyaStatement(new RyaURI("uri:cq1"), new RyaURI("uri:cf1"), new RyaURI("uri:" + i ), new RyaURI("uri:joe"));
-                    RyaStatement rs2 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaURI("uri:joe"));
+                    RyaStatement rs1 = new RyaStatement(new RyaIRI("uri:cq1"), new RyaIRI("uri:cf1"), new RyaIRI("uri:" + i ), new RyaIRI("uri:joe"));
+                    RyaStatement rs2 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaIRI("uri:joe"));
                     RyaStatement rs3 = null;
                     
-                    RyaStatement rs4 = new RyaStatement(new RyaURI("uri:cq1"), new RyaURI("uri:cf1"), new RyaURI("uri:" + i ), new RyaURI("uri:hank"));
-                    RyaStatement rs5 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaURI("uri:hank"));
+                    RyaStatement rs4 = new RyaStatement(new RyaIRI("uri:cq1"), new RyaIRI("uri:cf1"), new RyaIRI("uri:" + i ), new RyaIRI("uri:hank"));
+                    RyaStatement rs5 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaIRI("uri:hank"));
                     RyaStatement rs6 = null;
                   
                    
                     if(i == 5 || i == 10 || i == 15 || i == 20 || i == 25) {
-                        rs3 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaURI("uri:joe"));
-                        rs6 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaURI("uri:hank"));
+                        rs3 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaIRI("uri:joe"));
+                        rs6 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaIRI("uri:hank"));
                     }
         
                     Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Collection<Mutation>> serialize1 = rtm.serialize(rs1);
@@ -1176,18 +1176,18 @@ public class AccumuloDocIndexerTest {
           for (int i = 0; i < 30; i++) {
               
               
-              RyaStatement rs1 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf1"), new RyaURI("uri:cq1"),  new RyaURI("uri:joe"));
-              RyaStatement rs2 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaURI("uri:joe"));
+              RyaStatement rs1 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf1"), new RyaIRI("uri:cq1"),  new RyaIRI("uri:joe"));
+              RyaStatement rs2 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaIRI("uri:joe"));
               RyaStatement rs3 = null;
               
-              RyaStatement rs4 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf1"), new RyaURI("uri:cq1"), new RyaURI("uri:hank"));
-              RyaStatement rs5 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaURI("uri:hank"));
+              RyaStatement rs4 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf1"), new RyaIRI("uri:cq1"), new RyaIRI("uri:hank"));
+              RyaStatement rs5 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaIRI("uri:hank"));
               RyaStatement rs6 = null;
             
              
               if(i == 5 || i == 10 || i == 15 || i == 20 || i == 25) {
-                  rs3 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaURI("uri:joe"));
-                  rs6 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaURI("uri:hank"));
+                  rs3 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaIRI("uri:joe"));
+                  rs6 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaIRI("uri:hank"));
               }
   
               Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Collection<Mutation>> serialize1 = rtm.serialize(rs1);
@@ -1356,18 +1356,18 @@ public class AccumuloDocIndexerTest {
           for (int i = 0; i < 30; i++) {
               
               
-              RyaStatement rs1 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf1"), new RyaURI("uri:cq1"),  new RyaURI("uri:joe"));
-              RyaStatement rs2 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaURI("uri:joe"));
+              RyaStatement rs1 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf1"), new RyaIRI("uri:cq1"),  new RyaIRI("uri:joe"));
+              RyaStatement rs2 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaIRI("uri:joe"));
               RyaStatement rs3 = null;
               
-              RyaStatement rs4 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf1"), new RyaURI("uri:cq1"), new RyaURI("uri:hank"));
-              RyaStatement rs5 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaURI("uri:hank"));
+              RyaStatement rs4 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf1"), new RyaIRI("uri:cq1"), new RyaIRI("uri:hank"));
+              RyaStatement rs5 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaIRI("uri:hank"));
               RyaStatement rs6 = null;
             
              
               if(i == 5 || i == 10 || i == 15 || i == 20 || i == 25) {
-                  rs3 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaURI("uri:joe"));
-                  rs6 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaURI("uri:hank"));
+                  rs3 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaIRI("uri:joe"));
+                  rs6 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaIRI("uri:hank"));
               }
   
               Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Collection<Mutation>> serialize1 = rtm.serialize(rs1);
@@ -1538,18 +1538,18 @@ public class AccumuloDocIndexerTest {
           for (int i = 0; i < 30; i++) {
               
               
-              RyaStatement rs1 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf1"), new RyaURI("uri:cq1"),  new RyaURI("uri:joe"));
-              RyaStatement rs2 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaURI("uri:joe"));
+              RyaStatement rs1 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf1"), new RyaIRI("uri:cq1"),  new RyaIRI("uri:joe"));
+              RyaStatement rs2 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaIRI("uri:joe"));
               RyaStatement rs3 = null;
               
-              RyaStatement rs4 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf1"), new RyaURI("uri:cq1"), new RyaURI("uri:hank"));
-              RyaStatement rs5 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaURI("uri:hank"));
+              RyaStatement rs4 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf1"), new RyaIRI("uri:cq1"), new RyaIRI("uri:hank"));
+              RyaStatement rs5 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaIRI("uri:hank"));
               RyaStatement rs6 = null;
             
              
               if(i == 5 || i == 10 || i == 15 || i == 20 || i == 25) {
-                  rs3 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaURI("uri:joe"));
-                  rs6 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaURI("uri:hank"));
+                  rs3 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaIRI("uri:joe"));
+                  rs6 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaIRI("uri:hank"));
               }
   
               Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Collection<Mutation>> serialize1 = rtm.serialize(rs1);
@@ -1717,12 +1717,12 @@ public class AccumuloDocIndexerTest {
           for (int i = 0; i < 30; i++) {
               
               
-              RyaStatement rs1 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf1"), new RyaURI("uri:cq1"),  new RyaURI("uri:joe"));
-              RyaStatement rs2 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaURI("uri:joe"));
+              RyaStatement rs1 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf1"), new RyaIRI("uri:cq1"),  new RyaIRI("uri:joe"));
+              RyaStatement rs2 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaIRI("uri:joe"));
               RyaStatement rs3 = null;
               
-              RyaStatement rs4 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf1"), new RyaURI("uri:cq1"), new RyaURI("uri:hank"));
-              RyaStatement rs5 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaURI("uri:hank"));
+              RyaStatement rs4 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf1"), new RyaIRI("uri:cq1"), new RyaIRI("uri:hank"));
+              RyaStatement rs5 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaIRI("uri:hank"));
               RyaStatement rs6 = null;
               
               RyaStatement rs7 = null;
@@ -1730,10 +1730,10 @@ public class AccumuloDocIndexerTest {
             
              
               if(i == 5 || i == 10 || i == 15 || i == 20 || i == 25) {
-                  rs3 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaURI("uri:joe"));
-                  rs6 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaURI("uri:hank"));
-                  rs7 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(100+i)), new RyaURI("uri:joe"));
-                  rs8 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(100+i)), new RyaURI("uri:hank"));
+                  rs3 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaIRI("uri:joe"));
+                  rs6 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaIRI("uri:hank"));
+                  rs7 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(100+i)), new RyaIRI("uri:joe"));
+                  rs8 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(100+i)), new RyaIRI("uri:hank"));
               }
   
               Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Collection<Mutation>> serialize1 = rtm.serialize(rs1);
@@ -1923,18 +1923,18 @@ public class AccumuloDocIndexerTest {
           for (int i = 0; i < 30; i++) {
               
               
-              RyaStatement rs1 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf1"), new RyaURI("uri:cq1"),  new RyaURI("uri:joe"));
-              RyaStatement rs2 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaURI("uri:joe"));
+              RyaStatement rs1 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf1"), new RyaIRI("uri:cq1"),  new RyaIRI("uri:joe"));
+              RyaStatement rs2 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaIRI("uri:joe"));
               RyaStatement rs3 = null;
               
-              RyaStatement rs4 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf1"), new RyaURI("uri:cq1"), new RyaURI("uri:hank"));
-              RyaStatement rs5 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaURI("uri:hank"));
+              RyaStatement rs4 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf1"), new RyaIRI("uri:cq1"), new RyaIRI("uri:hank"));
+              RyaStatement rs5 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"), new RyaIRI("uri:hank"));
               RyaStatement rs6 = null;
             
              
               if(i == 5 || i == 10 || i == 15 || i == 20 || i == 25) {
-                  rs3 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaURI("uri:joe"));
-                  rs6 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaURI("uri:hank"));
+                  rs3 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaIRI("uri:joe"));
+                  rs6 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)), new RyaIRI("uri:hank"));
               }
   
               Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Collection<Mutation>> serialize1 = rtm.serialize(rs1);

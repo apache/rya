@@ -41,7 +41,7 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.RyaTableMutationsFactory;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
@@ -1705,14 +1705,14 @@ public class DocumentIndexIntersectingIteratorTest {
         for (int i = 0; i < 20; i++) {
 
 
-            RyaStatement rs1 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf1"), new RyaType(XMLSchema.STRING, "cq1"));
-            RyaStatement rs2 = new RyaStatement(new RyaURI("uri:" + i ), new RyaURI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"));
+            RyaStatement rs1 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf1"), new RyaType(XMLSchema.STRING, "cq1"));
+            RyaStatement rs2 = new RyaStatement(new RyaIRI("uri:" + i ), new RyaIRI("uri:cf2"), new RyaType(XMLSchema.STRING, "cq2"));
             RyaStatement rs3 = null;
             RyaStatement rs4 = null;
 
             if(i == 5 || i == 15) {
-                rs3 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)));
-                rs4 = new RyaStatement(new RyaURI("uri:" +i ), new RyaURI("uri:cf3"), new RyaType(XMLSchema.STRING,Integer.toString(i)));
+                rs3 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.INTEGER,Integer.toString(i)));
+                rs4 = new RyaStatement(new RyaIRI("uri:" +i ), new RyaIRI("uri:cf3"), new RyaType(XMLSchema.STRING,Integer.toString(i)));
             }
 
 
@@ -1780,9 +1780,9 @@ public class DocumentIndexIntersectingIteratorTest {
         RyaType rt1 = RdfToRyaConversions.convertValue(spList1.get(2).getObjectVar().getValue());
         RyaType rt2 = RdfToRyaConversions.convertValue(spList2.get(2).getObjectVar().getValue());
 
-        RyaURI predURI1 = (RyaURI) RdfToRyaConversions.convertValue(spList1.get(0).getPredicateVar().getValue());
-        RyaURI predURI2 = (RyaURI) RdfToRyaConversions.convertValue(spList1.get(1).getPredicateVar().getValue());
-        RyaURI predURI3 = (RyaURI) RdfToRyaConversions.convertValue(spList1.get(2).getPredicateVar().getValue());
+        RyaIRI predURI1 = (RyaIRI) RdfToRyaConversions.convertValue(spList1.get(0).getPredicateVar().getValue());
+        RyaIRI predURI2 = (RyaIRI) RdfToRyaConversions.convertValue(spList1.get(1).getPredicateVar().getValue());
+        RyaIRI predURI3 = (RyaIRI) RdfToRyaConversions.convertValue(spList1.get(2).getPredicateVar().getValue());
 
         //            System.out.println("to string" + spList1.get(2).getObjectVar().getValue().stringValue());
         //            System.out.println("converted obj" + rt1.getData());

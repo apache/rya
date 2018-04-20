@@ -30,7 +30,7 @@ import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaRange;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.query.strategy.AbstractTriplePatternStrategy;
 import org.apache.rya.api.query.strategy.ByteRange;
 import org.apache.rya.api.resolver.RyaContext;
@@ -51,8 +51,8 @@ public class OspWholeRowTriplePatternStrategy extends AbstractTriplePatternStrat
 
     @Override
     public Map.Entry<TABLE_LAYOUT,
-            ByteRange> defineRange(final RyaURI subject, final RyaURI predicate, final RyaType object,
-                                   final RyaURI context, final RdfCloudTripleStoreConfiguration conf) throws IOException {
+            ByteRange> defineRange(final RyaIRI subject, final RyaIRI predicate, final RyaType object,
+                                   final RyaIRI context, final RdfCloudTripleStoreConfiguration conf) throws IOException {
         try {
             //os(ng)
             //o_r(s)(ng)
@@ -103,7 +103,7 @@ public class OspWholeRowTriplePatternStrategy extends AbstractTriplePatternStrat
     }
 
     @Override
-    public boolean handles(final RyaURI subject, final RyaURI predicate, final RyaType object, final RyaURI context) {
+    public boolean handles(final RyaIRI subject, final RyaIRI predicate, final RyaType object, final RyaIRI context) {
         //os(ng)
         //o_r(s)(ng)
         //o(ng)

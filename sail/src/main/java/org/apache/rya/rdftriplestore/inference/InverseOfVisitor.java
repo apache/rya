@@ -63,13 +63,13 @@ public class InverseOfVisitor extends AbstractInferVisitor {
              "      { ?b ?pred ?a }
              */
 
-            IRI predUri = (IRI) predVar.getValue();
-            IRI invPropUri = inferenceEngine.findInverseOf(predUri);
-            if (invPropUri != null) {
+            IRI predIri = (IRI) predVar.getValue();
+            IRI invPropIri = inferenceEngine.findInverseOf(predIri);
+            if (invPropIri != null) {
                 Var subjVar = sp.getSubjectVar();
                 Union union = new InferUnion();
                 union.setLeftArg(sp);
-                union.setRightArg(new StatementPattern(objVar, new Var(predVar.getName(), invPropUri), subjVar, cntxtVar));
+                union.setRightArg(new StatementPattern(objVar, new Var(predVar.getName(), invPropIri), subjVar, cntxtVar));
                 node.replaceWith(union);
             }
         }

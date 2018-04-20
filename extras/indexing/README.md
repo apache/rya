@@ -46,10 +46,10 @@ flavor is "Chocolate", but has no ingredients or nutritional information, as
 an Entity by doing the following:
 ```
 final Entity entity = Entity.builder()
-             .setSubject(new RyaURI("urn:GTIN-14/00012345600012"))
-             .setExplicitType(new RyaURI("urn:icecream"))
-             .setProperty(new RyaURI("urn:icecream"), new Property(new RyaURI("urn:brand"), new RyaType(XMLSchema.STRING, "Awesome Icecream")))
-             .setProperty(new RyaURI("urn:icecream"), new Property(new RyaURI("urn:flavor"), new RyaType(XMLSchema.STRING, "Chocolate")))
+             .setSubject(new RyaIRI("urn:GTIN-14/00012345600012"))
+             .setExplicitType(new RyaIRI("urn:icecream"))
+             .setProperty(new RyaIRI("urn:icecream"), new Property(new RyaIRI("urn:brand"), new RyaType(XMLSchema.STRING, "Awesome Icecream")))
+             .setProperty(new RyaIRI("urn:icecream"), new Property(new RyaIRI("urn:flavor"), new RyaType(XMLSchema.STRING, "Chocolate")))
              .build();
 ```
 The two types of Entities that may be created are implicit and explicit.

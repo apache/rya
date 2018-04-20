@@ -24,7 +24,7 @@ import java.util.Objects;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -36,7 +36,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 @DefaultAnnotation(NonNull.class)
 public class Property {
 
-    private final RyaURI name;
+    private final RyaIRI name;
     private final RyaType value;
 
     /**
@@ -45,7 +45,7 @@ public class Property {
      * @param name - Uniquely identifies the {@link Property}. (not null)
      * @param value - The value of the {@link Property}. (not null)
      */
-    public Property(final RyaURI name, final RyaType value) {
+    public Property(final RyaIRI name, final RyaType value) {
         this.name = requireNonNull(name);
         this.value = requireNonNull(value);
     }
@@ -53,7 +53,7 @@ public class Property {
     /**
      * @return Uniquely identifies the {@link Property}.
      */
-    public RyaURI getName() {
+    public RyaIRI getName() {
         return name;
     }
 

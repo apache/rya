@@ -63,7 +63,7 @@ import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.layout.TableLayoutStrategy;
 import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.api.persist.RyaDAOException;
@@ -215,7 +215,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
     }
 
     @Override
-    public void dropGraph(final AccumuloRdfConfiguration conf, final RyaURI... graphs) throws RyaDAOException {
+    public void dropGraph(final AccumuloRdfConfiguration conf, final RyaIRI... graphs) throws RyaDAOException {
         BatchDeleter bd_spo = null;
         BatchDeleter bd_po = null;
         BatchDeleter bd_osp = null;
@@ -229,7 +229,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
             bd_po.setRanges(Collections.singleton(new Range()));
             bd_osp.setRanges(Collections.singleton(new Range()));
 
-            for (final RyaURI graph : graphs){
+            for (final RyaIRI graph : graphs){
                 bd_spo.fetchColumnFamily(new Text(graph.getData()));
                 bd_po.fetchColumnFamily(new Text(graph.getData()));
                 bd_osp.fetchColumnFamily(new Text(graph.getData()));

@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.IndexingExpr;
 import org.apache.rya.indexing.IndexingFunctionRegistry;
 import org.apache.rya.indexing.IndexingFunctionRegistry.FUNCTION_TYPE;
@@ -114,7 +114,7 @@ public class EventQueryNode2IT extends MongoITBase {
     @Test
     public void evaluate_constantSubject() throws Exception {
         final EventStorage storage = new MongoEventStorage(super.getMongoClient(), "testDB");
-        RyaURI subject = new RyaURI("urn:event-1111");
+        RyaIRI subject = new RyaIRI("urn:event-1111");
         final Geometry geo = GF.createPoint(new Coordinate(1, 1));
         final TemporalInstant temp = new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0);
         final Event event = Event.builder()
@@ -123,7 +123,7 @@ public class EventQueryNode2IT extends MongoITBase {
             .setTemporalInstant(temp)
             .build();
 
-        subject = new RyaURI("urn:event-2222");
+        subject = new RyaIRI("urn:event-2222");
         final Event otherEvent = Event.builder()
             .setSubject(subject)
             .setGeometry(geo)
@@ -163,7 +163,7 @@ public class EventQueryNode2IT extends MongoITBase {
     @Test
     public void evaluate_variableSubject() throws Exception {
         final EventStorage storage = new MongoEventStorage(super.getMongoClient(), "testDB");
-        RyaURI subject = new RyaURI("urn:event-1111");
+        RyaIRI subject = new RyaIRI("urn:event-1111");
         Geometry geo = GF.createPoint(new Coordinate(1, 1));
         final TemporalInstant temp = new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0);
         final Event event = Event.builder()
@@ -172,7 +172,7 @@ public class EventQueryNode2IT extends MongoITBase {
             .setTemporalInstant(temp)
             .build();
 
-        subject = new RyaURI("urn:event-2222");
+        subject = new RyaIRI("urn:event-2222");
         geo = GF.createPoint(new Coordinate(-1, -1));
         final Event otherEvent = Event.builder()
             .setSubject(subject)
@@ -217,7 +217,7 @@ public class EventQueryNode2IT extends MongoITBase {
     @Test
     public void evaluate_variableSubject_existingBindingset() throws Exception {
         final EventStorage storage = new MongoEventStorage(super.getMongoClient(), "testDB");
-        RyaURI subject = new RyaURI("urn:event-1111");
+        RyaIRI subject = new RyaIRI("urn:event-1111");
         Geometry geo = GF.createPoint(new Coordinate(1, 1));
         final TemporalInstant temp = new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0);
         final Event event = Event.builder()
@@ -226,7 +226,7 @@ public class EventQueryNode2IT extends MongoITBase {
             .setTemporalInstant(temp)
             .build();
 
-        subject = new RyaURI("urn:event-2222");
+        subject = new RyaIRI("urn:event-2222");
         geo = GF.createPoint(new Coordinate(-1, -1));
         final Event otherEvent = Event.builder()
             .setSubject(subject)
@@ -269,7 +269,7 @@ public class EventQueryNode2IT extends MongoITBase {
     @Test
     public void evaluate_variableSubject_existingBindingsetWrongFilters() throws Exception {
         final EventStorage storage = new MongoEventStorage(super.getMongoClient(), "testDB");
-        RyaURI subject = new RyaURI("urn:event-1111");
+        RyaIRI subject = new RyaIRI("urn:event-1111");
         Geometry geo = GF.createPoint(new Coordinate(1, 1));
         final TemporalInstant temp = new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0);
         final Event event = Event.builder()
@@ -278,7 +278,7 @@ public class EventQueryNode2IT extends MongoITBase {
             .setTemporalInstant(temp)
             .build();
 
-        subject = new RyaURI("urn:event-2222");
+        subject = new RyaIRI("urn:event-2222");
         geo = GF.createPoint(new Coordinate(-10, -10));
         final Event otherEvent = Event.builder()
             .setSubject(subject)
@@ -319,11 +319,11 @@ public class EventQueryNode2IT extends MongoITBase {
         final List<StatementPattern> sps = getSps(query);
         final List<FunctionCall> filters = getFilters(query);
         for(final FunctionCall filter : filters) {
-            final IRI filterURI = VF.createIRI(filter.getURI());
-            final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(filterURI, filter.getArgs());
+            final IRI filterIRI = VF.createIRI(filter.getURI());
+            final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(filterIRI, filter.getArgs());
             final Value[] arguments = extractArguments(objVar.getName(), filter);
-            final IndexingExpr expr = new IndexingExpr(filterURI, sps.get(0), Arrays.stream(arguments).toArray());
-            if(IndexingFunctionRegistry.getFunctionType(filterURI) == FUNCTION_TYPE.GEO) {
+            final IndexingExpr expr = new IndexingExpr(filterIRI, sps.get(0), Arrays.stream(arguments).toArray());
+            if(IndexingFunctionRegistry.getFunctionType(filterIRI) == FUNCTION_TYPE.GEO) {
                 geoFilters.add(expr);
             } else {
                 temporalFilters.add(expr);

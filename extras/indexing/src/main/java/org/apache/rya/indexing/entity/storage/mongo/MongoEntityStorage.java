@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
@@ -175,7 +175,7 @@ public class MongoEntityStorage implements EntityStorage {
     }
 
     @Override
-    public Optional<Entity> get(final RyaURI subject) throws EntityStorageException {
+    public Optional<Entity> get(final RyaIRI subject) throws EntityStorageException {
         requireNonNull(subject);
 
         try {
@@ -194,7 +194,7 @@ public class MongoEntityStorage implements EntityStorage {
     }
 
     @Override
-    public ConvertingCursor<TypedEntity> search(final Optional<RyaURI> subject, final Type type, final Set<Property> properties) throws EntityStorageException {
+    public ConvertingCursor<TypedEntity> search(final Optional<RyaIRI> subject, final Type type, final Set<Property> properties) throws EntityStorageException {
         requireNonNull(type);
         requireNonNull(properties);
 
@@ -238,7 +238,7 @@ public class MongoEntityStorage implements EntityStorage {
     }
 
     @Override
-    public boolean delete(final RyaURI subject) throws EntityStorageException {
+    public boolean delete(final RyaIRI subject) throws EntityStorageException {
         requireNonNull(subject);
 
         try {
@@ -253,7 +253,7 @@ public class MongoEntityStorage implements EntityStorage {
         }
     }
 
-    private static Bson makeSubjectFilter(final RyaURI subject) {
+    private static Bson makeSubjectFilter(final RyaIRI subject) {
         return Filters.eq(EntityDocumentConverter.SUBJECT, subject.getData());
     }
 
@@ -261,11 +261,11 @@ public class MongoEntityStorage implements EntityStorage {
         return Filters.eq(EntityDocumentConverter.VERSION, version);
     }
 
-    private static Bson makeExplicitTypeFilter(final RyaURI typeId) {
+    private static Bson makeExplicitTypeFilter(final RyaIRI typeId) {
         return Filters.eq(EntityDocumentConverter.EXPLICIT_TYPE_IDS, typeId.getData());
     }
 
-    private static Stream<Bson> makePropertyFilters(final RyaURI typeId, final Property property) {
+    private static Stream<Bson> makePropertyFilters(final RyaIRI typeId, final Property property) {
         final String propertyName = property.getName().getData();
         final String encodedPropertyName = MongoDbSafeKey.encodeKey(propertyName);
 
@@ -310,21 +310,21 @@ public class MongoEntityStorage implements EntityStorage {
     /**
      * Searches the Entity storage for all Entities that contain all the
      * specified explicit type IDs.
-     * @param explicitTypeIds the {@link ImmutableList} of {@link RyaURI}s that
+     * @param explicitTypeIds the {@link ImmutableList} of {@link RyaIRI}s that
      * are being searched for.
      * @return the {@link List} of {@link Entity}s that have all the specified
      * explicit type IDs. If nothing was found an empty {@link List} is
      * returned.
      * @throws EntityStorageException
      */
-    private List<Entity> searchHasAllExplicitTypes(final ImmutableList<RyaURI> explicitTypeIds) throws EntityStorageException {
+    private List<Entity> searchHasAllExplicitTypes(final ImmutableList<RyaIRI> explicitTypeIds) throws EntityStorageException {
         final List<Entity> hasAllExplicitTypesEntities = new ArrayList<>();
         if (!explicitTypeIds.isEmpty()) {
             // Grab the first type from the explicit type IDs.
-            final RyaURI firstType = explicitTypeIds.get(0);
+            final RyaIRI firstType = explicitTypeIds.get(0);
 
             // Check if that type exists anywhere in storage.
-            final List<RyaURI> subjects = new ArrayList<>();
+            final List<RyaIRI> subjects = new ArrayList<>();
             Optional<Type> type;
             try {
                 if (mongoTypeStorage == null) {
@@ -339,13 +339,13 @@ public class MongoEntityStorage implements EntityStorage {
                 final ConvertingCursor<TypedEntity> cursor = search(Optional.empty(), type.get(), Collections.emptySet());
                 while (cursor.hasNext()) {
                     final TypedEntity typedEntity = cursor.next();
-                    final RyaURI subject = typedEntity.getSubject();
+                    final RyaIRI subject = typedEntity.getSubject();
                     subjects.add(subject);
                 }
             }
 
             // Now grab all the Entities that have the subjects we found.
-            for (final RyaURI subject : subjects) {
+            for (final RyaIRI subject : subjects) {
                 final Optional<Entity> entityFromSubject = get(subject);
                 if (entityFromSubject.isPresent()) {
                     final Entity candidateEntity = entityFromSubject.get();

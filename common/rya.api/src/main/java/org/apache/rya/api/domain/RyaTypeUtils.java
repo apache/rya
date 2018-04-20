@@ -45,8 +45,8 @@ public final class RyaTypeUtils {
             .put(Long.class, (v) -> longRyaType((Long) v))
             .put(Short.class, (v) -> shortRyaType((Short) v))
             .put(String.class, (v) -> stringRyaType((String) v))
-            .put(IRI.class, (v) -> uriRyaType((IRI) v))
-            .put(SimpleIRI.class, (v) -> uriRyaType((SimpleIRI) v))
+            .put(IRI.class, (v) -> iriRyaType((IRI) v))
+            .put(SimpleIRI.class, (v) -> iriRyaType((SimpleIRI) v))
             .build();
 
     /**
@@ -186,7 +186,7 @@ public final class RyaTypeUtils {
      * @return the {@link RyaType} with the data type set to
      * {@link XMLSchema#ANYURI} and the data set to the specified {@code value}.
      */
-    public static RyaType uriRyaType(final IRI value) {
+    public static RyaType iriRyaType(final IRI value) {
         return new RyaType(XMLSchema.ANYURI, value.stringValue());
     }
 

@@ -1,5 +1,3 @@
-package org.apache.rya.accumulo.experimental;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +6,9 @@ package org.apache.rya.accumulo.experimental;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,42 +16,49 @@ package org.apache.rya.accumulo.experimental;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.rdftriplestore.inference;
 
+import org.eclipse.rdf4j.model.IRI;
 
-import java.io.IOException;
-import java.util.Collection;
+public class InverseIRI implements IRI {
+    private static final long serialVersionUID = 1L;
 
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaIRI;
+    private final IRI impl;
 
-import org.apache.accumulo.core.client.MultiTableBatchWriter;
-
-public abstract class AbstractAccumuloIndexer implements AccumuloIndexer {
-
-    @Override
-    public void setMultiTableBatchWriter(MultiTableBatchWriter writer) throws IOException {
+    public InverseIRI(final IRI iri) {
+        this.impl = iri;
     }
 
     @Override
-    public void storeStatements(Collection<RyaStatement> statements) throws IOException {
-        for (RyaStatement s : statements) {
-            storeStatement(s);
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((impl == null) ? 0 : impl.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj instanceof InverseIRI){
+            return impl.equals(((InverseIRI) obj).impl);
         }
+        return false;
     }
 
     @Override
-    public void deleteStatement(RyaStatement stmt) throws IOException {
+    public String stringValue() {
+        return impl.stringValue();
     }
 
     @Override
-    public void dropGraph(RyaIRI... graphs) {
+    public String getNamespace() {
+        return impl.getNamespace();
     }
 
     @Override
-    public void flush() throws IOException {
+    public String getLocalName() {
+        return impl.getLocalName();
     }
 
-    @Override
-    public void close() throws IOException {
-    }
+
 }

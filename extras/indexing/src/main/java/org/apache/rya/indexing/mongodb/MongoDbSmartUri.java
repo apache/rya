@@ -26,7 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
@@ -64,7 +64,7 @@ public class MongoDbSmartUri implements SmartUriStorage {
     }
 
     @Override
-    public void storeEntity(final RyaURI subject, final Map<IRI, Value> map) throws SmartUriException {
+    public void storeEntity(final RyaIRI subject, final Map<IRI, Value> map) throws SmartUriException {
         checkInit();
 
         final IRI uri = SmartUriAdapter.serializeUri(subject, map);
@@ -103,7 +103,7 @@ public class MongoDbSmartUri implements SmartUriStorage {
     }
 
     @Override
-    public Entity queryEntity(final RyaURI subject) throws SmartUriException {
+    public Entity queryEntity(final RyaIRI subject) throws SmartUriException {
         checkInit();
 
         // Query it.

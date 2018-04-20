@@ -54,7 +54,7 @@ import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaTripleContext;
@@ -89,41 +89,41 @@ public final class AccumuloRyaUtils {
     }
 
     /**
-     * Creates a {@link RyaURI} for the specified local name.
-     * @param localName the URI's local name.
-     * @return the {@link RyaURI}.
+     * Creates a {@link RyaIRI} for the specified local name.
+     * @param localName the IRI's local name.
+     * @return the {@link RyaIRI}.
      */
-    public static RyaURI createRyaUri(final String localName) {
-        return createRyaUri(NAMESPACE, localName);
+    public static RyaIRI createRyaIri(final String localName) {
+        return createRyaIri(NAMESPACE, localName);
     }
 
     /**
-     * Creates a {@link RyaURI} for the specified local name.
+     * Creates a {@link RyaIRI} for the specified local name.
      * @param namespace the namespace.
-     * @param localName the URI's local name.
-     * @return the {@link RyaURI}.
+     * @param localName the IRI's local name.
+     * @return the {@link RyaIRI}.
      */
-    public static RyaURI createRyaUri(final String namespace, final String localName) {
-        return RdfToRyaConversions.convertURI(VALUE_FACTORY.createIRI(namespace, localName));
+    public static RyaIRI createRyaIri(final String namespace, final String localName) {
+        return RdfToRyaConversions.convertIRI(VALUE_FACTORY.createIRI(namespace, localName));
     }
 
     /**
-     * Converts a {@link RyaURI} to the contained data string.
-     * @param the {@link RyaURI} to convert.
+     * Converts a {@link RyaIRI} to the contained data string.
+     * @param ryaIri the {@link RyaIRI} to convert.
      * @return the data value without the namespace.
      */
-    public static String convertRyaUriToString(final RyaURI ryaUri) {
-        return convertRyaUriToString(NAMESPACE, ryaUri);
+    public static String convertRyaIriToString(final RyaIRI ryaIri) {
+        return convertRyaIriToString(NAMESPACE, ryaIri);
     }
 
     /**
-     * Converts a {@link RyaURI} to the contained data string.
+     * Converts a {@link RyaIRI} to the contained data string.
      * @param namespace the namespace.
-     * @param the {@link RyaURI} to convert.
+     * @param ryaIri the {@link RyaIRI} to convert.
      * @return the data value without the namespace.
      */
-    public static String convertRyaUriToString(final String namespace, final RyaURI ryaUri) {
-        return StringUtils.replaceOnce(ryaUri.getData(), namespace, "");
+    public static String convertRyaIriToString(final String namespace, final RyaIRI ryaIri) {
+        return StringUtils.replaceOnce(ryaIri.getData(), namespace, "");
     }
 
     /**

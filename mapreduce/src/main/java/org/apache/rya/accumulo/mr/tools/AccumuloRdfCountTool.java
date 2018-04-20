@@ -43,7 +43,7 @@ import org.apache.rya.accumulo.mr.AbstractAccumuloMRTool;
 import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
@@ -152,7 +152,7 @@ public class AccumuloRdfCountTool extends AbstractAccumuloMRTool implements Tool
                 final String subj = statement.getSubject().getData();
                 final String pred = statement.getPredicate().getData();
 //                byte[] objBytes = tripleFormat.getValueFormat().serialize(statement.getObject());
-                final RyaURI scontext = statement.getContext();
+                final RyaIRI scontext = statement.getContext();
                 final boolean includesContext = scontext != null;
                 final String scontext_str = (includesContext) ? scontext.getData() : null;
 

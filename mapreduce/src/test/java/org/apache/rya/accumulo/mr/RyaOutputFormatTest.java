@@ -23,7 +23,7 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.api.resolver.RyaTripleContext;
@@ -117,12 +117,12 @@ public class RyaOutputFormatTest {
     @Test
     public void testOutputFormat() throws Exception {
         final RyaStatement input = RyaStatement.builder()
-            .setSubject(new RyaURI("http://www.google.com"))
-            .setPredicate(new RyaURI("http://some_other_uri"))
-            .setObject(new RyaURI("http://www.yahoo.com"))
+            .setSubject(new RyaIRI("http://www.google.com"))
+            .setPredicate(new RyaIRI("http://some_other_uri"))
+            .setObject(new RyaIRI("http://www.yahoo.com"))
             .setColumnVisibility(CV.getBytes())
             .setValue(new byte[0])
-            .setContext(new RyaURI(GRAPH))
+            .setContext(new RyaIRI(GRAPH))
             .build();
         RyaOutputFormat.setCoreTablesEnabled(job, true);
         RyaOutputFormat.setFreeTextEnabled(job, false);
@@ -135,18 +135,18 @@ public class RyaOutputFormatTest {
     @Test
     public void testDefaultCV() throws Exception {
         final RyaStatement input = RyaStatement.builder()
-            .setSubject(new RyaURI("http://www.google.com"))
-            .setPredicate(new RyaURI("http://some_other_uri"))
-            .setObject(new RyaURI("http://www.yahoo.com"))
+            .setSubject(new RyaIRI("http://www.google.com"))
+            .setPredicate(new RyaIRI("http://some_other_uri"))
+            .setObject(new RyaIRI("http://www.yahoo.com"))
             .setValue(new byte[0])
-            .setContext(new RyaURI(GRAPH))
+            .setContext(new RyaIRI(GRAPH))
             .build();
         final RyaStatement expected = RyaStatement.builder()
-            .setSubject(new RyaURI("http://www.google.com"))
-            .setPredicate(new RyaURI("http://some_other_uri"))
-            .setObject(new RyaURI("http://www.yahoo.com"))
+            .setSubject(new RyaIRI("http://www.google.com"))
+            .setPredicate(new RyaIRI("http://some_other_uri"))
+            .setObject(new RyaIRI("http://www.yahoo.com"))
             .setValue(new byte[0])
-            .setContext(new RyaURI(GRAPH))
+            .setContext(new RyaIRI(GRAPH))
             .setColumnVisibility(CV.getBytes())
             .build();
         RyaOutputFormat.setCoreTablesEnabled(job, true);
@@ -161,19 +161,19 @@ public class RyaOutputFormatTest {
     @Test
     public void testDefaultGraph() throws Exception {
         final RyaStatement input = RyaStatement.builder()
-            .setSubject(new RyaURI("http://www.google.com"))
-            .setPredicate(new RyaURI("http://some_other_uri"))
-            .setObject(new RyaURI("http://www.yahoo.com"))
+            .setSubject(new RyaIRI("http://www.google.com"))
+            .setPredicate(new RyaIRI("http://some_other_uri"))
+            .setObject(new RyaIRI("http://www.yahoo.com"))
             .setValue(new byte[0])
             .setColumnVisibility(CV.getBytes())
             .build();
         final RyaStatement expected = RyaStatement.builder()
-            .setSubject(new RyaURI("http://www.google.com"))
-            .setPredicate(new RyaURI("http://some_other_uri"))
-            .setObject(new RyaURI("http://www.yahoo.com"))
+            .setSubject(new RyaIRI("http://www.google.com"))
+            .setPredicate(new RyaIRI("http://some_other_uri"))
+            .setObject(new RyaIRI("http://www.yahoo.com"))
             .setValue(new byte[0])
             .setColumnVisibility(CV.getBytes())
-            .setContext(new RyaURI(GRAPH))
+            .setContext(new RyaIRI(GRAPH))
             .build();
         RyaOutputFormat.setCoreTablesEnabled(job, true);
         RyaOutputFormat.setFreeTextEnabled(job, false);
@@ -189,8 +189,8 @@ public class RyaOutputFormatTest {
         final AccumuloFreeTextIndexer ft = new AccumuloFreeTextIndexer();
         ft.setConf(conf);
         final RyaStatement input = RyaStatement.builder()
-                .setSubject(new RyaURI(GRAPH + ":s"))
-                .setPredicate(new RyaURI(GRAPH + ":p"))
+                .setSubject(new RyaIRI(GRAPH + ":s"))
+                .setPredicate(new RyaIRI(GRAPH + ":p"))
                 .setObject(new RyaType(XMLSchema.STRING, "one two three four five"))
                 .build();
         RyaOutputFormat.setCoreTablesEnabled(job, false);
@@ -227,8 +227,8 @@ public class RyaOutputFormatTest {
         for (int i = 0; i < instants.length; i++) {
             final RyaType time = RdfToRyaConversions.convertLiteral(vf.createLiteral(instants[i].toString()));
             final RyaStatement input = RyaStatement.builder()
-                    .setSubject(new RyaURI(GRAPH + ":s"))
-                    .setPredicate(new RyaURI(GRAPH + ":p"))
+                    .setSubject(new RyaIRI(GRAPH + ":s"))
+                    .setPredicate(new RyaIRI(GRAPH + ":p"))
                     .setObject(time)
                     .build();
             write(input);
@@ -260,9 +260,9 @@ public class RyaOutputFormatTest {
         final EntityCentricIndex entity = new EntityCentricIndex();
         entity.setConf(conf);
         final RyaStatement input = RyaStatement.builder()
-                .setSubject(new RyaURI(GRAPH + ":s"))
-                .setPredicate(new RyaURI(GRAPH + ":p"))
-                .setObject(new RyaURI(GRAPH + ":o"))
+                .setSubject(new RyaIRI(GRAPH + ":s"))
+                .setPredicate(new RyaIRI(GRAPH + ":p"))
+                .setObject(new RyaIRI(GRAPH + ":o"))
                 .build();
         RyaOutputFormat.setCoreTablesEnabled(job, false);
         RyaOutputFormat.setFreeTextEnabled(job, false);

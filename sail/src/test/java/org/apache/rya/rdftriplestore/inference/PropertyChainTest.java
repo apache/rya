@@ -115,7 +115,7 @@ public class PropertyChainTest extends TestCase {
         inferenceEngine.refreshGraph();
        List<IRI> chain = inferenceEngine.getPropertyChain(VF.createIRI("urn:greatMother"));
        Assert.assertEquals(chain.size(), 2);
-       Assert.assertEquals(chain.get(0), new InverseURI(VF.createIRI("urn:isChildOf")));
+       Assert.assertEquals(chain.get(0), new InverseIRI(VF.createIRI("urn:isChildOf")));
        Assert.assertEquals(chain.get(1), VF.createIRI("urn:MotherOf"));
  
     }

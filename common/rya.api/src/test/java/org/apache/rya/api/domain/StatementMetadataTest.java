@@ -31,7 +31,7 @@ public class StatementMetadataTest {
 
         
         StatementMetadata single = new StatementMetadata();
-        single.addMetadata(new RyaURI("http://uri"), new RyaType("http://type"));
+        single.addMetadata(new RyaIRI("http://uri"), new RyaType("http://type"));
         byte[] singleData = single.toBytes();
         Assert.assertArrayEquals(singleData, new StatementMetadata(singleData).toBytes());
 

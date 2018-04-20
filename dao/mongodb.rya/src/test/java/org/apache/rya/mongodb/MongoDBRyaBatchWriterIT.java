@@ -26,7 +26,7 @@ import java.util.List;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriter;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterConfig;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterUtils;
@@ -156,15 +156,15 @@ public class MongoDBRyaBatchWriterIT extends MongoITBase {
         return document;
     }
 
-    private static RyaURI ryaURI(final int v) {
-        return new RyaURI("u:" + v);
+    private static RyaIRI ryaIRI(final int v) {
+        return new RyaIRI("u:" + v);
     }
 
     private static RyaStatement statement(final int v) {
         final RyaStatementBuilder builder = new RyaStatementBuilder();
-        builder.setPredicate(ryaURI(v));
-        builder.setSubject(ryaURI(v));
-        builder.setObject(ryaURI(v));
+        builder.setPredicate(ryaIRI(v));
+        builder.setSubject(ryaIRI(v));
+        builder.setObject(ryaIRI(v));
         return builder.build();
     }
 }

@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
@@ -73,9 +73,9 @@ public class EntityQueryNode extends ExternalSet implements ExternalBatchingIter
     private static final Logger LOG = LoggerFactory.getLogger(EntityQueryNode.class);
 
     /**
-     * The RyaURI that when used as the Predicate of a Statement Pattern indicates the Type of the Entities.
+     * The {@link RyaIRI} that when used as the Predicate of a Statement Pattern indicates the Type of the Entities.
      */
-    private static final RyaURI TYPE_ID_URI = new RyaURI(RDF.TYPE.toString());
+    private static final RyaIRI TYPE_ID_IRI = new RyaIRI(RDF.TYPE.toString());
 
     // Provided at construction time.
     private final Type type;
@@ -91,7 +91,7 @@ public class EntityQueryNode extends ExternalSet implements ExternalBatchingIter
     private final Set<String> bindingNames;
 
     // Information about the objects of the patterns.
-    private final ImmutableMap<RyaURI, Var> objectVariables;
+    private final ImmutableMap<RyaIRI, Var> objectVariables;
 
     // Properties of the Type found in the query
     private final Set<Property> properties;
@@ -133,17 +133,17 @@ public class EntityQueryNode extends ExternalSet implements ExternalBatchingIter
         }
 
         // Any constant that appears in the Object portion of the SP will be used to make sure they match.
-        final Builder<RyaURI, Var> builder = ImmutableMap.builder();
+        final Builder<RyaIRI, Var> builder = ImmutableMap.builder();
         for(final StatementPattern sp : patterns) {
             final Var object = sp.getObjectVar();
             final Var pred = sp.getPredicateVar();
-            final RyaURI predURI = new RyaURI(pred.getValue().stringValue());
+            final RyaIRI predIRI = new RyaIRI(pred.getValue().stringValue());
             bindingNames.addAll(sp.getBindingNames());
             if(object.isConstant() && !pred.getValue().equals(RDF.TYPE)) {
                 final RyaType propertyType = RdfToRyaConversions.convertValue(object.getValue());
-                properties.add(new Property(predURI, propertyType));
+                properties.add(new Property(predIRI, propertyType));
             }
-            builder.put(predURI, object);
+            builder.put(predIRI, object);
         }
         objectVariables = builder.build();
     }
@@ -209,10 +209,10 @@ public class EntityQueryNode extends ExternalSet implements ExternalBatchingIter
         boolean typeFound = false;
 
         for(final StatementPattern pattern : patterns) {
-            final RyaURI predicate = new RyaURI(pattern.getPredicateVar().getValue().toString());
+            final RyaIRI predicate = new RyaIRI(pattern.getPredicateVar().getValue().toString());
 
-            if(predicate.equals(TYPE_ID_URI)) {
-                final RyaURI typeId = new RyaURI( pattern.getObjectVar().getValue().stringValue() );
+            if(predicate.equals(TYPE_ID_IRI)) {
+                final RyaIRI typeId = new RyaIRI( pattern.getObjectVar().getValue().stringValue() );
                 if(typeId.equals(type.getId())) {
                     typeFound = true;
                 } else {
@@ -241,8 +241,8 @@ public class EntityQueryNode extends ExternalSet implements ExternalBatchingIter
 
         for(final StatementPattern pattern : patterns) {
             // Skip TYPE patterns.
-            final RyaURI predicate = new RyaURI( pattern.getPredicateVar().getValue().toString() );
-            if(predicate.equals(TYPE_ID_URI)) {
+            final RyaIRI predicate = new RyaIRI( pattern.getPredicateVar().getValue().toString() );
+            if(predicate.equals(TYPE_ID_IRI)) {
                 continue;
             }
 
@@ -283,7 +283,7 @@ public class EntityQueryNode extends ExternalSet implements ExternalBatchingIter
             if(subjectIsConstant) {
                 // if it is, fetch that value and then fetch the entity for the subject.
                 subj = subjectConstant.get();
-                entitiesCursor = entities.search(Optional.of(new RyaURI(subj)), type, properties);
+                entitiesCursor = entities.search(Optional.of(new RyaIRI(subj)), type, properties);
             } else {
                 entitiesCursor = entities.search(Optional.empty(), type, properties);
             }
@@ -292,8 +292,8 @@ public class EntityQueryNode extends ExternalSet implements ExternalBatchingIter
                 final TypedEntity typedEntity = entitiesCursor.next();
                 final ImmutableCollection<Property> properties = typedEntity.getProperties();
                 //ensure properties match and only add properties that are in the statement patterns to the binding set
-                for(final RyaURI key : objectVariables.keySet()) {
-                    final Optional<RyaType> prop = typedEntity.getPropertyValue(new RyaURI(key.getData()));
+                for(final RyaIRI key : objectVariables.keySet()) {
+                    final Optional<RyaType> prop = typedEntity.getPropertyValue(new RyaIRI(key.getData()));
                     if(prop.isPresent()) {
                         final RyaType type = prop.get();
                         final String bindingName = objectVariables.get(key).getName();

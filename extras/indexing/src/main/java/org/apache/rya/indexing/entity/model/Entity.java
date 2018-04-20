@@ -30,7 +30,7 @@ import java.util.Optional;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.log4j.Logger;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.smarturi.SmartUriAdapter;
 import org.apache.rya.indexing.smarturi.SmartUriException;
@@ -63,10 +63,10 @@ import edu.umd.cs.findbugs.annotations.Nullable;
  * an Entity by doing the following:
  * <pre>
  * final Entity entity = Entity.builder()
- *              .setSubject(new RyaURI("urn:GTIN-14/00012345600012"))
- *              .setExplicitType(new RyaURI("urn:icecream"))
- *              .setProperty(new RyaURI("urn:icecream"), new Property(new RyaURI("urn:brand"), new RyaType(XMLSchema.STRING, "Awesome Icecream")))
- *              .setProperty(new RyaURI("urn:icecream"), new Property(new RyaURI("urn:flavor"), new RyaType(XMLSchema.STRING, "Chocolate")))
+ *              .setSubject(new RyaIRI("urn:GTIN-14/00012345600012"))
+ *              .setExplicitType(new RyaIRI("urn:icecream"))
+ *              .setProperty(new RyaIRI("urn:icecream"), new Property(new RyaIRI("urn:brand"), new RyaType(XMLSchema.STRING, "Awesome Icecream")))
+ *              .setProperty(new RyaIRI("urn:icecream"), new Property(new RyaIRI("urn:flavor"), new RyaType(XMLSchema.STRING, "Chocolate")))
  *              .build();
  * </pre>
  * The two types of Entities that may be created are implicit and explicit.
@@ -79,13 +79,13 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 public class Entity {
     private static final Logger log = Logger.getLogger(Entity.class);
 
-    private final RyaURI subject;
-    private final ImmutableList<RyaURI> explicitTypeIds;
+    private final RyaIRI subject;
+    private final ImmutableList<RyaIRI> explicitTypeIds;
 
     // First key is Type ID.
     // Second key is Property Name.
     // Value is the Property value for a specific type.
-    private final ImmutableMap<RyaURI, ImmutableMap<RyaURI, Property>> properties;
+    private final ImmutableMap<RyaIRI, ImmutableMap<RyaIRI, Property>> properties;
 
     private final int version;
 
@@ -105,9 +105,9 @@ public class Entity {
      * {@link Entity}.
      */
     private Entity(
-            final RyaURI subject,
-            final ImmutableList<RyaURI> explicitTypeIds,
-            final ImmutableMap<RyaURI, ImmutableMap<RyaURI, Property>> typeProperties,
+            final RyaIRI subject,
+            final ImmutableList<RyaIRI> explicitTypeIds,
+            final ImmutableMap<RyaIRI, ImmutableMap<RyaIRI, Property>> typeProperties,
             final int version,
             final IRI smartUri) {
         this.subject = requireNonNull(subject);
@@ -138,9 +138,9 @@ public class Entity {
      * {@link EntityStorage} to prevent stale updates.
      */
     private Entity(
-            final RyaURI subject,
-            final ImmutableList<RyaURI> explicitTypeIds,
-            final ImmutableMap<RyaURI, ImmutableMap<RyaURI, Property>> typeProperties,
+            final RyaIRI subject,
+            final ImmutableList<RyaIRI> explicitTypeIds,
+            final ImmutableMap<RyaIRI, ImmutableMap<RyaIRI, Property>> typeProperties,
             final int version) {
         this(subject, explicitTypeIds, typeProperties, version, null);
     }
@@ -148,21 +148,21 @@ public class Entity {
     /**
      * @return Identifies the thing that is being represented as an Entity.
      */
-    public RyaURI getSubject() {
+    public RyaIRI getSubject() {
         return subject;
     }
 
     /**
      * @return {@link Type}s that have been explicitly applied to the {@link Entity}.
      */
-    public ImmutableList<RyaURI> getExplicitTypeIds() {
+    public ImmutableList<RyaIRI> getExplicitTypeIds() {
         return explicitTypeIds;
     }
 
     /**
      * @return All {@link Property}s that have been set for the Entity, grouped by Type ID.
      */
-    public ImmutableMap<RyaURI, ImmutableMap<RyaURI, Property>> getProperties() {
+    public ImmutableMap<RyaIRI, ImmutableMap<RyaIRI, Property>> getProperties() {
         return properties;
     }
 
@@ -184,31 +184,31 @@ public class Entity {
     /**
      * Does a lookup to see if the {@link Entity} contains the specified
      * property for the specified type.
-     * @param typeRyaUri the type {@link RyaURI}. (not {@code null})
-     * @param propertyRyaUri the property {@link RyaURI}. (not {@code null})
+     * @param type the {@link Type}. (not {@code null})
+     * @param propertyRyaIri the property {@link RyaIRI}. (not {@code null})
      * @return the {@link Property} or an empty {@link Optional} if it could not
      * be found in the {@link Entity}.
      */
-    public Optional<Property> lookupTypeProperty(final Type type, final RyaURI propertyRyaUri) {
+    public Optional<Property> lookupTypeProperty(final Type type, final RyaIRI propertyRyaIri) {
         requireNonNull(type);
-        return lookupTypeProperty(type.getId(), propertyRyaUri);
+        return lookupTypeProperty(type.getId(), propertyRyaIri);
     }
 
     /**
      * Does a lookup to see if the {@link Entity} contains the specified
      * property for the specified type.
-     * @param typeRyaUri the type {@link RyaURI}. (not {@code null})
-     * @param propertyRyaUri the property {@link RyaURI}. (not {@code null})
+     * @param typeRyaIri the type {@link RyaIRI}. (not {@code null})
+     * @param propertyRyaIri the property {@link RyaIRI}. (not {@code null})
      * @return the {@link Property} or an empty {@link Optional} if it could not
      * be found in the {@link Entity}.
      */
-    public Optional<Property> lookupTypeProperty(final RyaURI typeRyaUri, final RyaURI propertyRyaUri) {
-        requireNonNull(typeRyaUri);
-        requireNonNull(propertyRyaUri);
-        final ImmutableMap<RyaURI, Property> typePropertyMap = properties.get(typeRyaUri);
+    public Optional<Property> lookupTypeProperty(final RyaIRI typeRyaIri, final RyaIRI propertyRyaIri) {
+        requireNonNull(typeRyaIri);
+        requireNonNull(propertyRyaIri);
+        final ImmutableMap<RyaIRI, Property> typePropertyMap = properties.get(typeRyaIri);
         Optional<Property> property = Optional.empty();
         if (typePropertyMap != null) {
-            property = Optional.ofNullable(typePropertyMap.get(propertyRyaUri));
+            property = Optional.ofNullable(typePropertyMap.get(propertyRyaIri));
         }
         return property;
     }
@@ -240,7 +240,7 @@ public class Entity {
      * @return A TypedEntity using this object's values if any properties for the Type
      *    are present or if the Type was explicitly set. Otherwise an empty {@link Optional}.
      */
-    public Optional<TypedEntity> makeTypedEntity(final RyaURI typeId) {
+    public Optional<TypedEntity> makeTypedEntity(final RyaIRI typeId) {
         requireNonNull(typeId);
 
         final boolean explicitlyHasType = explicitTypeIds.contains(typeId);
@@ -289,9 +289,9 @@ public class Entity {
     @DefaultAnnotation(NonNull.class)
     public static class Builder {
 
-        private RyaURI subject = null;
-        private final List<RyaURI> explicitTypes = new ArrayList<>();
-        private final Map<RyaURI, Map<RyaURI, Property>> properties = new HashMap<>();
+        private RyaIRI subject = null;
+        private final List<RyaIRI> explicitTypes = new ArrayList<>();
+        private final Map<RyaIRI, Map<RyaIRI, Property>> properties = new HashMap<>();
         private IRI smartUri = null;
 
         private int version = 0;
@@ -312,7 +312,7 @@ public class Entity {
             subject = entity.getSubject();
             explicitTypes.addAll( entity.getExplicitTypeIds() );
 
-            for(final Entry<RyaURI, ImmutableMap<RyaURI, Property>> entry : entity.getProperties().entrySet()) {
+            for(final Entry<RyaIRI, ImmutableMap<RyaIRI, Property>> entry : entity.getProperties().entrySet()) {
                 properties.put(entry.getKey(), Maps.newHashMap(entry.getValue()));
             }
 
@@ -325,7 +325,7 @@ public class Entity {
          * @param subject - Identifies the {@link TypedEntity}.
          * @return This {@link Builder} so that method invocations may be chained.
          */
-        public Builder setSubject(@Nullable final RyaURI subject) {
+        public Builder setSubject(@Nullable final RyaIRI subject) {
             this.subject = subject;
             return this;
         }
@@ -334,7 +334,7 @@ public class Entity {
          * @param typeId - A {@link Type} that has been explicity set for the {@link TypedEntity}.
          * @return This {@link Builder} so that method invocations may be chained.
          */
-        public Builder setExplicitType(@Nullable final RyaURI typeId) {
+        public Builder setExplicitType(@Nullable final RyaIRI typeId) {
             if(typeId != null) {
                 explicitTypes.add(typeId);
             }
@@ -347,7 +347,7 @@ public class Entity {
          * @param typeId - The Type ID to remove from the set of explicit types.
          * @return This {@link Builder} so that method invocations may be chained.
          */
-        public Builder unsetExplicitType(@Nullable final RyaURI typeId) {
+        public Builder unsetExplicitType(@Nullable final RyaIRI typeId) {
             if(typeId != null) {
                 explicitTypes.remove(typeId);
             }
@@ -361,7 +361,7 @@ public class Entity {
          * @param property - The Property values to add.
          * @return This {@link Builder} so that method invocations may be chained.
          */
-        public Builder setProperty(@Nullable final RyaURI typeId, @Nullable final Property property) {
+        public Builder setProperty(@Nullable final RyaIRI typeId, @Nullable final Property property) {
             if(typeId != null && property != null) {
                 if(!properties.containsKey(typeId)) {
                     properties.put(typeId, new HashMap<>());
@@ -379,10 +379,10 @@ public class Entity {
          * @param propertyName - The name of the Property to remove.
          * @return This {@link Builder} so that method invocations may be chained.
          */
-        public Builder unsetProperty(@Nullable final RyaURI typeId, @Nullable final RyaURI propertyName) {
+        public Builder unsetProperty(@Nullable final RyaIRI typeId, @Nullable final RyaIRI propertyName) {
             if(typeId != null && propertyName != null) {
                 if(properties.containsKey(typeId)) {
-                    final Map<RyaURI, Property> typedProperties = properties.get(typeId);
+                    final Map<RyaIRI, Property> typedProperties = properties.get(typeId);
                     if(typedProperties.containsKey(propertyName)) {
                         typedProperties.remove(propertyName);
                     }
@@ -426,8 +426,8 @@ public class Entity {
          * @return Builds an instance of {@link Entity} using this builder's values.
          */
         public Entity build() {
-            final ImmutableMap.Builder<RyaURI, ImmutableMap<RyaURI, Property>> propertiesBuilder = ImmutableMap.builder();
-            for(final Entry<RyaURI, Map<RyaURI, Property>> entry : properties.entrySet()) {
+            final ImmutableMap.Builder<RyaIRI, ImmutableMap<RyaIRI, Property>> propertiesBuilder = ImmutableMap.builder();
+            for(final Entry<RyaIRI, Map<RyaIRI, Property>> entry : properties.entrySet()) {
                 propertiesBuilder.put(entry.getKey(), ImmutableMap.copyOf( entry.getValue() ));
             }
 

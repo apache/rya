@@ -31,7 +31,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.RyaNamespaceManager;
@@ -237,7 +237,7 @@ public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfigurati
     }
 
     @Override
-    public void dropGraph(final StatefulMongoDBRdfConfiguration conf, final RyaURI... graphs)
+    public void dropGraph(final StatefulMongoDBRdfConfiguration conf, final RyaIRI... graphs)
             throws RyaDAOException {
 
     }

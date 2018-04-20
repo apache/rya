@@ -44,7 +44,7 @@ import java.util.function.Function;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.mongodb.MongoDbRdfConstants;
@@ -256,21 +256,21 @@ public class AggregationPipelineQueryNode extends ExternalSet {
         final Var predVar = sp.getPredicateVar();
         final Var objVar = sp.getObjectVar();
         final Var contextVar = sp.getContextVar();
-        RyaURI s = null;
-        RyaURI p = null;
+        RyaIRI s = null;
+        RyaIRI p = null;
         RyaType o = null;
-        RyaURI c = null;
+        RyaIRI c = null;
         if (subjVar != null && subjVar.getValue() instanceof Resource) {
             s = RdfToRyaConversions.convertResource((Resource) subjVar.getValue());
         }
         if (predVar != null && predVar.getValue() instanceof IRI) {
-            p = RdfToRyaConversions.convertURI((IRI) predVar.getValue());
+            p = RdfToRyaConversions.convertIRI((IRI) predVar.getValue());
         }
         if (objVar != null && objVar.getValue() != null) {
             o = RdfToRyaConversions.convertValue(objVar.getValue());
         }
         if (contextVar != null && contextVar.getValue() instanceof IRI) {
-            c = RdfToRyaConversions.convertURI((IRI) contextVar.getValue());
+            c = RdfToRyaConversions.convertIRI((IRI) contextVar.getValue());
         }
         RyaStatement rs = new RyaStatement(s, p, o, c);
         DBObject obj = strategy.getQuery(rs);

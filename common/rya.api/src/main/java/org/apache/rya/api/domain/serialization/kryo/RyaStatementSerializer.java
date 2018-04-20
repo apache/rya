@@ -20,7 +20,7 @@ package org.apache.rya.api.domain.serialization.kryo;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
@@ -115,16 +115,16 @@ public class RyaStatementSerializer extends Serializer<RyaStatement> {
         String objectValue = input.readString();
         RyaType value;
         if (objectType.equals(XMLSchema.ANYURI.toString())){
-            value = new RyaURI(objectValue);
+            value = new RyaIRI(objectValue);
         }
         else {
             value = new RyaType(VF.createIRI(objectType), objectValue);
         }
-        RyaStatement statement = new RyaStatement(new RyaURI(subject), new RyaURI(predicate), value);
+        RyaStatement statement = new RyaStatement(new RyaIRI(subject), new RyaIRI(predicate), value);
         int length = 0;
         boolean hasNextValue = input.readBoolean();
         if (hasNextValue){
-            statement.setContext(new RyaURI(input.readString()));
+            statement.setContext(new RyaIRI(input.readString()));
         }
         hasNextValue = input.readBoolean();
         if (hasNextValue){

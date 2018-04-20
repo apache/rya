@@ -28,7 +28,7 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.utils.CloseableIterator;
 import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
@@ -132,16 +132,16 @@ public class InputIT extends RyaExportITBase {
 
         // Triples that will be streamed into Fluo after the PCJ has been created.
         final Set<RyaStatement> streamedTriples = Sets.newHashSet(
-                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"), new RyaURI("http://Eve")),
-                new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://talksTo"), new RyaURI("http://Eve")),
-                new RyaStatement(new RyaURI("http://Charlie"), new RyaURI("http://talksTo"), new RyaURI("http://Eve")),
+                new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://talksTo"), new RyaIRI("http://Eve")),
+                new RyaStatement(new RyaIRI("http://Bob"), new RyaIRI("http://talksTo"), new RyaIRI("http://Eve")),
+                new RyaStatement(new RyaIRI("http://Charlie"), new RyaIRI("http://talksTo"), new RyaIRI("http://Eve")),
 
-                new RyaStatement(new RyaURI("http://Eve"), new RyaURI("http://helps"), new RyaURI("http://Kevin")),
+                new RyaStatement(new RyaIRI("http://Eve"), new RyaIRI("http://helps"), new RyaIRI("http://Kevin")),
 
-                new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://worksAt"), new RyaURI("http://Chipotle")),
-                new RyaStatement(new RyaURI("http://Charlie"), new RyaURI("http://worksAt"), new RyaURI("http://Chipotle")),
-                new RyaStatement(new RyaURI("http://Eve"), new RyaURI("http://worksAt"), new RyaURI("http://Chipotle")),
-                new RyaStatement(new RyaURI("http://David"), new RyaURI("http://worksAt"), new RyaURI("http://Chipotle")));
+                new RyaStatement(new RyaIRI("http://Bob"), new RyaIRI("http://worksAt"), new RyaIRI("http://Chipotle")),
+                new RyaStatement(new RyaIRI("http://Charlie"), new RyaIRI("http://worksAt"), new RyaIRI("http://Chipotle")),
+                new RyaStatement(new RyaIRI("http://Eve"), new RyaIRI("http://worksAt"), new RyaIRI("http://Chipotle")),
+                new RyaStatement(new RyaIRI("http://David"), new RyaIRI("http://worksAt"), new RyaIRI("http://Chipotle")));
 
         // The expected results of the SPARQL query once the PCJ has been computed.
         final ValueFactory vf = SimpleValueFactory.getInstance();
@@ -211,8 +211,8 @@ public class InputIT extends RyaExportITBase {
 
         // Triples that will be streamed into Fluo after the PCJ has been created.
         final Set<RyaStatement> streamedTriples = Sets.newHashSet(
-                new RyaStatement(new RyaURI("http://Frank"), new RyaURI("http://talksTo"), new RyaURI("http://Eve")),
-                new RyaStatement(new RyaURI("http://Frank"), new RyaURI("http://worksAt"), new RyaURI("http://Chipotle")));
+                new RyaStatement(new RyaIRI("http://Frank"), new RyaIRI("http://talksTo"), new RyaIRI("http://Eve")),
+                new RyaStatement(new RyaIRI("http://Frank"), new RyaIRI("http://worksAt"), new RyaIRI("http://Chipotle")));
 
         // Load the historic data into Rya.
         final SailRepositoryConnection ryaConn = super.getRyaSailRepository().getConnection();
@@ -293,8 +293,8 @@ public class InputIT extends RyaExportITBase {
 
         // Triples that will be streamed into Fluo after the PCJ has been created.
         final Set<RyaStatement> streamedTriples = Sets.newHashSet(
-                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"), new RyaURI("http://Eve")),
-                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://worksAt"), new RyaURI("http://Chipotle")));
+                new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://talksTo"), new RyaIRI("http://Eve")),
+                new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://worksAt"), new RyaIRI("http://Chipotle")));
 
         // The expected final result.
         final Set<BindingSet> expected = new HashSet<>();

@@ -21,7 +21,7 @@ package org.apache.rya.api.resolver;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -37,11 +37,11 @@ import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 public class RyaToRdfConversions {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
-    public static IRI convertURI(RyaURI iri) {
+    public static IRI convertIRI(RyaIRI iri) {
         return VF.createIRI(iri.getData());
     }
     
-    private static IRI convertURI(RyaType value) {
+    private static IRI convertIRI(RyaType value) {
         return VF.createIRI(value.getData());
     }
 
@@ -56,19 +56,19 @@ public class RyaToRdfConversions {
 
     public static Value convertValue(RyaType value) {
         //assuming either IRI or Literal here
-        return (value instanceof RyaURI || value.getDataType().equals(XMLSchema.ANYURI)) ? convertURI(value) : convertLiteral(value);
+        return (value instanceof RyaIRI || value.getDataType().equals(XMLSchema.ANYURI)) ? convertIRI(value) : convertLiteral(value);
     }
 
     public static Statement convertStatement(RyaStatement statement) {
         assert statement != null;
         if (statement.getContext() != null) {
-            return VF.createStatement(convertURI(statement.getSubject()),
-                    convertURI(statement.getPredicate()),
+            return VF.createStatement(convertIRI(statement.getSubject()),
+                    convertIRI(statement.getPredicate()),
                     convertValue(statement.getObject()),
-                    convertURI(statement.getContext()));
+                    convertIRI(statement.getContext()));
         } else {
-            return VF.createStatement(convertURI(statement.getSubject()),
-                    convertURI(statement.getPredicate()),
+            return VF.createStatement(convertIRI(statement.getSubject()),
+                    convertIRI(statement.getPredicate()),
                     convertValue(statement.getObject()));
         }
     }

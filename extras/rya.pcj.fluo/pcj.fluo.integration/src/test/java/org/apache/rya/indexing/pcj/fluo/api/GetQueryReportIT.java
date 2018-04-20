@@ -30,7 +30,7 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.pcj.fluo.api.GetQueryReport.QueryReport;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
@@ -60,22 +60,22 @@ public class GetQueryReportIT extends RyaExportITBase {
 
         // Triples that will be streamed into Fluo after the PCJ has been created.
         final Set<RyaStatement> streamedTriples = Sets.newHashSet(
-                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://worksAt"), new RyaURI("http://Taco Shop")),
-                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://worksAt"), new RyaURI("http://Burger Join")),
-                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://worksAt"), new RyaURI("http://Pastery Shop")),
-                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://worksAt"), new RyaURI("http://Burrito Place")),
-                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://livesIn"), new RyaURI("http://Lost County")),
-                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://livesIn"), new RyaURI("http://Big City")),
-                new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://worksAt"), new RyaURI("http://Burrito Place")),
-                new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://livesIn"), new RyaURI("http://Big City")),
-                new RyaStatement(new RyaURI("http://Charlie"), new RyaURI("http://worksAt"), new RyaURI("http://Burrito Place")),
-                new RyaStatement(new RyaURI("http://Charlie"), new RyaURI("http://livesIn"), new RyaURI("http://Big City")),
-                new RyaStatement(new RyaURI("http://David"), new RyaURI("http://worksAt"), new RyaURI("http://Burrito Place")),
-                new RyaStatement(new RyaURI("http://David"), new RyaURI("http://livesIn"), new RyaURI("http://Lost County")),
-                new RyaStatement(new RyaURI("http://Eve"), new RyaURI("http://worksAt"), new RyaURI("http://Burrito Place")),
-                new RyaStatement(new RyaURI("http://Eve"), new RyaURI("http://livesIn"), new RyaURI("http://Big City")),
-                new RyaStatement(new RyaURI("http://Frank"), new RyaURI("http://worksAt"), new RyaURI("http://Burrito Place")),
-                new RyaStatement(new RyaURI("http://Frank"), new RyaURI("http://livesIn"), new RyaURI("http://Lost County")));
+                new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://worksAt"), new RyaIRI("http://Taco Shop")),
+                new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://worksAt"), new RyaIRI("http://Burger Join")),
+                new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://worksAt"), new RyaIRI("http://Pastery Shop")),
+                new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://worksAt"), new RyaIRI("http://Burrito Place")),
+                new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://livesIn"), new RyaIRI("http://Lost County")),
+                new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://livesIn"), new RyaIRI("http://Big City")),
+                new RyaStatement(new RyaIRI("http://Bob"), new RyaIRI("http://worksAt"), new RyaIRI("http://Burrito Place")),
+                new RyaStatement(new RyaIRI("http://Bob"), new RyaIRI("http://livesIn"), new RyaIRI("http://Big City")),
+                new RyaStatement(new RyaIRI("http://Charlie"), new RyaIRI("http://worksAt"), new RyaIRI("http://Burrito Place")),
+                new RyaStatement(new RyaIRI("http://Charlie"), new RyaIRI("http://livesIn"), new RyaIRI("http://Big City")),
+                new RyaStatement(new RyaIRI("http://David"), new RyaIRI("http://worksAt"), new RyaIRI("http://Burrito Place")),
+                new RyaStatement(new RyaIRI("http://David"), new RyaIRI("http://livesIn"), new RyaIRI("http://Lost County")),
+                new RyaStatement(new RyaIRI("http://Eve"), new RyaIRI("http://worksAt"), new RyaIRI("http://Burrito Place")),
+                new RyaStatement(new RyaIRI("http://Eve"), new RyaIRI("http://livesIn"), new RyaIRI("http://Big City")),
+                new RyaStatement(new RyaIRI("http://Frank"), new RyaIRI("http://worksAt"), new RyaIRI("http://Burrito Place")),
+                new RyaStatement(new RyaIRI("http://Frank"), new RyaIRI("http://livesIn"), new RyaIRI("http://Lost County")));
 
         // Create the PCJ table.
 

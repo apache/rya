@@ -41,7 +41,7 @@ import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
 import org.apache.rya.api.client.CreatePCJ.QueryType;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.BatchRyaQuery;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
@@ -418,29 +418,29 @@ public class CreateFluoPcj {
         final Value predVal = sp.getPredicateVar().getValue();
         final Value objVal = sp.getObjectVar().getValue();
 
-        RyaURI subjURI = null;
-        RyaURI predURI = null;
+        RyaIRI subjIRI = null;
+        RyaIRI predIRI = null;
         RyaType objType = null;
 
         if(subjVal != null) {
             if(!(subjVal instanceof Resource)) {
                 throw new AssertionError("Subject must be a Resource.");
             }
-            subjURI = RdfToRyaConversions.convertResource((Resource) subjVal);
+            subjIRI = RdfToRyaConversions.convertResource((Resource) subjVal);
         }
 
         if (predVal != null) {
             if(!(predVal instanceof IRI)) {
-                throw new AssertionError("Predicate must be a URI.");
+                throw new AssertionError("Predicate must be a IRI.");
             }
-            predURI = RdfToRyaConversions.convertURI((IRI) predVal);
+            predIRI = RdfToRyaConversions.convertIRI((IRI) predVal);
         }
 
         if (objVal != null ) {
             objType = RdfToRyaConversions.convertValue(objVal);
         }
 
-        return new RyaStatement(subjURI, predURI, objType);
+        return new RyaStatement(subjIRI, predIRI, objType);
     }
 
     private String[] getAuths(final Connector accumulo) {

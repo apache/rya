@@ -26,10 +26,10 @@ import java.util.Arrays;
  * Time: 7:20 AM
  */
 public class RyaStatement {
-    private RyaURI subject;
-    private RyaURI predicate;
+    private RyaIRI subject;
+    private RyaIRI predicate;
     private RyaType object;
-    private RyaURI context;
+    private RyaIRI context;
     private String qualifer;
     private byte[] columnVisibility;
     private byte[] value;
@@ -38,34 +38,34 @@ public class RyaStatement {
     public RyaStatement() {
     }
 
-    public RyaStatement(final RyaURI subject, final RyaURI predicate, final RyaType object) {
+    public RyaStatement(final RyaIRI subject, final RyaIRI predicate, final RyaType object) {
         this(subject, predicate, object, null);
     }
 
-    public RyaStatement(final RyaURI subject, final RyaURI predicate, final RyaType object, final RyaURI context) {
+    public RyaStatement(final RyaIRI subject, final RyaIRI predicate, final RyaType object, final RyaIRI context) {
         this(subject, predicate, object, context, null);
     }
 
 
-    public RyaStatement(final RyaURI subject, final RyaURI predicate, final RyaType object, final RyaURI context, final String qualifier) {
+    public RyaStatement(final RyaIRI subject, final RyaIRI predicate, final RyaType object, final RyaIRI context, final String qualifier) {
         this(subject, predicate, object, context, qualifier, new StatementMetadata());
     }
 
-    public RyaStatement(final RyaURI subject, final RyaURI predicate, final RyaType object, final RyaURI context, final String qualifier, final StatementMetadata metadata) {
+    public RyaStatement(final RyaIRI subject, final RyaIRI predicate, final RyaType object, final RyaIRI context, final String qualifier, final StatementMetadata metadata) {
         this(subject, predicate, object, context, qualifier, metadata, null);
     }
 
-    public RyaStatement(final RyaURI subject, final RyaURI predicate, final RyaType object, final RyaURI context, final String qualifier, final StatementMetadata metadata, final byte[] columnVisibility) {
+    public RyaStatement(final RyaIRI subject, final RyaIRI predicate, final RyaType object, final RyaIRI context, final String qualifier, final StatementMetadata metadata, final byte[] columnVisibility) {
         this(subject, predicate, object, context, qualifier, columnVisibility, metadata.toBytes());
     }
 
     @Deprecated
-    public RyaStatement(final RyaURI subject, final RyaURI predicate, final RyaType object, final RyaURI context, final String qualifier, final byte[] columnVisibility, final byte[] value) {
+    public RyaStatement(final RyaIRI subject, final RyaIRI predicate, final RyaType object, final RyaIRI context, final String qualifier, final byte[] columnVisibility, final byte[] value) {
         this(subject, predicate, object, context, qualifier, columnVisibility, value, null);
     }
 
     @Deprecated
-    public RyaStatement(final RyaURI subject, final RyaURI predicate, final RyaType object, final RyaURI context, final String qualifier, final byte[] columnVisibility, final byte[] value, final Long timestamp) {
+    public RyaStatement(final RyaIRI subject, final RyaIRI predicate, final RyaType object, final RyaIRI context, final String qualifier, final byte[] columnVisibility, final byte[] value, final Long timestamp) {
         this.subject = subject;
         this.predicate = predicate;
         this.object = object;
@@ -76,19 +76,19 @@ public class RyaStatement {
         this.timestamp = timestamp != null ? timestamp : System.currentTimeMillis();
     }
 
-    public RyaURI getSubject() {
+    public RyaIRI getSubject() {
         return subject;
     }
 
-    public void setSubject(final RyaURI subject) {
+    public void setSubject(final RyaIRI subject) {
         this.subject = subject;
     }
 
-    public RyaURI getPredicate() {
+    public RyaIRI getPredicate() {
         return predicate;
     }
 
-    public void setPredicate(final RyaURI predicate) {
+    public void setPredicate(final RyaIRI predicate) {
         this.predicate = predicate;
     }
 
@@ -100,11 +100,11 @@ public class RyaStatement {
         this.object = object;
     }
 
-    public RyaURI getContext() {
+    public RyaIRI getContext() {
         return context;
     }
 
-    public void setContext(final RyaURI context) {
+    public void setContext(final RyaIRI context) {
         this.context = context;
     }
 
@@ -273,18 +273,18 @@ public class RyaStatement {
             return this;
         }
 
-        public RyaStatementBuilder setContext(final RyaURI ryaURI) {
-            ryaStatement.setContext(ryaURI);
+        public RyaStatementBuilder setContext(final RyaIRI ryaIRI) {
+            ryaStatement.setContext(ryaIRI);
             return this;
         }
 
-        public RyaStatementBuilder setSubject(final RyaURI ryaURI) {
-            ryaStatement.setSubject(ryaURI);
+        public RyaStatementBuilder setSubject(final RyaIRI ryaIRI) {
+            ryaStatement.setSubject(ryaIRI);
             return this;
         }
 
-        public RyaStatementBuilder setPredicate(final RyaURI ryaURI) {
-            ryaStatement.setPredicate(ryaURI);
+        public RyaStatementBuilder setPredicate(final RyaIRI ryaIRI) {
+            ryaStatement.setPredicate(ryaIRI);
             return this;
         }
 

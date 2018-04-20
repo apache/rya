@@ -61,15 +61,15 @@ public class SubClassOfVisitor extends AbstractInferVisitor {
 //            join.getProperties().put(InferConstants.INFERRED, InferConstants.TRUE);
 //            node.replaceWith(join);
 
-            final IRI subclassof_uri = (IRI) objVar.getValue();
-            final Collection<IRI> parents = InferenceEngine.findParents(inferenceEngine.getSubClassOfGraph(), subclassof_uri);
+            final IRI subclassof_iri = (IRI) objVar.getValue();
+            final Collection<IRI> parents = InferenceEngine.findParents(inferenceEngine.getSubClassOfGraph(), subclassof_iri);
             if (parents != null && parents.size() > 0) {
                 final String s = UUID.randomUUID().toString();
                 final Var typeVar = new Var(s);
                 final FixedStatementPattern fsp = new FixedStatementPattern(typeVar, new Var("c-" + s, RDFS.SUBCLASSOF), objVar, conVar);
-                parents.add(subclassof_uri);
-                for (final IRI u : parents) {
-                    fsp.statements.add(new NullableStatementImpl(u, RDFS.SUBCLASSOF, subclassof_uri));
+                parents.add(subclassof_iri);
+                for (final IRI iri : parents) {
+                    fsp.statements.add(new NullableStatementImpl(iri, RDFS.SUBCLASSOF, subclassof_iri));
                 }
 
                 final StatementPattern rdfType = new DoNotExpandSP(sp.getSubjectVar(), sp.getPredicateVar(), typeVar, conVar);
@@ -82,8 +82,8 @@ public class SubClassOfVisitor extends AbstractInferVisitor {
 //                StatementPatterns statementPatterns = new StatementPatterns();
 //                statementPatterns.patterns.add(node);
 //                Var subjVar = node.getSubjectVar();
-//                for (URI u : parents) {
-//                    statementPatterns.patterns.add(new StatementPattern(subjVar, predVar, new Var(objVar.getName(), u)));
+//                for (IRI iri : parents) {
+//                    statementPatterns.patterns.add(new StatementPattern(subjVar, predVar, new Var(objVar.getName(), iri)));
 //                }
 //                node.replaceWith(statementPatterns);
 //            }
@@ -92,8 +92,8 @@ public class SubClassOfVisitor extends AbstractInferVisitor {
 //                VarCollection vc = new VarCollection();
 //                vc.setName(objVar.getName());
 //                vc.values.add(objVar);
-//                for (URI u : parents) {
-//                    vc.values.add(new Var(objVar.getName(), u));
+//                for (IRI iri : parents) {
+//                    vc.values.add(new Var(objVar.getName(), iri));
 //                }
 //                Var subjVar = node.getSubjectVar();
 //                node.replaceWith(new StatementPattern(subjVar, predVar, vc, node.getContextVar()));

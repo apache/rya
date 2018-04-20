@@ -20,7 +20,7 @@ package org.apache.rya.indexing.geotemporal.mongo;
 
 import static org.junit.Assert.assertEquals;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.entity.storage.mongo.DocumentConverter.DocumentConverterException;
@@ -48,7 +48,7 @@ public class EventDocumentConverterTest {
 
         // An Event that will be stored.
         final Event event = Event.builder()
-                .setSubject(new RyaURI("urn:event/001"))
+                .setSubject(new RyaIRI("urn:event/001"))
                 .setGeometry(geo)
                 .setTemporalInstant(instant)
                 .build();

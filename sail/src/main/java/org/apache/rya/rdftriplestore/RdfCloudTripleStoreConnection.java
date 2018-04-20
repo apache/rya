@@ -34,7 +34,7 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.api.persist.RyaDAO;
@@ -158,7 +158,7 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
                 for (final Resource context : contexts) {
                     final RyaStatement statement = new RyaStatement(
                             RdfToRyaConversions.convertResource(subject),
-                            RdfToRyaConversions.convertURI(predicate),
+                            RdfToRyaConversions.convertIRI(predicate),
                             RdfToRyaConversions.convertValue(object),
                             RdfToRyaConversions.convertResource(context),
                             null, new StatementMetadata(), cv);
@@ -168,7 +168,7 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
             } else {
                 final RyaStatement statement = new RyaStatement(
                         RdfToRyaConversions.convertResource(subject),
-                        RdfToRyaConversions.convertURI(predicate),
+                        RdfToRyaConversions.convertIRI(predicate),
                         RdfToRyaConversions.convertValue(object),
                         null, null, new StatementMetadata(), cv);
 
@@ -186,7 +186,7 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
     @Override
     protected void clearInternal(final Resource... aresource) throws SailException {
         try {
-            final RyaURI[] graphs = new RyaURI[aresource.length];
+            final RyaIRI[] graphs = new RyaIRI[aresource.length];
             for (int i = 0 ; i < graphs.length ; i++){
                 graphs[i] = RdfToRyaConversions.convertResource(aresource[i]);
             }
@@ -565,7 +565,7 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
                     }
                     final RyaStatement statement = new RyaStatement(
                             RdfToRyaConversions.convertResource(subject),
-                            RdfToRyaConversions.convertURI(predicate),
+                            RdfToRyaConversions.convertIRI(predicate),
                             RdfToRyaConversions.convertValue(object),
                             RdfToRyaConversions.convertResource(context));
 
@@ -574,7 +574,7 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
             } else {
                 final RyaStatement statement = new RyaStatement(
                         RdfToRyaConversions.convertResource(subject),
-                        RdfToRyaConversions.convertURI(predicate),
+                        RdfToRyaConversions.convertIRI(predicate),
                         RdfToRyaConversions.convertValue(object),
                         null);
 

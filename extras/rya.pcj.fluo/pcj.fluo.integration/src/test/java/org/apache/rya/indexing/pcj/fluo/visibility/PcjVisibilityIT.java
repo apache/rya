@@ -46,7 +46,7 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.utils.CloseableIterator;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
@@ -191,25 +191,25 @@ public class PcjVisibilityIT extends RyaExportITBase {
 
         // Triples that will be streamed into Fluo after the PCJ has been created.
         final Map<RyaStatement, String> streamedTriples = new HashMap<>();
-        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"),new RyaURI("http://Bob")), "A&B");
-        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://livesIn"),new RyaURI("http://London")), "A");
-        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://worksAt"),new RyaURI("http://Chipotle")), "B");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://talksTo"),new RyaIRI("http://Bob")), "A&B");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaIRI("http://Bob"), new RyaIRI("http://livesIn"),new RyaIRI("http://London")), "A");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaIRI("http://Bob"), new RyaIRI("http://worksAt"),new RyaIRI("http://Chipotle")), "B");
 
-        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"),new RyaURI("http://Charlie")), "B&C");
-        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Charlie"), new RyaURI("http://livesIn"),new RyaURI("http://London")), "B");
-        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Charlie"), new RyaURI("http://worksAt"),new RyaURI("http://Chipotle")), "C");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://talksTo"),new RyaIRI("http://Charlie")), "B&C");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaIRI("http://Charlie"), new RyaIRI("http://livesIn"),new RyaIRI("http://London")), "B");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaIRI("http://Charlie"), new RyaIRI("http://worksAt"),new RyaIRI("http://Chipotle")), "C");
 
-        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"),new RyaURI("http://David")), "C&D");
-        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://David"), new RyaURI("http://livesIn"),new RyaURI("http://London")), "C");
-        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://David"), new RyaURI("http://worksAt"),new RyaURI("http://Chipotle")), "D");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://talksTo"),new RyaIRI("http://David")), "C&D");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaIRI("http://David"), new RyaIRI("http://livesIn"),new RyaIRI("http://London")), "C");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaIRI("http://David"), new RyaIRI("http://worksAt"),new RyaIRI("http://Chipotle")), "D");
 
-        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"),new RyaURI("http://Eve")), "D&E");
-        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Eve"), new RyaURI("http://livesIn"),new RyaURI("http://Leeds")), "D");
-        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Eve"), new RyaURI("http://worksAt"),new RyaURI("http://Chipotle")), "E");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://talksTo"),new RyaIRI("http://Eve")), "D&E");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaIRI("http://Eve"), new RyaIRI("http://livesIn"),new RyaIRI("http://Leeds")), "D");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaIRI("http://Eve"), new RyaIRI("http://worksAt"),new RyaIRI("http://Chipotle")), "E");
 
-        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Frank"), new RyaURI("http://talksTo"),new RyaURI("http://Alice")), "");
-        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Frank"), new RyaURI("http://livesIn"),new RyaURI("http://London")), "");
-        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Frank"), new RyaURI("http://worksAt"),new RyaURI("http://Chipotle")), "");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaIRI("http://Frank"), new RyaIRI("http://talksTo"),new RyaIRI("http://Alice")), "");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaIRI("http://Frank"), new RyaIRI("http://livesIn"),new RyaIRI("http://London")), "");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaIRI("http://Frank"), new RyaIRI("http://worksAt"),new RyaIRI("http://Chipotle")), "");
 
         final Connector accumuloConn = super.getAccumuloConnector();
 

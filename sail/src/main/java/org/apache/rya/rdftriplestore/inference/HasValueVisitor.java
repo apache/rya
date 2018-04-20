@@ -94,8 +94,8 @@ public class HasValueVisitor extends AbstractInferVisitor {
         // { ?var rdf:type :Restriction } and { ?var :property ?value }
         // Both require defined predicate
         if (predVar != null && predVar.getValue() != null) {
-            final IRI predURI = (IRI) predVar.getValue();
-            if (RDF.TYPE.equals(predURI) && objVar != null && objVar.getValue() != null
+            final IRI predIRI = (IRI) predVar.getValue();
+            if (RDF.TYPE.equals(predIRI) && objVar != null && objVar.getValue() != null
                     && objVar.getValue() instanceof Resource) {
                 // If the predicate is rdf:type and the type is specified, check whether it can be
                 // inferred using any hasValue restriction(s)
@@ -119,7 +119,7 @@ public class HasValueVisitor extends AbstractInferVisitor {
             else {
                 // If the predicate has some hasValue restriction associated with it, then finding
                 // that the object belongs to the appropriate type implies a value.
-                final Map<Resource, Set<Value>> impliedValues = inferenceEngine.getHasValueByProperty(predURI);
+                final Map<Resource, Set<Value>> impliedValues = inferenceEngine.getHasValueByProperty(predIRI);
                 if (impliedValues.size() > 0) {
                     final Var rdfTypeVar = new Var(RDF.TYPE.stringValue(), RDF.TYPE);
                     final Var typeVar = new Var("t-" + UUID.randomUUID());

@@ -1,4 +1,4 @@
-package org.apache.rya.api.resolver.impl;
+package org.apache.rya.api.domain;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -19,24 +19,43 @@ package org.apache.rya.api.resolver.impl;
  * under the License.
  */
 
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.util.URIUtil;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+
 
 /**
  * Date: 7/16/12
- * Time: 12:41 PM
+ * Time: 11:56 AM
  */
-public class RyaURIResolver extends RyaTypeResolverImpl {
+public class RyaIRI extends RyaType {
 
-    public static final int URI_MARKER = 2;
+    public RyaIRI() {
+        setDataType(XMLSchema.ANYURI);
+    }
 
-    public RyaURIResolver() {
-        super((byte) URI_MARKER, XMLSchema.ANYURI);
+    public RyaIRI(String data) {
+        super(XMLSchema.ANYURI, data);
+    }
+
+    public RyaIRI(String namespace, String data) {
+        super(XMLSchema.ANYURI, namespace + data);
+    }
+
+    protected RyaIRI(IRI datatype, String data) {
+        super(datatype, data);
     }
 
     @Override
-    public RyaType newInstance() {
-        return new RyaURI();
+    public void setData(String data) {
+        super.setData(data);
+        validate(data);
     }
+
+    protected void validate(String data) {
+        if (data == null)
+            throw new IllegalArgumentException("Null not IRI");
+        URIUtil.getLocalNameIndex(data);
+    }
+
 }

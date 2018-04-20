@@ -41,7 +41,7 @@ import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.query.strategy.ByteRange;
 import org.apache.rya.api.query.strategy.TriplePatternStrategy;
@@ -190,8 +190,8 @@ public class StatementPatternStorage extends AccumuloStorage {
     }
 
     protected Map.Entry<TABLE_LAYOUT, Range> createRange(Value s_v, Value p_v, Value o_v) throws IOException {
-        RyaURI subject_rya = RdfToRyaConversions.convertResource((Resource) s_v);
-        RyaURI predicate_rya = RdfToRyaConversions.convertURI((IRI) p_v);
+        RyaIRI subject_rya = RdfToRyaConversions.convertResource((Resource) s_v);
+        RyaIRI predicate_rya = RdfToRyaConversions.convertIRI((IRI) p_v);
         RyaType object_rya = RdfToRyaConversions.convertValue(o_v);
         TriplePatternStrategy strategy = ryaContext.retrieveStrategy(subject_rya, predicate_rya, object_rya, null);
         if (strategy == null) {

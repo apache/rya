@@ -26,7 +26,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Type;
@@ -75,7 +75,7 @@ public class MongoEntityIndexIT extends MongoITBase {
             addStatements(conn);
 
             final EntityStorage entities = indexer.getEntityStorage();
-            final RyaURI subject = new RyaURI("urn:alice");
+            final RyaIRI subject = new RyaIRI("urn:alice");
             final Optional<Entity> alice = entities.get(subject);
             assertTrue(alice.isPresent());
         } finally {
@@ -161,32 +161,32 @@ public class MongoEntityIndexIT extends MongoITBase {
     private void setupTypes(MongoEntityIndexer indexer) throws Exception {
         final TypeStorage typeStore = indexer.getTypeStorage();
         // Add some Types to the storage.
-        final Type cat = new Type(new RyaURI("urn:cat"),
-                ImmutableSet.<RyaURI>builder()
-                .add(new RyaURI("urn:numLegs"))
-                .add(new RyaURI("urn:eye"))
-                .add(new RyaURI("urn:species"))
+        final Type cat = new Type(new RyaIRI("urn:cat"),
+                ImmutableSet.<RyaIRI>builder()
+                .add(new RyaIRI("urn:numLegs"))
+                .add(new RyaIRI("urn:eye"))
+                .add(new RyaIRI("urn:species"))
                 .build());
 
-        final Type dog = new Type(new RyaURI("urn:dog"),
-                ImmutableSet.<RyaURI>builder()
-                .add(new RyaURI("urn:numLegs"))
-                .add(new RyaURI("urn:eye"))
-                .add(new RyaURI("urn:species"))
+        final Type dog = new Type(new RyaIRI("urn:dog"),
+                ImmutableSet.<RyaIRI>builder()
+                .add(new RyaIRI("urn:numLegs"))
+                .add(new RyaIRI("urn:eye"))
+                .add(new RyaIRI("urn:species"))
                 .build());
 
-        final Type icecream = new Type(new RyaURI("urn:icecream"),
-                ImmutableSet.<RyaURI>builder()
-                .add(new RyaURI("urn:brand"))
-                .add(new RyaURI("urn:flavor"))
-                .add(new RyaURI("urn:cost"))
+        final Type icecream = new Type(new RyaIRI("urn:icecream"),
+                ImmutableSet.<RyaIRI>builder()
+                .add(new RyaIRI("urn:brand"))
+                .add(new RyaIRI("urn:flavor"))
+                .add(new RyaIRI("urn:cost"))
                 .build());
 
-        final Type person = new Type(new RyaURI("urn:person"),
-                ImmutableSet.<RyaURI>builder()
-                .add(new RyaURI("urn:name"))
-                .add(new RyaURI("urn:age"))
-                .add(new RyaURI("urn:eye"))
+        final Type person = new Type(new RyaIRI("urn:person"),
+                ImmutableSet.<RyaIRI>builder()
+                .add(new RyaIRI("urn:name"))
+                .add(new RyaIRI("urn:age"))
+                .add(new RyaIRI("urn:eye"))
                 .build());
 
         typeStore.create(cat);

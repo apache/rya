@@ -22,7 +22,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Optional;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.geotemporal.model.Event;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage.EventStorageException;
@@ -36,7 +36,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * Performs update operations over an {@link EventStorage}.
  */
 @DefaultAnnotation(NonNull.class)
-public class EventUpdater implements MongoDocumentUpdater<RyaURI, Event>{
+public class EventUpdater implements MongoDocumentUpdater<RyaIRI, Event>{
     private final EventStorage events;
 
     /**
@@ -49,7 +49,7 @@ public class EventUpdater implements MongoDocumentUpdater<RyaURI, Event>{
     }
 
     @Override
-    public Optional<Event> getOld(final RyaURI key) throws EventStorageException {
+    public Optional<Event> getOld(final RyaIRI key) throws EventStorageException {
         try {
             return events.get(key);
         } catch (final ObjectStorageException e) {

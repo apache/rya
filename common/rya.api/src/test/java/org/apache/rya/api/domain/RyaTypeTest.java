@@ -27,8 +27,8 @@ public class RyaTypeTest {
     static RyaType a = new RyaType(XMLSchema.STRING, "http://www.example.com/Alice");
     static RyaType b = new RyaType(XMLSchema.STRING, "http://www.example.com/Bob");
     static RyaType c = new RyaType(XMLSchema.STRING, "http://www.example.com/Carol");
-    static RyaType aUri = new RyaType(XMLSchema.ANYURI, "http://www.example.com/Alice");
-    static RyaType bUri = new RyaType(XMLSchema.ANYURI, "http://www.example.com/Bob");
+    static RyaType aIri = new RyaType(XMLSchema.ANYURI, "http://www.example.com/Alice");
+    static RyaType bIri = new RyaType(XMLSchema.ANYURI, "http://www.example.com/Bob");
     RyaType nullData = new RyaType(XMLSchema.STRING, null);
     RyaType nullType = new RyaType(null, "http://www.example.com/Alice");
     RyaType nullBoth = new RyaType(null, null);
@@ -36,10 +36,10 @@ public class RyaTypeTest {
 
     @Test
     public void testCompareTo() throws Exception {
-        Assert.assertEquals("compareTo(self) should return zero.", 0, aUri.compareTo(aUri));
-        Assert.assertFalse("compareTo should return nonzero for different data and type.", aUri.compareTo(b) == 0);
-        Assert.assertFalse("compareTo should return nonzero for same data and different datatypes.", a.compareTo(aUri) == 0);
-        Assert.assertFalse("compareTo should return nonzero for same datatype and different data.", bUri.compareTo(aUri) == 0);
+        Assert.assertEquals("compareTo(self) should return zero.", 0, aIri.compareTo(aIri));
+        Assert.assertFalse("compareTo should return nonzero for different data and type.", aIri.compareTo(b) == 0);
+        Assert.assertFalse("compareTo should return nonzero for same data and different datatypes.", a.compareTo(aIri) == 0);
+        Assert.assertFalse("compareTo should return nonzero for same datatype and different data.", bIri.compareTo(aIri) == 0);
         Assert.assertEquals("compareTo should return zero for different objects with matching data and datatype.",
                 0, a.compareTo(same));
     }
@@ -60,11 +60,11 @@ public class RyaTypeTest {
         int forward = Integer.signum(a.compareTo(b));
         int backward = Integer.signum(b.compareTo(a));
         Assert.assertEquals("Comparison of different values with same type should yield opposite signs.", forward, backward * -1);
-        forward = Integer.signum(bUri.compareTo(b));
-        backward = Integer.signum(b.compareTo(bUri));
+        forward = Integer.signum(bIri.compareTo(b));
+        backward = Integer.signum(b.compareTo(bIri));
         Assert.assertEquals("Comparison of same values with different types should yield opposite signs.", forward, backward*-1);
-        forward = Integer.signum(aUri.compareTo(b));
-        backward = Integer.signum(b.compareTo(aUri));
+        forward = Integer.signum(aIri.compareTo(b));
+        backward = Integer.signum(b.compareTo(aIri));
         Assert.assertEquals("Comparison of different values with different types should yield opposite signs.",
                 forward, backward * -1);
     }
@@ -80,7 +80,7 @@ public class RyaTypeTest {
     @Test
     public void testEquals() throws Exception {
         Assert.assertTrue("Same data and datatype should be equal.", a.equals(same));
-        Assert.assertFalse("Same data, different datatype should be unequal.", a.equals(aUri));
+        Assert.assertFalse("Same data, different datatype should be unequal.", a.equals(aIri));
         Assert.assertFalse("Same datatype, different data should be unequal.", a.equals(b));
     }
 
@@ -100,9 +100,9 @@ public class RyaTypeTest {
         Assert.assertEquals("equals and compareTo inconsistent for different values with same types.",
                 a.equals(b), a.compareTo(b) == 0);
         Assert.assertEquals("equals and compareTo inconsistent for same values having different types.",
-                a.equals(aUri), a.compareTo(aUri) == 0);
+                a.equals(aIri), a.compareTo(aIri) == 0);
         Assert.assertEquals("equals and compareTo inconsistent for different values and different types.",
-                a.equals(bUri), a.compareTo(bUri) == 0);
+                a.equals(bIri), a.compareTo(bIri) == 0);
     }
 
     @Test

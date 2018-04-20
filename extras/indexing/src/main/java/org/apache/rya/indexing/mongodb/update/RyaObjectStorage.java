@@ -20,12 +20,12 @@ package org.apache.rya.indexing.mongodb.update;
 
 import java.util.Optional;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.mongodb.IndexingException;
 
 /**
  * Stores and provides access to objects of type T.
- * The RyaURI subject is the primary storage key used.
+ * The {@link RyaIRI} subject is the primary storage key used.
  * @param <T> - The type of object to store/access.
  */
 public interface RyaObjectStorage<T> {
@@ -46,7 +46,7 @@ public interface RyaObjectStorage<T> {
      * @return The Object if one exists for the subject.
      * @throws ObjectStorageException A problem occurred while fetching the Object from the storage.
      */
-    public Optional<T> get(RyaURI subject) throws ObjectStorageException;
+    public Optional<T> get(RyaIRI subject) throws ObjectStorageException;
 
     /**
      * Update the state of an {@link RyaObjectStorage#T}.
@@ -65,7 +65,7 @@ public interface RyaObjectStorage<T> {
      * @return {@code true} if something was deleted; otherwise {@code false}.
      * @throws ObjectStorageException A problem occurred while deleting from the storage.
      */
-    public boolean delete(RyaURI subject) throws ObjectStorageException;
+    public boolean delete(RyaIRI subject) throws ObjectStorageException;
 
     /**
      * Indicates a problem while interacting with an {@link RyaObjectStorage}.

@@ -23,18 +23,18 @@ package org.apache.rya.api.resolver.impl;
 
 import junit.framework.TestCase;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 
 /**
  * Date: 7/16/12
  * Time: 2:51 PM
  */
-public class RyaURIResolverTest extends TestCase {
+public class RyaIRIResolverTest extends TestCase {
 
     public void testSerialization() throws Exception {
-        RyaURI ryaURI = new RyaURI("urn:testdata#data");
-        byte[] serialize = new RyaURIResolver().serialize(ryaURI);
-        RyaType deserialize = new RyaURIResolver().deserialize(serialize);
-        assertEquals(ryaURI, deserialize);
+        RyaIRI ryaIRI = new RyaIRI("urn:testdata#data");
+        byte[] serialize = new RyaIRIResolver().serialize(ryaIRI);
+        RyaType deserialize = new RyaIRIResolver().deserialize(serialize);
+        assertEquals(ryaIRI, deserialize);
     }
 }

@@ -31,7 +31,7 @@ import org.apache.rya.accumulo.mr.TestUtils;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.junit.Test;
 
@@ -93,9 +93,9 @@ public class RdfFileInputToolTest extends TestCase {
                 "-Drdf.format=" + RDFFormat.NTRIPLES.getName(),
                 "src/test/resources/test.ntriples",
         });
-        RyaStatement rs = new RyaStatement(new RyaURI("urn:lubm:rdfts#GraduateStudent01"),
-                new RyaURI("urn:lubm:rdfts#hasFriend"),
-                new RyaURI("urn:lubm:rdfts#GraduateStudent02"));
+        RyaStatement rs = new RyaStatement(new RyaIRI("urn:lubm:rdfts#GraduateStudent01"),
+                new RyaIRI("urn:lubm:rdfts#hasFriend"),
+                new RyaIRI("urn:lubm:rdfts#GraduateStudent02"));
         rs.setColumnVisibility(auths.toString().getBytes());
         AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
         conf.setTablePrefix(tablePrefix);
@@ -116,10 +116,10 @@ public class RdfFileInputToolTest extends TestCase {
                 "-Drdf.format=" + RDFFormat.TRIG.getName(),
                 "src/test/resources/namedgraphs.trig",
         });
-        RyaStatement rs = new RyaStatement(new RyaURI("http://www.example.org/exampleDocument#Monica"),
-                new RyaURI("http://www.example.org/vocabulary#name"),
+        RyaStatement rs = new RyaStatement(new RyaIRI("http://www.example.org/exampleDocument#Monica"),
+                new RyaIRI("http://www.example.org/vocabulary#name"),
                 new RyaType("Monica Murphy"),
-                new RyaURI("http://www.example.org/exampleDocument#G1"));
+                new RyaIRI("http://www.example.org/exampleDocument#G1"));
         rs.setColumnVisibility(auths.toString().getBytes());
         AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
         conf.setTablePrefix(tablePrefix);

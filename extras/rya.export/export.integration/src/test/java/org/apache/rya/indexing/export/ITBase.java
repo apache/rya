@@ -35,7 +35,7 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -159,11 +159,11 @@ public abstract class ITBase {
         checkNotNull(predicate);
         checkNotNull(object);
 
-        final RyaStatementBuilder builder = RyaStatement.builder().setSubject(new RyaURI(subject))
-                .setPredicate(new RyaURI(predicate));
+        final RyaStatementBuilder builder = RyaStatement.builder().setSubject(new RyaIRI(subject))
+                .setPredicate(new RyaIRI(predicate));
 
         if (object.startsWith("http://")) {
-            builder.setObject(new RyaURI(object));
+            builder.setObject(new RyaIRI(object));
         } else {
             builder.setObject(new RyaType(object));
         }
@@ -188,7 +188,7 @@ public abstract class ITBase {
         checkNotNull(subject);
         checkNotNull(predicate);
 
-        return RyaStatement.builder().setSubject(new RyaURI(subject)).setPredicate(new RyaURI(predicate))
+        return RyaStatement.builder().setSubject(new RyaIRI(subject)).setPredicate(new RyaIRI(predicate))
                 .setObject(new RyaType(XMLSchema.INT, "" + object)).build();
     }
 

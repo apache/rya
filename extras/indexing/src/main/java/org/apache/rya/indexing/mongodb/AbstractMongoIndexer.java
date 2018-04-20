@@ -27,7 +27,7 @@ import java.util.Set;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
@@ -182,7 +182,7 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     }
 
     @Override
-    public void dropGraph(final RyaURI... graphs) {
+    public void dropGraph(final RyaIRI... graphs) {
         throw new UnsupportedOperationException();
     }
 

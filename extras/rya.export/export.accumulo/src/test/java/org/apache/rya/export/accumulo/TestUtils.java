@@ -21,7 +21,7 @@ package org.apache.rya.export.accumulo;
 import java.util.Date;
 
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.export.accumulo.util.AccumuloRyaUtils;
 
 /**
@@ -31,22 +31,21 @@ public final class TestUtils {
     private static final String NAMESPACE = "#:";
 
     /**
-     * Creates a {@link RyaURI} for the specified local name.
-     * @param localName the URI's local name.
-     * @return the {@link RyraURI}.
+     * Creates a {@link RyaIRI} for the specified local name.
+     * @param localName the IRI's local name.
+     * @return the {@link RyaIRI}.
      */
-    public static RyaURI createRyaUri(final String localName) {
-        return AccumuloRyaUtils.createRyaUri(NAMESPACE, localName);
+    public static RyaIRI createRyaIri(final String localName) {
+        return AccumuloRyaUtils.createRyaIri(NAMESPACE, localName);
     }
 
     /**
-     * Converts a {@link RyaURI} to the contained data string.
-     * @param namespace the namespace.
-     * @param the {@link RyaURI} to convert.
+     * Converts a {@link RyaIRI} to the contained data string.
+     * @param ryaIri the {@link RyaIRI} to convert.
      * @return the data value without the namespace.
      */
-    public static String convertRyaUriToString(final RyaURI RyaUri) {
-        return AccumuloRyaUtils.convertRyaUriToString(NAMESPACE, RyaUri);
+    public static String convertRyaIriToString(final RyaIRI ryaIri) {
+        return AccumuloRyaUtils.convertRyaIriToString(NAMESPACE, ryaIri);
     }
 
     /**
@@ -58,10 +57,10 @@ public final class TestUtils {
      * @return the {@link RyaStatement}.
      */
     public static RyaStatement createRyaStatement(final String subject, final String predicate, final String object, final Date date) {
-        final RyaURI subjectUri = createRyaUri(subject);
-        final RyaURI predicateUri = createRyaUri(predicate);
-        final RyaURI objectUri = createRyaUri(object);
-        final RyaStatement ryaStatement = new RyaStatement(subjectUri, predicateUri, objectUri);
+        final RyaIRI subjectIri = createRyaIri(subject);
+        final RyaIRI predicateIri = createRyaIri(predicate);
+        final RyaIRI objectIri = createRyaIri(object);
+        final RyaStatement ryaStatement = new RyaStatement(subjectIri, predicateIri, objectIri);
         if (date != null) {
             ryaStatement.setTimestamp(date.getTime());
         }

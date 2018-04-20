@@ -30,7 +30,7 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
@@ -72,10 +72,10 @@ public class EntityCentricIndexTest {
                         DELIM_BYTES, subjectStr.getBytes(), objectBytes[1]),
                 visibilityBytes, timestamp);
         ryaStatement = new RyaStatement(
-                new RyaURI(subjectStr),
-                new RyaURI(predicateStr),
+                new RyaIRI(subjectStr),
+                new RyaIRI(predicateStr),
                 new RyaType(XMLSchema.INTEGER, "3"),
-                new RyaURI(contextStr),
+                new RyaIRI(contextStr),
                 null, visibilityBytes, valueBytes, timestamp);
         value = new Value(valueBytes);
     }

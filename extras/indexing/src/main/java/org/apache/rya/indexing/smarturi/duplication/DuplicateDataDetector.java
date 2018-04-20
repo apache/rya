@@ -36,7 +36,7 @@ import java.util.TreeSet;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.impl.DateTimeRyaTypeResolver;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
@@ -251,16 +251,16 @@ public class DuplicateDataDetector {
         requireNonNull(entity2);
         boolean allValuesNearlyEqual = true;
 
-        final List<RyaURI> types1 = entity1.getExplicitTypeIds();
-        final List<RyaURI> types2 = entity2.getExplicitTypeIds();
+        final List<RyaIRI> types1 = entity1.getExplicitTypeIds();
+        final List<RyaIRI> types2 = entity2.getExplicitTypeIds();
         final boolean doBothHaveSameTypes = types1.containsAll(types2);
         if (!doBothHaveSameTypes) {
             return false;
         }
-        for (final Entry<RyaURI, ImmutableMap<RyaURI, Property>> entry : entity1.getProperties().entrySet()) {
-            final RyaURI typeIdUri = entry.getKey();
-            for (final Entry<RyaURI, Property> typeProperty : entry.getValue().entrySet()) {
-                final RyaURI propertyNameUri = typeProperty.getKey();
+        for (final Entry<RyaIRI, ImmutableMap<RyaIRI, Property>> entry : entity1.getProperties().entrySet()) {
+            final RyaIRI typeIdUri = entry.getKey();
+            for (final Entry<RyaIRI, Property> typeProperty : entry.getValue().entrySet()) {
+                final RyaIRI propertyNameUri = typeProperty.getKey();
                 final Property property1 = typeProperty.getValue();
 
                 final Optional<Property> p2 = entity2.lookupTypeProperty(typeIdUri, propertyNameUri);

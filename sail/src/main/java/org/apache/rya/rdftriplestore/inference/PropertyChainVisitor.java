@@ -62,8 +62,8 @@ public class PropertyChainVisitor extends AbstractInferVisitor {
                 !RDFS.NAMESPACE.equals(predNamespace)
                 && !EXPANDED.equals(cntxtVar)) {
 
-            final IRI chainPropURI = (IRI) predVar.getValue();
-            final List<IRI> chain = inferenceEngine.getPropertyChain(chainPropURI);
+            final IRI chainPropIRI = (IRI) predVar.getValue();
+            final List<IRI> chain = inferenceEngine.getPropertyChain(chainPropIRI);
             final List<StatementPattern> expandedPatterns = new ArrayList<StatementPattern>();
             if (chain.size() > 0) {
                 final Var originalSubj = sp.getSubjectVar();
@@ -75,7 +75,7 @@ public class PropertyChainVisitor extends AbstractInferVisitor {
                     final String s = UUID.randomUUID().toString();
                     final Var currentObj = new Var("c-" + s);
                     StatementPattern statementPattern = new StatementPattern(nextSubj, new Var(chainElement.stringValue()), currentObj, sp.getContextVar());
-                    if (chainElement instanceof InverseURI){
+                    if (chainElement instanceof InverseIRI){
                         statementPattern = new StatementPattern(currentObj, new Var(chainElement.stringValue()), nextSubj, sp.getContextVar());
                     }
                     expandedPatterns.add(statementPattern);

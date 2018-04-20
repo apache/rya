@@ -272,10 +272,10 @@ public class AccumuloRyaStatementStoreTest {
 
         assertEquals(firstRyaStatement, updatedRyaStatement);
 
-        final String subject = TestUtils.convertRyaUriToString(updatedRyaStatement.getSubject());
-        final String predicate = TestUtils.convertRyaUriToString(updatedRyaStatement.getPredicate());
-        updatedRyaStatement.setSubject(TestUtils.createRyaUri(subject + "_UPDATED"));
-        updatedRyaStatement.setPredicate(TestUtils.createRyaUri(predicate + "_UPDATED"));
+        final String subject = TestUtils.convertRyaIriToString(updatedRyaStatement.getSubject());
+        final String predicate = TestUtils.convertRyaIriToString(updatedRyaStatement.getPredicate());
+        updatedRyaStatement.setSubject(TestUtils.createRyaIri(subject + "_UPDATED"));
+        updatedRyaStatement.setPredicate(TestUtils.createRyaIri(predicate + "_UPDATED"));
 
         accumuloRyaStatementStore.updateStatement(firstRyaStatement, updatedRyaStatement);
 
@@ -312,10 +312,10 @@ public class AccumuloRyaStatementStoreTest {
 
         assertEquals(firstRyaStatement, updatedRyaStatement);
 
-        final String subject = TestUtils.convertRyaUriToString(updatedRyaStatement.getSubject());
-        final String predicate = TestUtils.convertRyaUriToString(updatedRyaStatement.getPredicate());
-        updatedRyaStatement.setSubject(TestUtils.createRyaUri(subject + "_UPDATED"));
-        updatedRyaStatement.setPredicate(TestUtils.createRyaUri(predicate + "_UPDATED"));
+        final String subject = TestUtils.convertRyaIriToString(updatedRyaStatement.getSubject());
+        final String predicate = TestUtils.convertRyaIriToString(updatedRyaStatement.getPredicate());
+        updatedRyaStatement.setSubject(TestUtils.createRyaIri(subject + "_UPDATED"));
+        updatedRyaStatement.setPredicate(TestUtils.createRyaIri(predicate + "_UPDATED"));
 
         accumuloRyaStatementStore.updateStatement(firstRyaStatement, null);
     }
@@ -333,10 +333,10 @@ public class AccumuloRyaStatementStoreTest {
 
         assertEquals(notFoundStatement, updatedRyaStatement);
 
-        final String subject = TestUtils.convertRyaUriToString(updatedRyaStatement.getSubject());
-        final String predicate = TestUtils.convertRyaUriToString(updatedRyaStatement.getPredicate());
-        updatedRyaStatement.setSubject(TestUtils.createRyaUri(subject + "_UPDATED"));
-        updatedRyaStatement.setPredicate(TestUtils.createRyaUri(predicate + "_UPDATED"));
+        final String subject = TestUtils.convertRyaIriToString(updatedRyaStatement.getSubject());
+        final String predicate = TestUtils.convertRyaIriToString(updatedRyaStatement.getPredicate());
+        updatedRyaStatement.setSubject(TestUtils.createRyaIri(subject + "_UPDATED"));
+        updatedRyaStatement.setPredicate(TestUtils.createRyaIri(predicate + "_UPDATED"));
 
         accumuloRyaStatementStore.updateStatement(notFoundStatement, updatedRyaStatement);
 

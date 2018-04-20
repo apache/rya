@@ -40,7 +40,7 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -105,8 +105,8 @@ public class AccumuloRdfCountToolTest {
 
     @Test
     public void testMR() throws Exception {
-        RyaURI test1 = RdfToRyaConversions.convertURI(VF.createIRI(litdupsNS, "test1"));
-        RyaURI pred1 = RdfToRyaConversions.convertURI(VF.createIRI(litdupsNS, "pred1"));
+        RyaIRI test1 = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "test1"));
+        RyaIRI pred1 = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "pred1"));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(VF.createLiteral(0))));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(VF.createLiteral(1))));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(VF.createLiteral(2))));
@@ -197,8 +197,8 @@ public class AccumuloRdfCountToolTest {
 
     @Test
     public void testTTL() throws Exception {
-        RyaURI test1 = RdfToRyaConversions.convertURI(VF.createIRI(litdupsNS, "test1"));
-        RyaURI pred1 = RdfToRyaConversions.convertURI(VF.createIRI(litdupsNS, "pred1"));
+        RyaIRI test1 = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "test1"));
+        RyaIRI pred1 = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "pred1"));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(VF.createLiteral(0))));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(VF.createLiteral(1))));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(VF.createLiteral(2))));
@@ -231,9 +231,9 @@ public class AccumuloRdfCountToolTest {
 
     @Test
     public void testContext() throws Exception {
-        RyaURI test1 = RdfToRyaConversions.convertURI(VF.createIRI(litdupsNS, "test1"));
-        RyaURI pred1 = RdfToRyaConversions.convertURI(VF.createIRI(litdupsNS, "pred1"));
-        RyaURI cntxt = RdfToRyaConversions.convertURI(VF.createIRI(litdupsNS, "cntxt"));
+        RyaIRI test1 = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "test1"));
+        RyaIRI pred1 = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "pred1"));
+        RyaIRI cntxt = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "cntxt"));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(VF.createLiteral(0)), cntxt));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(VF.createLiteral(1)), cntxt));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(VF.createLiteral(2)), cntxt));

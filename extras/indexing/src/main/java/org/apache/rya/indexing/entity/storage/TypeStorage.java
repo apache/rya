@@ -20,7 +20,7 @@ package org.apache.rya.indexing.entity.storage;
 
 import java.util.Optional;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.EntityIndexException;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
@@ -49,7 +49,7 @@ public interface TypeStorage {
      * @return The {@link Type} if one exists for the ID.
      * @throws TypeStorageException A problem occurred while fetching from the storage.
      */
-    public Optional<Type> get(RyaURI typeId) throws TypeStorageException;
+    public Optional<Type> get(RyaIRI typeId) throws TypeStorageException;
 
     /**
      * Get all {@link Type}s that include a specific {@link Property} name.
@@ -59,7 +59,7 @@ public interface TypeStorage {
      * @throws TypeStorageException A problem occurred while searching for the Types
      *   that have the Property name.
      */
-    public ConvertingCursor<Type> search(RyaURI propertyName) throws TypeStorageException;
+    public ConvertingCursor<Type> search(RyaIRI propertyName) throws TypeStorageException;
 
     /**
      * Deletes a {@link Type} from the storage.
@@ -68,7 +68,7 @@ public interface TypeStorage {
      * @return {@code true} if something was deleted; otherwise {@code false}.
      * @throws TypeStorageException A problem occurred while deleting from the storage.
      */
-    public boolean delete(RyaURI typeId) throws TypeStorageException;
+    public boolean delete(RyaIRI typeId) throws TypeStorageException;
 
     /**
      * A problem occurred while interacting with a {@link TypeStorage}.

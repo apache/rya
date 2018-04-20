@@ -28,7 +28,7 @@ import java.util.Set;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
@@ -61,8 +61,8 @@ public class MongoStatementMetadataIT extends MongoITBase {
 
     @Override
     protected void updateConfiguration(final MongoDBRdfConfiguration conf) {
-        final Set<RyaURI> propertySet = new HashSet<>(
-                Arrays.asList(new RyaURI("http://createdBy"), new RyaURI("http://createdOn")));
+        final Set<RyaIRI> propertySet = new HashSet<>(
+                Arrays.asList(new RyaIRI("http://createdBy"), new RyaIRI("http://createdOn")));
         conf.setUseStatementMetadata(true);
         conf.setStatementMetadataProperties(propertySet);
     }
@@ -76,11 +76,11 @@ public class MongoStatementMetadataIT extends MongoITBase {
             dao.init();
 
             final StatementMetadata metadata = new StatementMetadata();
-            metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-            metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+            metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaType("Joe"));
+            metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-            final RyaStatement statement = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                    new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
+            final RyaStatement statement = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                    new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
             dao.add(statement);
 
             SailRepositoryConnection conn = new SailRepository(sail).getConnection();
@@ -121,11 +121,11 @@ public class MongoStatementMetadataIT extends MongoITBase {
             dao.setConf(conf);
             dao.init();
             final StatementMetadata metadata = new StatementMetadata();
-            metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Doug"));
-            metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-15"));
+            metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaType("Doug"));
+            metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-15"));
 
-            final RyaStatement statement = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                    new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
+            final RyaStatement statement = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                    new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
             dao.add(statement);
 
             SailRepositoryConnection conn = new SailRepository(sail).getConnection();
@@ -151,13 +151,13 @@ public class MongoStatementMetadataIT extends MongoITBase {
             dao.setConf(conf);
             dao.init();
             final StatementMetadata metadata = new StatementMetadata();
-            metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-            metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+            metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaType("Joe"));
+            metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-            final RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                    new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
-            final RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                    new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata);
+            final RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                    new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
+            final RyaStatement statement2 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                    new RyaType("HardwareStore"), new RyaIRI("http://context"), "", metadata);
             dao.add(statement1);
             dao.add(statement2);
 
@@ -210,20 +210,20 @@ public class MongoStatementMetadataIT extends MongoITBase {
             dao.setConf(conf);
             dao.init();
             final StatementMetadata metadata1 = new StatementMetadata();
-            metadata1.addMetadata(new RyaURI("http://createdBy"), new RyaURI("http://Doug"));
-            metadata1.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+            metadata1.addMetadata(new RyaIRI("http://createdBy"), new RyaIRI("http://Doug"));
+            metadata1.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
             final StatementMetadata metadata2 = new StatementMetadata();
-            metadata2.addMetadata(new RyaURI("http://createdBy"), new RyaURI("http://Bob"));
-            metadata2.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-04"));
+            metadata2.addMetadata(new RyaIRI("http://createdBy"), new RyaIRI("http://Bob"));
+            metadata2.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-04"));
 
-            final RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                    new RyaURI("http://BurgerShack"), new RyaURI("http://context"), "", metadata1);
-            final RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://talksTo"),
-                    new RyaURI("http://Betty"), new RyaURI("http://context"), "", metadata1);
-            final RyaStatement statement3 = new RyaStatement(new RyaURI("http://Fred"), new RyaURI("http://talksTo"),
-                    new RyaURI("http://Amanda"), new RyaURI("http://context"), "", metadata1);
-            final RyaStatement statement4 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://talksTo"),
-                    new RyaURI("http://Wanda"), new RyaURI("http://context"), "", metadata2);
+            final RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                    new RyaIRI("http://BurgerShack"), new RyaIRI("http://context"), "", metadata1);
+            final RyaStatement statement2 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://talksTo"),
+                    new RyaIRI("http://Betty"), new RyaIRI("http://context"), "", metadata1);
+            final RyaStatement statement3 = new RyaStatement(new RyaIRI("http://Fred"), new RyaIRI("http://talksTo"),
+                    new RyaIRI("http://Amanda"), new RyaIRI("http://context"), "", metadata1);
+            final RyaStatement statement4 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://talksTo"),
+                    new RyaIRI("http://Wanda"), new RyaIRI("http://context"), "", metadata2);
             dao.add(statement1);
             dao.add(statement2);
             dao.add(statement3);

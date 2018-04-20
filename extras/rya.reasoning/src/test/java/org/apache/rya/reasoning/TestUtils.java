@@ -20,7 +20,7 @@ package org.apache.rya.reasoning;
  */
 
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.eclipse.rdf4j.model.BNode;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -72,7 +72,7 @@ public class TestUtils {
     }
 
     public static RyaStatement ryaStatement(String s, String p, String o) {
-        return new RyaStatement(new RyaURI(TEST_PREFIX + "#" + s),
-            new RyaURI(TEST_PREFIX + "#" + p), new RyaURI(TEST_PREFIX + "#" + o));
+        return new RyaStatement(new RyaIRI(TEST_PREFIX + "#" + s),
+            new RyaIRI(TEST_PREFIX + "#" + p), new RyaIRI(TEST_PREFIX + "#" + o));
     }
 }

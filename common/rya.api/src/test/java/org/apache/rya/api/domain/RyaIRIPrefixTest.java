@@ -21,31 +21,17 @@ package org.apache.rya.api.domain;
 
 
 
-import org.eclipse.rdf4j.model.IRI;
+import junit.framework.TestCase;
 
 /**
- * Created by IntelliJ IDEA.
- * Date: 4/11/12
- * Time: 1:03 PM
- * To change this template use File | Settings | File Templates.
+ * Date: 7/24/12
+ * Time: 3:30 PM
  */
-public class RangeURI extends RangeValue<IRI> implements IRI {
+public class RyaIRIPrefixTest extends TestCase {
 
-    public RangeURI(IRI start, IRI end) {
-        super(start, end);
-    }
-
-    public RangeURI(RangeValue rangeValue) {
-        super((IRI) rangeValue.getStart(), (IRI) rangeValue.getEnd());
-    }
-
-    @Override
-    public String getNamespace() {
-        throw new UnsupportedOperationException("Ranges do not have a namespace");
-    }
-
-    @Override
-    public String getLocalName() {
-        throw new UnsupportedOperationException("Ranges do not have a localname");
+    public void testPrefix() throws Exception {
+        String prefix = "urn:test#";
+        RyaIRIPrefix iriPrefix = new RyaIRIPrefix(prefix);
+        assertEquals(prefix, iriPrefix.getPrefix());
     }
 }

@@ -52,7 +52,7 @@ import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaTripleContext;
@@ -301,7 +301,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
         private final RyaTripleContext tripleContext;
         private MultiTableBatchWriter writer;
         private byte[] cv = AccumuloRdfConstants.EMPTY_CV.getExpression();
-        private RyaURI defaultContext = null;
+        private RyaIRI defaultContext = null;
 
         private static final long ONE_MEGABYTE = 1024L * 1024L;
         private static final long AVE_STATEMENT_SIZE = 100L;
@@ -336,7 +336,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
             // set the default context
             final String context = conf.get(CONTEXT_PROPERTY, "");
             if (context != null && !context.isEmpty()) {
-                defaultContext = new RyaURI(context);
+                defaultContext = new RyaIRI(context);
             }
 
             // set up the buffer
@@ -485,10 +485,10 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
         }
 
         private int statementSize(final RyaStatement ryaStatement) {
-            final RyaURI subject = ryaStatement.getSubject();
-            final RyaURI predicate = ryaStatement.getPredicate();
+            final RyaIRI subject = ryaStatement.getSubject();
+            final RyaIRI predicate = ryaStatement.getPredicate();
             final RyaType object = ryaStatement.getObject();
-            final RyaURI context = ryaStatement.getContext();
+            final RyaIRI context = ryaStatement.getContext();
             int size = 3 + subject.getData().length() + predicate.getData().length() + object.getData().length();
             if (!XMLSchema.ANYURI.equals(object.getDataType())) {
                 size += 2 + object.getDataType().toString().length();

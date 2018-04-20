@@ -28,7 +28,7 @@ import java.util.Set;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.matching.JoinSegment;
@@ -61,8 +61,8 @@ public class StatementMetadataExternalSetProviderTest {
     public void createSingleAccumuloMetadataNode() throws MalformedQueryException {
 
         AccumuloRdfConfiguration conf = (AccumuloRdfConfiguration) getConf(false);
-        Set<RyaURI> propertySet = new HashSet<>();
-        propertySet.add(new RyaURI("http://createdBy"));
+        Set<RyaIRI> propertySet = new HashSet<>();
+        propertySet.add(new RyaIRI("http://createdBy"));
         conf.setStatementMetadataProperties(propertySet);
         StatementMetadataExternalSetProvider metaProvider = new StatementMetadataExternalSetProvider(
                 conf);
@@ -88,8 +88,8 @@ public class StatementMetadataExternalSetProviderTest {
     public void createSingleMongoMetadataNode() throws MalformedQueryException {
 
         MongoDBRdfConfiguration conf = (MongoDBRdfConfiguration) getConf(true);
-        Set<RyaURI> propertySet = new HashSet<>();
-        propertySet.add(new RyaURI("http://createdBy"));
+        Set<RyaIRI> propertySet = new HashSet<>();
+        propertySet.add(new RyaIRI("http://createdBy"));
         conf.setStatementMetadataProperties(propertySet);
         StatementMetadataExternalSetProvider metaProvider = new StatementMetadataExternalSetProvider(conf);
         SPARQLParser parser = new SPARQLParser();
@@ -115,9 +115,9 @@ public class StatementMetadataExternalSetProviderTest {
     public void createMultipleMetadataNode() throws MalformedQueryException {
 
         MongoDBRdfConfiguration conf = (MongoDBRdfConfiguration) getConf(true);
-        Set<RyaURI> propertySet = new HashSet<>();
-        propertySet.add(new RyaURI("http://createdBy"));
-        propertySet.add(new RyaURI("http://createdOn"));
+        Set<RyaIRI> propertySet = new HashSet<>();
+        propertySet.add(new RyaIRI("http://createdBy"));
+        propertySet.add(new RyaIRI("http://createdOn"));
         conf.setStatementMetadataProperties(propertySet);
         StatementMetadataExternalSetProvider metaProvider = new StatementMetadataExternalSetProvider(conf);
         SPARQLParser parser = new SPARQLParser();

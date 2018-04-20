@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RangeURI;
+import org.apache.rya.api.domain.RangeIRI;
 import org.apache.rya.api.domain.RangeValue;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.impl.BooleanLiteral;
@@ -87,10 +87,10 @@ public class FilterRangeVisitor extends AbstractQueryModelVisitor<Exception> {
         final Var objVar = node.getObjectVar();
         final RangeValue objRange = rangeValues.get(objVar);
         if(subjRange != null) {
-            subjectVar.setValue(new RangeURI(subjRange));//Assumes no blank nodes can be ranges
+            subjectVar.setValue(new RangeIRI(subjRange));//Assumes no blank nodes can be ranges
         }
         if(predRange != null) {
-            predVar.setValue(new RangeURI(predRange));
+            predVar.setValue(new RangeIRI(predRange));
         }
         if(objRange != null) {
             objVar.setValue(objRange);

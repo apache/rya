@@ -40,7 +40,7 @@ import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.mr.RyaInputFormat.RyaStatementRecordReader;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -85,9 +85,9 @@ public class RyaInputFormatTest {
 
 
         RyaStatement input = RyaStatement.builder()
-            .setSubject(new RyaURI("http://www.google.com"))
-            .setPredicate(new RyaURI("http://some_other_uri"))
-            .setObject(new RyaURI("http://www.yahoo.com"))
+            .setSubject(new RyaIRI("http://www.google.com"))
+            .setPredicate(new RyaIRI("http://some_other_uri"))
+            .setObject(new RyaIRI("http://www.yahoo.com"))
             .setColumnVisibility(new byte[0])
             .setValue(new byte[0])
             .build();

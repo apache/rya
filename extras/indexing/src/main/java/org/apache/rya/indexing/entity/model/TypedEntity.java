@@ -27,7 +27,7 @@ import java.util.Optional;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
@@ -47,12 +47,12 @@ public class TypedEntity {
     /**
      * The Subject of the {@link Entity} this view was derived from.
      */
-    private final RyaURI subject;
+    private final RyaIRI subject;
 
     /**
      * The ID of the {@link Type} that defines the structure of this TypedEntity.
      */
-    private final RyaURI typeId;
+    private final RyaIRI typeId;
 
     /**
      * {@code true} if the Entity's Type has been explicitly set to the {@link #typeId}
@@ -66,7 +66,7 @@ public class TypedEntity {
      * </p>
      * They are mapped from property name to property object for quick lookup.
      */
-    private final ImmutableMap<RyaURI, Property> optionalFields;
+    private final ImmutableMap<RyaIRI, Property> optionalFields;
 
     /**
      * Constructs an instance of {@link TypedEntity}.
@@ -78,10 +78,10 @@ public class TypedEntity {
      *   it has properties that happen to match that type's properties).
      * @param properties - The optional {@link Property} values of this {@link TypedEntity}. (not null)
      */
-    private TypedEntity(final RyaURI subject,
-            final RyaURI dataTypeId,
+    private TypedEntity(final RyaIRI subject,
+            final RyaIRI dataTypeId,
             final boolean explicitlyTyped,
-            final ImmutableMap<RyaURI, Property> optionalFields) {
+            final ImmutableMap<RyaIRI, Property> optionalFields) {
         this.subject = requireNonNull(subject);
         typeId = requireNonNull(dataTypeId);
         this.optionalFields = requireNonNull(optionalFields);
@@ -91,14 +91,14 @@ public class TypedEntity {
     /**
      * @return The Subject of the {@link Entity} this view was derived from.
      */
-    public RyaURI getSubject() {
+    public RyaIRI getSubject() {
         return subject;
     }
 
     /**
      * @return The ID of the {@link Type} that defines the structure of this Entity.
      */
-    public RyaURI getTypeId() {
+    public RyaIRI getTypeId() {
         return typeId;
     }
 
@@ -125,7 +125,7 @@ public class TypedEntity {
      * @param propertyName - The name of {@link Property} that may be in this Entity. (not null)
      * @return The value of the Property if it has been set.
      */
-    public Optional<RyaType> getPropertyValue(final RyaURI propertyName) {
+    public Optional<RyaType> getPropertyValue(final RyaIRI propertyName) {
         requireNonNull(propertyName);
 
         final Property field = optionalFields.get(propertyName);
@@ -184,16 +184,16 @@ public class TypedEntity {
     @DefaultAnnotation(NonNull.class)
     public static class Builder {
 
-        private RyaURI subject;
-        private RyaURI typeId;
+        private RyaIRI subject;
+        private RyaIRI typeId;
         private boolean explicitlyTyped = false;
-        private final Map<RyaURI, Property> properties = new HashMap<>();
+        private final Map<RyaIRI, Property> properties = new HashMap<>();
 
         /**
          * @param subject - The Subject of the {@link Entity} this view was derived from.
          * @return This {@link Builder} so that method invocations may be chained.
          */
-        public Builder setId(@Nullable final RyaURI subject) {
+        public Builder setId(@Nullable final RyaIRI subject) {
             this.subject = subject;
             return this;
         }
@@ -202,7 +202,7 @@ public class TypedEntity {
          * @param typeId -  The ID of the {@link Type} that defines the structure of this Entity.
          * @return This {@link Builder} so that method invocations may be chained.
          */
-        public Builder setTypeId(@Nullable final RyaURI typeId) {
+        public Builder setTypeId(@Nullable final RyaIRI typeId) {
             this.typeId = typeId;
             return this;
         }

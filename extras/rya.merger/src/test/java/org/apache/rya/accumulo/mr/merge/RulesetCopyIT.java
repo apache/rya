@@ -44,7 +44,7 @@ import org.apache.rya.accumulo.mr.merge.util.TestUtils;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -121,13 +121,13 @@ public class RulesetCopyIT {
         QUERY_PREFIXES = sb.toString();
     }
 
-    private static RyaURI substitute(final String uri) {
+    private static RyaIRI substitute(final String uri) {
         for (final String prefix : prefixes.keySet()) {
             if (uri.startsWith(prefix)) {
-                return new RyaURI(uri.replace(prefix, prefixes.get(prefix)));
+                return new RyaIRI(uri.replace(prefix, prefixes.get(prefix)));
             }
         }
-        return new RyaURI(uri);
+        return new RyaIRI(uri);
     }
 
     private static RyaStatement statement(final String s, final String p, final RyaType o) {

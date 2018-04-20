@@ -46,7 +46,7 @@ import org.apache.rya.accumulo.mr.AbstractAccumuloMRTool;
 import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.accumulo.mr.RyaStatementWritable;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.eclipse.rdf4j.model.Statement;
@@ -85,12 +85,12 @@ public class TextOutputExample extends AbstractAccumuloMRTool {
         dao.setConf(conf);
         dao.init();
         String ns = "http://example.com/";
-        dao.add(new RyaStatement(new RyaURI(ns+"s1"), new RyaURI(ns+"p1"), new RyaURI(ns+"o1")));
-        dao.add(new RyaStatement(new RyaURI(ns+"s1"), new RyaURI(ns+"p2"), new RyaURI(ns+"o2")));
-        dao.add(new RyaStatement(new RyaURI(ns+"s2"), new RyaURI(ns+"p1"), new RyaURI(ns+"o3"),
-                new RyaURI(ns+"g1")));
-        dao.add(new RyaStatement(new RyaURI(ns+"s3"), new RyaURI(ns+"p3"), new RyaURI(ns+"o3"),
-                new RyaURI(ns+"g2")));
+        dao.add(new RyaStatement(new RyaIRI(ns+"s1"), new RyaIRI(ns+"p1"), new RyaIRI(ns+"o1")));
+        dao.add(new RyaStatement(new RyaIRI(ns+"s1"), new RyaIRI(ns+"p2"), new RyaIRI(ns+"o2")));
+        dao.add(new RyaStatement(new RyaIRI(ns+"s2"), new RyaIRI(ns+"p1"), new RyaIRI(ns+"o3"),
+                new RyaIRI(ns+"g1")));
+        dao.add(new RyaStatement(new RyaIRI(ns+"s3"), new RyaIRI(ns+"p3"), new RyaIRI(ns+"o3"),
+                new RyaIRI(ns+"g2")));
         dao.destroy();
     }
 

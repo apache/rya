@@ -56,7 +56,7 @@ import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -85,10 +85,10 @@ public final class AccumuloRyaUtils {
 
     private static final String NAMESPACE = RdfCloudTripleStoreConstants.NAMESPACE;
     private static final ValueFactory VALUE_FACTORY = RdfCloudTripleStoreConstants.VALUE_FACTORY;
-    public static RyaURI RTS_SUBJECT_RYA = RdfCloudTripleStoreConstants.RTS_SUBJECT_RYA;
-    public static RyaURI RTS_COPY_TOOL_RUN_TIME_PREDICATE_RYA = createRyaUri(COPY_TOOL_RUN_TIME_LOCAL_NAME);
-    public static RyaURI RTS_COPY_TOOL_SPLIT_TIME_PREDICATE_RYA = createRyaUri(COPY_TOOL_SPLIT_TIME_LOCAL_NAME);
-    public static RyaURI RTS_TIME_OFFSET_PREDICATE_RYA = createRyaUri(COPY_TOOL_TIME_OFFSET_LOCAL_NAME);
+    public static RyaIRI RTS_SUBJECT_RYA = RdfCloudTripleStoreConstants.RTS_SUBJECT_RYA;
+    public static RyaIRI RTS_COPY_TOOL_RUN_TIME_PREDICATE_RYA = createRyaIri(COPY_TOOL_RUN_TIME_LOCAL_NAME);
+    public static RyaIRI RTS_COPY_TOOL_SPLIT_TIME_PREDICATE_RYA = createRyaIri(COPY_TOOL_SPLIT_TIME_LOCAL_NAME);
+    public static RyaIRI RTS_TIME_OFFSET_PREDICATE_RYA = createRyaIri(COPY_TOOL_TIME_OFFSET_LOCAL_NAME);
 
     /**
      * Ignore the meta statements indicating the Rya version and copy time values.
@@ -107,22 +107,22 @@ public final class AccumuloRyaUtils {
     }
 
     /**
-     * Creates a {@link RyaURI} for the specified local name.
-     * @param localName the URI's local name.
-     * @return the {@link RyraURI}.
+     * Creates a {@link RyaIRI} for the specified local name.
+     * @param localName the IRI's local name.
+     * @return the {@link RyaIRI}.
      */
-    public static RyaURI createRyaUri(final String localName) {
-        return createRyaUri(NAMESPACE, localName);
+    public static RyaIRI createRyaIri(final String localName) {
+        return createRyaIri(NAMESPACE, localName);
     }
 
     /**
-     * Creates a {@link RyaURI} for the specified local name.
+     * Creates a {@link RyaIRI} for the specified local name.
      * @param namespace the namespace.
-     * @param localName the URI's local name.
-     * @return the {@link RyraURI}.
+     * @param localName the IRI's local name.
+     * @return the {@link RyaIRI}.
      */
-    public static RyaURI createRyaUri(final String namespace, final String localName) {
-        return RdfToRyaConversions.convertURI(VALUE_FACTORY.createIRI(namespace, localName));
+    public static RyaIRI createRyaIri(final String namespace, final String localName) {
+        return RdfToRyaConversions.convertIRI(VALUE_FACTORY.createIRI(namespace, localName));
     }
 
     /**
@@ -207,13 +207,13 @@ public final class AccumuloRyaUtils {
 
     /**
      * Gets the metadata key from the table.
-     * @param ryaStatement the {@link RyaStatement} for the metadata key to query.
+     * @param predicateRyaIri the predicate {@link RyaIRI}.
      * @param dao the {@link AccumuloRyaDAO}.
      * @return the string value of the object from the metadata key.
      * @throws RyaDAOException
      */
-    private static String getMetadata(final RyaURI predicateRyaUri, final AccumuloRyaDAO dao) throws RyaDAOException {
-        final RyaStatement ryaStatement = new RyaStatement(RTS_SUBJECT_RYA, predicateRyaUri, null);
+    private static String getMetadata(final RyaIRI predicateRyaIri, final AccumuloRyaDAO dao) throws RyaDAOException {
+        final RyaStatement ryaStatement = new RyaStatement(RTS_SUBJECT_RYA, predicateRyaIri, null);
         return getMetadata(ryaStatement, dao);
     }
 

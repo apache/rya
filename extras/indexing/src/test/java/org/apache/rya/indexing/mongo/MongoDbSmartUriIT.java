@@ -27,7 +27,7 @@ import static org.apache.rya.api.domain.RyaTypeUtils.intRyaType;
 import static org.apache.rya.api.domain.RyaTypeUtils.longRyaType;
 import static org.apache.rya.api.domain.RyaTypeUtils.shortRyaType;
 import static org.apache.rya.api.domain.RyaTypeUtils.stringRyaType;
-import static org.apache.rya.api.domain.RyaTypeUtils.uriRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.iriRyaType;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.rya.api.domain.RyaSchema;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.entity.model.Entity;
@@ -79,35 +79,35 @@ public class MongoDbSmartUriIT extends MongoITBase {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     // People
-    private static final RyaURI BOB = createRyaUri("Bob");
+    private static final RyaIRI BOB = createRyaIri("Bob");
 
     // Attributes
-    private static final RyaURI HAS_WEIGHT = createRyaUri("hasWeight");
-    private static final RyaURI HAS_HEIGHT = createRyaUri("hasHeight");
-    private static final RyaURI HAS_SSN = createRyaUri("hasSSN");
-    private static final RyaURI HAS_AGE = createRyaUri("hasAge");
-    private static final RyaURI HAS_INCOME = createRyaUri("hasIncome");
-    private static final RyaURI HAS_NUMBER_OF_CHILDREN = createRyaUri("hasNumberOfChildren");
-    private static final RyaURI HAS_LICENSE_NUMBER = createRyaUri("hasLicenseNumber");
-    private static final RyaURI HAS_EYE_COLOR = createRyaUri("hasEyeColor");
-    private static final RyaURI HAS_HAIR_COLOR = createRyaUri("hasHairColor");
-    private static final RyaURI HAS_DATE_OF_BIRTH = createRyaUri("hasDateOfBirth");
-    private static final RyaURI HAS_EXPIRATION_DATE = createRyaUri("hasExpirationDate");
-    private static final RyaURI HAS_GLASSES = createRyaUri("hasGlasses");
-    private static final RyaURI HAS_EMAIL_ADDRESS = createRyaUri("hasEmailAddress");
-    private static final RyaURI HAS_ATTRIBUTE_SPACE = createRyaUri("has Attribute Space");
-    private static final RyaURI HAS_MOTTO = createRyaUri("hasMotto");
-    private static final RyaURI HAS_BLOOD_TYPE = createRyaUri("hasBloodType");
-    private static final RyaURI HAS_SEX = createRyaUri("hasSex");
-    private static final RyaURI HAS_ADDRESS = createRyaUri("hasAddress");
-    private static final RyaURI HAS_POSITION_TITLE = createRyaUri("hasPositionTitle");
-    private static final RyaURI HAS_WORK_ADDRESS = createRyaUri("hasWorkAddress");
-    private static final RyaURI HAS_EXTENSION = createRyaUri("hasExtension");
-    private static final RyaURI HAS_OFFICE_ROOM_NUMBER = createRyaUri("hasOfficeRoomNumber");
+    private static final RyaIRI HAS_WEIGHT = createRyaIri("hasWeight");
+    private static final RyaIRI HAS_HEIGHT = createRyaIri("hasHeight");
+    private static final RyaIRI HAS_SSN = createRyaIri("hasSSN");
+    private static final RyaIRI HAS_AGE = createRyaIri("hasAge");
+    private static final RyaIRI HAS_INCOME = createRyaIri("hasIncome");
+    private static final RyaIRI HAS_NUMBER_OF_CHILDREN = createRyaIri("hasNumberOfChildren");
+    private static final RyaIRI HAS_LICENSE_NUMBER = createRyaIri("hasLicenseNumber");
+    private static final RyaIRI HAS_EYE_COLOR = createRyaIri("hasEyeColor");
+    private static final RyaIRI HAS_HAIR_COLOR = createRyaIri("hasHairColor");
+    private static final RyaIRI HAS_DATE_OF_BIRTH = createRyaIri("hasDateOfBirth");
+    private static final RyaIRI HAS_EXPIRATION_DATE = createRyaIri("hasExpirationDate");
+    private static final RyaIRI HAS_GLASSES = createRyaIri("hasGlasses");
+    private static final RyaIRI HAS_EMAIL_ADDRESS = createRyaIri("hasEmailAddress");
+    private static final RyaIRI HAS_ATTRIBUTE_SPACE = createRyaIri("has Attribute Space");
+    private static final RyaIRI HAS_MOTTO = createRyaIri("hasMotto");
+    private static final RyaIRI HAS_BLOOD_TYPE = createRyaIri("hasBloodType");
+    private static final RyaIRI HAS_SEX = createRyaIri("hasSex");
+    private static final RyaIRI HAS_ADDRESS = createRyaIri("hasAddress");
+    private static final RyaIRI HAS_POSITION_TITLE = createRyaIri("hasPositionTitle");
+    private static final RyaIRI HAS_WORK_ADDRESS = createRyaIri("hasWorkAddress");
+    private static final RyaIRI HAS_EXTENSION = createRyaIri("hasExtension");
+    private static final RyaIRI HAS_OFFICE_ROOM_NUMBER = createRyaIri("hasOfficeRoomNumber");
 
     // Type URIs
-    private static final RyaURI PERSON_TYPE_URI = new RyaURI("urn:example/person");
-    private static final RyaURI EMPLOYEE_TYPE_URI = new RyaURI("urn:example/employee");
+    private static final RyaIRI PERSON_TYPE_URI = new RyaIRI("urn:example/person");
+    private static final RyaIRI EMPLOYEE_TYPE_URI = new RyaIRI("urn:example/employee");
 
     // Entities
     private static final Entity BOB_ENTITY = createBobEntity();
@@ -124,22 +124,22 @@ public class MongoDbSmartUriIT extends MongoITBase {
     }
 
     /**
-     * Creates a {@link RyaURI} for the specified local name.
-     * @param localName the URI's local name.
-     * @return the {@link RyraURI}.
+     * Creates a {@link RyaIRI} for the specified local name.
+     * @param localName the IRI's local name.
+     * @return the {@link RyaIRI}.
      */
-    private static RyaURI createRyaUri(final String localName) {
-        return createRyaUri(NAMESPACE, localName);
+    private static RyaIRI createRyaIri(final String localName) {
+        return createRyaIri(NAMESPACE, localName);
     }
 
     /**
-     * Creates a {@link RyaURI} for the specified local name.
+     * Creates a {@link RyaIRI} for the specified local name.
      * @param namespace the namespace.
-     * @param localName the URI's local name.
-     * @return the {@link RyraURI}.
+     * @param localName the IRI's local name.
+     * @return the {@link RyaIRI}.
      */
-    private static RyaURI createRyaUri(final String namespace, final String localName) {
-        return RdfToRyaConversions.convertURI(VF.createIRI(namespace, localName));
+    private static RyaIRI createRyaIri(final String namespace, final String localName) {
+        return RdfToRyaConversions.convertIRI(VF.createIRI(namespace, localName));
     }
 
     private static Entity createBobEntity() {
@@ -159,7 +159,7 @@ public class MongoDbSmartUriIT extends MongoITBase {
             .setProperty(PERSON_TYPE_URI, new Property(HAS_DATE_OF_BIRTH, dateRyaType(new DateTime().minusYears(40))))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_EXPIRATION_DATE, dateRyaType(new Date())))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_GLASSES, booleanRyaType(true)))
-            .setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(VF.createIRI("mailto:bob.smitch00@gmail.com"))))
+            .setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, iriRyaType(VF.createIRI("mailto:bob.smitch00@gmail.com"))))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_ATTRIBUTE_SPACE, stringRyaType("attribute space")))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_MOTTO, stringRyaType("!@#*\\&%20^ smörgåsbord")))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_BLOOD_TYPE, stringRyaType("A+ blood type")))
@@ -176,7 +176,7 @@ public class MongoDbSmartUriIT extends MongoITBase {
 
     private static Type createPersonType() {
          final Type personType = new Type(PERSON_TYPE_URI,
-            ImmutableSet.<RyaURI>builder()
+            ImmutableSet.<RyaIRI>builder()
                 .add(HAS_WEIGHT)
                 .add(HAS_HEIGHT)
                 .add(HAS_SSN)
@@ -201,7 +201,7 @@ public class MongoDbSmartUriIT extends MongoITBase {
 
     private static Type createEmployeeType() {
         final Type employeeType = new Type(EMPLOYEE_TYPE_URI,
-            ImmutableSet.<RyaURI>builder()
+            ImmutableSet.<RyaIRI>builder()
                 .add(HAS_POSITION_TITLE)
                 .add(HAS_WORK_ADDRESS)
                 .add(HAS_EXTENSION)
@@ -210,8 +210,8 @@ public class MongoDbSmartUriIT extends MongoITBase {
         return employeeType;
     }
 
-    private static String getRyaUriLocalName(final RyaURI ryaUri) {
-        return VF.createIRI(ryaUri.getData()).getLocalName();
+    private static String getRyaIriLocalName(final RyaIRI ryaIri) {
+        return VF.createIRI(ryaIri.getData()).getLocalName();
     }
 
     @Test
@@ -258,8 +258,8 @@ public class MongoDbSmartUriIT extends MongoITBase {
         smartUriConverter.storeEntity(BOB_ENTITY);
 
         // New properties to add
-        final RyaURI hasNickName = createRyaUri("hasNickName");
-        final RyaURI hasWindowOffice = createRyaUri("hasWindowOffice");
+        final RyaIRI hasNickName = createRyaIri("hasNickName");
+        final RyaIRI hasWindowOffice = createRyaIri("hasWindowOffice");
 
         final Entity.Builder builder = Entity.builder(BOB_ENTITY);
         builder.setProperty(PERSON_TYPE_URI, new Property(HAS_AGE, shortRyaType((short) 41)));
@@ -281,8 +281,8 @@ public class MongoDbSmartUriIT extends MongoITBase {
         assertEquals(newBobEntity.lookupTypeProperty(EMPLOYEE_TYPE, hasWindowOffice), resultEntity.lookupTypeProperty(EMPLOYEE_TYPE, hasWindowOffice));
         assertEquals(newBobEntity.getSmartUri(), resultEntity.getSmartUri());
         final String resultUriString = resultEntity.getSmartUri().stringValue();
-        assertTrue(resultUriString.contains(getRyaUriLocalName(hasWindowOffice)));
-        assertTrue(resultUriString.contains(getRyaUriLocalName(hasNickName)));
+        assertTrue(resultUriString.contains(getRyaIriLocalName(hasWindowOffice)));
+        assertTrue(resultUriString.contains(getRyaIriLocalName(hasNickName)));
     }
 
     @Test

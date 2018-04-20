@@ -78,8 +78,8 @@ public class SubPropertyOfVisitor extends AbstractInferVisitor {
 //                StatementPatterns statementPatterns = new StatementPatterns();
 //                statementPatterns.patterns.add(node);
 //                Var subjVar = node.getSubjectVar();
-//                for (URI u : parents) {
-//                    statementPatterns.patterns.add(new StatementPattern(subjVar, new Var(predVar.getName(), u), objVar));
+//                for (IRI iri : parents) {
+//                    statementPatterns.patterns.add(new StatementPattern(subjVar, new Var(predVar.getName(), iri), objVar));
 //                }
 //                node.replaceWith(statementPatterns);
 //            }
@@ -87,24 +87,24 @@ public class SubPropertyOfVisitor extends AbstractInferVisitor {
 //                VarCollection vc = new VarCollection();
 //                vc.setName(predVar.getName());
 //                vc.values.add(predVar);
-//                for (URI u : parents) {
-//                    vc.values.add(new Var(predVar.getName(), u));
+//                for (IRI iri : parents) {
+//                    vc.values.add(new Var(predVar.getName(), iri));
 //                }
 //                Var subjVar = node.getSubjectVar();
 //                node.replaceWith(new StatementPattern(subjVar, vc, objVar, node.getContextVar()));
 //            }
 
-            final IRI subprop_uri = (IRI) predVar.getValue();
-            final Set<IRI> parents = InferenceEngine.findParents(inferenceEngine.getSubPropertyOfGraph(), subprop_uri);
+            final IRI subprop_iri = (IRI) predVar.getValue();
+            final Set<IRI> parents = InferenceEngine.findParents(inferenceEngine.getSubPropertyOfGraph(), subprop_iri);
             if (parents != null && parents.size() > 0) {
                 final String s = UUID.randomUUID().toString();
                 final Var typeVar = new Var(s);
                 final FixedStatementPattern fsp = new FixedStatementPattern(typeVar, new Var("c-" + s, RDFS.SUBPROPERTYOF), predVar, cntxtVar);
 //                fsp.statements.add(new NullableStatementImpl(subprop_uri, RDFS.SUBPROPERTYOF, subprop_uri));
                 //add self
-                parents.add(subprop_uri);
+                parents.add(subprop_iri);
                 for (final IRI u : parents) {
-                    fsp.statements.add(new NullableStatementImpl(u, RDFS.SUBPROPERTYOF, subprop_uri));
+                    fsp.statements.add(new NullableStatementImpl(u, RDFS.SUBPROPERTYOF, subprop_iri));
                 }
 
                 final StatementPattern rdfType = new DoNotExpandSP(sp.getSubjectVar(), typeVar, sp.getObjectVar(), cntxtVar);

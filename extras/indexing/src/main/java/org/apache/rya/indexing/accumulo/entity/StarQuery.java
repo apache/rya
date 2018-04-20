@@ -28,7 +28,7 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.documentIndex.TextColumn;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaContext;
@@ -336,7 +336,7 @@ public class StarQuery {
         final String[] cqArray = cq.split("\u0000");
 
         if (cqArray[0].equals("subject")) {
-            // RyaURI subjURI = (RyaURI) RdfToRyaConversions.convertValue(v);
+            // RyaIRI subjIRI = (RyaIRI) RdfToRyaConversions.convertValue(v);
             tc.setColumnQualifier(new Text("subject" + "\u0000" + v.stringValue()));
             tc.setIsPrefix(false);
         } else if (cqArray[0].equals("object")) {
@@ -366,7 +366,7 @@ public class StarQuery {
         final Var predVar = node.getPredicateVar();
         final Var objVar = node.getObjectVar();
 
-        final RyaURI predURI = (RyaURI) RdfToRyaConversions.convertValue(node.getPredicateVar().getValue());
+        final RyaIRI predURI = (RyaIRI) RdfToRyaConversions.convertValue(node.getPredicateVar().getValue());
 
 
         //assumes StatementPattern contains at least on variable
@@ -436,7 +436,7 @@ public class StarQuery {
         }
 
         if(hasContext()) {
-            final RyaURI ctxtURI = (RyaURI) RdfToRyaConversions.convertValue(context.getValue());
+            final RyaIRI ctxtURI = (RyaIRI) RdfToRyaConversions.convertValue(context.getValue());
             contextURI = ctxtURI.getData();
         }
 

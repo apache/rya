@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
@@ -60,7 +60,7 @@ public class ConstructProjectionTest {
         VisibilityBindingSet vBs = new VisibilityBindingSet(bs, "FOUO");
         RyaStatement statement = projection.projectBindingSet(vBs, new HashMap<>());
         
-        RyaStatement expected = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"), new RyaURI("uri:Bob"));
+        RyaStatement expected = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"), new RyaIRI("uri:Bob"));
         expected.setColumnVisibility("FOUO".getBytes("UTF-8"));
         expected.setTimestamp(statement.getTimestamp());
         
@@ -81,7 +81,7 @@ public class ConstructProjectionTest {
         VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
         RyaStatement statement = projection.projectBindingSet(vBs, new HashMap<>());
         
-        RyaStatement expected = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:worksWith"), new RyaURI("uri:Bob"));
+        RyaStatement expected = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:worksWith"), new RyaIRI("uri:Bob"));
         expected.setTimestamp(statement.getTimestamp());
         expected.setColumnVisibility(new byte[0]);
         
@@ -105,7 +105,7 @@ public class ConstructProjectionTest {
         bNodeMap.put(VarNameUtils.prependAnonymous("1"), bNode);
         RyaStatement statement = projection.projectBindingSet(vBs,bNodeMap);
         
-        RyaStatement expected = new RyaStatement(RdfToRyaConversions.convertResource(bNode), new RyaURI("uri:talksTo"), new RyaURI("uri:Bob"));
+        RyaStatement expected = new RyaStatement(RdfToRyaConversions.convertResource(bNode), new RyaIRI("uri:talksTo"), new RyaIRI("uri:Bob"));
         expected.setTimestamp(statement.getTimestamp());
         expected.setColumnVisibility(new byte[0]);
         

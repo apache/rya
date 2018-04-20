@@ -34,7 +34,7 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.giraph.format.RyaVertexInputFormat;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.sail.config.RyaSailFactory;
@@ -83,18 +83,18 @@ public class TestVertexFormat extends BspCase {
         AccumuloRdfConfiguration conf = getConf();
         AccumuloRyaDAO ryaDAO = RyaSailFactory.getAccumuloDAO(conf);
 
-        ryaDAO.add(new RyaStatement(new RyaURI("urn:test#1234"),
-                new RyaURI("urn:test#pred1"),
-                new RyaURI("urn:test#obj1")));
-        ryaDAO.add(new RyaStatement(new RyaURI("urn:test#1234"),
-                new RyaURI("urn:test#pred2"),
-                new RyaURI("urn:test#obj2")));
-        ryaDAO.add(new RyaStatement(new RyaURI("urn:test#1234"),
-                new RyaURI("urn:test#pred3"),
-                new RyaURI("urn:test#obj3")));
-        ryaDAO.add(new RyaStatement(new RyaURI("urn:test#1234"),
-                new RyaURI("urn:test#pred4"),
-                new RyaURI("urn:test#obj4")));
+        ryaDAO.add(new RyaStatement(new RyaIRI("urn:test#1234"),
+                new RyaIRI("urn:test#pred1"),
+                new RyaIRI("urn:test#obj1")));
+        ryaDAO.add(new RyaStatement(new RyaIRI("urn:test#1234"),
+                new RyaIRI("urn:test#pred2"),
+                new RyaIRI("urn:test#obj2")));
+        ryaDAO.add(new RyaStatement(new RyaIRI("urn:test#1234"),
+                new RyaIRI("urn:test#pred3"),
+                new RyaIRI("urn:test#obj3")));
+        ryaDAO.add(new RyaStatement(new RyaIRI("urn:test#1234"),
+                new RyaIRI("urn:test#pred4"),
+                new RyaIRI("urn:test#obj4")));
         ryaDAO.flush();
 
         GiraphJob job = new GiraphJob(conf, getCallingMethodName());

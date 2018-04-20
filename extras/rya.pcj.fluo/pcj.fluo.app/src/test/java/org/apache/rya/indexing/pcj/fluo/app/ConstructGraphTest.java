@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -61,8 +61,8 @@ public class ConstructGraphTest {
         VisibilityBindingSet vBs = new VisibilityBindingSet(bs,"FOUO");
         Set<RyaStatement> statements = graph.createGraphFromBindingSet(vBs);
         
-        RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"), new RyaURI("uri:Bob"));
-        RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Bob"), new RyaURI("uri:worksAt"), new RyaURI("uri:BurgerShack"));
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"), new RyaIRI("uri:Bob"));
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Bob"), new RyaIRI("uri:worksAt"), new RyaIRI("uri:BurgerShack"));
         Set<RyaStatement> expected = Sets.newHashSet(Arrays.asList(statement1, statement2));
         expected.forEach(x-> x.setColumnVisibility("FOUO".getBytes()));
         ConstructGraphTestUtils.ryaStatementSetsEqualIgnoresTimestamp(expected, statements);
@@ -84,18 +84,18 @@ public class ConstructGraphTest {
         Set<RyaStatement> statements = graph.createGraphFromBindingSet(vBs);
         Set<RyaStatement> statements2 = graph.createGraphFromBindingSet(vBs);
         
-        RyaURI subject = null;
+        RyaIRI subject = null;
         for(RyaStatement statement: statements) {
-            RyaURI subjURI = statement.getSubject();
+            RyaIRI subjURI = statement.getSubject();
             if(subject == null) {
                 subject = subjURI;
             } else {
                 assertEquals(subjURI, subject);
             }
         }
-        RyaURI subject2 = null;
+        RyaIRI subject2 = null;
         for(RyaStatement statement: statements2) {
-            RyaURI subjURI = statement.getSubject();
+            RyaIRI subjURI = statement.getSubject();
             if(subject2 == null) {
                 subject2 = subjURI;
             } else {

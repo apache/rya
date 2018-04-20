@@ -315,11 +315,11 @@ public class GeoTemporalMongoDBStorageStrategyTest {
               final List<StatementPattern> sps = getSps(query);
               final List<FunctionCall> filters = getFilters(query);
               for(final FunctionCall filter : filters) {
-                  final IRI filterURI = VF.createIRI(filter.getURI());
-                  final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(filterURI, filter.getArgs());
+                  final IRI filterIRI = VF.createIRI(filter.getURI());
+                  final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(filterIRI, filter.getArgs());
                   final Value[] arguments = extractArguments(objVar.getName(), filter);
-                  final IndexingExpr expr = new IndexingExpr(filterURI, sps.get(0), Arrays.stream(arguments).toArray());
-                  if(IndexingFunctionRegistry.getFunctionType(filterURI) == FUNCTION_TYPE.GEO) {
+                  final IndexingExpr expr = new IndexingExpr(filterIRI, sps.get(0), Arrays.stream(arguments).toArray());
+                  if(IndexingFunctionRegistry.getFunctionType(filterIRI) == FUNCTION_TYPE.GEO) {
                       geoFilters.add(expr);
                   } else {
                       temporalFilters.add(expr);

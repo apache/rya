@@ -28,7 +28,7 @@ import static org.apache.rya.api.domain.RyaTypeUtils.intRyaType;
 import static org.apache.rya.api.domain.RyaTypeUtils.longRyaType;
 import static org.apache.rya.api.domain.RyaTypeUtils.shortRyaType;
 import static org.apache.rya.api.domain.RyaTypeUtils.stringRyaType;
-import static org.apache.rya.api.domain.RyaTypeUtils.uriRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.iriRyaType;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -47,7 +47,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.rya.api.domain.RyaSchema;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaTypeUtils;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Entity.Builder;
@@ -82,55 +82,55 @@ public class DuplicateDataDetectorIT extends MongoITBase {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     // People
-    private static final RyaURI BOB = createRyaUri("Bob");
+    private static final RyaIRI BOB = createRyaIri("Bob");
 
     // Attributes
-    private static final RyaURI HAS_WEIGHT = createRyaUri("hasWeight");
-    private static final RyaURI HAS_HEIGHT = createRyaUri("hasHeight");
-    private static final RyaURI HAS_SSN = createRyaUri("hasSSN");
-    private static final RyaURI HAS_AGE = createRyaUri("hasAge");
-    private static final RyaURI HAS_INCOME = createRyaUri("hasIncome");
-    private static final RyaURI HAS_NUMBER_OF_CHILDREN = createRyaUri("hasNumberOfChildren");
-    private static final RyaURI HAS_LICENSE_NUMBER = createRyaUri("hasLicenseNumber");
-    private static final RyaURI HAS_EYE_COLOR = createRyaUri("hasEyeColor");
-    private static final RyaURI HAS_HAIR_COLOR = createRyaUri("hasHairColor");
-    private static final RyaURI HAS_DATE_OF_BIRTH = createRyaUri("hasDateOfBirth");
-    private static final RyaURI HAS_EXPIRATION_DATE = createRyaUri("hasExpirationDate");
-    private static final RyaURI HAS_GLASSES = createRyaUri("hasGlasses");
-    private static final RyaURI HAS_EMAIL_ADDRESS = createRyaUri("hasEmailAddress");
-    private static final RyaURI HAS_ATTRIBUTE_SPACE = createRyaUri("has Attribute Space");
-    private static final RyaURI HAS_MOTTO = createRyaUri("hasMotto");
-    private static final RyaURI HAS_BLOOD_TYPE = createRyaUri("hasBloodType");
-    private static final RyaURI HAS_SEX = createRyaUri("hasSex");
-    private static final RyaURI HAS_ADDRESS = createRyaUri("hasAddress");
-    private static final RyaURI HAS_POSITION_TITLE = createRyaUri("hasPositionTitle");
-    private static final RyaURI HAS_WORK_ADDRESS = createRyaUri("hasWorkAddress");
-    private static final RyaURI HAS_EXTENSION = createRyaUri("hasExtension");
-    private static final RyaURI HAS_OFFICE_ROOM_NUMBER = createRyaUri("hasOfficeRoomNumber");
+    private static final RyaIRI HAS_WEIGHT = createRyaIri("hasWeight");
+    private static final RyaIRI HAS_HEIGHT = createRyaIri("hasHeight");
+    private static final RyaIRI HAS_SSN = createRyaIri("hasSSN");
+    private static final RyaIRI HAS_AGE = createRyaIri("hasAge");
+    private static final RyaIRI HAS_INCOME = createRyaIri("hasIncome");
+    private static final RyaIRI HAS_NUMBER_OF_CHILDREN = createRyaIri("hasNumberOfChildren");
+    private static final RyaIRI HAS_LICENSE_NUMBER = createRyaIri("hasLicenseNumber");
+    private static final RyaIRI HAS_EYE_COLOR = createRyaIri("hasEyeColor");
+    private static final RyaIRI HAS_HAIR_COLOR = createRyaIri("hasHairColor");
+    private static final RyaIRI HAS_DATE_OF_BIRTH = createRyaIri("hasDateOfBirth");
+    private static final RyaIRI HAS_EXPIRATION_DATE = createRyaIri("hasExpirationDate");
+    private static final RyaIRI HAS_GLASSES = createRyaIri("hasGlasses");
+    private static final RyaIRI HAS_EMAIL_ADDRESS = createRyaIri("hasEmailAddress");
+    private static final RyaIRI HAS_ATTRIBUTE_SPACE = createRyaIri("has Attribute Space");
+    private static final RyaIRI HAS_MOTTO = createRyaIri("hasMotto");
+    private static final RyaIRI HAS_BLOOD_TYPE = createRyaIri("hasBloodType");
+    private static final RyaIRI HAS_SEX = createRyaIri("hasSex");
+    private static final RyaIRI HAS_ADDRESS = createRyaIri("hasAddress");
+    private static final RyaIRI HAS_POSITION_TITLE = createRyaIri("hasPositionTitle");
+    private static final RyaIRI HAS_WORK_ADDRESS = createRyaIri("hasWorkAddress");
+    private static final RyaIRI HAS_EXTENSION = createRyaIri("hasExtension");
+    private static final RyaIRI HAS_OFFICE_ROOM_NUMBER = createRyaIri("hasOfficeRoomNumber");
 
     // Type URIs
-    private static final RyaURI PERSON_TYPE_URI = new RyaURI("urn:example/person");
-    private static final RyaURI EMPLOYEE_TYPE_URI = new RyaURI("urn:example/employee");
+    private static final RyaIRI PERSON_TYPE_URI = new RyaIRI("urn:example/person");
+    private static final RyaIRI EMPLOYEE_TYPE_URI = new RyaIRI("urn:example/employee");
 
     private static final Date NOW = new Date();
 
     /**
-     * Creates a {@link RyaURI} for the specified local name.
-     * @param localName the URI's local name.
-     * @return the {@link RyraURI}.
+     * Creates a {@link RyaIRI} for the specified local name.
+     * @param localName the IRI's local name.
+     * @return the {@link RyaIRI}.
      */
-    private static RyaURI createRyaUri(final String localName) {
-        return createRyaUri(NAMESPACE, localName);
+    private static RyaIRI createRyaIri(final String localName) {
+        return createRyaIri(NAMESPACE, localName);
     }
 
     /**
-     * Creates a {@link RyaURI} for the specified local name.
+     * Creates a {@link RyaIRI} for the specified local name.
      * @param namespace the namespace.
-     * @param localName the URI's local name.
-     * @return the {@link RyraURI}.
+     * @param localName the IRI's local name.
+     * @return the {@link RyaIRI}.
      */
-    private static RyaURI createRyaUri(final String namespace, final String localName) {
-        return RdfToRyaConversions.convertURI(VF.createIRI(namespace, localName));
+    private static RyaIRI createRyaIri(final String namespace, final String localName) {
+        return RdfToRyaConversions.convertIRI(VF.createIRI(namespace, localName));
     }
 
     private static Entity createBobEntity() {
@@ -150,7 +150,7 @@ public class DuplicateDataDetectorIT extends MongoITBase {
             .setProperty(PERSON_TYPE_URI, new Property(HAS_DATE_OF_BIRTH, dateRyaType(new DateTime(NOW.getTime()).minusYears(40))))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_EXPIRATION_DATE, dateRyaType(NOW)))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_GLASSES, booleanRyaType(true)))
-            .setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(VF.createIRI("mailto:bob.smitch00@gmail.com"))))
+            .setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, iriRyaType(VF.createIRI("mailto:bob.smitch00@gmail.com"))))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_ATTRIBUTE_SPACE, stringRyaType("attribute space")))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_MOTTO, stringRyaType("!@#*\\&%20^ smörgåsbord")))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_BLOOD_TYPE, stringRyaType("A+ blood type")))
@@ -169,7 +169,7 @@ public class DuplicateDataDetectorIT extends MongoITBase {
         final Type personType =
             new Type(
                 PERSON_TYPE_URI,
-                ImmutableSet.<RyaURI>builder()
+                ImmutableSet.<RyaIRI>builder()
                     .add(HAS_WEIGHT)
                     .add(HAS_HEIGHT)
                     .add(HAS_SSN)
@@ -197,7 +197,7 @@ public class DuplicateDataDetectorIT extends MongoITBase {
         final Type employeeType =
             new Type(
                 EMPLOYEE_TYPE_URI,
-                ImmutableSet.<RyaURI>builder()
+                ImmutableSet.<RyaIRI>builder()
                     .add(HAS_POSITION_TITLE)
                     .add(HAS_WORK_ADDRESS)
                     .add(HAS_EXTENSION)
@@ -236,7 +236,7 @@ public class DuplicateDataDetectorIT extends MongoITBase {
     public void testEntitySubjectsDifferent() throws SmartUriException, ConfigurationException {
         final Entity entity1 = createBobEntity();
         final Builder builder = new Builder(entity1);
-        builder.setSubject(createRyaUri("Susan"));
+        builder.setSubject(createRyaIri("Susan"));
         final Entity entity2 = builder.build();
 
         final DuplicateDataDetector duplicateDataDetector = new DuplicateDataDetector();
@@ -248,7 +248,7 @@ public class DuplicateDataDetectorIT extends MongoITBase {
     public void testEntityMissingType() throws SmartUriException, ConfigurationException {
         final Entity entity1 = createBobEntity();
         final Builder builder = new Builder(entity1);
-        builder.setExplicitType(new RyaURI("urn:example/manager"));
+        builder.setExplicitType(new RyaIRI("urn:example/manager"));
         final Entity entity2 = builder.build();
 
         final DuplicateDataDetector duplicateDataDetector = new DuplicateDataDetector();
@@ -1801,7 +1801,7 @@ public class DuplicateDataDetectorIT extends MongoITBase {
         assertTrue(entityStorage.get(bobEntity.getSubject()).isPresent());
 
         final Builder duplicateBobBuilder = Entity.builder(createBobEntity());
-        duplicateBobBuilder.setSubject(createRyaUri("Robert"));
+        duplicateBobBuilder.setSubject(createRyaIri("Robert"));
         // Modify a property for each type that is within tolerance
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_AGE, shortRyaType((short) 41)));
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_WEIGHT, floatRyaType(250.76f)));
@@ -1812,7 +1812,7 @@ public class DuplicateDataDetectorIT extends MongoITBase {
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_DATE_OF_BIRTH, dateRyaType(new DateTime(NOW.getTime() - 1).minusYears(40))));
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EXPIRATION_DATE, dateRyaType(new Date(NOW.getTime() - 1))));
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_GLASSES, booleanRyaType(true)));
-        duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(VF.createIRI("mailto:bob.smitch01@gmail.com"))));
+        duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, iriRyaType(VF.createIRI("mailto:bob.smitch01@gmail.com"))));
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_ADDRESS, stringRyaType("124 Fake St. Washington, DC 20024")));
         duplicateBobBuilder.setProperty(EMPLOYEE_TYPE_URI, new Property(HAS_EXTENSION, shortRyaType((short) 556)));
         final Entity duplicateBobEntity = duplicateBobBuilder.build();
@@ -1829,7 +1829,7 @@ public class DuplicateDataDetectorIT extends MongoITBase {
         assertFalse(entityStorage.get(duplicateBobEntity.getSubject()).isPresent());
 
         final Builder notDuplicateBobBuilder = Entity.builder(createBobEntity());
-        notDuplicateBobBuilder.setSubject(createRyaUri("Not Bob"));
+        notDuplicateBobBuilder.setSubject(createRyaIri("Not Bob"));
         // Modify a property for each type that is within tolerance
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_AGE, shortRyaType((short) 50)));
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_WEIGHT, floatRyaType(300.0f)));
@@ -1840,7 +1840,7 @@ public class DuplicateDataDetectorIT extends MongoITBase {
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_DATE_OF_BIRTH, dateRyaType(new DateTime(NOW.getTime() - 10000000L).minusYears(40))));
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EXPIRATION_DATE, dateRyaType(new Date(NOW.getTime() - 10000000L))));
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_GLASSES, booleanRyaType(false)));
-        notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(VF.createIRI("mailto:bad.email.address@gmail.com"))));
+        notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, iriRyaType(VF.createIRI("mailto:bad.email.address@gmail.com"))));
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_ADDRESS, stringRyaType("123456789 Fake St. Washington, DC 20024")));
         notDuplicateBobBuilder.setProperty(EMPLOYEE_TYPE_URI, new Property(HAS_EXTENSION, shortRyaType((short) 1000)));
         final Entity notDuplicateBobEntity = notDuplicateBobBuilder.build();
@@ -1892,7 +1892,7 @@ public class DuplicateDataDetectorIT extends MongoITBase {
         assertTrue(entityStorage.get(bobEntity.getSubject()).isPresent());
 
         final Builder duplicateBobBuilder = Entity.builder(createBobEntity());
-        duplicateBobBuilder.setSubject(createRyaUri("Robert"));
+        duplicateBobBuilder.setSubject(createRyaIri("Robert"));
         // Modify a property for each type that is within tolerance
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_AGE, shortRyaType((short) 41)));
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_WEIGHT, floatRyaType(250.76f)));
@@ -1903,7 +1903,7 @@ public class DuplicateDataDetectorIT extends MongoITBase {
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_DATE_OF_BIRTH, dateRyaType(new DateTime(NOW.getTime() - 1).minusYears(40))));
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EXPIRATION_DATE, dateRyaType(new Date(NOW.getTime() - 1))));
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_GLASSES, booleanRyaType(true)));
-        duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(VF.createIRI("mailto:bob.smitch01@gmail.com"))));
+        duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, iriRyaType(VF.createIRI("mailto:bob.smitch01@gmail.com"))));
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_ADDRESS, stringRyaType("124 Fake St. Washington, DC 20024")));
         duplicateBobBuilder.setProperty(EMPLOYEE_TYPE_URI, new Property(HAS_EXTENSION, shortRyaType((short) 556)));
         final Entity duplicateBobEntity = duplicateBobBuilder.build();
@@ -1918,7 +1918,7 @@ public class DuplicateDataDetectorIT extends MongoITBase {
         assertTrue(entityStorage.get(duplicateBobEntity.getSubject()).isPresent());
 
         final Builder notDuplicateBobBuilder = Entity.builder(createBobEntity());
-        notDuplicateBobBuilder.setSubject(createRyaUri("Not Bob"));
+        notDuplicateBobBuilder.setSubject(createRyaIri("Not Bob"));
         // Modify a property for each type that is within tolerance
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_AGE, shortRyaType((short) 50)));
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_WEIGHT, floatRyaType(300.0f)));
@@ -1929,7 +1929,7 @@ public class DuplicateDataDetectorIT extends MongoITBase {
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_DATE_OF_BIRTH, dateRyaType(new DateTime(NOW.getTime() - 10000000L).minusYears(40))));
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EXPIRATION_DATE, dateRyaType(new Date(NOW.getTime() - 10000000L))));
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_GLASSES, booleanRyaType(false)));
-        notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(VF.createIRI("mailto:bad.email.address@gmail.com"))));
+        notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, iriRyaType(VF.createIRI("mailto:bad.email.address@gmail.com"))));
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_ADDRESS, stringRyaType("123456789 Fake St. Washington, DC 20024")));
         notDuplicateBobBuilder.setProperty(EMPLOYEE_TYPE_URI, new Property(HAS_EXTENSION, shortRyaType((short) 1000)));
         final Entity notDuplicateBobEntity = notDuplicateBobBuilder.build();
@@ -1950,13 +1950,13 @@ public class DuplicateDataDetectorIT extends MongoITBase {
      * {@code testInputs}.
      * @param testInputs the {@link List} of {@link TestInput} to insert into
      * the property.
-     * @param typeIdUri the type ID {@link RyaURI} that the property falls
+     * @param typeIdUri the type ID {@link RyaIRI} that the property falls
      * under. (not {@code null})
-     * @param propertyNameUri the property name {@link RyaURI}.
+     * @param propertyNameUri the property name {@link RyaIRI}.
      * (not {@code null})
      * @throws SmartUriException
      */
-    private static void testProperty(final List<TestInput> testInputs, final RyaURI typeIdUri, final RyaURI propertyNameUri) throws SmartUriException {
+    private static void testProperty(final List<TestInput> testInputs, final RyaIRI typeIdUri, final RyaIRI propertyNameUri) throws SmartUriException {
         testProperty(testInputs, typeIdUri, propertyNameUri, new LinkedHashMap<>());
     }
 
@@ -1966,15 +1966,15 @@ public class DuplicateDataDetectorIT extends MongoITBase {
      * {@code testInputs}.
      * @param testInputs the {@link List} of {@link TestInput} to insert into
      * the property.
-     * @param typeIdUri the type ID {@link RyaURI} that the property falls
+     * @param typeIdUri the type ID {@link RyaIRI} that the property falls
      * under. (not {@code null})
-     * @param propertyNameUri the property name {@link RyaURI}.
+     * @param propertyNameUri the property name {@link RyaIRI}.
      * (not {@code null})
      * @param equivalentTermsMap the {@link Map} of terms that are considered
      * equivalent to each other.
      * @throws SmartUriException
      */
-    private static void testProperty(final List<TestInput> testInputs, final RyaURI typeIdUri, final RyaURI propertyNameUri, final Map<String, List<String>> equivalentTermsMap) throws SmartUriException {
+    private static void testProperty(final List<TestInput> testInputs, final RyaIRI typeIdUri, final RyaIRI propertyNameUri, final Map<String, List<String>> equivalentTermsMap) throws SmartUriException {
         requireNonNull(typeIdUri);
         requireNonNull(propertyNameUri);
 

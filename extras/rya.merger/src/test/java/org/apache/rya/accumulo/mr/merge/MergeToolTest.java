@@ -212,7 +212,7 @@ public class MergeToolTest {
         // (1 updated row, 1 row left alone because it was unchanged, 1 row outside time range,
         // 1 row deleted, 1 new row added, 1 modified visibility, 1 deleted by child, 1 added by child).
         // There should be 5 rows in the child instance (4 which will be scanned over from the start time).
-        ryaStatementUpdatedByChild.setObject(TestUtils.createRyaUri("football"));
+        ryaStatementUpdatedByChild.setObject(TestUtils.createRyaIri("football"));
         ryaStatementUpdatedByChild.setTimestamp(TODAY.getTime());
         ryaStatementVisibilityDifferent.setColumnVisibility(CHILD_COLUMN_VISIBILITY.getExpression());
         childDao.add(ryaStatementOutOfTimeRange);

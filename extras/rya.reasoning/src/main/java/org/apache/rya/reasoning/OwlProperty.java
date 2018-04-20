@@ -65,7 +65,7 @@ import org.eclipse.rdf4j.model.Resource;
 public class OwlProperty implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private IRI uri;
+    private IRI iri;
 
     // Boolean qualities the property might have
     private boolean transitive = false;
@@ -87,8 +87,8 @@ public class OwlProperty implements Serializable {
     // Restrictions on this property
     private Set<OwlClass> restrictions = new HashSet<OwlClass>();
 
-    OwlProperty(IRI uri) {
-        this.uri = uri;
+    OwlProperty(IRI iri) {
+        this.iri = iri;
     }
 
     boolean addSuperProperty(OwlProperty p) {
@@ -115,7 +115,7 @@ public class OwlProperty implements Serializable {
     }
     boolean addRestriction(OwlClass r) { return restrictions.add(r); }
 
-    public void setURI(IRI uri) { this.uri = uri; }
+    public void setURI(IRI iri) { this.iri = iri; }
     void setTransitive() { transitive = true; }
     void setSymmetric() { symmetric = true; }
     void setAsymmetric() { asymmetric = true; }
@@ -123,7 +123,7 @@ public class OwlProperty implements Serializable {
     void setInverseFunctional() { inverseFunctional = true; }
     void setIrreflexive() { irreflexive = true; }
 
-    public IRI getURI() { return uri; }
+    public IRI getURI() { return iri; }
     public boolean isTransitive() { return transitive; }
     public boolean isSymmetric() { return symmetric; }
     public boolean isAsymmetric() { return asymmetric; }
@@ -188,10 +188,10 @@ public class OwlProperty implements Serializable {
     public Set<IRI> getSuperProperties() {
         Set<IRI> ancestors = new HashSet<>();
         for (OwlProperty ancestor : superProperties) {
-            ancestors.add(ancestor.uri);
+            ancestors.add(ancestor.iri);
         }
         // RL rules scm-op & scm-dp: Every property is a subproperty of itself
-        ancestors.add(this.uri);
+        ancestors.add(this.iri);
         return ancestors;
     }
 
@@ -203,11 +203,11 @@ public class OwlProperty implements Serializable {
         Set<IRI> equivalents = new HashSet<>();
         for (OwlProperty other : superProperties) {
             if (other.superProperties.contains(this)) {
-                equivalents.add(other.uri);
+                equivalents.add(other.iri);
             }
         }
         // RL rules scm-op & scm-dp: Every property is equivalent to itself
-        equivalents.add(this.uri);
+        equivalents.add(this.iri);
         return equivalents;
     }
 
@@ -217,7 +217,7 @@ public class OwlProperty implements Serializable {
     public Set<IRI> getDisjointProperties() {
         Set<IRI> disjoint = new HashSet<>();
         for (OwlProperty other : disjointProperties) {
-            disjoint.add(other.uri);
+            disjoint.add(other.iri);
         }
         return disjoint;
     }
@@ -228,13 +228,13 @@ public class OwlProperty implements Serializable {
     public Set<IRI> getInverseProperties() {
         Set<IRI> inverse = new HashSet<>();
         for (OwlProperty other : inverseProperties) {
-            inverse.add(other.uri);
+            inverse.add(other.iri);
         }
         return inverse;
     }
 
     /**
-     * Get the domain (set of class URIs/Resources).
+     * Get the domain (set of class IRIs/Resources).
      */
     public Set<Resource> getDomain() {
         Set<Resource> domain = new HashSet<>();

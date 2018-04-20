@@ -56,8 +56,8 @@ public class TransitivePropertyVisitor extends AbstractInferVisitor {
                 !RDFS.NAMESPACE.equals(predNamespace)
                 && !EXPANDED.equals(cntxtVar)) {
 
-            final IRI transPropUri = (IRI) predVar.getValue();
-            if (inferenceEngine.isTransitiveProperty(transPropUri)) {
+            final IRI transPropIri = (IRI) predVar.getValue();
+            if (inferenceEngine.isTransitiveProperty(transPropIri)) {
                 node.replaceWith(new TransitivePropertySP(sp.getSubjectVar(), sp.getPredicateVar(), sp.getObjectVar(), sp.getContextVar()));
             }
         }

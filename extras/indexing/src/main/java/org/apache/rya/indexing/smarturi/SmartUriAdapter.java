@@ -36,7 +36,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.entity.model.Entity;
@@ -71,11 +71,11 @@ public class SmartUriAdapter {
     private SmartUriAdapter() {
     }
 
-    private static IRI createTypePropertiesUri(final ImmutableMap<RyaURI, ImmutableMap<RyaURI, Property>> typeProperties) throws SmartUriException {
+    private static IRI createTypePropertiesUri(final ImmutableMap<RyaIRI, ImmutableMap<RyaIRI, Property>> typeProperties) throws SmartUriException {
         final List<NameValuePair> nameValuePairs = new ArrayList<>();
-        for (final Entry<RyaURI, ImmutableMap<RyaURI, Property>> typeProperty : typeProperties.entrySet()) {
-            final RyaURI type = typeProperty.getKey();
-            final Map<RyaURI, Property> propertyMap = typeProperty.getValue();
+        for (final Entry<RyaIRI, ImmutableMap<RyaIRI, Property>> typeProperty : typeProperties.entrySet()) {
+            final RyaIRI type = typeProperty.getKey();
+            final Map<RyaIRI, Property> propertyMap = typeProperty.getValue();
             final IRI typeUri = createIndividualTypeWithPropertiesUri(type, propertyMap);
             final String keyString = type.getDataType().getLocalName();
             final String valueString = typeUri.getLocalName();
@@ -97,7 +97,7 @@ public class SmartUriAdapter {
         return VF.createIRI(uriString);
     }
 
-    private static String getShortNameForType(final RyaURI type) throws SmartUriException {
+    private static String getShortNameForType(final RyaIRI type) throws SmartUriException {
         final String shortName = VF.createIRI(type.getData()).getLocalName();
         return shortName;
     }
@@ -118,18 +118,18 @@ public class SmartUriAdapter {
         return formattedUriString;
     }
 
-    private static Map<RyaURI, String> createTypeMap(final List<RyaURI> types) throws SmartUriException {
-        final Map<RyaURI, String> map = new LinkedHashMap<>();
-        for (final RyaURI type : types) {
+    private static Map<RyaIRI, String> createTypeMap(final List<RyaIRI> types) throws SmartUriException {
+        final Map<RyaIRI, String> map = new LinkedHashMap<>();
+        for (final RyaIRI type : types) {
             final String shortName = getShortNameForType(type);
             map.put(type, shortName);
         }
         return map;
     }
 
-    private static IRI createTypeMapUri(final List<RyaURI> types) throws SmartUriException {
+    private static IRI createTypeMapUri(final List<RyaIRI> types) throws SmartUriException {
         final List<NameValuePair> nameValuePairs = new ArrayList<>();
-        for (final RyaURI type : types) {
+        for (final RyaIRI type : types) {
             final String shortName = getShortNameForType(type);
             nameValuePairs.add(new BasicNameValuePair(type.getData(), shortName));
         }
@@ -149,11 +149,11 @@ public class SmartUriAdapter {
         return VF.createIRI(uriString);
     }
 
-    private static Map<RyaURI, String> convertUriToTypeMap(final IRI typeMapUri) throws SmartUriException {
-        final Map<RyaURI, String> map = new HashMap<>();
+    private static Map<RyaIRI, String> convertIriToTypeMap(final IRI typeMapIri) throws SmartUriException {
+        final Map<RyaIRI, String> map = new HashMap<>();
         java.net.URI uri;
         try {
-            final URIBuilder uriBuilder = new URIBuilder(typeMapUri.stringValue());
+            final URIBuilder uriBuilder = new URIBuilder(typeMapIri.stringValue());
             uri = uriBuilder.build();
         } catch (final URISyntaxException e) {
             throw new SmartUriException("Unable to parse Rya type map in Smart URI", e);
@@ -164,16 +164,16 @@ public class SmartUriAdapter {
         for (final NameValuePair param : params) {
             final String name = param.getName();
             final String value = param.getValue();
-            final RyaURI type = new RyaURI(name);
+            final RyaIRI type = new RyaIRI(name);
             map.put(type, value);
         }
         return map;
     }
 
-    private static IRI createIndividualTypeWithPropertiesUri(final RyaURI type, final Map<RyaURI, Property> map) throws SmartUriException {
+    private static IRI createIndividualTypeWithPropertiesUri(final RyaIRI type, final Map<RyaIRI, Property> map) throws SmartUriException {
         final List<NameValuePair> nameValuePairs = new ArrayList<>();
-        for (final Entry<RyaURI, Property> entry : map.entrySet()) {
-            final RyaURI key = entry.getKey();
+        for (final Entry<RyaIRI, Property> entry : map.entrySet()) {
+            final RyaIRI key = entry.getKey();
             final Property property = entry.getValue();
 
             final RyaType ryaType = property.getValue();
@@ -198,41 +198,41 @@ public class SmartUriAdapter {
         return VF.createIRI(uriString);
     }
 
-    private static Entity convertMapToEntity(final RyaURI subject, final Map<RyaURI, Map<IRI, Value>> map) {
+    private static Entity convertMapToEntity(final RyaIRI subject, final Map<RyaIRI, Map<IRI, Value>> map) {
         final Entity.Builder entityBuilder = Entity.builder();
         entityBuilder.setSubject(subject);
 
-        for (final Entry<RyaURI, Map<IRI, Value>> typeEntry : map.entrySet()) {
-            final RyaURI type = typeEntry.getKey();
+        for (final Entry<RyaIRI, Map<IRI, Value>> typeEntry : map.entrySet()) {
+            final RyaIRI type = typeEntry.getKey();
             final Map<IRI, Value> subMap = typeEntry.getValue();
             entityBuilder.setExplicitType(type);
             for (final Entry<IRI, Value> entry : subMap.entrySet()) {
                 final IRI uri = entry.getKey();
                 final Value value = entry.getValue();
-                final RyaURI ryaUri = new RyaURI(uri.stringValue());
-                final RyaURI ryaName = new RyaURI(uri.stringValue());
+                final RyaIRI ryaIri = new RyaIRI(uri.stringValue());
+                final RyaIRI ryaName = new RyaIRI(uri.stringValue());
                 final RyaType ryaType = new RyaType(value.stringValue());
                 final Property property = new Property(ryaName, ryaType);
-                entityBuilder.setProperty(ryaUri, property);
+                entityBuilder.setProperty(ryaIri, property);
             }
         }
         final Entity entity = entityBuilder.build();
         return entity;
     }
 
-    public static RyaURI findSubject(final IRI uri) throws SmartUriException {
+    public static RyaIRI findSubject(final IRI uri) throws SmartUriException {
         final String uriString = uri.stringValue();
         return findSubject(uriString);
     }
 
-    public static RyaURI findSubject(final String uriString) throws SmartUriException {
+    public static RyaIRI findSubject(final String uriString) throws SmartUriException {
         java.net.URI uri;
         try {
             uri = new java.net.URI(uriString);
         } catch (final URISyntaxException e) {
             throw new SmartUriException("Could not find subject in Smart URI", e);
         }
-        final RyaURI subject;
+        final RyaIRI subject;
         final String fullFragment = uri.getFragment();
         if (fullFragment != null) {
             final int queryPosition = fullFragment.indexOf("?");
@@ -241,7 +241,7 @@ public class SmartUriAdapter {
                 partialFragment = fullFragment.substring(0, queryPosition);
             }
             final String subjectString = uri.getScheme() + ":" + uri.getSchemeSpecificPart() + "#" + partialFragment;
-            subject = new RyaURI(subjectString);
+            subject = new RyaIRI(subjectString);
         } else {
             final int queryPosition = uriString.indexOf("?");
             String subjectString = null;
@@ -250,7 +250,7 @@ public class SmartUriAdapter {
             } else {
                 subjectString = uriString;
             }
-            subject = new RyaURI(subjectString);
+            subject = new RyaIRI(subjectString);
         }
 
         return subject;
@@ -267,22 +267,22 @@ public class SmartUriAdapter {
         final Map<IRI, Value> objectMap = new LinkedHashMap<>();
 
         // Adds the entity's types to the Smart URI
-        final List<RyaURI> typeIds = entity.getExplicitTypeIds();
-        final Map<RyaURI, String> ryaTypeMap = createTypeMap(typeIds);
+        final List<RyaIRI> typeIds = entity.getExplicitTypeIds();
+        final Map<RyaIRI, String> ryaTypeMap = createTypeMap(typeIds);
         final IRI ryaTypeMapUri = createTypeMapUri(typeIds);
         final RyaType valueRyaType = new RyaType(XMLSchema.ANYURI, ryaTypeMapUri.stringValue());
         final Value typeValue = RyaToRdfConversions.convertValue(valueRyaType);
         objectMap.put(RYA_TYPES_URI, typeValue);
 
-        final RyaURI subject = entity.getSubject();
-        final Map<RyaURI, ImmutableMap<RyaURI, Property>> typeMap = entity.getProperties();
-        for (final Entry<RyaURI, ImmutableMap<RyaURI, Property>> typeEntry : typeMap.entrySet()) {
-            final RyaURI type = typeEntry.getKey();
+        final RyaIRI subject = entity.getSubject();
+        final Map<RyaIRI, ImmutableMap<RyaIRI, Property>> typeMap = entity.getProperties();
+        for (final Entry<RyaIRI, ImmutableMap<RyaIRI, Property>> typeEntry : typeMap.entrySet()) {
+            final RyaIRI type = typeEntry.getKey();
             String typeShortName = ryaTypeMap.get(type);
             typeShortName = typeShortName != null ? typeShortName + "." : "";
-            final ImmutableMap<RyaURI, Property> typeProperties = typeEntry.getValue();
-            for (final Entry<RyaURI, Property> properties : typeProperties.entrySet()) {
-                final RyaURI key = properties.getKey();
+            final ImmutableMap<RyaIRI, Property> typeProperties = typeEntry.getValue();
+            for (final Entry<RyaIRI, Property> properties : typeProperties.entrySet()) {
+                final RyaIRI key = properties.getKey();
                 final Property property = properties.getValue();
                 final String valueString = property.getValue().getData();
                 final RyaType ryaType = property.getValue();
@@ -305,13 +305,13 @@ public class SmartUriAdapter {
 
     /**
      * Serializes a map into a URI.
-     * @param subject the {@link RyaURI} subject of the Entity. Identifies the
+     * @param subject the {@link RyaIRI} subject of the Entity. Identifies the
      * thing that is being represented as an Entity.
      * @param map the {@link Map} of {@link IRI}s to {@link Value}s.
      * @return the Smart {@link IRI}.
      * @throws SmartUriException
      */
-    public static IRI serializeUri(final RyaURI subject, final Map<IRI, Value> map) throws SmartUriException {
+    public static IRI serializeUri(final RyaIRI subject, final Map<IRI, Value> map) throws SmartUriException {
         final String subjectData = subject.getData();
         final int fragmentPosition = subjectData.indexOf("#");
         String prefix = subjectData;
@@ -389,12 +389,12 @@ public class SmartUriAdapter {
             throw new SmartUriException("Unable to deserialize Smart URI", e);
         }
         final Map<IRI, Value> map = new HashMap<>();
-        final RyaURI subject = findSubject(iri.stringValue());
+        final RyaIRI subject = findSubject(iri.stringValue());
 
         final List<NameValuePair> parameters = uriBuilder.getQueryParams();
-        Map<RyaURI, String> entityTypeMap = new LinkedHashMap<>();
-        Map<String, RyaURI> invertedEntityTypeMap = new LinkedHashMap<>();
-        final Map<RyaURI, Map<IRI, Value>> fullMap = new LinkedHashMap<>();
+        Map<RyaIRI, String> entityTypeMap = new LinkedHashMap<>();
+        Map<String, RyaIRI> invertedEntityTypeMap = new LinkedHashMap<>();
+        final Map<RyaIRI, Map<IRI, Value>> fullMap = new LinkedHashMap<>();
         for (final NameValuePair pair : parameters) {
             final String keyString = pair.getName();
             final String valueString = pair.getValue();
@@ -409,13 +409,13 @@ public class SmartUriAdapter {
             final IRI type = TypeDeterminer.determineType(decoded);
             if (type == XMLSchema.ANYURI) {
                 if (keyString.equals(RYA_TYPES_URI.getLocalName())) {
-                    entityTypeMap = convertUriToTypeMap(VF.createIRI(decoded));
+                    entityTypeMap = convertIriToTypeMap(VF.createIRI(decoded));
                     invertedEntityTypeMap = HashBiMap.create(entityTypeMap).inverse();
                 }
             } else {
                 final int keyPrefixLocation = keyString.indexOf(".");
                 final String keyPrefix = keyString.substring(0, keyPrefixLocation);
-                final RyaURI keyCorrespondingType = invertedEntityTypeMap.get(keyPrefix);
+                final RyaIRI keyCorrespondingType = invertedEntityTypeMap.get(keyPrefix);
                 final String keyName = keyString.substring(keyPrefixLocation + 1, keyString.length());
                 final RyaType ryaType = new RyaType(type, valueString);
 
@@ -452,12 +452,12 @@ public class SmartUriAdapter {
             throw new SmartUriException("Unable to deserialize Smart URI", e);
         }
 
-        final RyaURI subject = findSubject(uri.stringValue());
+        final RyaIRI subject = findSubject(uri.stringValue());
 
         final List<NameValuePair> parameters = uriBuilder.getQueryParams();
-        Map<RyaURI, String> entityTypeMap = new LinkedHashMap<>();
-        Map<String, RyaURI> invertedEntityTypeMap = new LinkedHashMap<>();
-        final Map<RyaURI, Map<IRI, Value>> fullMap = new LinkedHashMap<>();
+        Map<RyaIRI, String> entityTypeMap = new LinkedHashMap<>();
+        Map<String, RyaIRI> invertedEntityTypeMap = new LinkedHashMap<>();
+        final Map<RyaIRI, Map<IRI, Value>> fullMap = new LinkedHashMap<>();
         for (final NameValuePair pair : parameters) {
             final String keyString = pair.getName();
             final String valueString = pair.getValue();
@@ -472,13 +472,13 @@ public class SmartUriAdapter {
             final IRI type = TypeDeterminer.determineType(decoded);
             if (type == XMLSchema.ANYURI) {
                 if (keyString.equals(RYA_TYPES_URI.getLocalName())) {
-                    entityTypeMap = convertUriToTypeMap(VF.createIRI(decoded));
+                    entityTypeMap = convertIriToTypeMap(VF.createIRI(decoded));
                     invertedEntityTypeMap = HashBiMap.create(entityTypeMap).inverse();
                 }
             } else {
                 final int keyPrefixLocation = keyString.indexOf(".");
                 final String keyPrefix = keyString.substring(0, keyPrefixLocation);
-                final RyaURI keyCorrespondingType = invertedEntityTypeMap.get(keyPrefix);
+                final RyaIRI keyCorrespondingType = invertedEntityTypeMap.get(keyPrefix);
                 final String keyName = keyString.substring(keyPrefixLocation + 1, keyString.length());
                 final RyaType ryaType = new RyaType(type, valueString);
 
@@ -577,9 +577,9 @@ public class SmartUriAdapter {
 
     public static Map<IRI, Value> entityToValueMap(final Entity entity) {
         final Map<IRI, Value> map = new LinkedHashMap<>();
-        for (final Entry<RyaURI, ImmutableMap<RyaURI, Property>> entry : entity.getProperties().entrySet()) {
-            for (final Entry<RyaURI, Property> property : entry.getValue().entrySet()) {
-                final RyaURI propertyKey = property.getKey();
+        for (final Entry<RyaIRI, ImmutableMap<RyaIRI, Property>> entry : entity.getProperties().entrySet()) {
+            for (final Entry<RyaIRI, Property> property : entry.getValue().entrySet()) {
+                final RyaIRI propertyKey = property.getKey();
                 final IRI iri = VF.createIRI(propertyKey.getData());
                 final Property propertyValue = property.getValue();
                 final Value value = RyaToRdfConversions.convertValue(propertyValue.getValue());
@@ -601,10 +601,10 @@ public class SmartUriAdapter {
             final IRI iri = entry.getKey();
             final Value value = entry.getValue();
 
-            final RyaURI ryaUri = new RyaURI(iri.stringValue());
+            final RyaIRI ryaIri = new RyaIRI(iri.stringValue());
             final RyaType ryaType = RdfToRyaConversions.convertValue(value);
 
-            final Property property = new Property(ryaUri, ryaType);
+            final Property property = new Property(ryaIri, ryaType);
             properties.add(property);
         }
         return properties;

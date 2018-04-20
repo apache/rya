@@ -48,7 +48,7 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.documentIndex.DocIndexIteratorUtil;
 import org.apache.rya.accumulo.documentIndex.DocumentIndexIntersectingIterator;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
@@ -341,9 +341,9 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
         }
 
         if (!commonVarSet && sq.isCommonVarURI()) {
-            final RyaURI rURI = new RyaURI(row.toString());
+            final RyaIRI rIRI = new RyaIRI(row.toString());
             currentSolutionBs.addBinding(sq.getCommonVarName(),
-                    RyaToRdfConversions.convertValue(rURI));
+                    RyaToRdfConversions.convertValue(rIRI));
             commonVarSet = true;
         }
 
@@ -381,8 +381,8 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                     currentSolutionBs.addBinding(sq.getCommonVarName(), v);
                     commonVarSet = true;
                 }
-                final RyaURI rURI = new RyaURI(new String(cqContent, StandardCharsets.UTF_8));
-                currentSolutionBs.addBinding(s, RyaToRdfConversions.convertValue(rURI));
+                final RyaIRI rIRI = new RyaIRI(new String(cqContent, StandardCharsets.UTF_8));
+                currentSolutionBs.addBinding(s, RyaToRdfConversions.convertValue(rIRI));
             } else {
                 throw new IllegalArgumentException("Invalid row.");
             }

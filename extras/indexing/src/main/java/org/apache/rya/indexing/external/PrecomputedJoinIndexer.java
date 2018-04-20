@@ -33,7 +33,7 @@ import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.log.LogUtils;
 import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
@@ -260,7 +260,7 @@ public class PrecomputedJoinIndexer extends AbstractAccumuloIndexer {
     }
 
     @Override
-    public void dropGraph(final RyaURI... graphs) {
+    public void dropGraph(final RyaIRI... graphs) {
         log.warn("PCJ indices do not store Graph metadata, so graph results can not be dropped.");
     }
 

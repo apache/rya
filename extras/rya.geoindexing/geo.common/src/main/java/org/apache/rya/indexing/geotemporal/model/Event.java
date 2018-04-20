@@ -23,7 +23,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInterval;
 import org.apache.rya.indexing.geotemporal.GeoTemporalIndexer;
@@ -42,7 +42,7 @@ public class Event {
     private final Optional<Geometry> geometry;
     private final Optional<TemporalInstant> instant;
     private final Optional<TemporalInterval> interval;
-    private final RyaURI subject;
+    private final RyaIRI subject;
 
     private final boolean isInstant;
 
@@ -52,7 +52,7 @@ public class Event {
      * @param instant - The {@link TemporalInstant} to use when querying.
      * @param subject - The Subject that both statements must have when querying.
      */
-    private Event(final Geometry geo, final TemporalInstant instant, final RyaURI subject) {
+    private Event(final Geometry geo, final TemporalInstant instant, final RyaIRI subject) {
         this.subject = requireNonNull(subject);
 
         //these fields are nullable since they are filled field by field.
@@ -68,7 +68,7 @@ public class Event {
      * @param interval - The {@link TemporalInterval} to use when querying.
      * @param subject - The Subject that both statements must have when querying.
      */
-    private Event(final Geometry geo, final TemporalInterval interval, final RyaURI subject) {
+    private Event(final Geometry geo, final TemporalInterval interval, final RyaIRI subject) {
         this.subject = requireNonNull(subject);
 
         //these fields are nullable since they are filled field by field.
@@ -109,7 +109,7 @@ public class Event {
     /**
      * @return The statement subject.
      */
-    public RyaURI getSubject() {
+    public RyaIRI getSubject() {
         return subject;
     }
 
@@ -163,16 +163,16 @@ public class Event {
      */
     @DefaultAnnotation(NonNull.class)
     public static class Builder {
-        private RyaURI subject;
+        private RyaIRI subject;
         private Geometry geo;
         private TemporalInstant instant;
         private TemporalInterval interval;
 
         /**
-         * Sets the {@link RyaURI} subject.
+         * Sets the {@link RyaIRI} subject.
          * @param subject - The subject to key on the event.
          */
-        public Builder setSubject(final RyaURI subject) {
+        public Builder setSubject(final RyaIRI subject) {
             this.subject = subject;
             return this;
         }

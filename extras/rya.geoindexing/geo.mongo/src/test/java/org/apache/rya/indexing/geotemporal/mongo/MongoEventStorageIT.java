@@ -24,7 +24,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Optional;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.geotemporal.model.Event;
@@ -55,7 +55,7 @@ public class MongoEventStorageIT extends MongoITBase {
 
         // An Event that will be stored.
         final Event event = Event.builder()
-                .setSubject(new RyaURI("urn:event/001"))
+                .setSubject(new RyaIRI("urn:event/001"))
                 .setGeometry(geo)
                 .setTemporalInstant(instant)
                 .build();
@@ -65,7 +65,7 @@ public class MongoEventStorageIT extends MongoITBase {
         storage.create(event);
 
         // Get it.
-        final Optional<Event> storedEvent = storage.get(new RyaURI("urn:event/001"));
+        final Optional<Event> storedEvent = storage.get(new RyaIRI("urn:event/001"));
 
         // Verify the correct value was returned.
         assertEquals(event, storedEvent.get());
@@ -78,7 +78,7 @@ public class MongoEventStorageIT extends MongoITBase {
 
         // An Event that will be stored.
         final Event event = Event.builder()
-                .setSubject(new RyaURI("urn:event/001"))
+                .setSubject(new RyaIRI("urn:event/001"))
                 .setGeometry(geo)
                 .setTemporalInstant(instant)
                 .build();
@@ -101,7 +101,7 @@ public class MongoEventStorageIT extends MongoITBase {
     public void get_noneExisting() throws Exception {
         // Get a Type that hasn't been created.
         final EventStorage storage = new MongoEventStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
-        final Optional<Event> storedEvent = storage.get(new RyaURI("urn:event/000"));
+        final Optional<Event> storedEvent = storage.get(new RyaIRI("urn:event/000"));
 
         // Verify nothing was returned.
         assertFalse(storedEvent.isPresent());
@@ -114,7 +114,7 @@ public class MongoEventStorageIT extends MongoITBase {
 
         // An Event that will be stored.
         final Event event = Event.builder()
-                .setSubject(new RyaURI("urn:event/002"))
+                .setSubject(new RyaIRI("urn:event/002"))
                 .setGeometry(geo)
                 .setTemporalInstant(instant)
                 .build();
@@ -124,7 +124,7 @@ public class MongoEventStorageIT extends MongoITBase {
         storage.create(event);
 
         // Delete it.
-        final boolean deleted = storage.delete( new RyaURI("urn:event/002") );
+        final boolean deleted = storage.delete( new RyaIRI("urn:event/002") );
 
         // Verify a document was deleted.
         assertTrue( deleted );
@@ -134,7 +134,7 @@ public class MongoEventStorageIT extends MongoITBase {
     public void delete_nonExisting() throws Exception {
         // Delete an Event that has not been created.
         final EventStorage storage = new MongoEventStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
-        final boolean deleted = storage.delete( new RyaURI("urn:event/003") );
+        final boolean deleted = storage.delete( new RyaIRI("urn:event/003") );
 
         // Verify no document was deleted.
         assertFalse( deleted );
@@ -148,7 +148,7 @@ public class MongoEventStorageIT extends MongoITBase {
 
         // An Event that will be stored.
         final Event event = Event.builder()
-                .setSubject(new RyaURI("urn:event/004"))
+                .setSubject(new RyaIRI("urn:event/004"))
                 .setGeometry(geo)
                 .setTemporalInstant(instant)
                 .build();
@@ -156,7 +156,7 @@ public class MongoEventStorageIT extends MongoITBase {
         storage.create(event);
 
         // Show Alice was stored.
-        Optional<Event> latest = storage.get(new RyaURI("urn:event/004"));
+        Optional<Event> latest = storage.get(new RyaIRI("urn:event/004"));
         assertEquals(event, latest.get());
 
         instant = new TemporalInstantRfc3339(DateTime.now());
@@ -168,7 +168,7 @@ public class MongoEventStorageIT extends MongoITBase {
         storage.update(event, updated);
 
         // Fetch the Alice object and ensure it has the new value.
-        latest = storage.get(new RyaURI("urn:event/004"));
+        latest = storage.get(new RyaIRI("urn:event/004"));
 
         assertEquals(updated, latest.get());
     }
@@ -181,13 +181,13 @@ public class MongoEventStorageIT extends MongoITBase {
 
         // Two objects that do not have the same Subjects.
         final Event old = Event.builder()
-                .setSubject(new RyaURI("urn:event/001"))
+                .setSubject(new RyaIRI("urn:event/001"))
                 .setGeometry(geo)
                 .setTemporalInstant(instant)
                 .build();
 
         final Event updated = Event.builder()
-                .setSubject(new RyaURI("urn:event/002"))
+                .setSubject(new RyaIRI("urn:event/002"))
                 .setGeometry(geo)
                 .setTemporalInstant(instant)
                 .build();

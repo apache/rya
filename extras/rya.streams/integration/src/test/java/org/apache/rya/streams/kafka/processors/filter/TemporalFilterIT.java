@@ -30,7 +30,7 @@ import java.util.UUID;
 
 import org.apache.kafka.streams.processor.TopologyBuilder;
 import org.apache.rya.api.function.projection.RandomUUIDFactory;
-import org.apache.rya.api.function.temporal.TemporalURIs;
+import org.apache.rya.api.function.temporal.TemporalIRIs;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.streams.kafka.KafkaTopics;
@@ -89,7 +89,7 @@ public class TemporalFilterIT {
         // Get the RDF model objects that will be used to build the query.
         final String sparql =
                 "PREFIX time: <http://www.w3.org/2006/time/> \n"
-                        + "PREFIX tempf: <" + TemporalURIs.NAMESPACE + ">\n"
+                        + "PREFIX tempf: <" + TemporalIRIs.NAMESPACE + ">\n"
                         + "SELECT * \n"
                         + "WHERE { \n"
                         + "  <urn:time> time:atTime ?date .\n"
@@ -122,7 +122,7 @@ public class TemporalFilterIT {
         // Get the RDF model objects that will be used to build the query.
         final String sparql =
                 "PREFIX time: <http://www.w3.org/2006/time/> \n"
-                        + "PREFIX tempf: <" + TemporalURIs.NAMESPACE + ">\n"
+                        + "PREFIX tempf: <" + TemporalIRIs.NAMESPACE + ">\n"
                         + "SELECT * \n"
                         + "WHERE { \n"
                         + "  <urn:time> time:atTime ?date .\n"
@@ -155,7 +155,7 @@ public class TemporalFilterIT {
         // Get the RDF model objects that will be used to build the query.
         final String sparql =
                 "PREFIX time: <http://www.w3.org/2006/time/> \n"
-                        + "PREFIX tempf: <" + TemporalURIs.NAMESPACE + ">\n"
+                        + "PREFIX tempf: <" + TemporalIRIs.NAMESPACE + ">\n"
                         + "SELECT * \n"
                         + "WHERE { \n"
                         + "  <urn:time> time:atTime ?date .\n"
@@ -188,7 +188,7 @@ public class TemporalFilterIT {
         // Get the RDF model objects that will be used to build the query.
         final String sparql =
                 "PREFIX time: <http://www.w3.org/2006/time/> \n"
-                        + "PREFIX tempf: <" + TemporalURIs.NAMESPACE + ">\n"
+                        + "PREFIX tempf: <" + TemporalIRIs.NAMESPACE + ">\n"
                         + "SELECT * \n"
                         + "WHERE { \n"
                         + "  <urn:time> time:atTime ?date .\n"

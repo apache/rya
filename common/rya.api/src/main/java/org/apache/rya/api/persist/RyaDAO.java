@@ -25,7 +25,7 @@ import java.util.Iterator;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
 
 /**
@@ -89,7 +89,7 @@ public interface RyaDAO<C extends RdfCloudTripleStoreConfiguration> extends RyaC
      * @param conf
      * @throws RyaDAOException
      */
-    public void dropGraph(C conf, RyaURI... graphs) throws RyaDAOException;
+    public void dropGraph(C conf, RyaIRI... graphs) throws RyaDAOException;
 
     /**
      * Delete a collection of RyaStatements.

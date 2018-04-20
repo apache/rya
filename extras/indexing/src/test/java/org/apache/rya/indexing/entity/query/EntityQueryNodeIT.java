@@ -26,7 +26,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.entity.model.Entity;
@@ -56,18 +56,18 @@ import com.google.common.collect.ImmutableSet;
 public class EntityQueryNodeIT extends MongoITBase {
 
     private static final Type PERSON_TYPE =
-            new Type(new RyaURI("urn:person"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:name"))
-                    .add(new RyaURI("urn:age"))
-                    .add(new RyaURI("urn:eye"))
+            new Type(new RyaIRI("urn:person"),
+                ImmutableSet.<RyaIRI>builder()
+                    .add(new RyaIRI("urn:name"))
+                    .add(new RyaIRI("urn:age"))
+                    .add(new RyaIRI("urn:eye"))
                     .build());
 
     private static final Type EMPLOYEE_TYPE =
-            new Type(new RyaURI("urn:employee"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:name"))
-                    .add(new RyaURI("urn:hoursPerWeek"))
+            new Type(new RyaIRI("urn:employee"),
+                ImmutableSet.<RyaIRI>builder()
+                    .add(new RyaIRI("urn:name"))
+                    .add(new RyaIRI("urn:hoursPerWeek"))
                     .build());
 
     @Test(expected = IllegalStateException.class)
@@ -154,13 +154,13 @@ public class EntityQueryNodeIT extends MongoITBase {
     public void evaluate_constantSubject() throws Exception {
         final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), "testDB");
         final ValueFactory vf = SimpleValueFactory.getInstance();
-        final RyaURI subject = new RyaURI("urn:SSN:111-11-1111");
+        final RyaIRI subject = new RyaIRI("urn:SSN:111-11-1111");
         final Entity entity = Entity.builder()
             .setSubject(subject)
             .setExplicitType(PERSON_TYPE.getId())
-            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(BigInteger.valueOf(20)))))
-            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
-            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(BigInteger.valueOf(20)))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
             .build();
 
         storage.create(entity);
@@ -189,22 +189,22 @@ public class EntityQueryNodeIT extends MongoITBase {
     public void evaluate_variableSubject() throws Exception {
         final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), "testDB");
         final ValueFactory vf = SimpleValueFactory.getInstance();
-        RyaURI subject = new RyaURI("urn:SSN:111-11-1111");
+        RyaIRI subject = new RyaIRI("urn:SSN:111-11-1111");
         final Entity bob = Entity.builder()
                 .setSubject(subject)
                 .setExplicitType(PERSON_TYPE.getId())
-                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(BigInteger.valueOf(20)))))
-                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
-                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(BigInteger.valueOf(20)))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
                 .build();
 
-        subject = new RyaURI("urn:SSN:222-22-2222");
+        subject = new RyaIRI("urn:SSN:222-22-2222");
         final Entity fred = Entity.builder()
                 .setSubject(subject)
                 .setExplicitType(PERSON_TYPE.getId())
-                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(BigInteger.valueOf(25)))))
-                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("brown"))))
-                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Fred"))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(BigInteger.valueOf(25)))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("brown"))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Fred"))))
                 .build();
 
         storage.create(bob);
@@ -242,13 +242,13 @@ public class EntityQueryNodeIT extends MongoITBase {
     public void evaluate_constantObject() throws Exception {
         final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), "testDB");
         final ValueFactory vf = SimpleValueFactory.getInstance();
-        final RyaURI subject = new RyaURI("urn:SSN:111-11-1111");
+        final RyaIRI subject = new RyaIRI("urn:SSN:111-11-1111");
         final Entity entity = Entity.builder()
             .setSubject(subject)
             .setExplicitType(PERSON_TYPE.getId())
-            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(BigInteger.valueOf(20)))))
-            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
-            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(BigInteger.valueOf(20)))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
             .build();
 
         storage.create(entity);

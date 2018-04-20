@@ -112,7 +112,7 @@ public class LocalReasoner extends AbstractReasoner {
         }
         // Otherwise, consider the semantics of the statement:
         Resource subject = fact.getSubject();
-        IRI predURI = fact.getPredicate();
+        IRI predIRI = fact.getPredicate();
         Value object = fact.getObject();
         boolean relevantToSubject = false;
         boolean relevantToObject = false;
@@ -121,18 +121,18 @@ public class LocalReasoner extends AbstractReasoner {
 
         // Type statements could be relevant to the subject, if the schema gives
         // them any meaning:
-        if (predURI.equals(RDF.TYPE)) {
+        if (predIRI.equals(RDF.TYPE)) {
             // Assume the object is a valid URI
-            Resource typeURI = (Resource) fact.getObject();
-            if (typeURI.equals(OWL.NOTHING)
-                || schema.hasClass(typeURI)) {
+            Resource typeIRI = (Resource) fact.getObject();
+            if (typeIRI.equals(OWL.NOTHING)
+                || schema.hasClass(typeIRI)) {
                 relevantToSubject = true;
             }
         }
 
         // If the schema knows about the property:
-        if (schema.hasProperty(predURI)) {
-            OwlProperty prop = schema.getProperty(predURI);
+        if (schema.hasProperty(predIRI)) {
+            OwlProperty prop = schema.getProperty(predIRI);
 
             // Relevant to both:
                     // Any statement with an asymmetric property
@@ -185,7 +185,7 @@ public class LocalReasoner extends AbstractReasoner {
             return Relevance.NONE;
         }
         // Otherwise, consider the semantics of the statement:
-        IRI predURI = fact.getPredicate();
+        IRI predIRI = fact.getPredicate();
         Value object = fact.getObject();
         boolean relevantToSubject = false;
         boolean relevantToObject = false;
@@ -193,10 +193,10 @@ public class LocalReasoner extends AbstractReasoner {
         boolean literalObject = object instanceof Literal;
 
         // Type statements can be joined if...
-        if (predURI.equals(RDF.TYPE)) {
-            Resource typeURI = (Resource) fact.getObject();
-            if (schema.hasClass(typeURI)) {
-                OwlClass c = schema.getClass(typeURI);
+        if (predIRI.equals(RDF.TYPE)) {
+            Resource typeIRI = (Resource) fact.getObject();
+            if (schema.hasClass(typeIRI)) {
+                OwlClass c = schema.getClass(typeIRI);
                 // 1. the type is a property restriction
                 if (!c.getOnProperty().isEmpty()
                 // 2. the type is relevant to a property restriction
@@ -212,8 +212,8 @@ public class LocalReasoner extends AbstractReasoner {
         }
 
         // If the schema knows about the property:
-        if (schema.hasProperty(predURI)) {
-            OwlProperty prop = schema.getProperty(predURI);
+        if (schema.hasProperty(predIRI)) {
+            OwlProperty prop = schema.getProperty(predIRI);
             // transitivity: relevant to both
             if (prop.isTransitive()) {
                 relevantToSubject = true;

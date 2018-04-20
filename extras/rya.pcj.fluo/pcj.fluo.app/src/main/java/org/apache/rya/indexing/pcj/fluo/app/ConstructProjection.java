@@ -27,7 +27,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
@@ -205,8 +205,8 @@ public class ConstructProjection {
         Preconditions.checkArgument(subj instanceof Resource);
         Preconditions.checkArgument(pred instanceof IRI);
 
-        RyaURI subjType = RdfToRyaConversions.convertResource((Resource) subj);
-        RyaURI predType = RdfToRyaConversions.convertURI((IRI) pred);
+        RyaIRI subjType = RdfToRyaConversions.convertResource((Resource) subj);
+        RyaIRI predType = RdfToRyaConversions.convertIRI((IRI) pred);
         RyaType objectType = RdfToRyaConversions.convertValue(obj);
 
         RyaStatement statement = new RyaStatement(subjType, predType, objectType);

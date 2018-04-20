@@ -63,8 +63,8 @@ public class SymmetricPropertyVisitor extends AbstractInferVisitor {
              "      { ?b ?pred ?a }
              */
 
-            IRI symmPropUri = (IRI) predVar.getValue();
-            if(inferenceEngine.isSymmetricProperty(symmPropUri)) {
+            IRI symmPropIri = (IRI) predVar.getValue();
+            if(inferenceEngine.isSymmetricProperty(symmPropIri)) {
                 Var subjVar = sp.getSubjectVar();
                 Union union = new InferUnion();
                 union.setLeftArg(sp);

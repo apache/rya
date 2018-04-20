@@ -37,7 +37,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
@@ -68,7 +68,7 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
     /**
      * When this IRI is the Predicate of a Statement, it indicates a {@link Type} for an {@link Entity}.
      */
-    private static final RyaURI TYPE_URI = new RyaURI( RDF.TYPE.toString() );
+    private static final RyaIRI TYPE_IRI = new RyaIRI( RDF.TYPE.toString() );
 
     protected final AtomicReference<StatefulMongoDBRdfConfiguration> configuration = new AtomicReference<>();
     private final AtomicReference<EntityStorage> entities = new AtomicReference<>();
@@ -108,10 +108,10 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
     public void storeStatements(final Collection<RyaStatement> statements) throws IOException {
         requireNonNull(statements);
 
-        final Map<RyaURI,List<RyaStatement>> groupedBySubject = statements.stream()
+        final Map<RyaIRI,List<RyaStatement>> groupedBySubject = statements.stream()
                 .collect(groupingBy(RyaStatement::getSubject));
 
-        for(final Entry<RyaURI, List<RyaStatement>> entry : groupedBySubject.entrySet()) {
+        for(final Entry<RyaIRI, List<RyaStatement>> entry : groupedBySubject.entrySet()) {
             try {
                 updateEntity(entry.getKey(), entry.getValue());
             } catch (final IndexingException e) {
@@ -127,7 +127,7 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
      * @param statements - Statements that the {@link Entity} will be updated with. (not null)
      * @throws IndexingException
      */
-    private void updateEntity(final RyaURI subject, final Collection<RyaStatement> statements) throws IndexingException {
+    private void updateEntity(final RyaIRI subject, final Collection<RyaStatement> statements) throws IndexingException {
         requireNonNull(subject);
         requireNonNull(statements);
 
@@ -153,20 +153,20 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
             for(final RyaStatement statement : statements) {
 
                 // The Statement is setting an Explicit Type ID for the Entity.
-                if(Objects.equal(TYPE_URI, statement.getPredicate())) {
-                    final RyaURI typeId = new RyaURI(statement.getObject().getData());
+                if(Objects.equal(TYPE_IRI, statement.getPredicate())) {
+                    final RyaIRI typeId = new RyaIRI(statement.getObject().getData());
                     updated.setExplicitType(typeId);
                 }
 
                 // The Statement is adding a Property to the Entity.
                 else {
-                    final RyaURI propertyName = statement.getPredicate();
+                    final RyaIRI propertyName = statement.getPredicate();
                     final RyaType propertyValue = statement.getObject();
 
                     try(final ConvertingCursor<Type> typesIt = types.search(propertyName)) {
                         // Set the Property for each type that includes the Statement's predicate.
                         while(typesIt.hasNext()) {
-                            final RyaURI typeId = typesIt.next().getId();
+                            final RyaIRI typeId = typesIt.next().getId();
                             updated.setProperty(typeId, new Property(propertyName, propertyValue));
                         }
                     } catch (final TypeStorageException | IOException e) {
@@ -202,9 +202,9 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
                 final Entity.Builder updated = Entity.builder(oldEntity);
                 updated.setVersion(oldEntity.getVersion() + 1);
 
-                if(TYPE_URI.equals(statement.getPredicate())) {
+                if(TYPE_IRI.equals(statement.getPredicate())) {
                     // If the Type ID already isn't in the list of explicit types, then do nothing.
-                    final RyaURI typeId = new RyaURI( statement.getObject().getData() );
+                    final RyaIRI typeId = new RyaIRI( statement.getObject().getData() );
                     if(!oldEntity.getExplicitTypeIds().contains(typeId)) {
                         return Optional.empty();
                     }
@@ -213,11 +213,11 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
                     updated.unsetExplicitType(typeId);
                 } else {
                     // If the deleted property appears within the old entity's properties, then remove it.
-                    final RyaURI deletedPropertyName = statement.getPredicate();
+                    final RyaIRI deletedPropertyName = statement.getPredicate();
 
                     boolean propertyWasPresent = false;
-                    for(final RyaURI typeId : oldEntity.getProperties().keySet()) {
-                        for(final RyaURI propertyName : oldEntity.getProperties().get(typeId).keySet()) {
+                    for(final RyaIRI typeId : oldEntity.getProperties().keySet()) {
+                        for(final RyaIRI propertyName : oldEntity.getProperties().get(typeId).keySet()) {
                             if(deletedPropertyName.equals(propertyName)) {
                                 propertyWasPresent = true;
                                 updated.unsetProperty(typeId, deletedPropertyName);
@@ -255,7 +255,7 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
     }
 
     @Override
-    public void dropGraph(final RyaURI... graphs) {
+    public void dropGraph(final RyaIRI... graphs) {
         // We do not support graphs when performing entity centric indexing.
     }
 

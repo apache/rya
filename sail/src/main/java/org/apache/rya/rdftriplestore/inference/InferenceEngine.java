@@ -358,7 +358,7 @@ public class InferenceEngine {
                             null, conf);
                     String integerValue = "";
                     Value anonPropNode = null;
-                    Value propURI = null;
+                    Value propIRI = null;
                     if (iter2 != null){
                         while (iter2.hasNext()){
                             final Statement iter2Statement = iter2.next();
@@ -381,17 +381,17 @@ public class InferenceEngine {
                                     null, conf);
                             while (iter2.hasNext()){
                                 final Statement iter2Statement = iter2.next();
-                                propURI = iter2Statement.getObject();
+                                propIRI = iter2Statement.getObject();
                                 break;
                             }
                             iter2.close();
                         }
                     }
-                    if (!integerValue.isEmpty() && propURI!=null) {
+                    if (!integerValue.isEmpty() && propIRI!=null) {
                         try {
                             final int indexValue = Integer.parseInt(integerValue);
-                            final IRI chainPropURI = VF.createIRI(propURI.stringValue());
-                            orderedProperties.put(indexValue, chainPropURI);
+                            final IRI chainPropIRI = VF.createIRI(propIRI.stringValue());
+                            orderedProperties.put(indexValue, chainPropIRI);
                         }
                         catch (final Exception e){
                             log.error("Error adding chain property to ordered properties", e);
@@ -440,7 +440,7 @@ public class InferenceEngine {
                                 if (iter2.hasNext()){
                                     iter2Statement = iter2.next();
                                     if (iter2Statement.getObject() instanceof IRI){
-                                        properties.add(new InverseURI((IRI)iter2Statement.getObject()));
+                                        properties.add(new InverseIRI((IRI)iter2Statement.getObject()));
                                     }
                                 }
                             }
@@ -918,7 +918,7 @@ public class InferenceEngine {
      * have this property are also assumed to have the property.
      *
      * @param type
-     *            The type (URI or bnode) to check against the known
+     *            The type (IRI or bnode) to check against the known
      *            restrictions
      * @return For each relevant property, a set of values such that whenever a
      *         resource has that value for that property, it is implied to
@@ -1407,7 +1407,7 @@ public class InferenceEngine {
      * one is considered individually sufficient: if a resource has the property and the value, then
      * it belongs to the provided type. Takes type hierarchy into account, so the value may imply a
      * subtype which in turn implies the provided type.
-     * @param type The type (URI or bnode) to check against the known restrictions
+     * @param type The type (IRI or bnode) to check against the known restrictions
      * @return For each relevant property, a set of values such that whenever a resource has that
      *      value for that property, it is implied to belong to the type.
      */
@@ -1597,7 +1597,7 @@ public class InferenceEngine {
      * restrictions on those properties could imply this type.  A type can have
      * multiple intersections and each intersection is a set of types so a list
      * of all the type sets is returned.
-     * @param type The type (URI or bnode) to check against the known
+     * @param type The type (IRI or bnode) to check against the known
      * intersections.
      * @return A {@link List} of {@link Resource} type {@link Set}s that
      * represents all the known intersections that imply the specified type.
@@ -1616,7 +1616,7 @@ public class InferenceEngine {
      * For a given type, return all sets of types such that owl:oneOf
      * restrictions on those properties could imply this type. A enumeration
      * of all the types that are part of the specified class type.
-     * @param type The type (URI or bnode) to check against the known oneOf
+     * @param type The type (IRI or bnode) to check against the known oneOf
      * sets.
      * @return A {@link Set} of {@link Resource} types that represents the
      * enumeration of resources that belong to the class type.
@@ -1636,7 +1636,7 @@ public class InferenceEngine {
 
     /**
      * Checks if the specified type is an enumerated type.
-     * @param type The type (URI or bnode) to check against the known oneOf
+     * @param type The type (IRI or bnode) to check against the known oneOf
      * sets.
      * @return {@code true} if the type is an enumerated type. {@code false}
      * otherwise.

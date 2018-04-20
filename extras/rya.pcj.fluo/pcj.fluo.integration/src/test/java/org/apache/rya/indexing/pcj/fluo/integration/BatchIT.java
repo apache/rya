@@ -38,7 +38,7 @@ import org.apache.fluo.api.data.Span;
 import org.apache.fluo.core.client.FluoClientImpl;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.function.join.LazyJoiningIterator.Side;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
@@ -82,9 +82,9 @@ public class BatchIT extends RyaExportITBase {
                 + " <urn:predicate_2> ?object2 } ";
         try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
 
-            RyaURI subj = new RyaURI("urn:subject_1");
-            RyaStatement statement1 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
-            RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
+            RyaIRI subj = new RyaIRI("urn:subject_1");
+            RyaStatement statement1 = new RyaStatement(subj, new RyaIRI("urn:predicate_1"), null);
+            RyaStatement statement2 = new RyaStatement(subj, new RyaIRI("urn:predicate_2"), null);
             Set<RyaStatement> statements1 = getRyaStatements(statement1, 10);
             Set<RyaStatement> statements2 = getRyaStatements(statement2, 10);
 
@@ -122,9 +122,9 @@ public class BatchIT extends RyaExportITBase {
                 + " <urn:predicate_2> ?object2 } ";
         try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
 
-            RyaURI subj = new RyaURI("urn:subject_1");
-            RyaStatement statement1 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
-            RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
+            RyaIRI subj = new RyaIRI("urn:subject_1");
+            RyaStatement statement1 = new RyaStatement(subj, new RyaIRI("urn:predicate_1"), null);
+            RyaStatement statement2 = new RyaStatement(subj, new RyaIRI("urn:predicate_2"), null);
             Set<RyaStatement> statements1 = getRyaStatements(statement1, 5);
             Set<RyaStatement> statements2 = getRyaStatements(statement2, 5);
 
@@ -174,8 +174,8 @@ public class BatchIT extends RyaExportITBase {
                 + " <urn:predicate_2> ?object2 } ";
         try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
 
-            RyaURI subj = new RyaURI("urn:subject_1");
-            RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
+            RyaIRI subj = new RyaIRI("urn:subject_1");
+            RyaStatement statement2 = new RyaStatement(subj, new RyaIRI("urn:predicate_2"), null);
             Set<RyaStatement> statements2 = getRyaStatements(statement2, 5);
 
             // Create the PCJ table.
@@ -222,9 +222,9 @@ public class BatchIT extends RyaExportITBase {
                 + " <urn:predicate_2> ?object2 } ";
         try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
 
-            RyaURI subj = new RyaURI("urn:subject_1");
-            RyaStatement statement1 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
-            RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
+            RyaIRI subj = new RyaIRI("urn:subject_1");
+            RyaStatement statement1 = new RyaStatement(subj, new RyaIRI("urn:predicate_1"), null);
+            RyaStatement statement2 = new RyaStatement(subj, new RyaIRI("urn:predicate_2"), null);
 
             Set<RyaStatement> statements1 = getRyaStatements(statement1, 15);
             Set<RyaStatement> statements2 = getRyaStatements(statement2, 15);
@@ -256,12 +256,12 @@ public class BatchIT extends RyaExportITBase {
                 + "OPTIONAL{ ?subject <urn:predicate_2> ?object2} } ";
         try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
 
-            RyaURI subj = new RyaURI("urn:subject_1");
-            RyaStatement statement1 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
-            RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
+            RyaIRI subj = new RyaIRI("urn:subject_1");
+            RyaStatement statement1 = new RyaStatement(subj, new RyaIRI("urn:predicate_1"), null);
+            RyaStatement statement2 = new RyaStatement(subj, new RyaIRI("urn:predicate_2"), null);
 
-            subj = new RyaURI("urn:subject_2");
-            RyaStatement statement3 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
+            subj = new RyaIRI("urn:subject_2");
+            RyaStatement statement3 = new RyaStatement(subj, new RyaIRI("urn:predicate_1"), null);
 
             Set<RyaStatement> statements1 = getRyaStatements(statement1, 10);
             Set<RyaStatement> statements2 = getRyaStatements(statement2, 10);
@@ -295,15 +295,15 @@ public class BatchIT extends RyaExportITBase {
                 + " <urn:predicate_2> ?object2 ." + " ?subject2 <urn:predicate_3> ?object2 } ";
         try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
 
-            RyaURI subj1 = new RyaURI("urn:subject_1");
-            RyaStatement statement1 = new RyaStatement(subj1, new RyaURI("urn:predicate_1"), null);
-            RyaStatement statement2 = new RyaStatement(subj1, new RyaURI("urn:predicate_2"), null);
+            RyaIRI subj1 = new RyaIRI("urn:subject_1");
+            RyaStatement statement1 = new RyaStatement(subj1, new RyaIRI("urn:predicate_1"), null);
+            RyaStatement statement2 = new RyaStatement(subj1, new RyaIRI("urn:predicate_2"), null);
 
             Set<RyaStatement> statements1 = getRyaStatements(statement1, 10);
             Set<RyaStatement> statements2 = getRyaStatements(statement2, 10);
 
-            RyaURI subj2 = new RyaURI("urn:subject_2");
-            RyaStatement statement3 = new RyaStatement(subj2, new RyaURI("urn:predicate_3"), null);
+            RyaIRI subj2 = new RyaIRI("urn:subject_2");
+            RyaStatement statement3 = new RyaStatement(subj2, new RyaIRI("urn:predicate_3"), null);
             Set<RyaStatement> statements3 = getRyaStatements(statement3, 10);
 
             // Create the PCJ table.
@@ -338,13 +338,13 @@ public class BatchIT extends RyaExportITBase {
         for (int i = 0; i < numTriples; i++) {
             RyaStatement stmnt = new RyaStatement(statement.getSubject(), statement.getPredicate(), statement.getObject());
             if (stmnt.getSubject() == null) {
-                stmnt.setSubject(new RyaURI(subject + i));
+                stmnt.setSubject(new RyaIRI(subject + i));
             }
             if (stmnt.getPredicate() == null) {
-                stmnt.setPredicate(new RyaURI(predicate + i));
+                stmnt.setPredicate(new RyaIRI(predicate + i));
             }
             if (stmnt.getObject() == null) {
-                stmnt.setObject(new RyaURI(object + i));
+                stmnt.setObject(new RyaIRI(object + i));
             }
             statements.add(stmnt);
         }

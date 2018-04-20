@@ -125,7 +125,7 @@ public class FreeTextTupleSet extends ExternalTupleSet {
             throws QueryEvaluationException {
         
       
-        IRI funcURI = filterInfo.getFunction();
+        IRI funcIRI = filterInfo.getFunction();
         
         SearchFunction searchFunction = new SearchFunction() {
 

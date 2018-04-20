@@ -22,7 +22,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Optional;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.mongo.DocumentConverter.DocumentConverterException;
@@ -83,7 +83,7 @@ public class MongoTypeStorage implements TypeStorage {
     }
 
     @Override
-    public Optional<Type> get(final RyaURI typeId) throws TypeStorageException {
+    public Optional<Type> get(final RyaIRI typeId) throws TypeStorageException {
         requireNonNull(typeId);
 
         try {
@@ -102,7 +102,7 @@ public class MongoTypeStorage implements TypeStorage {
     }
 
     @Override
-    public ConvertingCursor<Type> search(final RyaURI propertyName) throws TypeStorageException {
+    public ConvertingCursor<Type> search(final RyaIRI propertyName) throws TypeStorageException {
         requireNonNull(propertyName);
 
         try {
@@ -128,7 +128,7 @@ public class MongoTypeStorage implements TypeStorage {
     }
 
     @Override
-    public boolean delete(final RyaURI typeId) throws TypeStorageException {
+    public boolean delete(final RyaIRI typeId) throws TypeStorageException {
         requireNonNull(typeId);
 
         try {
@@ -143,7 +143,7 @@ public class MongoTypeStorage implements TypeStorage {
         }
     }
 
-    private static Bson makeIdFilter(final RyaURI typeId) {
+    private static Bson makeIdFilter(final RyaIRI typeId) {
         return Filters.eq(TypeDocumentConverter.ID, typeId.getData());
     }
 }

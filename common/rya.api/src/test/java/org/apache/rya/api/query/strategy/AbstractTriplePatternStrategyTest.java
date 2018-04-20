@@ -31,7 +31,7 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.query.strategy.wholerow.OspWholeRowTriplePatternStrategy;
 import org.apache.rya.api.query.strategy.wholerow.PoWholeRowTriplePatternStrategy;
 import org.apache.rya.api.query.strategy.wholerow.SpoWholeRowTriplePatternStrategy;
@@ -59,9 +59,9 @@ public class AbstractTriplePatternStrategyTest extends TestCase {
 	}
 
 	public void testRegex() throws Exception {
-        RyaURI subj = new RyaURI("urn:test#1234");
-        RyaURI pred = new RyaURI("urn:test#pred");
-        RyaURI obj = new RyaURI("urn:test#obj");
+        RyaIRI subj = new RyaIRI("urn:test#1234");
+        RyaIRI pred = new RyaIRI("urn:test#pred");
+        RyaIRI obj = new RyaIRI("urn:test#obj");
         RyaStatement ryaStatement = new RyaStatement(subj, pred, obj);
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = new WholeRowTripleResolver().serialize(ryaStatement);
         TripleRow tripleRow = serialize.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO);
@@ -117,8 +117,8 @@ public class AbstractTriplePatternStrategyTest extends TestCase {
     }
 
     public void testObjectTypeInfo() throws Exception {
-        RyaURI subj = new RyaURI("urn:test#1234");
-        RyaURI pred = new RyaURI("urn:test#pred");
+        RyaIRI subj = new RyaIRI("urn:test#1234");
+        RyaIRI pred = new RyaIRI("urn:test#pred");
         RyaType obj = new RyaType(XMLSchema.LONG, "10");
         RyaStatement ryaStatement = new RyaStatement(subj, pred, obj);
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = RyaTripleContext.getInstance(new MockRdfConfiguration()).serializeTriple(ryaStatement);

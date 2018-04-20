@@ -8,7 +8,7 @@ import java.io.DataOutputStream;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Assert;
@@ -36,14 +36,14 @@ import org.junit.rules.ExpectedException;
  */
 
 public class RyaStatementWritableTest {
-    private static final RyaURI s1 = new RyaURI(":s");
-    private static final RyaURI p1 = new RyaURI(":p");
+    private static final RyaIRI s1 = new RyaIRI(":s");
+    private static final RyaIRI p1 = new RyaIRI(":p");
     private static final RyaType o1 = new RyaType(XMLSchema.INTEGER, "123");
-    private static final RyaURI s2 = new RyaURI(":s2");
-    private static final RyaURI p2 = new RyaURI(":p2");
+    private static final RyaIRI s2 = new RyaIRI(":s2");
+    private static final RyaIRI p2 = new RyaIRI(":p2");
     private static final RyaType o2 = new RyaType(XMLSchema.STRING, "123");
-    private static final RyaURI graph1 = new RyaURI("http://example.org/graph1");
-    private static final RyaURI graph2 = new RyaURI("http://example.org/graph2");
+    private static final RyaIRI graph1 = new RyaIRI("http://example.org/graph1");
+    private static final RyaIRI graph2 = new RyaIRI("http://example.org/graph2");
     private static final byte[] cv1 = "test_visibility".getBytes();
     private static final long t1 = 1000;
     private static final long t2 = 1001;

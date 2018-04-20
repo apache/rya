@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.GeoRyaSailFactory;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
@@ -70,7 +70,7 @@ public class MongoGeoTemporalIndexIT extends MongoITBase {
 
             addStatements(repo.getConnection());
             final EventStorage events = indexer.getEventStorage();
-            final RyaURI subject = new RyaURI("urn:event1");
+            final RyaIRI subject = new RyaIRI("urn:event1");
             final Optional<Event> event = events.get(subject);
             assertTrue(event.isPresent());
         } finally {

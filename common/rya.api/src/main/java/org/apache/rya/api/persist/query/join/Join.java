@@ -24,7 +24,7 @@ import java.util.Map;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
@@ -34,9 +34,9 @@ import org.eclipse.rdf4j.common.iteration.CloseableIteration;
  */
 public interface Join<C extends RdfCloudTripleStoreConfiguration> {
 
-    public CloseableIteration<RyaStatement, RyaDAOException> join(C conf, RyaURI... preds)
+    public CloseableIteration<RyaStatement, RyaDAOException> join(C conf, RyaIRI... preds)
             throws RyaDAOException;
 
-    public CloseableIteration<RyaURI, RyaDAOException> join(C conf, Map.Entry<RyaURI, RyaType>... predObjs)
+    public CloseableIteration<RyaIRI, RyaDAOException> join(C conf, Map.Entry<RyaIRI, RyaType>... predObjs)
                     throws RyaDAOException;
 }

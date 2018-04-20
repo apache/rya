@@ -34,7 +34,7 @@ import org.apache.rya.api.resolver.impl.FloatRyaTypeResolver;
 import org.apache.rya.api.resolver.impl.IntegerRyaTypeResolver;
 import org.apache.rya.api.resolver.impl.LongRyaTypeResolver;
 import org.apache.rya.api.resolver.impl.RyaTypeResolverImpl;
-import org.apache.rya.api.resolver.impl.RyaURIResolver;
+import org.apache.rya.api.resolver.impl.RyaIRIResolver;
 import org.apache.rya.api.resolver.impl.ServiceBackedRyaTypeResolverMappings;
 import org.apache.rya.api.resolver.impl.ShortRyaTypeResolver;
 import org.eclipse.rdf4j.model.IRI;
@@ -64,7 +64,7 @@ public class RyaContext {
             logger.debug("Adding default mappings");
         }
         addRyaTypeResolverMapping(new RyaTypeResolverMapping(new RyaTypeResolverImpl())); // plain string
-        addRyaTypeResolverMapping(new RyaTypeResolverMapping(new RyaURIResolver())); // uri
+        addRyaTypeResolverMapping(new RyaTypeResolverMapping(new RyaIRIResolver())); // iri
         addRyaTypeResolverMapping(new RyaTypeResolverMapping(new DateTimeRyaTypeResolver())); // dateTime
         addRyaTypeResolverMapping(new RyaTypeResolverMapping(new DoubleRyaTypeResolver())); // double
         addRyaTypeResolverMapping(new RyaTypeResolverMapping(new FloatRyaTypeResolver())); // float

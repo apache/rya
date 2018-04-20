@@ -42,7 +42,7 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.joinselect.mr.JoinSelectAggregate.JoinReducer;
@@ -99,7 +99,7 @@ public class JoinSelectStatisticsTest {
     private static final String PREFIX = JoinSelectStatisticsTest.class.getSimpleName();
   
     private static final String DELIM = "\u0000";
-    private static final String uri = "uri:";
+    private static final String iri = "uri:";
     private List<String> cardList = Arrays.asList("subject", "predicate", "object");
     private List<String> aggCardList = Arrays.asList("subjectobject", "subjectpredicate", "subjectsubject", "predicateobject", "predicatepredicate", "predicatesubject");
     private static File SPOOUT;
@@ -417,7 +417,7 @@ public class JoinSelectStatisticsTest {
         BatchWriter bw_table1 = c.createBatchWriter("rya_spo", new BatchWriterConfig());
         for (int i = 1; i < 3; i++) {
 
-            RyaStatement rs = new RyaStatement(new RyaURI(uri + i), new RyaURI(uri + 5), new RyaType(uri + (i + 2)));
+            RyaStatement rs = new RyaStatement(new RyaIRI(iri + i), new RyaIRI(iri + 5), new RyaType(iri + (i + 2)));
             Map<TABLE_LAYOUT, TripleRow> tripleRowMap = ryaContext.serializeTriple(rs);
             TripleRow tripleRow = tripleRowMap.get(TABLE_LAYOUT.SPO);
             Mutation m = JoinSelectStatsUtil.createMutation(tripleRow);
@@ -433,7 +433,7 @@ public class JoinSelectStatisticsTest {
             int j = 1;
             
             for (String s : cardList) {
-                Mutation m = new Mutation(new Text(s + DELIM + uri + i + DELIM + i));
+                Mutation m = new Mutation(new Text(s + DELIM + iri + i + DELIM + i));
                 m.put(new Text(), new Text(), new Value(new IntWritable(i + j).toString().getBytes()));
                 bw_table2.addMutation(m);
                 j++;
@@ -457,7 +457,7 @@ public class JoinSelectStatisticsTest {
         }
 
         Scanner scan1 = c.createScanner("rya_selectivity" , new Authorizations());
-        scan1.setRange(Range.prefix("predicate" +DELIM + uri + 5));
+        scan1.setRange(Range.prefix("predicate" +DELIM + iri + 5));
         int i = 5;
         
         for (Map.Entry<Key, Value> entry : scan1) {
@@ -479,7 +479,7 @@ public class JoinSelectStatisticsTest {
         
         
         Scanner scan2 = c.createScanner("rya_selectivity" , new Authorizations());
-        scan2.setRange(Range.prefix("object" +DELIM + uri + 3));
+        scan2.setRange(Range.prefix("object" +DELIM + iri + 3));
         int j = 5;
         
         for (Map.Entry<Key, Value> entry : scan2) {
@@ -502,7 +502,7 @@ public class JoinSelectStatisticsTest {
         
         
         Scanner scan3 = c.createScanner("rya_selectivity", new Authorizations());
-        scan3.setRange(Range.prefix("objectsubject" + DELIM + uri + 3 +DELIM +uri +1 ));
+        scan3.setRange(Range.prefix("objectsubject" + DELIM + iri + 3 +DELIM +iri +1 ));
         int k = 8;
 
         for (Map.Entry<Key, Value> entry : scan3) {
@@ -536,7 +536,7 @@ public class JoinSelectStatisticsTest {
         BatchWriter bw_table1 = c.createBatchWriter("rya_spo", new BatchWriterConfig());
         for (int i = 1; i < 4; i++) {
 
-            RyaStatement rs = new RyaStatement(new RyaURI(uri + 1), new RyaURI(uri + 2), new RyaType(uri + i));
+            RyaStatement rs = new RyaStatement(new RyaIRI(iri + 1), new RyaIRI(iri + 2), new RyaType(iri + i));
             Map<TABLE_LAYOUT, TripleRow> tripleRowMap = ryaContext.serializeTriple(rs);
             TripleRow tripleRow = tripleRowMap.get(TABLE_LAYOUT.SPO);
             Mutation m = JoinSelectStatsUtil.createMutation(tripleRow);
@@ -549,7 +549,7 @@ public class JoinSelectStatisticsTest {
         for (int i = 1; i < 4; i++) {
 
             for (String s : cardList) {
-                Mutation m = new Mutation(new Text(s + DELIM + uri + i + DELIM + i));
+                Mutation m = new Mutation(new Text(s + DELIM + iri + i + DELIM + i));
                 m.put(new Text(), new Text(), new Value(new IntWritable(i + 2).toString().getBytes()));
                 bw_table2.addMutation(m);
             }
@@ -559,7 +559,7 @@ public class JoinSelectStatisticsTest {
 
         Assert.assertEquals(0, ToolRunner.run(new JoinSelectTestDriver(), new String[]{""}));
         Scanner scan1 = c.createScanner("rya_selectivity" , new Authorizations());
-        scan1.setRange(Range.prefix("subject" +DELIM + uri + 1));
+        scan1.setRange(Range.prefix("subject" +DELIM + iri + 1));
         int i = 0;
         
         for (Map.Entry<Key, Value> entry : scan1) {
@@ -570,7 +570,7 @@ public class JoinSelectStatisticsTest {
         Assert.assertTrue(i == 6);
         
         Scanner scan2 = c.createScanner("rya_selectivity" , new Authorizations());
-        scan2.setRange(Range.prefix("predicate" +DELIM + uri + 2));
+        scan2.setRange(Range.prefix("predicate" +DELIM + iri + 2));
         int j = 0;
         
         for (Map.Entry<Key, Value> entry : scan2) {
@@ -586,7 +586,7 @@ public class JoinSelectStatisticsTest {
         Assert.assertTrue(j == 6);
         
         Scanner scan3 = c.createScanner("rya_selectivity" , new Authorizations());
-        scan3.setRange(Range.prefix("predicateobject" +DELIM + uri + 2 +DELIM + uri + 2));
+        scan3.setRange(Range.prefix("predicateobject" +DELIM + iri + 2 +DELIM + iri + 2));
         int k = 0;
         
         for (Map.Entry<Key, Value> entry : scan3) {
@@ -612,7 +612,7 @@ public class JoinSelectStatisticsTest {
             for (int j = 1; j < 3; j++) {
                 for (int k = 1; k < 3; k++) {
 
-                    RyaStatement rs = new RyaStatement(new RyaURI(uri + i), new RyaURI(uri + (j)), new RyaType(uri + k));
+                    RyaStatement rs = new RyaStatement(new RyaIRI(iri + i), new RyaIRI(iri + (j)), new RyaType(iri + k));
                     Map<TABLE_LAYOUT, TripleRow> tripleRowMap = ryaContext.serializeTriple(rs);
                     TripleRow tripleRow = tripleRowMap.get(TABLE_LAYOUT.SPO);
                     Mutation m = JoinSelectStatsUtil.createMutation(tripleRow);
@@ -629,7 +629,7 @@ public class JoinSelectStatisticsTest {
 
             int k = 1;
             for (String s : cardList) {
-                Mutation m = new Mutation(new Text(s + DELIM + uri + i + DELIM + i));
+                Mutation m = new Mutation(new Text(s + DELIM + iri + i + DELIM + i));
                 m.put(new Text(), new Text(), new Value(new IntWritable(i + k).toString().getBytes()));
                 bw_table2.addMutation(m);
                 k++;
@@ -638,7 +638,7 @@ public class JoinSelectStatisticsTest {
             for (int j = 1; j < 3; j++) {
                 k = 1;
                 for (String s : aggCardList) {
-                    Mutation m = new Mutation(new Text(s + DELIM + uri + i + DELIM + uri + j + DELIM + i));
+                    Mutation m = new Mutation(new Text(s + DELIM + iri + i + DELIM + iri + j + DELIM + i));
                     m.put(new Text(), new Text(), new Value(new IntWritable(i + k +j).toString().getBytes()));
                     bw_table2.addMutation(m);
                     k++;
@@ -665,7 +665,7 @@ public class JoinSelectStatisticsTest {
         
         
         Scanner scan1 = c.createScanner("rya_selectivity" , new Authorizations());
-        scan1.setRange(Range.prefix("subject" +DELIM + uri + 1));
+        scan1.setRange(Range.prefix("subject" +DELIM + iri + 1));
         int i = 0;
         
         for (Map.Entry<Key, Value> entry : scan1) {
@@ -722,7 +722,7 @@ public class JoinSelectStatisticsTest {
                         break;
                     }
                     
-                    RyaStatement rs = new RyaStatement(new RyaURI(uri + i), new RyaURI(uri + (j)), new RyaType(uri + k));
+                    RyaStatement rs = new RyaStatement(new RyaIRI(iri + i), new RyaIRI(iri + (j)), new RyaType(iri + k));
                     Map<TABLE_LAYOUT, TripleRow> tripleRowMap = ryaContext.serializeTriple(rs);
                     TripleRow tripleRow = tripleRowMap.get(TABLE_LAYOUT.SPO);
                     Mutation m = JoinSelectStatsUtil.createMutation(tripleRow);
@@ -739,7 +739,7 @@ public class JoinSelectStatisticsTest {
 
             int k = 1;
             for (String s : cardList) {
-                Mutation m = new Mutation(new Text(s + DELIM + uri + i + DELIM + i));
+                Mutation m = new Mutation(new Text(s + DELIM + iri + i + DELIM + i));
                 m.put(new Text(), new Text(), new Value(new IntWritable(i + k).toString().getBytes()));
                 bw_table2.addMutation(m);
                 k++;
@@ -748,7 +748,7 @@ public class JoinSelectStatisticsTest {
             for (int j = 1; j < 3; j++) {
                 k = 1;
                 for (String s : aggCardList) {
-                    Mutation m = new Mutation(new Text(s + DELIM + uri + i + DELIM + uri + j + DELIM + i));
+                    Mutation m = new Mutation(new Text(s + DELIM + iri + i + DELIM + iri + j + DELIM + i));
                     m.put(new Text(), new Text(), new Value(new IntWritable(i + k + 2*j).toString().getBytes()));
                     bw_table2.addMutation(m);
                     k++;
@@ -775,7 +775,7 @@ public class JoinSelectStatisticsTest {
         
         
         Scanner scan1 = c.createScanner("rya_selectivity" , new Authorizations());
-        scan1.setRange(Range.prefix("subject" +DELIM + uri + 1));
+        scan1.setRange(Range.prefix("subject" +DELIM + iri + 1));
         int i = 0;
         
         for (Map.Entry<Key, Value> entry : scan1) {
@@ -810,7 +810,7 @@ public class JoinSelectStatisticsTest {
         
         
         Scanner scan2 = c.createScanner("rya_selectivity" , new Authorizations());
-        scan2.setRange(Range.prefix("predicate" +DELIM + uri + 1));
+        scan2.setRange(Range.prefix("predicate" +DELIM + iri + 1));
         int j = 0;
         
         for (Map.Entry<Key, Value> entry : scan2) {

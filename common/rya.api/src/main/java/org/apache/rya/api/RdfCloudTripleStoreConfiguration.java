@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.layout.TableLayoutStrategy;
 import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
@@ -657,11 +657,11 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return getBoolean(CONF_USE_STATEMENT_METADATA, false);
     }
 
-    public void setStatementMetadataProperties(final Set<RyaURI> metadataProperties) {
+    public void setStatementMetadataProperties(final Set<RyaIRI> metadataProperties) {
 
         final String[] propArray = new String[metadataProperties.size()];
         int i = 0;
-        for(final RyaURI uri: metadataProperties) {
+        for(final RyaIRI uri: metadataProperties) {
             propArray[i] = uri.getData();
             i++;
         }
@@ -669,12 +669,12 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     }
 
 
-    public Set<RyaURI> getStatementMetadataProperties() {
-        final Set<RyaURI> uriSet = new HashSet<>();
+    public Set<RyaIRI> getStatementMetadataProperties() {
+        final Set<RyaIRI> uriSet = new HashSet<>();
         final String[] uriStrings = getStrings(CONF_STATEMENT_METADATA_PROPERTIES);
         if (uriStrings != null) {
             for (final String s : uriStrings) {
-                uriSet.add(new RyaURI(s));
+                uriSet.add(new RyaIRI(s));
             }
         }
         return uriSet;

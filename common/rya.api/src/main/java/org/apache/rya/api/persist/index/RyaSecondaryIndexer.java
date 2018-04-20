@@ -27,7 +27,7 @@ import java.util.Set;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.eclipse.rdf4j.model.IRI;
 
 public interface RyaSecondaryIndexer extends Closeable, Flushable, Configurable {
@@ -50,7 +50,7 @@ public interface RyaSecondaryIndexer extends Closeable, Flushable, Configurable 
 
     public void deleteStatement(RyaStatement stmt) throws IOException;
 
-    public void dropGraph(RyaURI... graphs);
+    public void dropGraph(RyaIRI... graphs);
 
     /**
      * @return the set of predicates indexed by the indexer.

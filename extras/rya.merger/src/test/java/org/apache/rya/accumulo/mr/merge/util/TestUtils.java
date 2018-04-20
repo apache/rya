@@ -26,7 +26,7 @@ import java.util.Date;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
@@ -210,12 +210,12 @@ public final class TestUtils {
     }
 
     /**
-     * Creates a {@link RyaURI} for the specified local name.
-     * @param localName the URI's local name.
-     * @return the {@link RyraURI}.
+     * Creates a {@link RyaIRI} for the specified local name.
+     * @param localName the IRI's local name.
+     * @return the {@link RyaIRI}.
      */
-    public static RyaURI createRyaUri(final String localName) {
-        return AccumuloRyaUtils.createRyaUri(NAMESPACE, localName);
+    public static RyaIRI createRyaIri(final String localName) {
+        return AccumuloRyaUtils.createRyaIri(NAMESPACE, localName);
     }
 
     /**
@@ -227,10 +227,10 @@ public final class TestUtils {
      * @return the {@link RyaStatement}.
      */
     public static RyaStatement createRyaStatement(final String subject, final String predicate, final String object, final Date date) {
-        final RyaURI subjectUri = createRyaUri(subject);
-        final RyaURI predicateUri = createRyaUri(predicate);
-        final RyaURI objectUri = createRyaUri(object);
-        final RyaStatement ryaStatement = new RyaStatement(subjectUri, predicateUri, objectUri);
+        final RyaIRI subjectIri = createRyaIri(subject);
+        final RyaIRI predicateIri = createRyaIri(predicate);
+        final RyaIRI objectIri = createRyaIri(object);
+        final RyaStatement ryaStatement = new RyaStatement(subjectIri, predicateIri, objectIri);
         if (date != null) {
             ryaStatement.setTimestamp(date.getTime());
         }

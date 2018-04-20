@@ -27,7 +27,7 @@ import java.util.Map.Entry;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -46,13 +46,13 @@ public class MongoDBQueryEngineIT extends MongoITBase {
     private RyaStatement getStatement(final String s, final String p, final String o) {
         final RyaStatementBuilder builder = new RyaStatementBuilder();
         if (s != null) {
-            builder.setSubject(new RyaURI(s));
+            builder.setSubject(new RyaIRI(s));
         }
         if (p != null) {
-            builder.setPredicate(new RyaURI(p));
+            builder.setPredicate(new RyaIRI(p));
         }
         if (o != null) {
-            builder.setObject(new RyaURI(o));
+            builder.setObject(new RyaIRI(o));
         }
         return builder.build();
     }

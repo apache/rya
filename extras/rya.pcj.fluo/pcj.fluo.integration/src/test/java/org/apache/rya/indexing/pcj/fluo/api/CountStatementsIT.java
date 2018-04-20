@@ -28,7 +28,7 @@ import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.config.ObserverSpecification;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.junit.Test;
 
@@ -56,11 +56,11 @@ public class CountStatementsIT extends RyaExportITBase {
     public void countStatements() {
         // Insert some Triples into the Fluo app.
         final List<RyaStatement> triples = new ArrayList<>();
-        triples.add( RyaStatement.builder().setSubject(new RyaURI("http://Alice")).setPredicate(new RyaURI("http://talksTo")).setObject(new RyaURI("http://Bob")).build() );
-        triples.add( RyaStatement.builder().setSubject(new RyaURI("http://Bob")).setPredicate(new RyaURI("http://talksTo")).setObject(new RyaURI("http://Alice")).build() );
-        triples.add( RyaStatement.builder().setSubject(new RyaURI("http://Charlie")).setPredicate(new RyaURI("http://talksTo")).setObject(new RyaURI("http://Bob")).build() );
-        triples.add( RyaStatement.builder().setSubject(new RyaURI("http://David")).setPredicate(new RyaURI("http://talksTo")).setObject(new RyaURI("http://Bob")).build() );
-        triples.add( RyaStatement.builder().setSubject(new RyaURI("http://Eve")).setPredicate(new RyaURI("http://talksTo")).setObject(new RyaURI("http://Bob")).build() );
+        triples.add( RyaStatement.builder().setSubject(new RyaIRI("http://Alice")).setPredicate(new RyaIRI("http://talksTo")).setObject(new RyaIRI("http://Bob")).build() );
+        triples.add( RyaStatement.builder().setSubject(new RyaIRI("http://Bob")).setPredicate(new RyaIRI("http://talksTo")).setObject(new RyaIRI("http://Alice")).build() );
+        triples.add( RyaStatement.builder().setSubject(new RyaIRI("http://Charlie")).setPredicate(new RyaIRI("http://talksTo")).setObject(new RyaIRI("http://Bob")).build() );
+        triples.add( RyaStatement.builder().setSubject(new RyaIRI("http://David")).setPredicate(new RyaIRI("http://talksTo")).setObject(new RyaIRI("http://Bob")).build() );
+        triples.add( RyaStatement.builder().setSubject(new RyaIRI("http://Eve")).setPredicate(new RyaIRI("http://talksTo")).setObject(new RyaIRI("http://Bob")).build() );
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
             new InsertTriples().insert(fluoClient, triples, Optional.<String>absent());

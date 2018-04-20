@@ -30,7 +30,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.IndexingExpr;
 import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
@@ -179,7 +179,7 @@ public class EventQueryNode extends ExternalSet implements ExternalBatchingItera
             if(subjectConstant.isPresent()) {
                 // if it is, fetch that value and then fetch the entity for the subject.
                 subj = subjectConstant.get();
-                searchEvents = eventStore.search(Optional.of(new RyaURI(subj)), Optional.of(geoFilters), Optional.of(temporalFilters));
+                searchEvents = eventStore.search(Optional.of(new RyaIRI(subj)), Optional.of(geoFilters), Optional.of(temporalFilters));
             } else {
                 searchEvents = eventStore.search(Optional.empty(), Optional.of(geoFilters), Optional.of(temporalFilters));
             }

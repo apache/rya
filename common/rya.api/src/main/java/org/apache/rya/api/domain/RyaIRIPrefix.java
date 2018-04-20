@@ -19,43 +19,29 @@ package org.apache.rya.api.domain;
  * under the License.
  */
 
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.util.URIUtil;
-import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
+
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
 
 /**
- * Date: 7/16/12
- * Time: 11:56 AM
+ * Date: 7/24/12
+ * Time: 3:26 PM
  */
-public class RyaURI extends RyaType {
+public class RyaIRIPrefix extends RyaIRIRange {
+    public static final String LAST = "\u00FF";
 
-    public RyaURI() {
-        setDataType(XMLSchema.ANYURI);
+    public RyaIRIPrefix(String prefix) {
+        super();
+        setPrefix(prefix);
     }
 
-    public RyaURI(String data) {
-        super(XMLSchema.ANYURI, data);
+    public void setPrefix(String prefix) {
+        setStart(new RyaIRI(prefix + RdfCloudTripleStoreConstants.DELIM));
+        setStop(new RyaIRI(prefix + LAST));
     }
 
-    public RyaURI(String namespace, String data) {
-        super(XMLSchema.ANYURI, namespace + data);
+    public String getPrefix() {
+        String data = getStart().getData();
+        return data.substring(0, data.length() - 1);
     }
-
-    protected RyaURI(IRI datatype, String data) {
-        super(datatype, data);
-    }
-
-    @Override
-    public void setData(String data) {
-        super.setData(data);
-        validate(data);
-    }
-
-    protected void validate(String data) {
-        if (data == null)
-            throw new IllegalArgumentException("Null not URI");
-        URIUtil.getLocalNameIndex(data);
-    }
-
 }

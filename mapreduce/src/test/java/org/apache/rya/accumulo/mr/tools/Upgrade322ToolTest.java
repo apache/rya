@@ -41,7 +41,7 @@ import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 import junit.framework.TestCase;
@@ -219,41 +219,41 @@ public class Upgrade322ToolTest extends TestCase {
         final AccumuloRyaQueryEngine queryEngine = ryaDAO.getQueryEngine();
 
         TestUtils.verify(new RyaStatement(
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uuid10"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#booleanLit"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uuid10"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#booleanLit"),
           new RyaType(XMLSchema.BOOLEAN, "true")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uuid10"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#longLit"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uuid10"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#longLit"),
           new RyaType(XMLSchema.LONG, "10")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uuid10"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#intLit"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uuid10"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#intLit"),
           new RyaType(XMLSchema.INTEGER, "10")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uuid10"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#byteLit"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uuid10"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#byteLit"),
           new RyaType(XMLSchema.BYTE, "10")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uuid10"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#doubleLit"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uuid10"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#doubleLit"),
           new RyaType(XMLSchema.DOUBLE, "10.0")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uuid10"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#dateLit"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uuid10"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#dateLit"),
           new RyaType(XMLSchema.DATETIME, "2011-07-12T06:00:00.000Z")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uuid10"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#stringLit"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uuid10"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#stringLit"),
           new RyaType("stringLit")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uuid10"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uriLit"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns" +
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uuid10"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uriLit"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns" +
                      "#objectuuid1")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("urn:org.apache.rya/2012/05#rts"),
-          new RyaURI("urn:org.apache.rya/2012/05#version"),
+          new RyaIRI("urn:org.apache.rya/2012/05#rts"),
+          new RyaIRI("urn:org.apache.rya/2012/05#version"),
           new RyaType("3.0.0")), queryEngine);
     }
 

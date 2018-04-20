@@ -20,7 +20,7 @@ package org.apache.rya.indexing.smarturi;
 
 import java.util.Map;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.model.TypedEntity;
@@ -35,12 +35,12 @@ import org.eclipse.rdf4j.model.Value;
 public interface SmartUriStorage {
     /**
      * Stores the map into the datastore.
-     * @param subject the {@link RyaURI} subject of the Entity. Identifies the
+     * @param subject the {@link RyaIRI} subject of the Entity. Identifies the
      * thing that is being represented as an Entity.
      * @param map the {@link Map} of {@link IRI}s to {@link Value}s.
      * @throws SmartUriException
      */
-    public void storeEntity(final RyaURI subject, final Map<IRI, Value> map) throws SmartUriException;
+    public void storeEntity(final RyaIRI subject, final Map<IRI, Value> map) throws SmartUriException;
 
     /**
      * Stores the entity into the datastore.
@@ -59,12 +59,12 @@ public interface SmartUriStorage {
 
     /**
      * Queries for the entity based on the subject
-     * @param subject the {@link RyaURI} subject of the Entity. Identifies the
+     * @param subject the {@link RyaIRI} subject of the Entity. Identifies the
      * thing that is being represented as an Entity.
      * @return the {@link Entity} matching the subject.
      * @throws SmartUriException
      */
-    public Entity queryEntity(final RyaURI subject) throws SmartUriException;
+    public Entity queryEntity(final RyaIRI subject) throws SmartUriException;
 
     /**
      * Queries the datastore for the map.

@@ -28,7 +28,7 @@ import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -78,11 +78,11 @@ public class AccumuloStatementMetadataNodeTest {
     public void simpleQueryWithoutBindingSet()
             throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
         StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+        metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaType("Joe"));
+        metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-        RyaStatement statement = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
+        RyaStatement statement = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
         dao.add(statement);
 
         SPARQLParser parser = new SPARQLParser();
@@ -121,11 +121,11 @@ public class AccumuloStatementMetadataNodeTest {
     public void simpleQueryWithoutBindingSetInvalidProperty()
             throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
         StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Doug"));
-        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-15"));
+        metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaType("Doug"));
+        metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-15"));
 
-        RyaStatement statement = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
+        RyaStatement statement = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
         dao.add(statement);
 
         SPARQLParser parser = new SPARQLParser();
@@ -146,13 +146,13 @@ public class AccumuloStatementMetadataNodeTest {
     public void simpleQueryWithBindingSet() throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
 
         StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+        metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaType("Joe"));
+        metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
-        RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata);
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("HardwareStore"), new RyaIRI("http://context"), "", metadata);
         dao.add(statement1);
         dao.add(statement2);
 
@@ -202,13 +202,13 @@ public class AccumuloStatementMetadataNodeTest {
             throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
 
         StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaURI("http://Joe"));
-        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+        metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaIRI("http://Joe"));
+        metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
-        RyaStatement statement2 = new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://worksAt"),
-                new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata);
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("http://Bob"), new RyaIRI("http://worksAt"),
+                new RyaType("HardwareStore"), new RyaIRI("http://context"), "", metadata);
         dao.add(statement1);
         dao.add(statement2);
 
@@ -264,11 +264,11 @@ public class AccumuloStatementMetadataNodeTest {
             throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
 
         StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+        metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaType("Joe"));
+        metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
         dao.add(statement1);
 
         SPARQLParser parser = new SPARQLParser();
@@ -307,13 +307,13 @@ public class AccumuloStatementMetadataNodeTest {
             throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
 
         StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+        metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaType("Joe"));
+        metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
-        RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata);
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("HardwareStore"), new RyaIRI("http://context"), "", metadata);
         dao.add(statement1);
         dao.add(statement2);
 
@@ -385,13 +385,13 @@ public class AccumuloStatementMetadataNodeTest {
                 + "owl:annotatedProperty <http://worksAt>; owl:annotatedTarget ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }}";
 
         StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+        metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaType("Joe"));
+        metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context_1"), "", metadata);
-        RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("HardwareStore"), new RyaURI("http://context_2"), "", metadata);
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("CoffeeShop"), new RyaIRI("http://context_1"), "", metadata);
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("HardwareStore"), new RyaIRI("http://context_2"), "", metadata);
         dao.add(statement1);
         dao.add(statement2);
 
@@ -457,13 +457,13 @@ public class AccumuloStatementMetadataNodeTest {
                 + "owl:annotatedProperty <http://worksAt>; owl:annotatedTarget ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }}";
 
         StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+        metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaType("Joe"));
+        metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context_1"), "", metadata);
-        RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("HardwareStore"), new RyaURI("http://context_2"), "", metadata);
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("CoffeeShop"), new RyaIRI("http://context_1"), "", metadata);
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("HardwareStore"), new RyaIRI("http://context_2"), "", metadata);
         dao.add(statement1);
         dao.add(statement2);
 
@@ -538,13 +538,13 @@ public class AccumuloStatementMetadataNodeTest {
                 + "owl:annotatedProperty <http://worksAt>; owl:annotatedTarget ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }}";
 
         StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+        metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaType("Joe"));
+        metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context_1"), "", metadata);
-        RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("HardwareStore"), new RyaURI("http://context_2"), "", metadata);
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("CoffeeShop"), new RyaIRI("http://context_1"), "", metadata);
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("HardwareStore"), new RyaIRI("http://context_2"), "", metadata);
         dao.add(statement1);
         dao.add(statement2);
 
@@ -580,11 +580,11 @@ public class AccumuloStatementMetadataNodeTest {
         bsCollection.add(bsConstraint4);
         
 //        AccumuloRyaQueryEngine engine = dao.getQueryEngine();
-////        CloseableIteration<RyaStatement, RyaDAOException> iter = engine.query(new RyaStatement(new RyaURI("http://Joe"),
-////                new RyaURI("http://worksAt"), new RyaType("HardwareStore"), new RyaURI("http://context_2")), conf);
+////        CloseableIteration<RyaStatement, RyaDAOException> iter = engine.query(new RyaStatement(new RyaIRI("http://Joe"),
+////                new RyaIRI("http://worksAt"), new RyaType("HardwareStore"), new RyaIRI("http://context_2")), conf);
 //        CloseableIteration<? extends Map.Entry<RyaStatement,BindingSet>, RyaDAOException> iter = engine.queryWithBindingSet(Arrays.asList(new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(
-//                new RyaStatement(new RyaURI("http://Joe"),
-//                        new RyaURI("http://worksAt"), new RyaType("HardwareStore"), new RyaURI("http://context_2")), bsConstraint4)), conf);
+//                new RyaStatement(new RyaIRI("http://Joe"),
+//                        new RyaIRI("http://worksAt"), new RyaType("HardwareStore"), new RyaIRI("http://context_2")), bsConstraint4)), conf);
 //        while (iter.hasNext()) {
 //            System.out.println(iter.next());
 //        }

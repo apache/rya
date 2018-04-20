@@ -35,7 +35,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.StatementConstraints;
@@ -191,20 +191,20 @@ public class AccumuloFreeTextIndexerTest {
             f.init();
 
             // These should not be stored because they are not in the predicate list
-            f.storeStatement(new RyaStatement(new RyaURI("foo:subj1"), new RyaURI(RDFS.LABEL.toString()), new RyaType("invalid")));
-            f.storeStatement(new RyaStatement(new RyaURI("foo:subj2"), new RyaURI(RDFS.COMMENT.toString()), new RyaType("invalid")));
+            f.storeStatement(new RyaStatement(new RyaIRI("foo:subj1"), new RyaIRI(RDFS.LABEL.toString()), new RyaType("invalid")));
+            f.storeStatement(new RyaStatement(new RyaIRI("foo:subj2"), new RyaIRI(RDFS.COMMENT.toString()), new RyaType("invalid")));
 
-            RyaURI pred1 = new RyaURI("pred:1");
-            RyaURI pred2 = new RyaURI("pred:2");
+            RyaIRI pred1 = new RyaIRI("pred:1");
+            RyaIRI pred2 = new RyaIRI("pred:2");
 
             // These should be stored because they are in the predicate list
-            RyaStatement s3 = new RyaStatement(new RyaURI("foo:subj3"), pred1, new RyaType("valid"));
-            RyaStatement s4 = new RyaStatement(new RyaURI("foo:subj4"), pred2, new RyaType("valid"));
+            RyaStatement s3 = new RyaStatement(new RyaIRI("foo:subj3"), pred1, new RyaType("valid"));
+            RyaStatement s4 = new RyaStatement(new RyaIRI("foo:subj4"), pred2, new RyaType("valid"));
             f.storeStatement(s3);
             f.storeStatement(s4);
 
             // This should not be stored because the object is not a literal
-            f.storeStatement(new RyaStatement(new RyaURI("foo:subj5"), pred1, new RyaURI("in:valid")));
+            f.storeStatement(new RyaStatement(new RyaIRI("foo:subj5"), pred1, new RyaIRI("in:valid")));
 
             f.flush();
 

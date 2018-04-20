@@ -33,7 +33,7 @@ import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection.StoreTripleSource;
@@ -86,16 +86,16 @@ public class StatementPatternEvalTest {
         ParsedQuery pq = parser.parseQuery(query, null);
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
-        RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
-        RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
         dao.add(statement2);
         
-        RyaStatement statement3 = new RyaStatement(new RyaURI("uri:Eric"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context3"), "", new StatementMetadata());
+        RyaStatement statement3 = new RyaStatement(new RyaIRI("uri:Eric"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context3"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
@@ -137,16 +137,16 @@ public class StatementPatternEvalTest {
         ParsedQuery pq = parser.parseQuery(query, null);
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
-        RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
-        RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
         dao.add(statement2);
         
-        RyaStatement statement3 = new RyaStatement(new RyaURI("uri:Eric"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context3"), "", new StatementMetadata());
+        RyaStatement statement3 = new RyaStatement(new RyaIRI("uri:Eric"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context3"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
@@ -191,16 +191,16 @@ public class StatementPatternEvalTest {
         ParsedQuery pq = parser.parseQuery(query, null);
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
-        RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
-        RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
         dao.add(statement2);
         
-        RyaStatement statement3 = new RyaStatement(new RyaURI("uri:Eric"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context3"), "", new StatementMetadata());
+        RyaStatement statement3 = new RyaStatement(new RyaIRI("uri:Eric"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context3"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
@@ -237,16 +237,16 @@ public class StatementPatternEvalTest {
         ParsedQuery pq = parser.parseQuery(query, null);
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
-        RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
-        RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
         dao.add(statement2);
         
-        RyaStatement statement3 = new RyaStatement(new RyaURI("uri:Eric"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context3"), "", new StatementMetadata());
+        RyaStatement statement3 = new RyaStatement(new RyaIRI("uri:Eric"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context3"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
@@ -277,16 +277,16 @@ public class StatementPatternEvalTest {
         ParsedQuery pq = parser.parseQuery(query, null);
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
-        RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
-        RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement2);
         
-        RyaStatement statement3 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
+        RyaStatement statement3 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();

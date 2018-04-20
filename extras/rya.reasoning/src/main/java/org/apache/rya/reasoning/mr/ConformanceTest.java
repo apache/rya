@@ -87,7 +87,7 @@ public class ConformanceTest extends Configured implements Tool {
     static String TEST_RDFBASED = TEST + "RDF-BASED";
 
     private static class OwlTest extends AbstractRDFHandler {
-        Value uri;
+        Value iri;
         String name;
         String description;
         String premise;
@@ -211,7 +211,7 @@ public class ConformanceTest extends Configured implements Tool {
         // Run the conformance tests
         int result;
         for (final OwlTest test : conformanceTests) {
-            System.out.println(test.uri);
+            System.out.println(test.iri);
             result = runTest(conf, args, test);
             if (result != 0) {
                 return result;
@@ -386,7 +386,7 @@ public class ConformanceTest extends Configured implements Tool {
                 }
                 else {
                     test = new OwlTest();
-                    test.uri = iri;
+                    test.iri = iri;
                     test.name = bindings.getValue("name").stringValue();
                     test.description = bindings.getValue("description").stringValue();
                     test.premise = bindings.getValue("graph").stringValue();

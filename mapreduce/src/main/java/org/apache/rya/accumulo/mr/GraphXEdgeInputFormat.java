@@ -186,9 +186,9 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 	}
 
 	public static long getVertexId(final RyaType resource) throws IOException {
-		String uri = "";
+		String iri = "";
 		if (resource != null) {
-			uri = resource.getData().toString();
+			iri = resource.getData().toString();
 		}
 		try {
 			// SHA-256 the string value and then generate a hashcode from
@@ -197,7 +197,7 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 			// collision ratio
 			final MessageDigest messageDigest = MessageDigest
 					.getInstance("SHA-256");
-			messageDigest.update(uri.getBytes(StandardCharsets.UTF_8));
+			messageDigest.update(iri.getBytes(StandardCharsets.UTF_8));
 			final String encryptedString = new String(messageDigest.digest(), StandardCharsets.UTF_8);
 			return hash(encryptedString);
 		}

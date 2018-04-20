@@ -23,7 +23,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.TemporalInterval;
@@ -97,7 +97,7 @@ public class EventDocumentConverter implements DocumentConverter<Event>{
         final String subject = document.getString(SUBJECT);
 
         final Event.Builder builder = new Event.Builder()
-            .setSubject(new RyaURI(subject));
+            .setSubject(new RyaIRI(subject));
 
         if(document.containsKey(GEO_KEY)) {
             final Document geoObj = (Document) document.get(GEO_KEY);

@@ -123,10 +123,10 @@ public class BindingSetStringConverter implements BindingSetConverter<String> {
         final String typeString = valueAndType[1];
 
         // Convert the String Type into a IRI that describes the type.
-        final IRI typeURI = VF.createIRI(typeString);
+        final IRI typeIRI = VF.createIRI(typeString);
 
         // Convert the String Value into a Value.
-        final Value value = typeURI.equals(XMLSchema.ANYURI) ?
+        final Value value = typeIRI.equals(XMLSchema.ANYURI) ?
                 VF.createIRI(dataString) :
                 VF.createLiteral(dataString, VF.createIRI(typeString));
 

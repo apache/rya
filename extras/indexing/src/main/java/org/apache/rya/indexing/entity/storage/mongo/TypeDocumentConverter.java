@@ -23,7 +23,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Type;
 import org.bson.Document;
 
@@ -69,11 +69,11 @@ public class TypeDocumentConverter implements DocumentConverter<Type> {
                     "' because its '" + PROPERTY_NAMES + "' field is missing.");
         }
 
-        final RyaURI typeId = new RyaURI( document.getString(ID) );
+        final RyaIRI typeId = new RyaIRI( document.getString(ID) );
 
-        final ImmutableSet.Builder<RyaURI> propertyNames = ImmutableSet.builder();
+        final ImmutableSet.Builder<RyaIRI> propertyNames = ImmutableSet.builder();
         ((List<String>) document.get(PROPERTY_NAMES))
-            .forEach(propertyName -> propertyNames.add(new RyaURI(propertyName)));
+            .forEach(propertyName -> propertyNames.add(new RyaIRI(propertyName)));
 
         return new Type(typeId, propertyNames.build());
     }

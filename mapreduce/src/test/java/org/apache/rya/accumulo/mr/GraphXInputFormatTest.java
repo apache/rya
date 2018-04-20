@@ -25,7 +25,7 @@ import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.mr.GraphXInputFormat.RyaStatementRecordReader;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
@@ -78,9 +78,9 @@ public class GraphXInputFormatTest {
     @Test
     public void testInputFormat() throws Exception {
         RyaStatement input = RyaStatement.builder()
-            .setSubject(new RyaURI("http://www.google.com"))
-            .setPredicate(new RyaURI("http://some_other_uri"))
-            .setObject(new RyaURI("http://www.yahoo.com"))
+            .setSubject(new RyaIRI("http://www.google.com"))
+            .setPredicate(new RyaIRI("http://some_other_uri"))
+            .setObject(new RyaIRI("http://www.yahoo.com"))
             .setColumnVisibility(new byte[0])
             .setValue(new byte[0])
             .build();

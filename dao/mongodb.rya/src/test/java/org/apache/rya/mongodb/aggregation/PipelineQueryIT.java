@@ -85,7 +85,7 @@ public class PipelineQueryIT extends MongoITBase {
     private void insert(Resource subject, IRI predicate, Value object, int derivationLevel) throws RyaDAOException {
         final RyaStatementBuilder builder = new RyaStatementBuilder();
         builder.setSubject(RdfToRyaConversions.convertResource(subject));
-        builder.setPredicate(RdfToRyaConversions.convertURI(predicate));
+        builder.setPredicate(RdfToRyaConversions.convertIRI(predicate));
         builder.setObject(RdfToRyaConversions.convertValue(object));
         final RyaStatement rstmt = builder.build();
         if (derivationLevel > 0) {

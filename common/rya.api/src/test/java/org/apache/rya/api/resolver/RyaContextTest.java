@@ -24,7 +24,7 @@ import java.util.Map;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.query.strategy.wholerow.MockRdfConfiguration;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -42,11 +42,11 @@ public class RyaContextTest extends TestCase {
         byte[] serialize = instance.serialize(ryaType);
         assertEquals(ryaType, instance.deserialize(serialize));
 
-        //uri
-        RyaURI ryaURI = new RyaURI("urn:test#1234");
-        serialize = instance.serialize(ryaURI);
+        //iri
+        RyaIRI ryaIRI = new RyaIRI("urn:test#1234");
+        serialize = instance.serialize(ryaIRI);
         RyaType deserialize = instance.deserialize(serialize);
-        assertEquals(ryaURI, deserialize);
+        assertEquals(ryaIRI, deserialize);
 
         //custom type
         ryaType = new RyaType(SimpleValueFactory.getInstance().createIRI("urn:test#customDataType"), "mydata");
@@ -55,8 +55,8 @@ public class RyaContextTest extends TestCase {
     }
 
     public void testTripleRowSerialization() throws Exception {
-        RyaURI subj = new RyaURI("urn:test#subj");
-        RyaURI pred = new RyaURI("urn:test#pred");
+        RyaIRI subj = new RyaIRI("urn:test#subj");
+        RyaIRI pred = new RyaIRI("urn:test#pred");
         RyaType obj = new RyaType("mydata");
         RyaStatement statement = new RyaStatement(subj, pred, obj);
         RyaTripleContext instance = RyaTripleContext.getInstance(new MockRdfConfiguration());
@@ -67,8 +67,8 @@ public class RyaContextTest extends TestCase {
     }
     
     public void testHashedTripleRowSerialization() throws Exception {
-        RyaURI subj = new RyaURI("urn:test#subj");
-        RyaURI pred = new RyaURI("urn:test#pred");
+        RyaIRI subj = new RyaIRI("urn:test#subj");
+        RyaIRI pred = new RyaIRI("urn:test#pred");
         RyaType obj = new RyaType("mydata");
         RyaStatement statement = new RyaStatement(subj, pred, obj);
     	MockRdfConfiguration config = new MockRdfConfiguration();

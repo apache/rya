@@ -21,7 +21,7 @@ package org.apache.rya.indexing.geotemporal.storage;
 import java.util.Collection;
 import java.util.Optional;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.IndexingExpr;
 import org.apache.rya.indexing.geotemporal.GeoTemporalIndexer;
 import org.apache.rya.indexing.geotemporal.model.Event;
@@ -38,7 +38,7 @@ public interface EventStorage extends RyaObjectStorage<Event> {
      * @return The {@link Event}, if one exists for the subject.
      * @throws ObjectStorageException A problem occurred while fetching the Entity from the storage.
      */
-    public Collection<Event> search(final Optional<RyaURI> subject, Optional<Collection<IndexingExpr>> geoFilters, Optional<Collection<IndexingExpr>> temporalFilters) throws ObjectStorageException;
+    public Collection<Event> search(final Optional<RyaIRI> subject, Optional<Collection<IndexingExpr>> geoFilters, Optional<Collection<IndexingExpr>> temporalFilters) throws ObjectStorageException;
 
     /**
      * Indicates a problem while interacting with an {@link EventStorage}.

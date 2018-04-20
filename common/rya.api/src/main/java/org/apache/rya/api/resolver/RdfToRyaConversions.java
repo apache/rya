@@ -19,14 +19,14 @@ package org.apache.rya.api.resolver;
  * under the License.
  */
 
-import org.apache.rya.api.domain.RangeURI;
+import org.apache.rya.api.domain.RangeIRI;
 import org.apache.rya.api.domain.RangeValue;
 import org.apache.rya.api.domain.RyaSchema;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaTypeRange;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.domain.RyaURIRange;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaIRIRange;
 import org.eclipse.rdf4j.model.BNode;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -40,13 +40,13 @@ import org.eclipse.rdf4j.model.Value;
  */
 public class RdfToRyaConversions {
 
-    public static RyaURI convertURI(IRI iri) {
+    public static RyaIRI convertIRI(IRI iri) {
         if (iri == null) return null;
-        if (iri instanceof RangeURI) {
-            RangeURI riri = (RangeURI) iri;
-            return new RyaURIRange(convertURI(riri.getStart()), convertURI(riri.getEnd()));
+        if (iri instanceof RangeIRI) {
+            RangeIRI riri = (RangeIRI) iri;
+            return new RyaIRIRange(convertIRI(riri.getStart()), convertIRI(riri.getEnd()));
         }
-        return new RyaURI(iri.stringValue());
+        return new RyaIRI(iri.stringValue());
     }
 
     public static RyaType convertLiteral(Literal literal) {
@@ -70,7 +70,7 @@ public class RdfToRyaConversions {
         if (value instanceof RangeValue) {
             RangeValue<?> rv = (RangeValue<?>) value;
             if (rv.getStart() instanceof IRI) {
-                return new RyaURIRange(convertURI((IRI) rv.getStart()), convertURI((IRI) rv.getEnd()));
+                return new RyaIRIRange(convertIRI((IRI) rv.getStart()), convertIRI((IRI) rv.getEnd()));
             } else {
                 //literal
                 return new RyaTypeRange(convertLiteral((Literal) rv.getStart()), convertLiteral((Literal) rv.getEnd()));
@@ -79,12 +79,12 @@ public class RdfToRyaConversions {
         return null;
     }
 
-    public static RyaURI convertResource(Resource subject) {
+    public static RyaIRI convertResource(Resource subject) {
         if(subject == null) return null;
         if (subject instanceof BNode) {
-            return new RyaURI(RyaSchema.BNODE_NAMESPACE + ((BNode) subject).getID());
+            return new RyaIRI(RyaSchema.BNODE_NAMESPACE + ((BNode) subject).getID());
         }
-        return convertURI((IRI) subject);
+        return convertIRI((IRI) subject);
     }
 
     public static RyaStatement convertStatement(Statement statement) {
@@ -95,7 +95,7 @@ public class RdfToRyaConversions {
         Resource context = statement.getContext();
         return new RyaStatement(
                 convertResource(subject),
-                convertURI(predicate),
+                convertIRI(predicate),
                 convertValue(object),
                 convertResource(context));
     }

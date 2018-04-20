@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.api.domain.RyaSchema;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
@@ -141,9 +141,9 @@ public class RdfCloudTripleStoreConstants {
 
     //TODO: This should be in a version file somewhere
     public static IRI RTS_SUBJECT = VALUE_FACTORY.createIRI(NAMESPACE, "rts");
-    public static RyaURI RTS_SUBJECT_RYA = new RyaURI(RTS_SUBJECT.stringValue());
+    public static RyaIRI RTS_SUBJECT_RYA = new RyaIRI(RTS_SUBJECT.stringValue());
     public static IRI RTS_VERSION_PREDICATE = VALUE_FACTORY.createIRI(NAMESPACE, "version");
-    public static RyaURI RTS_VERSION_PREDICATE_RYA = new RyaURI(RTS_VERSION_PREDICATE.stringValue());
+    public static RyaIRI RTS_VERSION_PREDICATE_RYA = new RyaIRI(RTS_VERSION_PREDICATE.stringValue());
     public static final Value VERSION = VALUE_FACTORY.createLiteral("3.0.0");
     public static RyaType VERSION_RYA = new RyaType(VERSION.stringValue());
 

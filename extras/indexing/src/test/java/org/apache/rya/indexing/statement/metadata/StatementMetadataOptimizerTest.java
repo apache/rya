@@ -30,7 +30,7 @@ import java.util.Set;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.matching.JoinSegment;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataExternalSetProvider;
@@ -128,8 +128,8 @@ public class StatementMetadataOptimizerTest {
     private static RdfCloudTripleStoreConfiguration getConf(boolean useMongo) {
 
         RdfCloudTripleStoreConfiguration conf;
-        Set<RyaURI> propertySet = new HashSet<>(
-                Arrays.asList(new RyaURI("http://createdBy"), new RyaURI("http://createdOn")));
+        Set<RyaIRI> propertySet = new HashSet<>(
+                Arrays.asList(new RyaIRI("http://createdBy"), new RyaIRI("http://createdOn")));
         if (useMongo) {
             MongoDBRdfConfiguration mConf = new MongoDBRdfConfiguration();
             mConf.setBoolean("sc.useMongo", true);

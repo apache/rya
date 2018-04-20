@@ -37,8 +37,8 @@ import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 public class RyaToRdfConversions {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
-    public static IRI convertURI(RyaURI uri) {
-        return VF.createIRI(uri.getData());
+    public static IRI convertURI(RyaURI iri) {
+        return VF.createIRI(iri.getData());
     }
     
     private static IRI convertURI(RyaType value) {

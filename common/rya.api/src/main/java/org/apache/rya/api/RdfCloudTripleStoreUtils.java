@@ -86,8 +86,8 @@ public class RdfCloudTripleStoreUtils {
 ////
 ////        Value ret = null;
 ////        if (valueTypeMarker == RdfCloudTripleStoreConstants.URI_MARKER) {
-////            String uriString = readString(dataIn);
-////            ret = vf.createIRI(uriString);
+////            String iriString = readString(dataIn);
+////            ret = vf.createIRI(iriString);
 ////        } else if (valueTypeMarker == RdfCloudTripleStoreConstants.BNODE_MARKER) {
 ////            String bnodeID = readString(dataIn);
 ////            ret = vf.createBNode(bnodeID);
@@ -261,16 +261,16 @@ public class RdfCloudTripleStoreUtils {
     public static IRI convertToUri(String namespace, String value) {
         if (value == null)
             return null;
-        IRI subjUri;
+        IRI subjIri;
         try {
-            subjUri = VF.createIRI(value);
+            subjIri = VF.createIRI(value);
         } catch (Exception e) {
-            //not uri
+            //not iri
             if (namespace == null)
                 return null;
-            subjUri = VF.createIRI(namespace, value);
+            subjIri = VF.createIRI(namespace, value);
         }
-        return subjUri;
+        return subjIri;
     }
 
     public static Literal convertToDataTypeLiteral(String s) {
@@ -294,10 +294,10 @@ public class RdfCloudTripleStoreUtils {
         return lit != null && lit.indexOf("^^") != -1;
     }
 
-    public static boolean isUri(String uri) {
-        if (uri == null) return false;
+    public static boolean isUri(String iri) {
+        if (iri == null) return false;
         try {
-            VF.createIRI(uri);
+            VF.createIRI(iri);
         } catch (Exception e) {
             return false;
         }
@@ -315,16 +315,16 @@ public class RdfCloudTripleStoreUtils {
 //    }
 
 
-//    public static void addTimeIndexUri(Configuration conf, IRI timeUri, Class<? extends TtlValueConverter> ttlValueConvClass) {
-//        String[] timeIndexUris = conf.getStrings(RdfCloudTripleStoreConfiguration.CONF_TIMEINDEXURIS);
-//        if (timeIndexUris == null)
-//            timeIndexUris = new String[0];
-//        List<String> stringList = new ArrayList<String>(Arrays.asList(timeIndexUris));
-//        String timeUri_s = timeUri.stringValue();
-//        if (!stringList.contains(timeUri_s))
-//            stringList.add(timeUri_s);
+//    public static void addTimeIndexUri(Configuration conf, IRI timeIri, Class<? extends TtlValueConverter> ttlValueConvClass) {
+//        String[] timeIndexIris = conf.getStrings(RdfCloudTripleStoreConfiguration.CONF_TIMEINDEXURIS);
+//        if (timeIndexIris == null)
+//            timeIndexIris = new String[0];
+//        List<String> stringList = new ArrayList<String>(Arrays.asList(timeIndexIris));
+//        String timeIri_s = timeIri.stringValue();
+//        if (!stringList.contains(timeIri_s))
+//            stringList.add(timeIri_s);
 //        conf.setStrings(RdfCloudTripleStoreConfiguration.CONF_TIMEINDEXURIS, stringList.toArray(new String[stringList.size()]));
-//        conf.set(timeUri_s, ttlValueConvClass.getName());
+//        conf.set(timeIri_s, ttlValueConvClass.getName());
 //    }
 
 //    public static Class<? extends TtlValueConverter> getTtlValueConverter(Configuration conf, IRI predicate) throws ClassNotFoundException {
@@ -380,7 +380,7 @@ public class RdfCloudTripleStoreUtils {
         if (resource.contains(":") || resource.contains("/") || resource.contains("#")) {
             return VF.createIRI(resource);
         } else {
-            throw new RuntimeException((new StringBuilder()).append(resource).append(" is not a valid URI, blank node, or literal value").toString());
+            throw new RuntimeException((new StringBuilder()).append(resource).append(" is not a valid IRI, blank node, or literal value").toString());
         }
     }
 

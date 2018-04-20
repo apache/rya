@@ -63,7 +63,7 @@ public class AccumuloDocIndexerTest {
     private MockInstance mockInstance;
     private Connector accCon;
     AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     
     private String tableName;
     
@@ -316,11 +316,11 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
 //                QueryBindingSet b1 = (new QueryBindingSet());
-//                b1.addBinding("X", vf.createIRI("uri:5"));
+//                b1.addBinding("X", VF.createIRI("uri:5"));
 //                QueryBindingSet b2 = (new QueryBindingSet());
-//                b2.addBinding("X", vf.createIRI("uri:15"));
+//                b2.addBinding("X", VF.createIRI("uri:15"));
 //                QueryBindingSet b3 = (new QueryBindingSet());
-//                b3.addBinding("X", vf.createIRI("uri:25"));
+//                b3.addBinding("X", VF.createIRI("uri:25"));
 //                bsList.add(b1);
 //                bsList.add(b2);
 //                bsList.add(b3);
@@ -440,11 +440,11 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
                 QueryBindingSet b1 = (new QueryBindingSet());
-                b1.addBinding("X", vf.createIRI("uri:5"));
+                b1.addBinding("X", VF.createIRI("uri:5"));
                 QueryBindingSet b2 = (new QueryBindingSet());
-                b2.addBinding("X", vf.createIRI("uri:15"));
+                b2.addBinding("X", VF.createIRI("uri:15"));
                 QueryBindingSet b3 = (new QueryBindingSet());
-                b3.addBinding("X", vf.createIRI("uri:25"));
+                b3.addBinding("X", VF.createIRI("uri:25"));
                 bsList.add(b1);
                 bsList.add(b2);
                 bsList.add(b3);
@@ -666,11 +666,11 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
                 QueryBindingSet b1 = (new QueryBindingSet());
-                b1.addBinding("X", vf.createIRI("uri:5"));
+                b1.addBinding("X", VF.createIRI("uri:5"));
                 QueryBindingSet b2 = (new QueryBindingSet());
-                b2.addBinding("X", vf.createIRI("uri:15"));
+                b2.addBinding("X", VF.createIRI("uri:15"));
                 QueryBindingSet b3 = (new QueryBindingSet());
-                b3.addBinding("X", vf.createIRI("uri:25"));
+                b3.addBinding("X", VF.createIRI("uri:25"));
                 bsList.add(b1);
                 bsList.add(b2);
                 bsList.add(b3);
@@ -779,11 +779,11 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
                 QueryBindingSet b1 = (new QueryBindingSet());
-                b1.addBinding("X", vf.createIRI("uri:5"));
+                b1.addBinding("X", VF.createIRI("uri:5"));
                 QueryBindingSet b2 = (new QueryBindingSet());
-                b2.addBinding("X", vf.createIRI("uri:15"));
+                b2.addBinding("X", VF.createIRI("uri:15"));
                 QueryBindingSet b3 = (new QueryBindingSet());
-                b3.addBinding("X", vf.createIRI("uri:25"));
+                b3.addBinding("X", VF.createIRI("uri:25"));
                 bsList.add(b1);
                 bsList.add(b2);
                 bsList.add(b3);
@@ -934,11 +934,11 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
 //                QueryBindingSet b1 = (new QueryBindingSet());
-//                b1.addBinding("X", vf.createIRI("uri:5"));
+//                b1.addBinding("X", VF.createIRI("uri:5"));
 //                QueryBindingSet b2 = (new QueryBindingSet());
-//                b2.addBinding("X", vf.createIRI("uri:15"));
+//                b2.addBinding("X", VF.createIRI("uri:15"));
 //                QueryBindingSet b3 = (new QueryBindingSet());
-//                b3.addBinding("X", vf.createIRI("uri:25"));
+//                b3.addBinding("X", VF.createIRI("uri:25"));
 //                bsList.add(b1);
 //                bsList.add(b2);
 //                bsList.add(b3);
@@ -1111,11 +1111,11 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
                 QueryBindingSet b1 = (new QueryBindingSet());
-                b1.addBinding("X", vf.createIRI("uri:5"));
+                b1.addBinding("X", VF.createIRI("uri:5"));
                 QueryBindingSet b2 = (new QueryBindingSet());
-                b2.addBinding("X", vf.createIRI("uri:15"));
+                b2.addBinding("X", VF.createIRI("uri:15"));
                 QueryBindingSet b3 = (new QueryBindingSet());
-                b3.addBinding("X", vf.createIRI("uri:25"));
+                b3.addBinding("X", VF.createIRI("uri:25"));
                 bsList.add(b1);
                 bsList.add(b2);
                 bsList.add(b3);
@@ -1648,11 +1648,11 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
                 QueryBindingSet b1 = (new QueryBindingSet());
-                b1.addBinding("X", vf.createIRI("uri:5"));
+                b1.addBinding("X", VF.createIRI("uri:5"));
                 QueryBindingSet b2 = (new QueryBindingSet());
-                b2.addBinding("X", vf.createIRI("uri:15"));
+                b2.addBinding("X", VF.createIRI("uri:15"));
                 QueryBindingSet b3 = (new QueryBindingSet());
-                b3.addBinding("X", vf.createIRI("uri:25"));
+                b3.addBinding("X", VF.createIRI("uri:25"));
                 bsList.add(b1);
                 bsList.add(b2);
                 bsList.add(b3);
@@ -1850,10 +1850,10 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
                 QueryBindingSet b1 = new QueryBindingSet();
-                b1.addBinding("X", vf.createIRI("uri:5"));
+                b1.addBinding("X", VF.createIRI("uri:5"));
                 b1.addBinding("Y3", v1);
                 QueryBindingSet b2 = new QueryBindingSet();
-                b2.addBinding("X", vf.createIRI("uri:25"));
+                b2.addBinding("X", VF.createIRI("uri:25"));
                 b2.addBinding("Y3", v2);
                 bsList.add(b1);
                 bsList.add(b2);
@@ -2035,11 +2035,11 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
 //                QueryBindingSet b1 = (new QueryBindingSet());
-//                b1.addBinding("X", vf.createIRI("uri:5"));
+//                b1.addBinding("X", VF.createIRI("uri:5"));
 //                QueryBindingSet b2 = (new QueryBindingSet());
-//                b2.addBinding("X", vf.createIRI("uri:15"));
+//                b2.addBinding("X", VF.createIRI("uri:15"));
 //                QueryBindingSet b3 = (new QueryBindingSet());
-//                b3.addBinding("X", vf.createIRI("uri:25"));
+//                b3.addBinding("X", VF.createIRI("uri:25"));
 //                bsList.add(b1);
 //                bsList.add(b2);
 //                bsList.add(b3);

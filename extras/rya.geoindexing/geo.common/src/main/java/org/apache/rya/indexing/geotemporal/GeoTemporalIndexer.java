@@ -29,9 +29,9 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
  * A repository to store, index, and retrieve {@link Statement}s based on geotemporal features.
  */
 public interface GeoTemporalIndexer extends RyaSecondaryIndexer {
-	/**
-	 * initialize after setting configuration.
-	 */
+    /**
+     * Initialize after setting configuration.
+     */
     @Override
     public void init();
 
@@ -88,19 +88,19 @@ public interface GeoTemporalIndexer extends RyaSecondaryIndexer {
          */
         OVERLAPS(GeoConstants.GEO_SF_OVERLAPS);
 
-        private final IRI uri;
+        private final IRI iri;
 
-        private GeoPolicy(final IRI uri) {
-            this.uri = uri;
+        private GeoPolicy(final IRI iri) {
+            this.iri = iri;
         }
 
         public IRI getURI() {
-            return uri;
+            return iri;
         }
 
-        public static GeoPolicy fromURI(final IRI uri) {
+        public static GeoPolicy fromURI(final IRI iri) {
             for(final GeoPolicy policy : GeoPolicy.values()) {
-                if(policy.getURI().equals(uri)) {
+                if(policy.getURI().equals(iri)) {
                     return policy;
                 }
             }
@@ -170,11 +170,11 @@ public interface GeoTemporalIndexer extends RyaSecondaryIndexer {
         INTERVAL_AFTER(false, SimpleValueFactory.getInstance().createIRI(TEMPORAL_NS+"intervalAfter"));
 
         private final boolean isInstant;
-        private final IRI uri;
+        private final IRI iri;
 
-        TemporalPolicy(final boolean isInstant, final IRI uri) {
+        TemporalPolicy(final boolean isInstant, final IRI iri) {
             this.isInstant = isInstant;
-            this.uri = uri;
+            this.iri = iri;
         }
 
         public boolean isInstant(){
@@ -182,12 +182,12 @@ public interface GeoTemporalIndexer extends RyaSecondaryIndexer {
         }
 
         public IRI getURI() {
-            return uri;
+            return iri;
         }
 
-        public static TemporalPolicy fromURI(final IRI uri) {
+        public static TemporalPolicy fromURI(final IRI iri) {
             for(final TemporalPolicy policy : TemporalPolicy.values()) {
-                if(policy.getURI().equals(uri)) {
+                if(policy.getURI().equals(iri)) {
                     return policy;
                 }
             }

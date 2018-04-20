@@ -18,15 +18,14 @@
  */
 package org.apache.rya.api.function.join;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 
 import org.apache.rya.api.model.VisibilityBindingSet;
-import org.apache.rya.api.function.join.IterativeJoin;
-import org.apache.rya.api.function.join.LeftOuterJoin;
-import org.apache.rya.api.function.join.NaturalJoin;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
@@ -35,8 +34,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests the methods of {@link IterativeJoin}.

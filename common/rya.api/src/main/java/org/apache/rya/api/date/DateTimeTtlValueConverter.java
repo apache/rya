@@ -49,10 +49,10 @@ public class DateTimeTtlValueConverter implements TtlValueConverter {
             cal.setTimeZone(getTimeZone());
             cal.setTimeInMillis(start_l);
             DatatypeFactory factory = DatatypeFactory.newInstance();
-            start = vf.createLiteral(factory.newXMLGregorianCalendar(cal));
+            start = VF.createLiteral(factory.newXMLGregorianCalendar(cal));
 
             cal.setTimeInMillis(stop_l);
-            stop = vf.createLiteral(factory.newXMLGregorianCalendar(cal));
+            stop = VF.createLiteral(factory.newXMLGregorianCalendar(cal));
         } catch (DatatypeConfigurationException e) {
             throw new RuntimeException("Exception occurred creating DataTypeFactory", e);
         }

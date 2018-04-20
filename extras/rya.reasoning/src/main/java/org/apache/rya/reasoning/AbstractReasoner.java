@@ -159,6 +159,9 @@ public abstract class AbstractReasoner {
 
     /**
      * Create a Fact representing a triple inferred by this reasoner.
+     * @param   s       The subject {@link Resource}.
+     * @param   p       The predicate {@link IRI}.
+     * @param   o       The object {@link Value}.
      * @param   rule    The specific rule rule that yielded the inference
      * @param   source  One (might be the only) fact used in the derivation
      */

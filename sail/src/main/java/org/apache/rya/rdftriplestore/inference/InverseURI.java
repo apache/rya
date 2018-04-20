@@ -25,8 +25,8 @@ public class InverseURI implements IRI {
 
     private final IRI impl;
 
-    public InverseURI(final IRI uri) {
-        this.impl = uri;
+    public InverseURI(final IRI iri) {
+        this.impl = iri;
     }
 
     @Override

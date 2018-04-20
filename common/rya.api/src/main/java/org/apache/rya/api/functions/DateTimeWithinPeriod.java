@@ -17,6 +17,9 @@
  * under the License.
  */package org.apache.rya.api.functions;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.time.Duration;
 import java.time.Instant;
 
@@ -30,15 +33,12 @@ import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
 import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * This {@link Function} determines whether two {@link XMLSchema#DATETIME}s occur within a specified period of time of
  * one another. The method {@link Function#evaluate(ValueFactory, Value...)} expects four values, where the first two
- * values are the datetimes, the third value is an integer indicating the period, and the fourth value is a URI
+ * values are the datetimes, the third value is an integer indicating the period, and the fourth value is an IRI
  * indicating the time unit of the period. The IRI must be of Type DurationDescription in the OWL-Time ontology (see
- * <a href ="https://www.w3.org/TR/owl-time/">https://www.w3.org/TR/owl-time/</a>). Examples of valid time unit URIs can
+ * <a href ="https://www.w3.org/TR/owl-time/">https://www.w3.org/TR/owl-time/</a>). Examples of valid time unit IRIs can
  * be found in the class {@link OWLTime} and below
  * <ul>
  * <li>http://www.w3.org/2006/time#days</li>
@@ -50,11 +50,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class DateTimeWithinPeriod implements Function {
 
-    private static final String FUNCTION_URI = FN.NAMESPACE + "dateTimeWithin";
+    private static final String FUNCTION_IRI = FN.NAMESPACE + "dateTimeWithin";
 
     @Override
     public String getURI() {
-        return FUNCTION_URI;
+        return FUNCTION_IRI;
     }
 
     /**
@@ -62,7 +62,7 @@ public class DateTimeWithinPeriod implements Function {
      * values, where the first two values are the datetimes, the third value is an integer indicating the period, and
      * the fourth value is an IRI indicating the time unit of the period. The IRI must be of Type DurationDescription in
      * the OWL-Time ontology (see <a href ="https://www.w3.org/TR/owl-time/">https://www.w3.org/TR/owl-time/</a>).
-     * Examples of valid time unit URIs can be found in the class {@link OWLTime} and below
+     * Examples of valid time unit IRIs can be found in the class {@link OWLTime} and below
      * <ul>
      * <li>http://www.w3.org/2006/time#days</li>
      * <li>http://www.w3.org/2006/time#hours</li>
@@ -118,7 +118,7 @@ public class DateTimeWithinPeriod implements Function {
      * Converts the period duration to milliseconds.
      *
      * @param duration - duration of temporal period
-     * @param unit - IRI indicating the time unit (URI must be of type DurationDescription in the OWL-Time ontology
+     * @param unit - IRI indicating the time unit (IRI must be of type DurationDescription in the OWL-Time ontology
      *            indicated by the namespace <http://www.w3.org/2006/time#>)
      * @return - duration in milliseconds
      */

@@ -305,8 +305,8 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         }
         if (contraints.hasPredicates()) {
             final List<String> predicates = new ArrayList<String>();
-            for (final IRI u : contraints.getPredicates()) {
-                predicates.add("( " + PREDICATE_ATTRIBUTE + "= '" + u.stringValue() + "') ");
+            for (final IRI iri : contraints.getPredicates()) {
+                predicates.add("( " + PREDICATE_ATTRIBUTE + "= '" + iri.stringValue() + "') ");
             }
             filterParms.add("(" + StringUtils.join(predicates, " OR ") + ")");
         }

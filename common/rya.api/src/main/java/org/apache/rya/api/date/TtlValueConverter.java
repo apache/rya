@@ -29,7 +29,7 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
  */
 public interface TtlValueConverter {
 
-    ValueFactory vf = SimpleValueFactory.getInstance();
+    public static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     public void convert(String ttl, String startTime);
 

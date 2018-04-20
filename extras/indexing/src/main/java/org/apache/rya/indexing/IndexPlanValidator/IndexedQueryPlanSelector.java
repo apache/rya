@@ -24,8 +24,6 @@ import java.util.Iterator;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
 public interface IndexedQueryPlanSelector {
-    
-    TupleExpr getThreshholdQueryPlan(Iterator<TupleExpr> tupleList, double threshhold,
+    public TupleExpr getThreshholdQueryPlan(Iterator<TupleExpr> tupleList, double threshhold,
             double indexWeight, double commonVarWeight, double dirProdWeight);
-
 }

@@ -30,15 +30,15 @@ import org.eclipse.rdf4j.query.QueryEvaluationException;
  */
 public interface FreeTextIndexer extends RyaSecondaryIndexer {
 
-	/**
-	 * Query the Free Text Index with specific constraints. A <code>null</code> or empty parameters imply no constraint.
-	 *
-	 * @param query
-	 *            the query to perform
-	 * @param contraints
-	 *            the constraints on the statements returned
-	 * @return the set of statements that meet the query and other constraints.
-	 * @throws IOException
-	 */
+    /**
+     * Query the Free Text Index with specific constraints. A <code>null</code> or empty parameters imply no constraint.
+     *
+     * @param query
+     *            the query to perform
+     * @param contraints
+     *            the constraints on the statements returned
+     * @return the set of statements that meet the query and other constraints.
+     * @throws IOException
+     */
     public CloseableIteration<Statement, QueryEvaluationException> queryText(String query, StatementConstraints contraints) throws IOException;
 }

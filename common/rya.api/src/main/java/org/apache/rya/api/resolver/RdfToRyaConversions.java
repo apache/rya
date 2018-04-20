@@ -40,13 +40,13 @@ import org.eclipse.rdf4j.model.Value;
  */
 public class RdfToRyaConversions {
 
-    public static RyaURI convertURI(IRI uri) {
-        if (uri == null) return null;
-        if (uri instanceof RangeURI) {
-            RangeURI ruri = (RangeURI) uri;
-            return new RyaURIRange(convertURI(ruri.getStart()), convertURI(ruri.getEnd()));
+    public static RyaURI convertURI(IRI iri) {
+        if (iri == null) return null;
+        if (iri instanceof RangeURI) {
+            RangeURI riri = (RangeURI) iri;
+            return new RyaURIRange(convertURI(riri.getStart()), convertURI(riri.getEnd()));
         }
-        return new RyaURI(uri.stringValue());
+        return new RyaURI(iri.stringValue());
     }
 
     public static RyaType convertLiteral(Literal literal) {
@@ -68,7 +68,7 @@ public class RdfToRyaConversions {
             return convertLiteral((Literal) value);
         }
         if (value instanceof RangeValue) {
-            RangeValue rv = (RangeValue) value;
+            RangeValue<?> rv = (RangeValue<?>) value;
             if (rv.getStart() instanceof IRI) {
                 return new RyaURIRange(convertURI((IRI) rv.getStart()), convertURI((IRI) rv.getEnd()));
             } else {

@@ -33,7 +33,7 @@ public class WithinTemporalFunctionsTest {
     private static final ZonedDateTime TIME_10 = ZonedDateTime.parse("2015-12-30T12:00:10Z");
     private static final ZonedDateTime TIME_20 = ZonedDateTime.parse("2015-12-30T12:00:20Z");
 
-    final ValueFactory VF = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test(expected = ValueExprEvaluationException.class)
     public void within_NotInterval() throws Exception {

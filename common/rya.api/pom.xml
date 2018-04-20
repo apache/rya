@@ -68,6 +68,10 @@ under the License.
             <groupId>org.eclipse.rdf4j</groupId>
             <artifactId>rdf4j-rio-turtle</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-sail-base</artifactId>
+        </dependency>
         
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -107,10 +111,6 @@ under the License.
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.rdf4j</groupId>
-            <artifactId>rdf4j-sail-base</artifactId>
         </dependency>
     </dependencies>
 

@@ -47,7 +47,7 @@ import com.google.common.primitives.Bytes;
 
 public class StarQueryTest {
 
-    ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     
     
     @Test
@@ -115,8 +115,8 @@ public class StarQueryTest {
         QueryBindingSet bs1 = new QueryBindingSet();
         QueryBindingSet bs2 = new QueryBindingSet();
         
-        Value v1 = vf.createIRI("uri:hank");
-        Value v2 = vf.createIRI("uri:bob");
+        Value v1 = VF.createIRI("uri:hank");
+        Value v2 = VF.createIRI("uri:bob");
         
         bs1.addBinding("X",v1);
         bs2.addBinding("X", v1);
@@ -176,8 +176,8 @@ public class StarQueryTest {
         QueryBindingSet bs1 = new QueryBindingSet();
         QueryBindingSet bs2 = new QueryBindingSet();
         
-        Value v1 = vf.createIRI("uri:hank");
-        Value v2 = vf.createIRI("uri:bob");
+        Value v1 = VF.createIRI("uri:hank");
+        Value v2 = VF.createIRI("uri:bob");
         
         bs1.addBinding("X",v1);
         bs2.addBinding("X", v1);

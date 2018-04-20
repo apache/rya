@@ -315,7 +315,7 @@ EOF
 	if [[ ! -s ${ryaIndexing}.zip ]] ; then
 		# Eventually it'll be on maven...
 		echo "Downloading ${ryaIndexing}.zip quietly, this will take some minutes with no output..."
-		download --output ${ryaIndexing}.zip ${mavenRepoUrl}org/apache/rya/rya.indexing.example/${RYA_EXAMPLE_VERSION}/${ryaIndexing}.zip?raw=1  || exit 112
+		download --output ${ryaIndexing}.zip ${mavenRepoUrl}org/apache/rya/rya.indexing.example/${RYA_EXAMPLE_VERSION}/${ryaIndexing}.zip || exit 112
 	fi
 	sudo mkdir --parents ${ryaIndexing}
 	sudo unzip -q -o ${ryaIndexing}.zip -d ${ryaIndexing}
@@ -341,7 +341,7 @@ EOF
 	ryaVagrant=rya.vagrant.example-${RYA_EXAMPLE_VERSION}
 	if [[ ! -s ${ryaVagrant}.jar ]] ; then
 		echo "Downloading ${ryaVagrant}.jar"
-		download --output ${ryaVagrant}.jar ${mavenRepoUrl}org/apache/rya/rya.vagrant.example/${RYA_EXAMPLE_VERSION}/${ryaVagrant}.jar?raw=1 || exit 120
+		download --output ${ryaVagrant}.jar ${mavenRepoUrl}org/apache/rya/rya.vagrant.example/${RYA_EXAMPLE_VERSION}/${ryaVagrant}.jar || exit 120
 	fi
 	sudo mkdir --parents ${ryaVagrant}
 	sudo unzip -q -o ${ryaVagrant}.jar -d ${ryaVagrant}
@@ -352,7 +352,7 @@ EOF
 	ryaWar=web.rya-${RYA_EXAMPLE_VERSION}.war
 	if [[ ! -s ${ryaWar} ]] ; then
 		echo "Downloading ${ryaWar}"
-		download ${mavenRepoUrl}org/apache/rya/web.rya/${RYA_EXAMPLE_VERSION}/${ryaWar}?raw=1 --output ${ryaWar} || exit 121
+		download ${mavenRepoUrl}org/apache/rya/web.rya/${RYA_EXAMPLE_VERSION}/${ryaWar} --output ${ryaWar} || exit 121
 	fi
 	sudo cp ${ryaWar} /var/lib/tomcat7/webapps/web.rya.war
 	# Wait for the war to deploy

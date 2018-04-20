@@ -38,8 +38,8 @@ public class TimestampTtlValueConverter implements TtlValueConverter {
             stop_l = Long.parseLong(startTime);
         start_l = stop_l - ttl_l;
 
-        start = vf.createLiteral(start_l);
-        stop = vf.createLiteral(stop_l);
+        start = VF.createLiteral(start_l);
+        stop = VF.createLiteral(stop_l);
     }
 
     @Override

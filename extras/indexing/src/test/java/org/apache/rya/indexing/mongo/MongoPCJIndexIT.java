@@ -201,8 +201,8 @@ public class MongoPCJIndexIT extends MongoITBase {
     }
 
     private Set<Statement> getStatements() throws Exception {
-    	final Set<Statement> statements = new HashSet<>();
-    	statements.add(VF.createStatement(VF.createIRI("urn:Alice"), VF.createIRI("urn:likes"), VF.createIRI("urn:icecream")));
+        final Set<Statement> statements = new HashSet<>();
+        statements.add(VF.createStatement(VF.createIRI("urn:Alice"), VF.createIRI("urn:likes"), VF.createIRI("urn:icecream")));
         statements.add(VF.createStatement(VF.createIRI("urn:Bob"), VF.createIRI("urn:likes"), VF.createIRI("urn:icecream")));
         statements.add(VF.createStatement(VF.createIRI("urn:Charlie"), VF.createIRI("urn:likes"), VF.createIRI("urn:icecream")));
         statements.add(VF.createStatement(VF.createIRI("urn:David"), VF.createIRI("urn:likes"), VF.createIRI("urn:icecream")));

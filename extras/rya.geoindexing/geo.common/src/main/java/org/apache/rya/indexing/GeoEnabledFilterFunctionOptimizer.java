@@ -234,8 +234,8 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
             this.matchVar = matchVar;
         }
 
-        protected void addFilter(final IRI uri, final Object[] values) {
-            func.add(uri);
+        protected void addFilter(final IRI iri, final Object[] values) {
+            func.add(iri);
             args.add(values);
         }
     }
@@ -249,8 +249,8 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
 
         @Override
         public void meet(final FunctionCall call) {
-            final IRI fnUri = VF.createIRI(call.getURI());
-            final Var resultVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(fnUri, call.getArgs());
+            final IRI fnIri = VF.createIRI(call.getURI());
+            final Var resultVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(fnIri, call.getArgs());
             if (resultVar != null && resultVar.getName().equals(matchVar)) {
                 addFilter(VF.createIRI(call.getURI()), GeoParseUtils.extractArguments(matchVar, call));
                 if (call.getParentNode() instanceof Filter || call.getParentNode() instanceof And || call.getParentNode() instanceof LeftJoin) {

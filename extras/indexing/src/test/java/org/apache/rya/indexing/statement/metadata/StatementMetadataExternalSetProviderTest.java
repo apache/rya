@@ -17,6 +17,7 @@ package org.apache.rya.indexing.statement.metadata;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,22 +28,23 @@ import java.util.Set;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.matching.JoinSegment;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataExternalSetProvider;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataNode;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 public class StatementMetadataExternalSetProviderTest {
 
@@ -59,8 +61,8 @@ public class StatementMetadataExternalSetProviderTest {
     public void createSingleAccumuloMetadataNode() throws MalformedQueryException {
 
         AccumuloRdfConfiguration conf = (AccumuloRdfConfiguration) getConf(false);
-        Set<RyaURI> propertySet = new HashSet<>();
-        propertySet.add(new RyaURI("http://createdBy"));
+        Set<RyaIRI> propertySet = new HashSet<>();
+        propertySet.add(new RyaIRI("http://createdBy"));
         conf.setStatementMetadataProperties(propertySet);
         StatementMetadataExternalSetProvider metaProvider = new StatementMetadataExternalSetProvider(
                 conf);
@@ -86,8 +88,8 @@ public class StatementMetadataExternalSetProviderTest {
     public void createSingleMongoMetadataNode() throws MalformedQueryException {
 
         MongoDBRdfConfiguration conf = (MongoDBRdfConfiguration) getConf(true);
-        Set<RyaURI> propertySet = new HashSet<>();
-        propertySet.add(new RyaURI("http://createdBy"));
+        Set<RyaIRI> propertySet = new HashSet<>();
+        propertySet.add(new RyaIRI("http://createdBy"));
         conf.setStatementMetadataProperties(propertySet);
         StatementMetadataExternalSetProvider metaProvider = new StatementMetadataExternalSetProvider(conf);
         SPARQLParser parser = new SPARQLParser();
@@ -113,9 +115,9 @@ public class StatementMetadataExternalSetProviderTest {
     public void createMultipleMetadataNode() throws MalformedQueryException {
 
         MongoDBRdfConfiguration conf = (MongoDBRdfConfiguration) getConf(true);
-        Set<RyaURI> propertySet = new HashSet<>();
-        propertySet.add(new RyaURI("http://createdBy"));
-        propertySet.add(new RyaURI("http://createdOn"));
+        Set<RyaIRI> propertySet = new HashSet<>();
+        propertySet.add(new RyaIRI("http://createdBy"));
+        propertySet.add(new RyaIRI("http://createdOn"));
         conf.setStatementMetadataProperties(propertySet);
         StatementMetadataExternalSetProvider metaProvider = new StatementMetadataExternalSetProvider(conf);
         SPARQLParser parser = new SPARQLParser();
@@ -129,7 +131,7 @@ public class StatementMetadataExternalSetProviderTest {
         Set<StatementPattern> sp3 = StatementMetadataTestUtils.getMetadataStatementPatterns(pq3.getTupleExpr(), propertySet);
         //added extra blankNode into query3 to make blankNode names line up with query2.  Need to remove it now so that
         //StatementMetadataNode doesn't blow up because all subjects aren't the same.
-        removePatternWithGivenSubject("-anon-1", sp3);
+        removePatternWithGivenSubject(VarNameUtils.prependAnonymous("1"), sp3);
 
         patterns.addAll(StatementPatternCollector.process(pq2.getTupleExpr()));
         JoinSegment<StatementMetadataNode<?>> segment = new JoinSegment<>(

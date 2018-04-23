@@ -25,34 +25,34 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.Extension;
+import org.eclipse.rdf4j.query.algebra.ExtensionElem;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.ProjectionElem;
+import org.eclipse.rdf4j.query.algebra.ProjectionElemList;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Union;
+import org.eclipse.rdf4j.query.algebra.Var;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.Extension;
-import org.openrdf.query.algebra.ExtensionElem;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Union;
-import org.openrdf.query.algebra.Var;
 
 public class HasSelfVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory VF = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
-    private static final URI narcissist = VF.createURI("urn:Narcissist");
-    private static final URI love = VF.createURI("urn:love");
-    private static final URI self = VF.createURI("urn:self");
+    private static final IRI narcissist = VF.createIRI("urn:Narcissist");
+    private static final IRI love = VF.createIRI("urn:love");
+    private static final IRI self = VF.createIRI("urn:self");
 
     @Test
     public void testTypePattern() throws Exception {
         final InferenceEngine inferenceEngine = mock(InferenceEngine.class);
-        final Set<URI> narcissistProps = new HashSet<>();
+        final Set<IRI> narcissistProps = new HashSet<>();
         narcissistProps.add(love);
         when(inferenceEngine.getHasSelfImplyingType(narcissist)).thenReturn(narcissistProps);
         final Var subj = new Var("s");

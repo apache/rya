@@ -19,23 +19,18 @@ package org.apache.rya.accumulo.query;
  * under the License.
  */
 
-
-
-import info.aduna.iteration.CloseableIteration;
-
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Value;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
-
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Value;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * Date: 7/17/12

@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 import org.apache.rya.streams.api.entity.StreamsQuery;
 import org.apache.rya.streams.api.queries.QueryChangeLog.QueryChangeLogException;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,6 @@ import com.google.common.util.concurrent.AbstractScheduledService;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * An in memory implementation of {@link QueryRepository}. It is lazily
@@ -262,7 +262,7 @@ public class InMemoryQueryRepository extends AbstractScheduledService implements
                 listeners.forEach(listener -> listener.notify(entry, newQueryState));
 
                 cachePosition = Optional.of( entry.getPosition() );
-                log.debug("New chache position: " + cachePosition);
+                log.debug("New cache position: " + cachePosition);
             }
 
         } catch (final QueryChangeLogException e) {

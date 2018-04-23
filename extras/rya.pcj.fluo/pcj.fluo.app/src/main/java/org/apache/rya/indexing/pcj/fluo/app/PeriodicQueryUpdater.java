@@ -29,11 +29,11 @@ import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.PeriodicQueryMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 
 /**
  * This class adds the appropriate BinId Binding to each BindingSet that it processes.  The BinIds
@@ -44,7 +44,7 @@ import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 public class PeriodicQueryUpdater extends AbstractNodeUpdater {
 
     private static final Logger log = Logger.getLogger(PeriodicQueryUpdater.class);
-    private static final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
 
     /**
@@ -61,7 +61,7 @@ public class PeriodicQueryUpdater extends AbstractNodeUpdater {
         for(Long id: binIds) {
             //create binding set value bytes
             QueryBindingSet binnedBs = new QueryBindingSet(bs);
-            binnedBs.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(id));
+            binnedBs.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, VF.createLiteral(id));
             VisibilityBindingSet visibilityBindingSet = new VisibilityBindingSet(binnedBs, bs.getVisibility());
             Bytes periodicBsBytes = BS_SERDE.serialize(visibilityBindingSet);
 

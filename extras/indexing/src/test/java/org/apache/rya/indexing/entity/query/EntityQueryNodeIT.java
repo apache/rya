@@ -22,10 +22,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
@@ -33,21 +35,20 @@ import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.mongo.MongoEntityStorage;
 import org.apache.rya.mongodb.MongoITBase;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.collect.ImmutableSet;
-
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * Integration tests the methods of {@link EntityQueryNode}.
@@ -55,18 +56,18 @@ import info.aduna.iteration.CloseableIteration;
 public class EntityQueryNodeIT extends MongoITBase {
 
     private static final Type PERSON_TYPE =
-            new Type(new RyaURI("urn:person"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:name"))
-                    .add(new RyaURI("urn:age"))
-                    .add(new RyaURI("urn:eye"))
+            new Type(new RyaIRI("urn:person"),
+                ImmutableSet.<RyaIRI>builder()
+                    .add(new RyaIRI("urn:name"))
+                    .add(new RyaIRI("urn:age"))
+                    .add(new RyaIRI("urn:eye"))
                     .build());
 
     private static final Type EMPLOYEE_TYPE =
-            new Type(new RyaURI("urn:employee"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:name"))
-                    .add(new RyaURI("urn:hoursPerWeek"))
+            new Type(new RyaIRI("urn:employee"),
+                ImmutableSet.<RyaIRI>builder()
+                    .add(new RyaIRI("urn:name"))
+                    .add(new RyaIRI("urn:hoursPerWeek"))
                     .build());
 
     @Test(expected = IllegalStateException.class)
@@ -152,14 +153,14 @@ public class EntityQueryNodeIT extends MongoITBase {
     @Test
     public void evaluate_constantSubject() throws Exception {
         final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), "testDB");
-        final ValueFactory vf = ValueFactoryImpl.getInstance();
-        final RyaURI subject = new RyaURI("urn:SSN:111-11-1111");
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final RyaIRI subject = new RyaIRI("urn:SSN:111-11-1111");
         final Entity entity = Entity.builder()
             .setSubject(subject)
             .setExplicitType(PERSON_TYPE.getId())
-            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(20))))
-            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
-            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(BigInteger.valueOf(20)))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
             .build();
 
         storage.create(entity);
@@ -187,23 +188,23 @@ public class EntityQueryNodeIT extends MongoITBase {
     @Test
     public void evaluate_variableSubject() throws Exception {
         final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), "testDB");
-        final ValueFactory vf = ValueFactoryImpl.getInstance();
-        RyaURI subject = new RyaURI("urn:SSN:111-11-1111");
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        RyaIRI subject = new RyaIRI("urn:SSN:111-11-1111");
         final Entity bob = Entity.builder()
                 .setSubject(subject)
                 .setExplicitType(PERSON_TYPE.getId())
-                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(20))))
-                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
-                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(BigInteger.valueOf(20)))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
                 .build();
 
-        subject = new RyaURI("urn:SSN:222-22-2222");
+        subject = new RyaIRI("urn:SSN:222-22-2222");
         final Entity fred = Entity.builder()
                 .setSubject(subject)
                 .setExplicitType(PERSON_TYPE.getId())
-                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(25))))
-                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("brown"))))
-                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Fred"))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(BigInteger.valueOf(25)))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("brown"))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Fred"))))
                 .build();
 
         storage.create(bob);
@@ -240,18 +241,18 @@ public class EntityQueryNodeIT extends MongoITBase {
     @Test
     public void evaluate_constantObject() throws Exception {
         final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), "testDB");
-        final ValueFactory vf = ValueFactoryImpl.getInstance();
-        final RyaURI subject = new RyaURI("urn:SSN:111-11-1111");
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final RyaIRI subject = new RyaIRI("urn:SSN:111-11-1111");
         final Entity entity = Entity.builder()
             .setSubject(subject)
             .setExplicitType(PERSON_TYPE.getId())
-            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(20))))
-            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
-            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(BigInteger.valueOf(20)))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaIRI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
             .build();
 
         storage.create(entity);
-        // A set of patterns that match a sepecific Entity subject.
+        // A set of patterns that match a specific Entity subject.
         final List<StatementPattern> patterns = getSPs(
                 "SELECT * WHERE { " +
                     "<urn:SSN:111-11-1111> <" + RDF.TYPE + "> <urn:person> ."+
@@ -264,7 +265,7 @@ public class EntityQueryNodeIT extends MongoITBase {
         final CloseableIteration<BindingSet, QueryEvaluationException> rez = node.evaluate(new MapBindingSet());
         final MapBindingSet expected = new MapBindingSet();
         expected.addBinding("age", vf.createLiteral("20"));
-        expected.addBinding("-const-blue", vf.createLiteral("blue"));
+        expected.addBinding(VarNameUtils.createUniqueConstVarNameLiteral("blue"), vf.createLiteral("blue"));
         expected.addBinding("name", vf.createLiteral("Bob"));
         while(rez.hasNext()) {
             assertEquals(expected, rez.next());

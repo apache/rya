@@ -48,7 +48,7 @@ import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaRange;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.layout.TableLayoutStrategy;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.BatchRyaQuery;
@@ -63,14 +63,13 @@ import org.apache.rya.api.utils.CloseableIterableIteration;
 import org.calrissian.mango.collect.CloseableIterable;
 import org.calrissian.mango.collect.CloseableIterables;
 import org.calrissian.mango.collect.FluentCloseableIterable;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterators;
-
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * Date: 7/17/12 Time: 9:28 AM
@@ -130,9 +129,9 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
             Collection<Range> ranges = new HashSet<Range>();
             RangeBindingSetEntries rangeMap = new RangeBindingSetEntries();
             TABLE_LAYOUT layout = null;
-            RyaURI context = null;
+            RyaIRI context = null;
             TriplePatternStrategy strategy = null;
-            RyaURI columnFamily = null;
+            RyaIRI columnFamily = null;
             boolean columnFamilySet = false;
             for (Map.Entry<RyaStatement, BindingSet> stmtbs : stmts) {
                 RyaStatement stmt = stmtbs.getKey();
@@ -270,10 +269,10 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
             TriplePatternStrategy strategy = ryaContext.retrieveStrategy(stmt);
             TABLE_LAYOUT layout;
             Range range;
-            RyaURI subject = stmt.getSubject();
-            RyaURI predicate = stmt.getPredicate();
+            RyaIRI subject = stmt.getSubject();
+            RyaIRI predicate = stmt.getPredicate();
             RyaType object = stmt.getObject();
-            RyaURI context = stmt.getContext();
+            RyaIRI context = stmt.getContext();
             String qualifier = stmt.getQualifer();
             TripleRowRegex tripleRowRegex = null;
             if (strategy != null) {
@@ -348,7 +347,7 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
         try {
             Collection<Range> ranges = new HashSet<Range>();
             TABLE_LAYOUT layout = null;
-            RyaURI context = null;
+            RyaIRI context = null;
             TriplePatternStrategy strategy = null;
             for (RyaStatement stmt : stmts) {
                 context = stmt.getContext(); // TODO: This will be overwritten
@@ -383,7 +382,7 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 results = FluentCloseableIterable.from(new ScannerBaseCloseableIterable(scanner))
                         .transform(keyValueToRyaStatementFunctionMap.get(layout));
             } else {
-                final RyaURI fcontext = context;
+                final RyaIRI fcontext = context;
                 final RdfCloudTripleStoreConfiguration fconf = ryaQuery.getConf();
                 FluentIterable<RyaStatement> fluent = FluentIterable.from(ranges)
                         .transformAndConcat(new Function<Range, Iterable<Map.Entry<Key, Value>>>() {
@@ -411,7 +410,7 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
         }
     }
 
-    protected void fillScanner(ScannerBase scanner, RyaURI context, String qualifier, Long ttl, Long currentTime,
+    protected void fillScanner(ScannerBase scanner, RyaIRI context, String qualifier, Long ttl, Long currentTime,
             TripleRowRegex tripleRowRegex, RdfCloudTripleStoreConfiguration conf) throws IOException {
         if (context != null && qualifier != null) {
             scanner.fetchColumn(new Text(context.getData()), new Text(qualifier));

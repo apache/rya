@@ -32,8 +32,8 @@ import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryStorageException;
 import org.apache.rya.periodic.notification.api.PeriodicNotificationClient;
 import org.apache.rya.periodic.notification.notification.PeriodicNotification;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.evaluation.function.Function;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
 
 import com.google.common.collect.Sets;
 
@@ -43,7 +43,7 @@ import com.google.common.collect.Sets;
  * requesting periodic updates about events that occurred within a given
  * window of time of this instant. This is also known as a rolling window
  * query.  Period Queries can be expressed using SPARQL by including the
- * {@link Function} indicated by the URI {@link PeriodicQueryUtil#PeriodicQueryURI}
+ * {@link Function} indicated by the IRI {@link PeriodicQueryUtil#PeriodicQueryURI}
  * in the query.  The user must provide this Function with the following arguments:
  * the temporal variable in the query that will be filtered on, the window of time
  * that events must occur within, the period at which the user wants to receive updates,

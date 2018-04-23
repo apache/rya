@@ -23,14 +23,14 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.model.vocabulary.SESAME;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.SESAME;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * All predicates are changed
@@ -51,7 +51,7 @@ public class PropertyChainVisitor extends AbstractInferVisitor {
         final StatementPattern sp = node.clone();
         final Var predVar = sp.getPredicateVar();
 
-        final URI pred = (URI) predVar.getValue();
+        final IRI pred = (IRI) predVar.getValue();
         final String predNamespace = pred.getNamespace();
 
         final Var objVar = sp.getObjectVar();
@@ -62,8 +62,8 @@ public class PropertyChainVisitor extends AbstractInferVisitor {
                 !RDFS.NAMESPACE.equals(predNamespace)
                 && !EXPANDED.equals(cntxtVar)) {
 
-            final URI chainPropURI = (URI) predVar.getValue();
-            final List<URI> chain = inferenceEngine.getPropertyChain(chainPropURI);
+            final IRI chainPropIRI = (IRI) predVar.getValue();
+            final List<IRI> chain = inferenceEngine.getPropertyChain(chainPropIRI);
             final List<StatementPattern> expandedPatterns = new ArrayList<StatementPattern>();
             if (chain.size() > 0) {
                 final Var originalSubj = sp.getSubjectVar();
@@ -71,11 +71,11 @@ public class PropertyChainVisitor extends AbstractInferVisitor {
 
                 Var nextSubj = originalSubj;
                 StatementPattern lastStatementPatternAdded = null;
-                for (final URI chainElement : chain ){
+                for (final IRI chainElement : chain ){
                     final String s = UUID.randomUUID().toString();
                     final Var currentObj = new Var("c-" + s);
                     StatementPattern statementPattern = new StatementPattern(nextSubj, new Var(chainElement.stringValue()), currentObj, sp.getContextVar());
-                    if (chainElement instanceof InverseURI){
+                    if (chainElement instanceof InverseIRI){
                         statementPattern = new StatementPattern(currentObj, new Var(chainElement.stringValue()), nextSubj, sp.getContextVar());
                     }
                     expandedPatterns.add(statementPattern);

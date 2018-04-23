@@ -27,8 +27,9 @@
 //import org.apache.rya.api.resolver.triple.TripleRow;
 //import org.apache.accumulo.core.data.Key;
 //import org.apache.accumulo.core.data.Range;
+//import org.eclipse.rdf4j.model.ValueFactory;
+//import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 //import org.apache.hadoop.io.Text;
-//import org.openrdf.model.impl.URIImpl;
 //
 //import java.util.Map;
 //
@@ -37,14 +38,16 @@
 // * Time: 11:46 AM
 // */
 //public class OspWholeRowTriplePatternStrategyTest extends TestCase {
-//    RyaURI uri = new RyaURI("urn:test#1234");
-//    RyaURI uri2 = new RyaURI("urn:test#1235");
-//    RyaURIRange rangeURI = new RyaURIRange(uri, uri2);
-//    RyaURIRange rangeURI2 = new RyaURIRange(new RyaURI("urn:test#1235"), new RyaURI("urn:test#1236"));
+//    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 //
-//    RyaType customType1 = new RyaType(new URIImpl("urn:custom#type"), "1234");
-//    RyaType customType2 = new RyaType(new URIImpl("urn:custom#type"), "1235");
-//    RyaType customType3 = new RyaType(new URIImpl("urn:custom#type"), "1236");
+//    RyaIRI uri = new RyaIRI("urn:test#1234");
+//    RyaIRI uri2 = new RyaIRI("urn:test#1235");
+//    RyaIRIRange rangeIRI = new RyaIRIRange(uri, uri2);
+//    RyaIRIRange rangeIRI2 = new RyaIRIRange(new RyaIRI("urn:test#1235"), new RyaIRI("urn:test#1236"));
+//
+//    RyaType customType1 = new RyaType(VF.createIRI("urn:custom#type"), "1234");
+//    RyaType customType2 = new RyaType(VF.createIRI("urn:custom#type"), "1235");
+//    RyaType customType3 = new RyaType(VF.createIRI("urn:custom#type"), "1236");
 //    RyaTypeRange customTypeRange1 = new RyaTypeRange(customType1, customType2);
 //    RyaTypeRange customTypeRange2 = new RyaTypeRange(customType2, customType3);
 //
@@ -69,10 +72,10 @@
 //        TripleRow tripleRow = serialize.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.OSP);
 //        Key key = new Key(new Text(tripleRow.getRow()));
 //
-//        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Range> entry = strategy.defineRange(null, null, rangeURI, null, null);
+//        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Range> entry = strategy.defineRange(null, null, rangeIRI, null, null);
 //        assertTrue(entry.getValue().contains(key));
 //
-//        entry = strategy.defineRange(null, null, rangeURI2, null, null);
+//        entry = strategy.defineRange(null, null, rangeIRI2, null, null);
 //        assertFalse(entry.getValue().contains(key));
 //    }
 //
@@ -95,10 +98,10 @@
 //        TripleRow tripleRow = serialize.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.OSP);
 //        Key key = new Key(new Text(tripleRow.getRow()));
 //
-//        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Range> entry = strategy.defineRange(rangeURI, null, uri, null, null);
+//        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Range> entry = strategy.defineRange(rangeIRI, null, uri, null, null);
 //        assertTrue(entry.getValue().contains(key));
 //
-//        entry = strategy.defineRange(rangeURI2, null, uri, null, null);
+//        entry = strategy.defineRange(rangeIRI2, null, uri, null, null);
 //        assertFalse(entry.getValue().contains(key));
 //    }
 //
@@ -108,10 +111,10 @@
 //        TripleRow tripleRow = serialize.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.OSP);
 //        Key key = new Key(new Text(tripleRow.getRow()));
 //
-//        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Range> entry = strategy.defineRange(rangeURI, null, customType1, null, null);
+//        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Range> entry = strategy.defineRange(rangeIRI, null, customType1, null, null);
 //        assertTrue(entry.getValue().contains(key));
 //
-//        entry = strategy.defineRange(rangeURI2, null, customType2, null, null);
+//        entry = strategy.defineRange(rangeIRI2, null, customType2, null, null);
 //        assertFalse(entry.getValue().contains(key));
 //    }
 //
@@ -120,16 +123,16 @@
 //        assertTrue(strategy.handles(uri, null, uri, null));
 //        assertTrue(strategy.handles(uri, null, uri, uri));
 //        //o_r(s)(ng)
-//        assertTrue(strategy.handles(rangeURI, null, uri, null));
-//        assertTrue(strategy.handles(rangeURI, null, uri, uri));
+//        assertTrue(strategy.handles(rangeIRI, null, uri, null));
+//        assertTrue(strategy.handles(rangeIRI, null, uri, uri));
 //        //o(ng)
 //        assertTrue(strategy.handles(null, null, uri, null));
 //        assertTrue(strategy.handles(null, null, uri, uri));
 //        //r(o)
-//        assertTrue(strategy.handles(null, null, rangeURI, null));
-//        assertTrue(strategy.handles(null, null, rangeURI, uri));
+//        assertTrue(strategy.handles(null, null, rangeIRI, null));
+//        assertTrue(strategy.handles(null, null, rangeIRI, uri));
 //
 //        //false
-//        assertFalse(strategy.handles(uri, null, rangeURI, null));
+//        assertFalse(strategy.handles(uri, null, rangeIRI, null));
 //    }
 //}

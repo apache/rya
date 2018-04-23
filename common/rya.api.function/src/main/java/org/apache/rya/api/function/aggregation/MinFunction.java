@@ -22,9 +22,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
 import org.apache.rya.api.model.VisibilityBindingSet;
-import org.openrdf.model.Value;
-import org.openrdf.query.algebra.evaluation.util.ValueComparator;
-import org.openrdf.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.algebra.evaluation.util.ValueComparator;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;

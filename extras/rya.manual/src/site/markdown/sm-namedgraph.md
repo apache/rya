@@ -21,7 +21,7 @@
 -->
 # Named Graphs
 
-Named graphs are supported simply in the Rdf Store in a few ways. OpenRdf supports sending `contexts` as each triple is saved.
+Named graphs are supported simply in the Rdf Store in a few ways. RDF4J supports sending `contexts` as each triple is saved.
 
 ## Simple Named Graph Load and Query
 
@@ -116,19 +116,19 @@ QueryRoot
          Join
             StatementPattern FROM NAMED CONTEXT
                Var (name=m)
-               Var (name=-const-2, value=http://www.example.org/vocabulary#name, anonymous)
+               Var (name=_const_2, value=http://www.example.org/vocabulary#name, anonymous)
                Var (name=name)
-               Var (name=-const-1, value=http://www.example.org/exampleDocument#G1, anonymous)
+               Var (name=_const_1, value=http://www.example.org/exampleDocument#G1, anonymous)
             StatementPattern FROM NAMED CONTEXT
                Var (name=m)
-               Var (name=-const-3, value=http://www.example.org/vocabulary#homepage, anonymous)
+               Var (name=_const_3, value=http://www.example.org/vocabulary#homepage, anonymous)
                Var (name=hp)
-               Var (name=-const-1, value=http://www.example.org/exampleDocument#G1, anonymous)
+               Var (name=_const_1, value=http://www.example.org/exampleDocument#G1, anonymous)
          StatementPattern FROM NAMED CONTEXT
             Var (name=m)
-            Var (name=-const-5, value=http://www.example.org/vocabulary#hasSkill, anonymous)
+            Var (name=_const_5, value=http://www.example.org/vocabulary#hasSkill, anonymous)
             Var (name=skill)
-            Var (name=-const-4, value=http://www.example.org/exampleDocument#G2, anonymous)
+            Var (name=_const_4, value=http://www.example.org/exampleDocument#G2, anonymous)
 ```
 
 ## Inserting named graph data through Sparql

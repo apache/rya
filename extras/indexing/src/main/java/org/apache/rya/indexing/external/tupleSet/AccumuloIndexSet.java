@@ -44,6 +44,7 @@ import org.apache.rya.accumulo.pcj.iterators.IteratorCombiner;
 import org.apache.rya.accumulo.pcj.iterators.PCJKeyToCrossProductBindingSetIterator;
 import org.apache.rya.accumulo.pcj.iterators.PCJKeyToJoinBindingSetIterator;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.utils.IteratorWrapper;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizerUtilities;
@@ -55,18 +56,19 @@ import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingS
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
-import org.openrdf.model.Value;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.impl.BindingImpl;
-import org.openrdf.query.parser.ParsedTupleQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.sail.SailException;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.impl.SimpleBinding;
+import org.eclipse.rdf4j.query.parser.ParsedTupleQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.sail.SailException;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -76,8 +78,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * During query planning, this node is inserted into the parsed query to
@@ -290,7 +290,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 		}
 
 		final List<BindingSet> crossProductBs = new ArrayList<>();
-		final Map<String, org.openrdf.model.Value> constantConstraints = new HashMap<>();
+		final Map<String, Value> constantConstraints = new HashMap<>();
 		final Set<Range> hashJoinRanges = new HashSet<>();
 		final Range EMPTY_RANGE = new Range("", true, "~", false);
 		Range crossProductRange = EMPTY_RANGE;
@@ -546,8 +546,8 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 
 		final QueryBindingSet constants = new QueryBindingSet();
 		for (final String s : keys) {
-			if (s.startsWith("-const-")) {
-				constants.addBinding(new BindingImpl(s, getConstantValueMap()
+			if (VarNameUtils.isConstant(s)) {
+				constants.addBinding(new SimpleBinding(s, getConstantValueMap()
 						.get(s)));
 			}
 		}

@@ -19,13 +19,11 @@ package org.apache.rya.api.persist;
  * under the License.
  */
 
-
-
 import java.util.List;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Value;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
 
 /**
  * Class RdfEvalStatsDAO
@@ -45,7 +43,7 @@ public interface RdfEvalStatsDAO<C extends RdfCloudTripleStoreConfiguration> {
 
     // XXX returns -1 if no cardinality could be found.
     public double getCardinality(C conf, CARDINALITY_OF card, List<Value> val) throws RdfDAOException;
-	public double getCardinality(C conf, CARDINALITY_OF card, List<Value> val, Resource context) throws RdfDAOException;
+    public double getCardinality(C conf, CARDINALITY_OF card, List<Value> val, Resource context) throws RdfDAOException;
 
     public void setConf(C conf);
 

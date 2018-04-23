@@ -1,7 +1,3 @@
-package org.apache.rya.accumulo.mr.examples;
-
-import java.io.BufferedReader;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,7 +16,9 @@ import java.io.BufferedReader;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.accumulo.mr.examples;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
@@ -48,14 +46,14 @@ import org.apache.rya.accumulo.mr.AbstractAccumuloMRTool;
 import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.accumulo.mr.RyaStatementWritable;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
-import org.openrdf.model.Statement;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.RDFWriter;
-import org.openrdf.rio.Rio;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.RDFWriter;
+import org.eclipse.rdf4j.rio.Rio;
 
 /**
  * Example of using a MapReduce tool to get triples from a Rya instance and serialize them to a text file as RDF.
@@ -87,12 +85,12 @@ public class TextOutputExample extends AbstractAccumuloMRTool {
         dao.setConf(conf);
         dao.init();
         String ns = "http://example.com/";
-        dao.add(new RyaStatement(new RyaURI(ns+"s1"), new RyaURI(ns+"p1"), new RyaURI(ns+"o1")));
-        dao.add(new RyaStatement(new RyaURI(ns+"s1"), new RyaURI(ns+"p2"), new RyaURI(ns+"o2")));
-        dao.add(new RyaStatement(new RyaURI(ns+"s2"), new RyaURI(ns+"p1"), new RyaURI(ns+"o3"),
-                new RyaURI(ns+"g1")));
-        dao.add(new RyaStatement(new RyaURI(ns+"s3"), new RyaURI(ns+"p3"), new RyaURI(ns+"o3"),
-                new RyaURI(ns+"g2")));
+        dao.add(new RyaStatement(new RyaIRI(ns+"s1"), new RyaIRI(ns+"p1"), new RyaIRI(ns+"o1")));
+        dao.add(new RyaStatement(new RyaIRI(ns+"s1"), new RyaIRI(ns+"p2"), new RyaIRI(ns+"o2")));
+        dao.add(new RyaStatement(new RyaIRI(ns+"s2"), new RyaIRI(ns+"p1"), new RyaIRI(ns+"o3"),
+                new RyaIRI(ns+"g1")));
+        dao.add(new RyaStatement(new RyaIRI(ns+"s3"), new RyaIRI(ns+"p3"), new RyaIRI(ns+"o3"),
+                new RyaIRI(ns+"g2")));
         dao.destroy();
     }
 

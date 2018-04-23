@@ -18,7 +18,7 @@
  */
 package org.apache.rya.mongodb.dao;
 
-import static org.openrdf.model.vocabulary.XMLSchema.ANYURI;
+import static org.eclipse.rdf4j.model.vocabulary.XMLSchema.ANYURI;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -30,14 +30,14 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.query.RyaQuery;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibility;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibilityAdapter;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibilityAdapter.MalformedDocumentVisibilityException;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
@@ -65,14 +65,14 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
 
     /**
      * Generate the hash that will be used to index and retrieve a given value.
-     * @param value  A value to be stored or accessed (e.g. a URI or literal).
+     * @param value  A value to be stored or accessed (e.g. a IRI or literal).
      * @return the hash associated with that value in MongoDB.
      */
     public static String hash(String value) {
         return DigestUtils.sha256Hex(value);
     }
 
-    protected ValueFactoryImpl factory = new ValueFactoryImpl();
+    protected SimpleValueFactory factory = SimpleValueFactory.getInstance();
 
     @Override
     public void createIndices(final DBCollection coll){
@@ -94,10 +94,10 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
 
     @Override
     public DBObject getQuery(final RyaStatement stmt) {
-        final RyaURI subject = stmt.getSubject();
-        final RyaURI predicate = stmt.getPredicate();
+        final RyaIRI subject = stmt.getSubject();
+        final RyaIRI predicate = stmt.getPredicate();
         final RyaType object = stmt.getObject();
-        final RyaURI context = stmt.getContext();
+        final RyaIRI context = stmt.getContext();
         final BasicDBObject query = new BasicDBObject();
         if (subject != null){
             query.append(SUBJECT_HASH, hash(subject.getData()));
@@ -133,18 +133,18 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         final String statementMetadata = (String) result.get(STATEMENT_METADATA);
         RyaType objectRya = null;
         if (objectType.equalsIgnoreCase(ANYURI.stringValue())){
-            objectRya = new RyaURI(object);
+            objectRya = new RyaIRI(object);
         }
         else {
-            objectRya = new RyaType(factory.createURI(objectType), object);
+            objectRya = new RyaType(factory.createIRI(objectType), object);
         }
 
         final RyaStatement statement;
         if (!context.isEmpty()){
-            statement = new RyaStatement(new RyaURI(subject), new RyaURI(predicate), objectRya,
-                    new RyaURI(context));
+            statement = new RyaStatement(new RyaIRI(subject), new RyaIRI(predicate), objectRya,
+                    new RyaIRI(context));
         } else {
-            statement = new RyaStatement(new RyaURI(subject), new RyaURI(predicate), objectRya);
+            statement = new RyaStatement(new RyaIRI(subject), new RyaIRI(predicate), objectRya);
         }
 
         statement.setColumnVisibility(documentVisibility.flatten());

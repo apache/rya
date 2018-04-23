@@ -27,17 +27,17 @@ import java.time.format.DateTimeFormatter;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
 import org.junit.Test;
-import org.openrdf.model.Literal;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
 
 public class DateTimeWithinPeriodTest {
 
-    private static final ValueFactory vf = new ValueFactoryImpl();
-    private static final Literal TRUE = vf.createLiteral(true);
-    private static final Literal FALSE = vf.createLiteral(false);
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+    private static final Literal TRUE = VF.createLiteral(true);
+    private static final Literal FALSE = VF.createLiteral(false);
     private static final ZonedDateTime testThisTimeDate = ZonedDateTime.parse("2018-02-03T14:15:16+07:00");
 
     @Test
@@ -50,14 +50,14 @@ public class DateTimeWithinPeriodTest {
         ZonedDateTime zTime1 = zTime.minusSeconds(1);
         String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
 
-        Literal now = vf.createLiteral(dtf.newXMLGregorianCalendar(time));
-        Literal nowMinusOne = vf.createLiteral(dtf.newXMLGregorianCalendar(time1));
+        Literal now = VF.createLiteral(dtf.newXMLGregorianCalendar(time));
+        Literal nowMinusOne = VF.createLiteral(dtf.newXMLGregorianCalendar(time1));
 
         DateTimeWithinPeriod func = new DateTimeWithinPeriod();
 
-        assertEquals(TRUE, func.evaluate(vf, now, now, vf.createLiteral(1), OWLTime.SECONDS_URI));
-        assertEquals(FALSE, func.evaluate(vf, now, nowMinusOne,vf.createLiteral(1), OWLTime.SECONDS_URI));
-        assertEquals(TRUE, func.evaluate(vf, now, nowMinusOne,vf.createLiteral(2), OWLTime.SECONDS_URI));
+        assertEquals(TRUE, func.evaluate(VF, now, now, VF.createLiteral(1), OWLTime.SECONDS_URI));
+        assertEquals(FALSE, func.evaluate(VF, now, nowMinusOne,VF.createLiteral(1), OWLTime.SECONDS_URI));
+        assertEquals(TRUE, func.evaluate(VF, now, nowMinusOne,VF.createLiteral(2), OWLTime.SECONDS_URI));
     }
 
     @Test
@@ -71,14 +71,14 @@ public class DateTimeWithinPeriodTest {
         ZonedDateTime zTime1 = zTime.minusMinutes(1);
         String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
 
-        Literal now = vf.createLiteral(dtf.newXMLGregorianCalendar(time));
-        Literal nowMinusOne = vf.createLiteral(dtf.newXMLGregorianCalendar(time1));
+        Literal now = VF.createLiteral(dtf.newXMLGregorianCalendar(time));
+        Literal nowMinusOne = VF.createLiteral(dtf.newXMLGregorianCalendar(time1));
 
         DateTimeWithinPeriod func = new DateTimeWithinPeriod();
 
-        assertEquals(TRUE, func.evaluate(vf, now, now,vf.createLiteral(1),OWLTime.MINUTES_URI));
-        assertEquals(FALSE, func.evaluate(vf, now, nowMinusOne,vf.createLiteral(1),OWLTime.MINUTES_URI));
-        assertEquals(TRUE, func.evaluate(vf, now, nowMinusOne,vf.createLiteral(2),OWLTime.MINUTES_URI));
+        assertEquals(TRUE, func.evaluate(VF, now, now,VF.createLiteral(1),OWLTime.MINUTES_URI));
+        assertEquals(FALSE, func.evaluate(VF, now, nowMinusOne,VF.createLiteral(1),OWLTime.MINUTES_URI));
+        assertEquals(TRUE, func.evaluate(VF, now, nowMinusOne,VF.createLiteral(2),OWLTime.MINUTES_URI));
     }
 
 
@@ -92,14 +92,14 @@ public class DateTimeWithinPeriodTest {
         ZonedDateTime zTime1 = zTime.minusHours(1);
         String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
 
-        Literal now = vf.createLiteral(dtf.newXMLGregorianCalendar(time));
-        Literal nowMinusOne = vf.createLiteral(dtf.newXMLGregorianCalendar(time1));
+        Literal now = VF.createLiteral(dtf.newXMLGregorianCalendar(time));
+        Literal nowMinusOne = VF.createLiteral(dtf.newXMLGregorianCalendar(time1));
 
         DateTimeWithinPeriod func = new DateTimeWithinPeriod();
 
-        assertEquals(TRUE, func.evaluate(vf, now, now,vf.createLiteral(1),OWLTime.HOURS_URI));
-        assertEquals(FALSE, func.evaluate(vf, now, nowMinusOne,vf.createLiteral(1),OWLTime.HOURS_URI));
-        assertEquals(TRUE, func.evaluate(vf, now, nowMinusOne,vf.createLiteral(2),OWLTime.HOURS_URI));
+        assertEquals(TRUE, func.evaluate(VF, now, now,VF.createLiteral(1),OWLTime.HOURS_URI));
+        assertEquals(FALSE, func.evaluate(VF, now, nowMinusOne,VF.createLiteral(1),OWLTime.HOURS_URI));
+        assertEquals(TRUE, func.evaluate(VF, now, nowMinusOne,VF.createLiteral(2),OWLTime.HOURS_URI));
     }
 
 
@@ -113,14 +113,14 @@ public class DateTimeWithinPeriodTest {
         ZonedDateTime zTime1 = zTime.minusDays(1);
         String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
 
-        Literal now = vf.createLiteral(dtf.newXMLGregorianCalendar(time));
-        Literal nowMinusOne = vf.createLiteral(dtf.newXMLGregorianCalendar(time1));
+        Literal now = VF.createLiteral(dtf.newXMLGregorianCalendar(time));
+        Literal nowMinusOne = VF.createLiteral(dtf.newXMLGregorianCalendar(time1));
 
         DateTimeWithinPeriod func = new DateTimeWithinPeriod();
 
-        assertEquals(TRUE, func.evaluate(vf, now, now, vf.createLiteral(1), OWLTime.DAYS_URI));
-        assertEquals(FALSE, func.evaluate(vf, now, nowMinusOne, vf.createLiteral(1), OWLTime.DAYS_URI));
-        assertEquals(TRUE, func.evaluate(vf, now, nowMinusOne, vf.createLiteral(2), OWLTime.DAYS_URI));
+        assertEquals(TRUE, func.evaluate(VF, now, now, VF.createLiteral(1), OWLTime.DAYS_URI));
+        assertEquals(FALSE, func.evaluate(VF, now, nowMinusOne, VF.createLiteral(1), OWLTime.DAYS_URI));
+        assertEquals(TRUE, func.evaluate(VF, now, nowMinusOne, VF.createLiteral(2), OWLTime.DAYS_URI));
     }
 
     // Note that this test fails if the week under test spans a DST when the USA springs forward.
@@ -137,16 +137,16 @@ public class DateTimeWithinPeriodTest {
         ZonedDateTime zTime2 = zTime.minusWeeks(7);
         String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
 
-        Literal now = vf.createLiteral(dtf.newXMLGregorianCalendar(time));
-        Literal nowMinusOne = vf.createLiteral(dtf.newXMLGregorianCalendar(time1));
-        Literal nowMinusSeven = vf.createLiteral(dtf.newXMLGregorianCalendar(time2));
+        Literal now = VF.createLiteral(dtf.newXMLGregorianCalendar(time));
+        Literal nowMinusOne = VF.createLiteral(dtf.newXMLGregorianCalendar(time1));
+        Literal nowMinusSeven = VF.createLiteral(dtf.newXMLGregorianCalendar(time2));
 
         DateTimeWithinPeriod func = new DateTimeWithinPeriod();
 
-        assertEquals(TRUE, func.evaluate(vf, now, now, vf.createLiteral(1), OWLTime.WEEKS_URI));
-        assertEquals(FALSE, func.evaluate(vf, now, nowMinusOne, vf.createLiteral(1), OWLTime.WEEKS_URI));
-        assertEquals(TRUE, func.evaluate(vf, now, nowMinusOne, vf.createLiteral(2), OWLTime.WEEKS_URI));
-        assertEquals(FALSE, func.evaluate(vf, now, nowMinusSeven, vf.createLiteral(7), OWLTime.WEEKS_URI));
+        assertEquals(TRUE, func.evaluate(VF, now, now, VF.createLiteral(1), OWLTime.WEEKS_URI));
+        assertEquals(FALSE, func.evaluate(VF, now, nowMinusOne, VF.createLiteral(1), OWLTime.WEEKS_URI));
+        assertEquals(TRUE, func.evaluate(VF, now, nowMinusOne, VF.createLiteral(2), OWLTime.WEEKS_URI));
+        assertEquals(FALSE, func.evaluate(VF, now, nowMinusSeven, VF.createLiteral(7), OWLTime.WEEKS_URI));
     }
 
     @Test
@@ -165,17 +165,17 @@ public class DateTimeWithinPeriodTest {
         ZonedDateTime zTime3 = now.minusDays(1).withZoneSameInstant(ZoneId.of("Asia/Seoul"));
         String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
 
-        Literal nowLocal = vf.createLiteral(dtf.newXMLGregorianCalendar(time));
-        Literal nowEuropeTZ = vf.createLiteral(dtf.newXMLGregorianCalendar(time1));
-        Literal nowAustraliaTZ = vf.createLiteral(dtf.newXMLGregorianCalendar(time2));
-        Literal nowAsiaTZMinusOne = vf.createLiteral(dtf.newXMLGregorianCalendar(time3));
+        Literal nowLocal = VF.createLiteral(dtf.newXMLGregorianCalendar(time));
+        Literal nowEuropeTZ = VF.createLiteral(dtf.newXMLGregorianCalendar(time1));
+        Literal nowAustraliaTZ = VF.createLiteral(dtf.newXMLGregorianCalendar(time2));
+        Literal nowAsiaTZMinusOne = VF.createLiteral(dtf.newXMLGregorianCalendar(time3));
 
         DateTimeWithinPeriod func = new DateTimeWithinPeriod();
 
-        assertEquals(TRUE, func.evaluate(vf, nowLocal, nowEuropeTZ, vf.createLiteral(1), OWLTime.SECONDS_URI));
-        assertEquals(TRUE, func.evaluate(vf, nowLocal, nowAustraliaTZ, vf.createLiteral(1), OWLTime.SECONDS_URI));
-        assertEquals(FALSE, func.evaluate(vf, nowLocal, nowAsiaTZMinusOne, vf.createLiteral(1), OWLTime.DAYS_URI));
-        assertEquals(TRUE, func.evaluate(vf, nowLocal, nowAsiaTZMinusOne, vf.createLiteral(2), OWLTime.DAYS_URI));
+        assertEquals(TRUE, func.evaluate(VF, nowLocal, nowEuropeTZ, VF.createLiteral(1), OWLTime.SECONDS_URI));
+        assertEquals(TRUE, func.evaluate(VF, nowLocal, nowAustraliaTZ, VF.createLiteral(1), OWLTime.SECONDS_URI));
+        assertEquals(FALSE, func.evaluate(VF, nowLocal, nowAsiaTZMinusOne, VF.createLiteral(1), OWLTime.DAYS_URI));
+        assertEquals(TRUE, func.evaluate(VF, nowLocal, nowAsiaTZMinusOne, VF.createLiteral(2), OWLTime.DAYS_URI));
     }
 
 }

@@ -24,12 +24,12 @@ import java.util.UUID;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.model.vocabulary.SESAME;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.SESAME;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * All predicates are changed
@@ -49,7 +49,7 @@ public class SubPropertyOfVisitor extends AbstractInferVisitor {
         final StatementPattern sp = node.clone();
         final Var predVar = sp.getPredicateVar();
 
-        final URI pred = (URI) predVar.getValue();
+        final IRI pred = (IRI) predVar.getValue();
         final String predNamespace = pred.getNamespace();
 
         final Var objVar = sp.getObjectVar();
@@ -78,8 +78,8 @@ public class SubPropertyOfVisitor extends AbstractInferVisitor {
 //                StatementPatterns statementPatterns = new StatementPatterns();
 //                statementPatterns.patterns.add(node);
 //                Var subjVar = node.getSubjectVar();
-//                for (URI u : parents) {
-//                    statementPatterns.patterns.add(new StatementPattern(subjVar, new Var(predVar.getName(), u), objVar));
+//                for (IRI iri : parents) {
+//                    statementPatterns.patterns.add(new StatementPattern(subjVar, new Var(predVar.getName(), iri), objVar));
 //                }
 //                node.replaceWith(statementPatterns);
 //            }
@@ -87,24 +87,24 @@ public class SubPropertyOfVisitor extends AbstractInferVisitor {
 //                VarCollection vc = new VarCollection();
 //                vc.setName(predVar.getName());
 //                vc.values.add(predVar);
-//                for (URI u : parents) {
-//                    vc.values.add(new Var(predVar.getName(), u));
+//                for (IRI iri : parents) {
+//                    vc.values.add(new Var(predVar.getName(), iri));
 //                }
 //                Var subjVar = node.getSubjectVar();
 //                node.replaceWith(new StatementPattern(subjVar, vc, objVar, node.getContextVar()));
 //            }
 
-            final URI subprop_uri = (URI) predVar.getValue();
-            final Set<URI> parents = InferenceEngine.findParents(inferenceEngine.getSubPropertyOfGraph(), subprop_uri);
+            final IRI subprop_iri = (IRI) predVar.getValue();
+            final Set<IRI> parents = InferenceEngine.findParents(inferenceEngine.getSubPropertyOfGraph(), subprop_iri);
             if (parents != null && parents.size() > 0) {
                 final String s = UUID.randomUUID().toString();
                 final Var typeVar = new Var(s);
                 final FixedStatementPattern fsp = new FixedStatementPattern(typeVar, new Var("c-" + s, RDFS.SUBPROPERTYOF), predVar, cntxtVar);
 //                fsp.statements.add(new NullableStatementImpl(subprop_uri, RDFS.SUBPROPERTYOF, subprop_uri));
                 //add self
-                parents.add(subprop_uri);
-                for (final URI u : parents) {
-                    fsp.statements.add(new NullableStatementImpl(u, RDFS.SUBPROPERTYOF, subprop_uri));
+                parents.add(subprop_iri);
+                for (final IRI u : parents) {
+                    fsp.statements.add(new NullableStatementImpl(u, RDFS.SUBPROPERTYOF, subprop_iri));
                 }
 
                 final StatementPattern rdfType = new DoNotExpandSP(sp.getSubjectVar(), typeVar, sp.getObjectVar(), cntxtVar);

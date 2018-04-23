@@ -26,7 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
@@ -40,8 +40,8 @@ import org.apache.rya.indexing.smarturi.SmartUriAdapter;
 import org.apache.rya.indexing.smarturi.SmartUriException;
 import org.apache.rya.indexing.smarturi.SmartUriStorage;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
@@ -64,10 +64,10 @@ public class MongoDbSmartUri implements SmartUriStorage {
     }
 
     @Override
-    public void storeEntity(final RyaURI subject, final Map<URI, Value> map) throws SmartUriException {
+    public void storeEntity(final RyaIRI subject, final Map<IRI, Value> map) throws SmartUriException {
         checkInit();
 
-        final URI uri = SmartUriAdapter.serializeUri(subject, map);
+        final IRI uri = SmartUriAdapter.serializeUri(subject, map);
         final Entity entity = SmartUriAdapter.deserializeUriEntity(uri);
 
         // Create it.
@@ -103,7 +103,7 @@ public class MongoDbSmartUri implements SmartUriStorage {
     }
 
     @Override
-    public Entity queryEntity(final RyaURI subject) throws SmartUriException {
+    public Entity queryEntity(final RyaIRI subject) throws SmartUriException {
         checkInit();
 
         // Query it.
@@ -116,7 +116,7 @@ public class MongoDbSmartUri implements SmartUriStorage {
     }
 
     @Override
-    public ConvertingCursor<TypedEntity> queryEntity(final Type type, final Map<URI, Value> map) throws SmartUriException {
+    public ConvertingCursor<TypedEntity> queryEntity(final Type type, final Map<IRI, Value> map) throws SmartUriException {
         checkInit();
 
         // Query it.

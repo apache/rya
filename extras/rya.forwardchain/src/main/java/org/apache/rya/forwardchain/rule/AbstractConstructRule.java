@@ -21,8 +21,8 @@ package org.apache.rya.forwardchain.rule;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.forwardchain.ForwardChainException;
 import org.apache.rya.forwardchain.strategy.AbstractRuleExecutionStrategy;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.parser.ParsedGraphQuery;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.parser.ParsedGraphQuery;
 
 import com.google.common.base.Preconditions;
 

@@ -30,7 +30,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.api.utils.CloseableIterator;
@@ -41,14 +41,14 @@ import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
-import org.openrdf.model.Statement;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.queryrender.sparql.SPARQLQueryRenderer;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.queryrender.sparql.SPARQLQueryRenderer;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
@@ -61,38 +61,38 @@ public class FluoAndHistoricPcjsDemo implements Demo {
     private static final Logger log = Logger.getLogger(FluoAndHistoricPcjsDemo.class);
 
     // Employees
-    private static final RyaURI alice = new RyaURI("http://Alice");
-    private static final RyaURI bob = new RyaURI("http://Bob");
-    private static final RyaURI charlie = new RyaURI("http://Charlie");
-    private static final RyaURI frank = new RyaURI("http://Frank");
+    private static final RyaIRI alice = new RyaIRI("http://Alice");
+    private static final RyaIRI bob = new RyaIRI("http://Bob");
+    private static final RyaIRI charlie = new RyaIRI("http://Charlie");
+    private static final RyaIRI frank = new RyaIRI("http://Frank");
 
     // Patrons
-    private static final RyaURI david = new RyaURI("http://David");
-    private static final RyaURI eve = new RyaURI("http://Eve");
-    private static final RyaURI george = new RyaURI("http://George");
+    private static final RyaIRI david = new RyaIRI("http://David");
+    private static final RyaIRI eve = new RyaIRI("http://Eve");
+    private static final RyaIRI george = new RyaIRI("http://George");
 
     // Other People
-    private static final RyaURI henry = new RyaURI("http://Henry");
-    private static final RyaURI irene = new RyaURI("http://Irene");
-    private static final RyaURI justin = new RyaURI("http://Justin");
-    private static final RyaURI kristi = new RyaURI("http://Kristi");
-    private static final RyaURI luke = new RyaURI("http://Luke");
-    private static final RyaURI manny = new RyaURI("http://Manny");
-    private static final RyaURI nate = new RyaURI("http://Nate");
-    private static final RyaURI olivia = new RyaURI("http://Olivia");
-    private static final RyaURI paul = new RyaURI("http://Paul");
-    private static final RyaURI ross = new RyaURI("http://Ross");
-    private static final RyaURI sally = new RyaURI("http://Sally");
-    private static final RyaURI tim = new RyaURI("http://Tim");
+    private static final RyaIRI henry = new RyaIRI("http://Henry");
+    private static final RyaIRI irene = new RyaIRI("http://Irene");
+    private static final RyaIRI justin = new RyaIRI("http://Justin");
+    private static final RyaIRI kristi = new RyaIRI("http://Kristi");
+    private static final RyaIRI luke = new RyaIRI("http://Luke");
+    private static final RyaIRI manny = new RyaIRI("http://Manny");
+    private static final RyaIRI nate = new RyaIRI("http://Nate");
+    private static final RyaIRI olivia = new RyaIRI("http://Olivia");
+    private static final RyaIRI paul = new RyaIRI("http://Paul");
+    private static final RyaIRI ross = new RyaIRI("http://Ross");
+    private static final RyaIRI sally = new RyaIRI("http://Sally");
+    private static final RyaIRI tim = new RyaIRI("http://Tim");
 
     // Places
-    private static final RyaURI coffeeShop = new RyaURI("http://CoffeeShop");
-    private static final RyaURI burgerShop = new RyaURI("http://BurgerShop");
-    private static final RyaURI cupcakeShop= new RyaURI("http://cupcakeShop");
+    private static final RyaIRI coffeeShop = new RyaIRI("http://CoffeeShop");
+    private static final RyaIRI burgerShop = new RyaIRI("http://BurgerShop");
+    private static final RyaIRI cupcakeShop= new RyaIRI("http://cupcakeShop");
 
     // Verbs
-    private static final RyaURI talksTo = new RyaURI("http://talksTo");
-    private static final RyaURI worksAt = new RyaURI("http://worksAt");
+    private static final RyaIRI talksTo = new RyaIRI("http://talksTo");
+    private static final RyaIRI worksAt = new RyaIRI("http://worksAt");
 
     /**
      * Used to pause the demo waiting for the presenter to hit the Enter key.
@@ -287,13 +287,13 @@ public class FluoAndHistoricPcjsDemo implements Demo {
     private static void loadDataIntoFluo(final FluoClient fluoClient, final Set<RyaStatement> statements) {
         final InsertTriples insertTriples = new InsertTriples();
         for(final RyaStatement statement : statements) {
-            insertTriples.insert(fluoClient, statement, Optional.<String>absent());
+            insertTriples.insert(fluoClient, statement, Optional.absent());
         }
     }
 
     private static String prettyFormat(final RyaStatement statement) {
-        final RyaURI s = statement.getSubject();
-        final RyaURI p = statement.getPredicate();
+        final RyaIRI s = statement.getSubject();
+        final RyaIRI p = statement.getPredicate();
         final RyaType o = statement.getObject();
         return "<" + s.getData() + "> <"+ p.getData() + "> <" + o.getData() + ">";
     }

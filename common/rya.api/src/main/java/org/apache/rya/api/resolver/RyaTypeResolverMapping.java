@@ -21,7 +21,7 @@ package org.apache.rya.api.resolver;
 
 
 
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 
 /**
  * Date: 7/16/12
@@ -46,7 +46,7 @@ public class RyaTypeResolverMapping {
         return ryaTypeResolver;
     }
 
-    public URI getRyaDataType() {
+    public IRI getRyaDataType() {
         return ryaTypeResolver.getRyaDataType();
     }
 

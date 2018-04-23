@@ -35,12 +35,14 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.rya.api.client.ExecuteSparqlQuery;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
+import org.apache.rya.rdftriplestore.utils.RdfFormatUtils;
 import org.apache.rya.shell.SharedShellState.ShellState;
 import org.apache.rya.shell.util.ConsolePrinter;
 import org.apache.rya.shell.util.SparqlPrompt;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.rio.RDFFormat;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.Rio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,7 +123,7 @@ public class RyaCommands implements CommandMarker {
             RDFFormat rdfFormat = null;
             // If a format was provided, then go with that.
             if (format != null) {
-                rdfFormat = RDFFormat.valueOf(format);
+                rdfFormat = RdfFormatUtils.getRdfFormatFromName(format);
                 if (rdfFormat == null) {
                     throw new RuntimeException("Unsupported RDF Statement data input format: " + format);
                 }
@@ -129,7 +131,7 @@ public class RyaCommands implements CommandMarker {
 
             // Otherwise try to figure it out using the filename.
             else if (rdfFormat == null) {
-                rdfFormat = RDFFormat.forFileName(rootedFile.getFileName().toString());
+                rdfFormat = Rio.getParserFormatForFileName(rootedFile.getFileName().toString()).get();
                 if (rdfFormat == null) {
                     throw new RuntimeException("Unable to detect RDF Statement data input format for file: " + rootedFile);
                 } else {

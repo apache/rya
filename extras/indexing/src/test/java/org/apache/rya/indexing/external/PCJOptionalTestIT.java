@@ -38,43 +38,42 @@ import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
 import org.apache.rya.indexing.pcj.matching.provider.AccumuloIndexSetProvider;
 import org.apache.rya.indexing.pcj.storage.PcjException;
-import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.SailException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.SailException;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
 public class PCJOptionalTestIT {
-
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private SailRepositoryConnection conn, pcjConn;
     private SailRepository repo, pcjRepo;
     private Connector accCon;
     String tablePrefix = "table_";
-    URI sub, sub2, obj, obj2, subclass, subclass2, talksTo, sub3, subclass3;
+    IRI sub, sub2, obj, obj2, subclass, subclass2, talksTo, sub3, subclass3;
 
     @Before
     public void init() throws RepositoryException,
@@ -90,27 +89,27 @@ public class PCJOptionalTestIT {
         pcjRepo = PcjIntegrationTestingUtil.getAccumuloPcjRepo(tablePrefix, "instance");
         pcjConn = pcjRepo.getConnection();
 
-        sub = new URIImpl("uri:entity");
-        subclass = new URIImpl("uri:class");
-        obj = new URIImpl("uri:obj");
-        talksTo = new URIImpl("uri:talksTo");
+        sub = VF.createIRI("uri:entity");
+        subclass = VF.createIRI("uri:class");
+        obj = VF.createIRI("uri:obj");
+        talksTo = VF.createIRI("uri:talksTo");
 
         conn.add(sub, RDF.TYPE, subclass);
-        conn.add(sub, RDFS.LABEL, new LiteralImpl("label"));
+        conn.add(sub, RDFS.LABEL, VF.createLiteral("label"));
         conn.add(sub, talksTo, obj);
 
-        sub2 = new URIImpl("uri:entity2");
-        subclass2 = new URIImpl("uri:class2");
-        obj2 = new URIImpl("uri:obj2");
-        sub3 = new URIImpl("uri:entity3");
-        subclass3 = new URIImpl("uri:class3");
+        sub2 = VF.createIRI("uri:entity2");
+        subclass2 = VF.createIRI("uri:class2");
+        obj2 = VF.createIRI("uri:obj2");
+        sub3 = VF.createIRI("uri:entity3");
+        subclass3 = VF.createIRI("uri:class3");
 
 
         conn.add(sub2, RDF.TYPE, subclass2);
-        conn.add(sub2, RDFS.LABEL, new LiteralImpl("label2"));
+        conn.add(sub2, RDFS.LABEL, VF.createLiteral("label2"));
         conn.add(sub2, talksTo, obj2);
         conn.add(sub3, RDF.TYPE, subclass3);
-        conn.add(sub3, RDFS.LABEL, new LiteralImpl("label3"));
+        conn.add(sub3, RDFS.LABEL, VF.createLiteral("label3"));
 
 
         accCon = new MockInstance("instance").getConnector("root",
@@ -147,7 +146,7 @@ public class PCJOptionalTestIT {
 
         PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
                 + "INDEX_1", indexSparqlString, new String[] { "e", "c", "l", "o" },
-                Optional.<PcjVarOrderFactory> absent());
+                Optional.absent());
         final String queryString = ""//
                 + "SELECT ?e ?c ?l ?o " //
                 + "{" //
@@ -184,7 +183,7 @@ public class PCJOptionalTestIT {
 
         PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
                 + "INDEX_1", indexSparqlString, new String[] { "e", "l", "o" },
-                Optional.<PcjVarOrderFactory> absent());
+                Optional.absent());
         final String queryString = ""//
                 + "SELECT ?e ?c ?l ?o " //
                 + "{" //

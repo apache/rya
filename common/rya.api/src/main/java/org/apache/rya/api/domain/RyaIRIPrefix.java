@@ -1,4 +1,4 @@
-package org.apache.rya.api.resolver.impl;
+package org.apache.rya.api.domain;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,24 +21,27 @@ package org.apache.rya.api.resolver.impl;
 
 
 
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
 
 /**
- * Date: 7/16/12
- * Time: 12:41 PM
+ * Date: 7/24/12
+ * Time: 3:26 PM
  */
-public class RyaURIResolver extends RyaTypeResolverImpl {
+public class RyaIRIPrefix extends RyaIRIRange {
+    public static final String LAST = "\u00FF";
 
-    public static final int URI_MARKER = 2;
-
-    public RyaURIResolver() {
-        super((byte) URI_MARKER, XMLSchema.ANYURI);
+    public RyaIRIPrefix(String prefix) {
+        super();
+        setPrefix(prefix);
     }
 
-    @Override
-    public RyaType newInstance() {
-        return new RyaURI();
+    public void setPrefix(String prefix) {
+        setStart(new RyaIRI(prefix + RdfCloudTripleStoreConstants.DELIM));
+        setStop(new RyaIRI(prefix + LAST));
+    }
+
+    public String getPrefix() {
+        String data = getStart().getData();
+        return data.substring(0, data.length() - 1);
     }
 }

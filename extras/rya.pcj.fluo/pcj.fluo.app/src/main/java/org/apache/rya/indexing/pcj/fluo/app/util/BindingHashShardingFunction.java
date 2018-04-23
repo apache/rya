@@ -30,7 +30,7 @@ import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.openrdf.model.Value;
+import org.eclipse.rdf4j.model.Value;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;

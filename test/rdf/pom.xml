@@ -36,12 +36,12 @@ under the License.
     <dependencies>
         <!-- Third Party Dependencies -->
         <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-queryalgebra-model</artifactId>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-queryalgebra-model</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-queryparser-sparql</artifactId>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-queryparser-sparql</artifactId>
         </dependency>
     
         <dependency>

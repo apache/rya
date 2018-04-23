@@ -69,8 +69,7 @@ under the License.
         <module>web</module>
     </modules>
     <properties>
-        <openrdf.sesame.version>2.7.6</openrdf.sesame.version> <!-- Newest: 4.0.0 -->
-        <!--Cannot upgrade to openrdf.sesame 2.7.6 until RYA-9 is resolved -->
+        <org.eclipse.rdf4j.version>2.3.1</org.eclipse.rdf4j.version> <!-- Newest: 2.3.1 -->
 
         <accumulo.version>1.6.4</accumulo.version> <!-- Newest: 1.7.0 -->
         <hadoop.version>2.5.0</hadoop.version> <!-- Newest: 2.7.1 -->
@@ -79,7 +78,7 @@ under the License.
 
         <pig.version>0.9.2</pig.version> <!-- Newest: 0.15.0 -->
 
-        <lucene.version>3.6.2</lucene.version> <!-- Newest: 5.3.1 -->
+        <lucene.version>5.2.1</lucene.version> <!-- Newest: 5.3.1 -->
         <joda-time.version>2.1</joda-time.version> <!-- Newest: 2.9.1 -->
 
         <mongodb.version>3.3.0</mongodb.version>
@@ -479,104 +478,114 @@ under the License.
                 <version>${accumulo.version}</version>
             </dependency>
            <dependency>
-                <groupId>org.apache.rya</groupId>
-                <artifactId>sesame-runtime-osgi</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-runtime-osgi</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-runtime</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-runtime</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-model</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-model</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-query</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-query</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-queryalgebra-model</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-queryalgebra-model</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-queryparser-sparql</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-queryparser-sparql</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-queryresultio-sparqlxml</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-queryresultio-sparqlxml</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-queryresultio-text</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-queryresultio-text</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-rio-nquads</artifactId>
-                <version>${openrdf.sesame.version}</version>
-            </dependency>
-           <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-rio-ntriples</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-rio-nquads</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-rio-rdfxml</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-rio-ntriples</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-rio-trig</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-rio-rdfxml</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-rio-turtle</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-rio-trig</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-queryrender</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-rio-turtle</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-runtime-osgi</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-queryrender</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-runtime-osgi</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
                 <exclusions>
                     <exclusion>
-                        <groupId>org.openrdf.sesame</groupId>
-                        <artifactId>sesame-http-client</artifactId>
+                        <groupId>org.eclipse.rdf4j</groupId>
+                        <artifactId>rdf4j-http-client</artifactId>
                     </exclusion>
                     <exclusion>
-                        <groupId>org.openrdf.sesame</groupId>
-                        <artifactId>sesame-http-server-spring</artifactId>
+                        <groupId>org.eclipse.rdf4j</groupId>
+                        <artifactId>rdf4j-http-server-spring</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-queryalgebra-evaluation</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-queryalgebra-evaluation</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-queryresultio-sparqljson</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-queryresultio-sparqljson</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-repository-api</artifactId>
-                <version>${openrdf.sesame.version}</version>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-repository-api</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-sail-api</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-sail-base</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
 
             <dependency>
@@ -790,7 +799,7 @@ under the License.
             </dependency>
             <dependency>
                 <groupId>org.apache.lucene</groupId>
-                <artifactId>lucene-analyzers</artifactId>
+                <artifactId>lucene-analyzers-common</artifactId>
                 <version>${lucene.version}</version>
             </dependency>
 

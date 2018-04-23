@@ -34,7 +34,7 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.api.persist.RyaDAO;
@@ -69,44 +69,42 @@ import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
 import org.apache.rya.rdftriplestore.provenance.ProvenanceCollectionException;
 import org.apache.rya.rdftriplestore.provenance.ProvenanceCollector;
 import org.apache.rya.rdftriplestore.utils.DefaultStatistics;
-import org.openrdf.model.Namespace;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ContextStatementImpl;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.Dataset;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.QueryRoot;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.EvaluationStrategy;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.evaluation.QueryOptimizer;
-import org.openrdf.query.algebra.evaluation.TripleSource;
-import org.openrdf.query.algebra.evaluation.impl.BindingAssigner;
-import org.openrdf.query.algebra.evaluation.impl.CompareOptimizer;
-import org.openrdf.query.algebra.evaluation.impl.ConjunctiveConstraintSplitter;
-import org.openrdf.query.algebra.evaluation.impl.ConstantOptimizer;
-import org.openrdf.query.algebra.evaluation.impl.DisjunctiveConstraintOptimizer;
-import org.openrdf.query.algebra.evaluation.impl.EvaluationStatistics;
-import org.openrdf.query.algebra.evaluation.impl.FilterOptimizer;
-import org.openrdf.query.algebra.evaluation.impl.IterativeEvaluationOptimizer;
-import org.openrdf.query.algebra.evaluation.impl.OrderLimitOptimizer;
-import org.openrdf.query.algebra.evaluation.impl.QueryModelNormalizer;
-import org.openrdf.query.algebra.evaluation.impl.SameTermFilterOptimizer;
-import org.openrdf.query.impl.EmptyBindingSet;
-import org.openrdf.sail.SailException;
-import org.openrdf.sail.helpers.SailConnectionBase;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Namespace;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.Dataset;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.QueryRoot;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.EvaluationStrategy;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
+import org.eclipse.rdf4j.query.algebra.evaluation.TripleSource;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.BindingAssigner;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.CompareOptimizer;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ConjunctiveConstraintSplitter;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ConstantOptimizer;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.DisjunctiveConstraintOptimizer;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.EvaluationStatistics;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.FilterOptimizer;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.IterativeEvaluationOptimizer;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.OrderLimitOptimizer;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.QueryModelNormalizer;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.SameTermFilterOptimizer;
+import org.eclipse.rdf4j.query.impl.EmptyBindingSet;
+import org.eclipse.rdf4j.sail.SailException;
+import org.eclipse.rdf4j.sail.helpers.AbstractSailConnection;
 
-import info.aduna.iteration.CloseableIteration;
-
-public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfiguration> extends SailConnectionBase {
+public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfiguration> extends AbstractSailConnection {
     private final RdfCloudTripleStore<C> store;
 
     private RdfEvalStatsDAO<C> rdfEvalStatsDAO;
@@ -150,7 +148,7 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
     }
 
     @Override
-    protected void addStatementInternal(final Resource subject, final URI predicate,
+    protected void addStatementInternal(final Resource subject, final IRI predicate,
                                         final Value object, final Resource... contexts) throws SailException {
         try {
             final String cv_s = conf.getCv();
@@ -160,7 +158,7 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
                 for (final Resource context : contexts) {
                     final RyaStatement statement = new RyaStatement(
                             RdfToRyaConversions.convertResource(subject),
-                            RdfToRyaConversions.convertURI(predicate),
+                            RdfToRyaConversions.convertIRI(predicate),
                             RdfToRyaConversions.convertValue(object),
                             RdfToRyaConversions.convertResource(context),
                             null, new StatementMetadata(), cv);
@@ -170,7 +168,7 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
             } else {
                 final RyaStatement statement = new RyaStatement(
                         RdfToRyaConversions.convertResource(subject),
-                        RdfToRyaConversions.convertURI(predicate),
+                        RdfToRyaConversions.convertIRI(predicate),
                         RdfToRyaConversions.convertValue(object),
                         null, null, new StatementMetadata(), cv);
 
@@ -188,7 +186,7 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
     @Override
     protected void clearInternal(final Resource... aresource) throws SailException {
         try {
-            final RyaURI[] graphs = new RyaURI[aresource.length];
+            final RyaIRI[] graphs = new RyaIRI[aresource.length];
             for (int i = 0 ; i < graphs.length ; i++){
                 graphs[i] = RdfToRyaConversions.convertResource(aresource[i]);
             }
@@ -294,7 +292,7 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
             if(pcjOptimizer != null) {
                 QueryOptimizer opt = null;
                 try {
-                    final Constructor<QueryOptimizer> construct = pcjOptimizer.getDeclaredConstructor(new Class[] {});
+                    final Constructor<QueryOptimizer> construct = pcjOptimizer.getDeclaredConstructor();
                     opt = construct.newInstance();
                 } catch (final Exception e) {
                 }
@@ -329,7 +327,7 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
                 for (final Class<QueryOptimizer> optclz : optimizers) {
                     QueryOptimizer result = null;
                     try {
-                        final Constructor<QueryOptimizer> meth = optclz.getDeclaredConstructor(new Class[] {});
+                        final Constructor<QueryOptimizer> meth = optclz.getDeclaredConstructor();
                         result = meth.newInstance();
                     } catch (final Exception e) {
                     }
@@ -462,7 +460,7 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
 
     @Override
     protected CloseableIteration<? extends Statement, SailException> getStatementsInternal(
-            final Resource subject, final URI predicate, final Value object, final boolean flag,
+            final Resource subject, final IRI predicate, final Value object, final boolean flag,
             final Resource... contexts) throws SailException {
 //        try {
         //have to do this to get the inferred values
@@ -509,15 +507,16 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
                 try {
                     final BindingSet next = evaluate.next();
                     final Resource bs_subj = (Resource) ((subjVar.hasValue()) ? subjVar.getValue() : next.getBinding(subjVar.getName()).getValue());
-                    final URI bs_pred = (URI) ((predVar.hasValue()) ? predVar.getValue() : next.getBinding(predVar.getName()).getValue());
-                    final Value bs_obj = (objVar.hasValue()) ? objVar.getValue() : (Value) next.getBinding(objVar.getName()).getValue();
+                    final IRI bs_pred = (IRI) ((predVar.hasValue()) ? predVar.getValue() : next.getBinding(predVar.getName()).getValue());
+                    final Value bs_obj = (objVar.hasValue()) ? objVar.getValue() :
+                            next.getBinding(objVar.getName()).getValue();
                     final Binding b_cntxt = next.getBinding(cntxtVar.getName());
 
                     //convert BindingSet to Statement
                     if (b_cntxt != null) {
-                        return new ContextStatementImpl(bs_subj, bs_pred, bs_obj, (Resource) b_cntxt.getValue());
+                        return SimpleValueFactory.getInstance().createStatement(bs_subj, bs_pred, bs_obj, (Resource) b_cntxt.getValue());
                     } else {
-                        return new StatementImpl(bs_subj, bs_pred, bs_obj);
+                        return SimpleValueFactory.getInstance().createStatement(bs_subj, bs_pred, bs_obj);
                     }
                 } catch (final QueryEvaluationException e) {
                     throw new SailException(e);
@@ -552,21 +551,21 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
     }
 
     @Override
-    protected void removeStatementsInternal(final Resource subject, final URI predicate,
+    protected void removeStatementsInternal(final Resource subject, final IRI predicate,
                                             final Value object, final Resource... contexts) throws SailException {
-        if (!(subject instanceof URI)) {
+        if (!(subject instanceof IRI)) {
             throw new SailException("Subject[" + subject + "] must be URI");
         }
 
         try {
             if (contexts != null && contexts.length > 0) {
                 for (final Resource context : contexts) {
-                    if (!(context instanceof URI)) {
+                    if (!(context instanceof IRI)) {
                         throw new SailException("Context[" + context + "] must be URI");
                     }
                     final RyaStatement statement = new RyaStatement(
                             RdfToRyaConversions.convertResource(subject),
-                            RdfToRyaConversions.convertURI(predicate),
+                            RdfToRyaConversions.convertIRI(predicate),
                             RdfToRyaConversions.convertValue(object),
                             RdfToRyaConversions.convertResource(context));
 
@@ -575,7 +574,7 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
             } else {
                 final RyaStatement statement = new RyaStatement(
                         RdfToRyaConversions.convertResource(subject),
-                        RdfToRyaConversions.convertURI(predicate),
+                        RdfToRyaConversions.convertIRI(predicate),
                         RdfToRyaConversions.convertValue(object),
                         null);
 
@@ -609,6 +608,11 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
         //TODO: ?
     }
 
+    @Override
+    public boolean pendingRemovals() {
+        return false;
+    }
+
     public static class StoreTripleSource<C extends RdfCloudTripleStoreConfiguration> implements TripleSource {
 
         private final C conf;
@@ -621,7 +625,7 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
 
         @Override
         public CloseableIteration<Statement, QueryEvaluationException> getStatements(
-                final Resource subject, final URI predicate, final Value object,
+                final Resource subject, final IRI predicate, final Value object,
                 final Resource... contexts) throws QueryEvaluationException {
             return RyaDAOHelper.query(ryaDAO, subject, predicate, object, conf, contexts);
         }

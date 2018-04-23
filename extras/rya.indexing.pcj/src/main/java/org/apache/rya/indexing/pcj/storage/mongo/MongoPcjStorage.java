@@ -36,7 +36,7 @@ import org.apache.rya.indexing.pcj.storage.PCJIdFactory;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.query.BindingSet;
 
 import com.mongodb.MongoClient;
 

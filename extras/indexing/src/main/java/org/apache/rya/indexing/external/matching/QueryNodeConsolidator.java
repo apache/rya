@@ -27,9 +27,9 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
 
 import com.google.common.base.Preconditions;
 

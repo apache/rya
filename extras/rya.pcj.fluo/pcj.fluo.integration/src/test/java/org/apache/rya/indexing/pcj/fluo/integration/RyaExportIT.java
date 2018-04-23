@@ -27,17 +27,17 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
@@ -60,47 +60,47 @@ public class RyaExportIT extends RyaExportITBase {
                 "}";
 
         // Triples that will be streamed into Fluo after the PCJ has been created.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Set<RyaStatement> streamedTriples = Sets.newHashSet(
-                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"), new RyaURI("http://Bob")),
-                new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://livesIn"), new RyaURI("http://London")),
-                new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://worksAt"), new RyaURI("http://Chipotle")),
+                new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://talksTo"), new RyaIRI("http://Bob")),
+                new RyaStatement(new RyaIRI("http://Bob"), new RyaIRI("http://livesIn"), new RyaIRI("http://London")),
+                new RyaStatement(new RyaIRI("http://Bob"), new RyaIRI("http://worksAt"), new RyaIRI("http://Chipotle")),
 
-                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"), new RyaURI("http://Charlie")),
-                new RyaStatement(new RyaURI("http://Charlie"), new RyaURI("http://livesIn"), new RyaURI("http://London")),
-                new RyaStatement(new RyaURI("http://Charlie"), new RyaURI("http://worksAt"), new RyaURI("http://Chipotle")),
+                new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://talksTo"), new RyaIRI("http://Charlie")),
+                new RyaStatement(new RyaIRI("http://Charlie"), new RyaIRI("http://livesIn"), new RyaIRI("http://London")),
+                new RyaStatement(new RyaIRI("http://Charlie"), new RyaIRI("http://worksAt"), new RyaIRI("http://Chipotle")),
 
-                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"), new RyaURI("http://David")),
-                new RyaStatement(new RyaURI("http://David"), new RyaURI("http://livesIn"), new RyaURI("http://London")),
-                new RyaStatement(new RyaURI("http://David"), new RyaURI("http://worksAt"), new RyaURI("http://Chipotle")),
+                new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://talksTo"), new RyaIRI("http://David")),
+                new RyaStatement(new RyaIRI("http://David"), new RyaIRI("http://livesIn"), new RyaIRI("http://London")),
+                new RyaStatement(new RyaIRI("http://David"), new RyaIRI("http://worksAt"), new RyaIRI("http://Chipotle")),
 
-                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"), new RyaURI("http://Eve")),
-                new RyaStatement(new RyaURI("http://Eve"), new RyaURI("http://livesIn"), new RyaURI("http://Leeds")),
-                new RyaStatement(new RyaURI("http://Eve"), new RyaURI("http://worksAt"), new RyaURI("http://Chipotle")),
+                new RyaStatement(new RyaIRI("http://Alice"), new RyaIRI("http://talksTo"), new RyaIRI("http://Eve")),
+                new RyaStatement(new RyaIRI("http://Eve"), new RyaIRI("http://livesIn"), new RyaIRI("http://Leeds")),
+                new RyaStatement(new RyaIRI("http://Eve"), new RyaIRI("http://worksAt"), new RyaIRI("http://Chipotle")),
 
-                new RyaStatement(new RyaURI("http://Frank"), new RyaURI("http://talksTo"), new RyaURI("http://Alice")),
-                new RyaStatement(new RyaURI("http://Frank"), new RyaURI("http://livesIn"), new RyaURI("http://London")),
-                new RyaStatement(new RyaURI("http://Frank"), new RyaURI("http://worksAt"), new RyaURI("http://Chipotle")));
+                new RyaStatement(new RyaIRI("http://Frank"), new RyaIRI("http://talksTo"), new RyaIRI("http://Alice")),
+                new RyaStatement(new RyaIRI("http://Frank"), new RyaIRI("http://livesIn"), new RyaIRI("http://London")),
+                new RyaStatement(new RyaIRI("http://Frank"), new RyaIRI("http://worksAt"), new RyaIRI("http://Chipotle")));
 
         // The expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expected = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("customer", vf.createURI("http://Alice"));
-        bs.addBinding("worker", vf.createURI("http://Bob"));
-        bs.addBinding("city", vf.createURI("http://London"));
+        bs.addBinding("customer", vf.createIRI("http://Alice"));
+        bs.addBinding("worker", vf.createIRI("http://Bob"));
+        bs.addBinding("city", vf.createIRI("http://London"));
         expected.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("customer", vf.createURI("http://Alice"));
-        bs.addBinding("worker", vf.createURI("http://Charlie"));
-        bs.addBinding("city", vf.createURI("http://London"));
+        bs.addBinding("customer", vf.createIRI("http://Alice"));
+        bs.addBinding("worker", vf.createIRI("http://Charlie"));
+        bs.addBinding("city", vf.createIRI("http://London"));
         expected.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("customer", vf.createURI("http://Alice"));
-        bs.addBinding("worker", vf.createURI("http://David"));
-        bs.addBinding("city", vf.createURI("http://London"));
+        bs.addBinding("customer", vf.createIRI("http://Alice"));
+        bs.addBinding("worker", vf.createIRI("http://David"));
+        bs.addBinding("city", vf.createIRI("http://London"));
         expected.add(bs);
 
         // Create the PCJ table.
@@ -113,7 +113,7 @@ public class RyaExportIT extends RyaExportITBase {
             new CreateFluoPcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, getRyaInstanceName());
 
             // Stream the data into Fluo.
-            new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
+            new InsertTriples().insert(fluoClient, streamedTriples, Optional.absent());
 
             // Fetch the exported results from Accumulo once the observers finish working.
             super.getMiniFluo().waitForObservers();

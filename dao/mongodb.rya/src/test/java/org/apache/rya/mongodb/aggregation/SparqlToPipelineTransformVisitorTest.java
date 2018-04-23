@@ -22,28 +22,28 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.bson.Document;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.Extension;
+import org.eclipse.rdf4j.query.algebra.ExtensionElem;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.MultiProjection;
+import org.eclipse.rdf4j.query.algebra.Not;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.ProjectionElem;
+import org.eclipse.rdf4j.query.algebra.ProjectionElemList;
+import org.eclipse.rdf4j.query.algebra.QueryRoot;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.Var;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.Extension;
-import org.openrdf.query.algebra.ExtensionElem;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.MultiProjection;
-import org.openrdf.query.algebra.Not;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.QueryRoot;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.Var;
 
 import com.google.common.collect.Sets;
 import com.mongodb.MongoNamespace;
@@ -51,16 +51,16 @@ import com.mongodb.client.MongoCollection;
 
 public class SparqlToPipelineTransformVisitorTest {
 
-    private static final ValueFactory VF = ValueFactoryImpl.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private static final String LUBM = "urn:lubm";
-    private static final URI UNDERGRAD = VF.createURI(LUBM, "UndergraduateStudent");
-    private static final URI PROFESSOR = VF.createURI(LUBM, "Professor");
-    private static final URI COURSE = VF.createURI(LUBM, "Course");
-    private static final URI TAKES = VF.createURI(LUBM, "takesCourse");
-    private static final URI TEACHES = VF.createURI(LUBM, "teachesCourse");
+    private static final IRI UNDERGRAD = VF.createIRI(LUBM, "UndergraduateStudent");
+    private static final IRI PROFESSOR = VF.createIRI(LUBM, "Professor");
+    private static final IRI COURSE = VF.createIRI(LUBM, "Course");
+    private static final IRI TAKES = VF.createIRI(LUBM, "takesCourse");
+    private static final IRI TEACHES = VF.createIRI(LUBM, "teachesCourse");
 
-    private static Var constant(URI value) {
+    private static Var constant(IRI value) {
         return new Var(value.stringValue(), value);
     }
 

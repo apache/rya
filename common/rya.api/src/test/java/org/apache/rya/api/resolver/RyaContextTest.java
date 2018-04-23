@@ -19,20 +19,17 @@ package org.apache.rya.api.resolver;
  * under the License.
  */
 
-
-
 import java.util.Map;
 
-import junit.framework.TestCase;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.query.strategy.AbstractTriplePatternStrategyTest.MockRdfConfiguration;
-import org.apache.rya.api.query.strategy.wholerow.MockRdfCloudConfiguration;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.query.strategy.wholerow.MockRdfConfiguration;
 import org.apache.rya.api.resolver.triple.TripleRow;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
-import org.openrdf.model.impl.URIImpl;
+import junit.framework.TestCase;
 
 /**
  */
@@ -45,24 +42,24 @@ public class RyaContextTest extends TestCase {
         byte[] serialize = instance.serialize(ryaType);
         assertEquals(ryaType, instance.deserialize(serialize));
 
-        //uri
-        RyaURI ryaURI = new RyaURI("urn:test#1234");
-        serialize = instance.serialize(ryaURI);
+        //iri
+        RyaIRI ryaIRI = new RyaIRI("urn:test#1234");
+        serialize = instance.serialize(ryaIRI);
         RyaType deserialize = instance.deserialize(serialize);
-        assertEquals(ryaURI, deserialize);
+        assertEquals(ryaIRI, deserialize);
 
         //custom type
-        ryaType = new RyaType(new URIImpl("urn:test#customDataType"), "mydata");
+        ryaType = new RyaType(SimpleValueFactory.getInstance().createIRI("urn:test#customDataType"), "mydata");
         serialize = instance.serialize(ryaType);
         assertEquals(ryaType, instance.deserialize(serialize));
     }
 
     public void testTripleRowSerialization() throws Exception {
-        RyaURI subj = new RyaURI("urn:test#subj");
-        RyaURI pred = new RyaURI("urn:test#pred");
+        RyaIRI subj = new RyaIRI("urn:test#subj");
+        RyaIRI pred = new RyaIRI("urn:test#pred");
         RyaType obj = new RyaType("mydata");
         RyaStatement statement = new RyaStatement(subj, pred, obj);
-        RyaTripleContext instance = RyaTripleContext.getInstance(new MockRdfCloudConfiguration());
+        RyaTripleContext instance = RyaTripleContext.getInstance(new MockRdfConfiguration());
 
         Map<TABLE_LAYOUT, TripleRow> map = instance.serializeTriple(statement);
         TripleRow tripleRow = map.get(TABLE_LAYOUT.SPO);
@@ -70,12 +67,12 @@ public class RyaContextTest extends TestCase {
     }
     
     public void testHashedTripleRowSerialization() throws Exception {
-        RyaURI subj = new RyaURI("urn:test#subj");
-        RyaURI pred = new RyaURI("urn:test#pred");
+        RyaIRI subj = new RyaIRI("urn:test#subj");
+        RyaIRI pred = new RyaIRI("urn:test#pred");
         RyaType obj = new RyaType("mydata");
         RyaStatement statement = new RyaStatement(subj, pred, obj);
-    	MockRdfCloudConfiguration config = new MockRdfCloudConfiguration();
-    	config.set(MockRdfCloudConfiguration.CONF_PREFIX_ROW_WITH_HASH, Boolean.TRUE.toString());
+    	MockRdfConfiguration config = new MockRdfConfiguration();
+    	config.set(MockRdfConfiguration.CONF_PREFIX_ROW_WITH_HASH, Boolean.TRUE.toString());
        RyaTripleContext instance = RyaTripleContext.getInstance(config);
 
         Map<TABLE_LAYOUT, TripleRow> map = instance.serializeTriple(statement);

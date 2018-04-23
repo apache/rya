@@ -22,25 +22,24 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 
+import org.apache.fluo.api.client.FluoClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
-import org.openrdf.model.Statement;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.RDFParser;
-import org.openrdf.rio.helpers.RDFHandlerBase;
-
-import com.google.common.base.Optional;
-
-import org.apache.fluo.api.client.FluoClient;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.RDFParser;
+import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
+
+import com.google.common.base.Optional;
 
 /**
  * When used as the handler of an {@link RDFParser}, instances of this class
  * will batch load {@link Statement}s into the Fluo app 1000 statements at a time.
  */
-public class FluoLoader extends RDFHandlerBase {
+public class FluoLoader extends AbstractRDFHandler {
     private static final Logger log = LogManager.getLogger(FluoLoader.class);
 
     private static final int FLUSH_SIZE = 1000;
@@ -70,7 +69,7 @@ public class FluoLoader extends RDFHandlerBase {
         // If the buffer is full, flush it to the Fluo table.
         if(buff.size() == FLUSH_SIZE) {
             log.trace("Flushing " + buff.size() + " Statements from the buffer to Fluo.");
-            insertTriples.insert(fluoClient, buff, Optional.<String>absent());
+            insertTriples.insert(fluoClient, buff, Optional.absent());
             buff.clear();
         }
 
@@ -85,7 +84,7 @@ public class FluoLoader extends RDFHandlerBase {
 
         if(!buff.isEmpty()) {
             log.trace("Flushing the last " + buff.size() + " Statements from the buffer to Fluo.");
-            insertTriples.insert(fluoClient, buff, Optional.<String>absent());
+            insertTriples.insert(fluoClient, buff, Optional.absent());
             buff.clear();
         }
     }

@@ -1,11 +1,3 @@
-package org.apache.rya.rdftriplestore.evaluation;
-
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.RANGE;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -24,29 +16,34 @@ import java.util.Map;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.rdftriplestore.evaluation;
 
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.RANGE;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RangeURI;
+import org.apache.rya.api.domain.RangeIRI;
 import org.apache.rya.api.domain.RangeValue;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.BooleanLiteralImpl;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.impl.BooleanLiteral;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.FunctionCall;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 /**
  * Class FilterTimeIndexVisitor
  * Date: Apr 11, 2011
  * Time: 10:16:15 PM
  */
-public class FilterRangeVisitor extends QueryModelVisitorBase<Exception> {
+public class FilterRangeVisitor extends AbstractQueryModelVisitor<Exception> {
 
     private final RdfCloudTripleStoreConfiguration conf;
     private final Map<Var, RangeValue> rangeValues = new HashMap<Var, RangeValue>();
@@ -74,7 +71,7 @@ public class FilterRangeVisitor extends QueryModelVisitorBase<Exception> {
                 final Value start = startVc.getValue();
                 final Value end = endVc.getValue();
                 rangeValues.put(var, new RangeValue(start, end));
-                node.setCondition(new ValueConstant(BooleanLiteralImpl.TRUE));
+                node.setCondition(new ValueConstant(BooleanLiteral.TRUE));
             }
         }
     }
@@ -90,10 +87,10 @@ public class FilterRangeVisitor extends QueryModelVisitorBase<Exception> {
         final Var objVar = node.getObjectVar();
         final RangeValue objRange = rangeValues.get(objVar);
         if(subjRange != null) {
-            subjectVar.setValue(new RangeURI(subjRange));//Assumes no blank nodes can be ranges
+            subjectVar.setValue(new RangeIRI(subjRange));//Assumes no blank nodes can be ranges
         }
         if(predRange != null) {
-            predVar.setValue(new RangeURI(predRange));
+            predVar.setValue(new RangeIRI(predRange));
         }
         if(objRange != null) {
             objVar.setValue(objRange);

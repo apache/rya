@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.GeoRyaSailFactory;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
@@ -37,23 +37,23 @@ import org.apache.rya.indexing.geotemporal.mongo.MongoGeoTemporalIndexer;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoITBase;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.Sail;
 import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.Sail;
 
 public class MongoGeoTemporalIndexIT extends MongoITBase {
     private static final String URI_PROPERTY_AT_TIME = "Property:atTime";
 
-    private static final ValueFactory VF = ValueFactoryImpl.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Override
     public void updateConfiguration(final MongoDBRdfConfiguration conf) {
@@ -70,7 +70,7 @@ public class MongoGeoTemporalIndexIT extends MongoITBase {
 
             addStatements(repo.getConnection());
             final EventStorage events = indexer.getEventStorage();
-            final RyaURI subject = new RyaURI("urn:event1");
+            final RyaIRI subject = new RyaIRI("urn:event1");
             final Optional<Event> event = events.get(subject);
             assertTrue(event.isPresent());
         } finally {
@@ -162,19 +162,20 @@ public class MongoGeoTemporalIndexIT extends MongoITBase {
     }
 
     private void addStatements(final SailRepositoryConnection conn) throws Exception {
-        URI subject = VF.createURI("urn:event1");
-        final URI predicate = VF.createURI(URI_PROPERTY_AT_TIME);
+        IRI subject = VF.createIRI("urn:event1");
+        final IRI predicate = VF.createIRI(URI_PROPERTY_AT_TIME);
         Value object = VF.createLiteral(new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0).toString());
         conn.add(VF.createStatement(subject, predicate, object));
 
         object = VF.createLiteral("Point(0 0)", GeoConstants.XMLSCHEMA_OGC_WKT);
         conn.add(VF.createStatement(subject, GeoConstants.GEO_AS_WKT, object));
 
-        subject = VF.createURI("urn:event2");
+        subject = VF.createIRI("urn:event2");
         object = VF.createLiteral(new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0).toString());
         conn.add(VF.createStatement(subject, predicate, object));
 
         object = VF.createLiteral("Point(1 1)", GeoConstants.XMLSCHEMA_OGC_WKT);
         conn.add(VF.createStatement(subject, GeoConstants.GEO_AS_WKT, object));
+        conn.commit();
     }
 }

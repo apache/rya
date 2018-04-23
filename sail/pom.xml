@@ -34,6 +34,12 @@ under the License.
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.api</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-sail-api</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.provenance</artifactId>
@@ -59,8 +65,8 @@ under the License.
         </dependency>
 
         <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-runtime</artifactId>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-runtime</artifactId>
         </dependency>
 
         <!-- Test -->

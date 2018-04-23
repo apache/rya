@@ -30,10 +30,10 @@ import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult.Side;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.UnaryResult;
 import org.apache.rya.streams.kafka.processors.output.BindingSetOutputFormatterSupplier.BindingSetOutputFormatter;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Unit tests the methods of {@link BindingSetOutputFormatter}.
@@ -43,9 +43,9 @@ public class BindingSetOutputFormatterTest {
     @Test
     public void unaryResult() {
         // Create the input binding set.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final MapBindingSet bindingSet = new MapBindingSet();
-        bindingSet.addBinding("person", vf.createURI("urn:Alice"));
+        bindingSet.addBinding("person", vf.createIRI("urn:Alice"));
         bindingSet.addBinding("age", vf.createLiteral(34));
         final VisibilityBindingSet visBs = new VisibilityBindingSet(bindingSet, "a");
 
@@ -64,9 +64,9 @@ public class BindingSetOutputFormatterTest {
     @Test
     public void binaryResult() {
         // Create the input binding set.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final MapBindingSet bindingSet = new MapBindingSet();
-        bindingSet.addBinding("person", vf.createURI("urn:Alice"));
+        bindingSet.addBinding("person", vf.createIRI("urn:Alice"));
         bindingSet.addBinding("age", vf.createLiteral(34));
         final VisibilityBindingSet visBs = new VisibilityBindingSet(bindingSet, "a");
 

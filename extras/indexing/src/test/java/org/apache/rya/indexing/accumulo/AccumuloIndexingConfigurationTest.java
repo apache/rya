@@ -30,7 +30,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.junit.Test;
 
 public class AccumuloIndexingConfigurationTest {
@@ -114,7 +114,7 @@ public class AccumuloIndexingConfigurationTest {
         boolean useInference = true;
         boolean displayPlan = false;
         boolean useMetadata = true;
-        Set<RyaURI> metaProperties = new HashSet<>(Arrays.asList(new RyaURI("urn:123"), new RyaURI("urn:456"))); 
+        Set<RyaIRI> metaProperties = new HashSet<>(Arrays.asList(new RyaIRI("urn:123"), new RyaIRI("urn:456"))); 
         
 
         Properties props = new Properties();

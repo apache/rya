@@ -27,15 +27,15 @@ import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.streams.api.entity.QueryResultStream;
 import org.apache.rya.streams.api.exception.RyaStreamsException;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.resultio.sparqljson.SPARQLResultsJSONWriter;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.RDFWriter;
-import org.openrdf.rio.Rio;
-import org.openrdf.rio.WriterConfig;
-import org.openrdf.rio.helpers.BasicWriterSettings;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.resultio.sparqljson.SPARQLResultsJSONWriter;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.RDFWriter;
+import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.rio.WriterConfig;
+import org.eclipse.rdf4j.rio.helpers.BasicWriterSettings;
 
 import com.google.common.collect.Lists;
 

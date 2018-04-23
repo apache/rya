@@ -33,21 +33,21 @@ import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoITBase;
 import org.apache.rya.sail.config.RyaSailFactory;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.Sail;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.Sail;
 
 public class MongoPCJIndexIT extends MongoITBase {
-    private static final ValueFactory VF = ValueFactoryImpl.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Override
     protected void updateConfiguration(final MongoDBRdfConfiguration conf) {
@@ -96,27 +96,27 @@ public class MongoPCJIndexIT extends MongoITBase {
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("name", VF.createURI("urn:Alice"));
+        bs.addBinding("name", VF.createIRI("urn:Alice"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("name", VF.createURI("urn:Bob"));
+        bs.addBinding("name", VF.createIRI("urn:Bob"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("name", VF.createURI("urn:Charlie"));
+        bs.addBinding("name", VF.createIRI("urn:Charlie"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("name", VF.createURI("urn:David"));
+        bs.addBinding("name", VF.createIRI("urn:David"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("name", VF.createURI("urn:Eve"));
+        bs.addBinding("name", VF.createIRI("urn:Eve"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("name", VF.createURI("urn:Frank"));
+        bs.addBinding("name", VF.createIRI("urn:Frank"));
         expectedResults.add(bs);
 
         assertEquals(6, results.size());
@@ -173,15 +173,15 @@ public class MongoPCJIndexIT extends MongoITBase {
 
         MapBindingSet bs = new MapBindingSet();
         bs = new MapBindingSet();
-        bs.addBinding("name", VF.createURI("urn:David"));
+        bs.addBinding("name", VF.createIRI("urn:David"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("name", VF.createURI("urn:Eve"));
+        bs.addBinding("name", VF.createIRI("urn:Eve"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("name", VF.createURI("urn:Frank"));
+        bs.addBinding("name", VF.createIRI("urn:Frank"));
         expectedResults.add(bs);
 
         assertEquals(3, results.size());
@@ -201,33 +201,33 @@ public class MongoPCJIndexIT extends MongoITBase {
     }
 
     private Set<Statement> getStatements() throws Exception {
-    	final Set<Statement> statements = new HashSet<>();
-    	statements.add(VF.createStatement(VF.createURI("urn:Alice"), VF.createURI("urn:likes"), VF.createURI("urn:icecream")));
-        statements.add(VF.createStatement(VF.createURI("urn:Bob"), VF.createURI("urn:likes"), VF.createURI("urn:icecream")));
-        statements.add(VF.createStatement(VF.createURI("urn:Charlie"), VF.createURI("urn:likes"), VF.createURI("urn:icecream")));
-        statements.add(VF.createStatement(VF.createURI("urn:David"), VF.createURI("urn:likes"), VF.createURI("urn:icecream")));
-        statements.add(VF.createStatement(VF.createURI("urn:Eve"), VF.createURI("urn:likes"), VF.createURI("urn:icecream")));
-        statements.add(VF.createStatement(VF.createURI("urn:Frank"), VF.createURI("urn:likes"), VF.createURI("urn:icecream")));
-        statements.add(VF.createStatement(VF.createURI("urn:George"), VF.createURI("urn:likes"), VF.createURI("urn:icecream")));
-        statements.add(VF.createStatement(VF.createURI("urn:Hillary"), VF.createURI("urn:likes"), VF.createURI("urn:icecream")));
+        final Set<Statement> statements = new HashSet<>();
+        statements.add(VF.createStatement(VF.createIRI("urn:Alice"), VF.createIRI("urn:likes"), VF.createIRI("urn:icecream")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Bob"), VF.createIRI("urn:likes"), VF.createIRI("urn:icecream")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Charlie"), VF.createIRI("urn:likes"), VF.createIRI("urn:icecream")));
+        statements.add(VF.createStatement(VF.createIRI("urn:David"), VF.createIRI("urn:likes"), VF.createIRI("urn:icecream")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Eve"), VF.createIRI("urn:likes"), VF.createIRI("urn:icecream")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Frank"), VF.createIRI("urn:likes"), VF.createIRI("urn:icecream")));
+        statements.add(VF.createStatement(VF.createIRI("urn:George"), VF.createIRI("urn:likes"), VF.createIRI("urn:icecream")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Hillary"), VF.createIRI("urn:likes"), VF.createIRI("urn:icecream")));
         
-        statements.add(VF.createStatement(VF.createURI("urn:Alice"), VF.createURI("urn:hasEyeColor"), VF.createURI("urn:blue")));
-        statements.add(VF.createStatement(VF.createURI("urn:Bob"), VF.createURI("urn:hasEyeColor"), VF.createURI("urn:blue")));
-        statements.add(VF.createStatement(VF.createURI("urn:Charlie"), VF.createURI("urn:hasEyeColor"), VF.createURI("urn:blue")));
-        statements.add(VF.createStatement(VF.createURI("urn:David"), VF.createURI("urn:hasEyeColor"), VF.createURI("urn:blue")));
-        statements.add(VF.createStatement(VF.createURI("urn:Eve"), VF.createURI("urn:hasEyeColor"), VF.createURI("urn:blue")));
-        statements.add(VF.createStatement(VF.createURI("urn:Frank"), VF.createURI("urn:hasEyeColor"), VF.createURI("urn:blue")));
-        statements.add(VF.createStatement(VF.createURI("urn:George"), VF.createURI("urn:hasEyeColor"), VF.createURI("urn:green")));
-        statements.add(VF.createStatement(VF.createURI("urn:Hillary"), VF.createURI("urn:hasEyeColor"), VF.createURI("urn:brown")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Alice"), VF.createIRI("urn:hasEyeColor"), VF.createIRI("urn:blue")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Bob"), VF.createIRI("urn:hasEyeColor"), VF.createIRI("urn:blue")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Charlie"), VF.createIRI("urn:hasEyeColor"), VF.createIRI("urn:blue")));
+        statements.add(VF.createStatement(VF.createIRI("urn:David"), VF.createIRI("urn:hasEyeColor"), VF.createIRI("urn:blue")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Eve"), VF.createIRI("urn:hasEyeColor"), VF.createIRI("urn:blue")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Frank"), VF.createIRI("urn:hasEyeColor"), VF.createIRI("urn:blue")));
+        statements.add(VF.createStatement(VF.createIRI("urn:George"), VF.createIRI("urn:hasEyeColor"), VF.createIRI("urn:green")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Hillary"), VF.createIRI("urn:hasEyeColor"), VF.createIRI("urn:brown")));
         
-        statements.add(VF.createStatement(VF.createURI("urn:Alice"), VF.createURI("urn:hasHairColor"), VF.createURI("urn:blue")));
-        statements.add(VF.createStatement(VF.createURI("urn:Bob"), VF.createURI("urn:hasHairColor"), VF.createURI("urn:blue")));
-        statements.add(VF.createStatement(VF.createURI("urn:Charlie"), VF.createURI("urn:hasHairColor"), VF.createURI("urn:blue")));
-        statements.add(VF.createStatement(VF.createURI("urn:David"), VF.createURI("urn:hasHairColor"), VF.createURI("urn:brown")));
-        statements.add(VF.createStatement(VF.createURI("urn:Eve"), VF.createURI("urn:hasHairColor"), VF.createURI("urn:brown")));
-        statements.add(VF.createStatement(VF.createURI("urn:Frank"), VF.createURI("urn:hasHairColor"), VF.createURI("urn:brown")));
-        statements.add(VF.createStatement(VF.createURI("urn:George"), VF.createURI("urn:hasHairColor"), VF.createURI("urn:blonde")));
-        statements.add(VF.createStatement(VF.createURI("urn:Hillary"), VF.createURI("urn:hasHairColor"), VF.createURI("urn:blonde")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Alice"), VF.createIRI("urn:hasHairColor"), VF.createIRI("urn:blue")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Bob"), VF.createIRI("urn:hasHairColor"), VF.createIRI("urn:blue")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Charlie"), VF.createIRI("urn:hasHairColor"), VF.createIRI("urn:blue")));
+        statements.add(VF.createStatement(VF.createIRI("urn:David"), VF.createIRI("urn:hasHairColor"), VF.createIRI("urn:brown")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Eve"), VF.createIRI("urn:hasHairColor"), VF.createIRI("urn:brown")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Frank"), VF.createIRI("urn:hasHairColor"), VF.createIRI("urn:brown")));
+        statements.add(VF.createStatement(VF.createIRI("urn:George"), VF.createIRI("urn:hasHairColor"), VF.createIRI("urn:blonde")));
+        statements.add(VF.createStatement(VF.createIRI("urn:Hillary"), VF.createIRI("urn:hasHairColor"), VF.createIRI("urn:blonde")));
         return statements;
     }
 }

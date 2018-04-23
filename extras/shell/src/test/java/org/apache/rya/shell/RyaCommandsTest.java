@@ -17,6 +17,7 @@
  * under the License.
  */
 package org.apache.rya.shell;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -37,9 +38,9 @@ import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.shell.util.ConsolePrinter;
 import org.apache.rya.shell.util.SparqlPrompt;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.rio.RDFFormat;
 import org.junit.Test;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.rio.RDFFormat;
 
 import com.google.common.base.Optional;
 

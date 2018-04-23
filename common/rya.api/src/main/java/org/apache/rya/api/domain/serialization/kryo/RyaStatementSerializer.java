@@ -17,26 +17,27 @@ package org.apache.rya.api.domain.serialization.kryo;
  * specific language governing permissions and limitations
  * under the License.
  */
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
+
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaIRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
 
 /**
  * Kryo Serializer for {@link RyaStatement}s
  *
  */
 public class RyaStatementSerializer extends Serializer<RyaStatement> {
-    
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
     /**
      * Uses Kryo to write RyaStatement to {@lin Output}
      * @param kryo - writes statement to output
@@ -114,16 +115,16 @@ public class RyaStatementSerializer extends Serializer<RyaStatement> {
         String objectValue = input.readString();
         RyaType value;
         if (objectType.equals(XMLSchema.ANYURI.toString())){
-            value = new RyaURI(objectValue);
+            value = new RyaIRI(objectValue);
         }
         else {
-            value = new RyaType(new URIImpl(objectType), objectValue);
+            value = new RyaType(VF.createIRI(objectType), objectValue);
         }
-        RyaStatement statement = new RyaStatement(new RyaURI(subject), new RyaURI(predicate), value);
+        RyaStatement statement = new RyaStatement(new RyaIRI(subject), new RyaIRI(predicate), value);
         int length = 0;
         boolean hasNextValue = input.readBoolean();
         if (hasNextValue){
-            statement.setContext(new RyaURI(input.readString()));
+            statement.setContext(new RyaIRI(input.readString()));
         }
         hasNextValue = input.readBoolean();
         if (hasNextValue){

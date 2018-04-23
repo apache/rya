@@ -36,9 +36,9 @@ package org.apache.rya.indexing.external.matching;
  * under the License.
  */
 
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.LeftJoin;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.LeftJoin;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 
 /**
  * This class takes in a given {@link Join}, {@Filter}, or {@link LeftJoin}

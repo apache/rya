@@ -1,4 +1,4 @@
-package org.apache.rya.api.domain;
+package org.apache.rya.api.resolver.impl;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,27 +21,20 @@ package org.apache.rya.api.domain;
 
 
 
-import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import junit.framework.TestCase;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaIRI;
 
 /**
- * Date: 7/24/12
- * Time: 3:26 PM
+ * Date: 7/16/12
+ * Time: 2:51 PM
  */
-public class RyaURIPrefix extends RyaURIRange {
-    public static final String LAST = "\u00FF";
+public class RyaIRIResolverTest extends TestCase {
 
-    public RyaURIPrefix(String prefix) {
-        super();
-        setPrefix(prefix);
-    }
-
-    public void setPrefix(String prefix) {
-        setStart(new RyaURI(prefix + RdfCloudTripleStoreConstants.DELIM));
-        setStop(new RyaURI(prefix + LAST));
-    }
-
-    public String getPrefix() {
-        String data = getStart().getData();
-        return data.substring(0, data.length() - 1);
+    public void testSerialization() throws Exception {
+        RyaIRI ryaIRI = new RyaIRI("urn:testdata#data");
+        byte[] serialize = new RyaIRIResolver().serialize(ryaIRI);
+        RyaType deserialize = new RyaIRIResolver().deserialize(serialize);
+        assertEquals(ryaIRI, deserialize);
     }
 }

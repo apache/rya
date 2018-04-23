@@ -19,13 +19,13 @@
 package org.apache.rya.rdftriplestore.inference;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.Extension;
-import org.openrdf.query.algebra.ExtensionElem;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.Extension;
+import org.eclipse.rdf4j.query.algebra.ExtensionElem;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * Expands the query tree to account for any relevant has-self class expressions
@@ -61,15 +61,15 @@ public class HasSelfVisitor extends AbstractInferVisitor {
 
     @Override
     protected void meetSP(final StatementPattern node) throws Exception {
-        final URI pred = (URI) node.getPredicateVar().getValue();
+        final IRI pred = (IRI) node.getPredicateVar().getValue();
         final Var obj = node.getObjectVar();
         //if originalSP like (?s rdf:type :C1):  require that C1 is defined, i.e. not a variable
         // node <- originalSP
         final StatementPattern clone = node.clone();
         if (RDF.TYPE.equals(pred) && obj.isConstant()) {
             //for property in getHasSelfImplyingType(C1):
-            if (obj.getValue() instanceof URI) {
-                for (final URI property : inferenceEngine.getHasSelfImplyingType((URI) obj.getValue())) {
+            if (obj.getValue() instanceof IRI) {
+                for (final IRI property : inferenceEngine.getHasSelfImplyingType((IRI) obj.getValue())) {
                     //node <- InferUnion(node, StatementPattern(?s, property, ?s)).
                     final InferUnion union = new InferUnion(clone,
                             new StatementPattern(clone.getSubjectVar(),

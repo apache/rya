@@ -19,24 +19,21 @@ package org.apache.rya.rdftriplestore;
  * under the License.
  */
 
-
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 
 import org.apache.rya.rdftriplestore.utils.CombineContextsRdfInserter;
-
-import org.openrdf.OpenRDFUtil;
-import org.openrdf.model.Resource;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.repository.util.RDFLoader;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.RDFParseException;
-import org.openrdf.sail.SailConnection;
+import org.eclipse.rdf4j.OpenRDFUtil;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.repository.util.RDFLoader;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.RDFParseException;
+import org.eclipse.rdf4j.sail.SailConnection;
 
 /**
  * The real reason for this is so that we can combine contexts from an input stream/reader and the given contexts in the add function

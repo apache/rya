@@ -51,19 +51,19 @@ import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResultHandlerBase;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailConnection;
-import org.openrdf.sail.SailException;
+import org.eclipse.rdf4j.query.AbstractTupleQueryResultHandler;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.Sail;
+import org.eclipse.rdf4j.sail.SailConnection;
+import org.eclipse.rdf4j.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -161,7 +161,7 @@ public class MongoBatchUpdatePCJ implements BatchUpdatePCJ {
 
             // Execute the query.
             final List<VisibilityBindingSet> batch = new ArrayList<>(1000);
-            tupleQuery.evaluate(new TupleQueryResultHandlerBase() {
+            tupleQuery.evaluate(new AbstractTupleQueryResultHandler() {
                 @Override
                 public void handleSolution(final BindingSet bindingSet) throws TupleQueryResultHandlerException {
                     final VisibilityBindingSet result = new VisibilityBindingSet(bindingSet, "");

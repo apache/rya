@@ -46,7 +46,7 @@ import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.openrdf.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -195,19 +195,24 @@ public class AggregationResultUpdater extends AbstractNodeUpdater {
             // System.out.println("vois.accept(" + className + ".class, ");};};
                         ) {
                 // These classes are allowed to be deserialized. Others throw InvalidClassException.
-                vois.accept(AggregationState.class,
-                                AverageState.class,
-                                java.util.HashMap.class,
-                                java.math.BigInteger.class,
-                                java.lang.Number.class,
-                                java.math.BigDecimal.class,
-                                org.openrdf.query.impl.MapBindingSet.class,
-                                java.util.LinkedHashMap.class,
-                                org.openrdf.query.impl.BindingImpl.class,
-                                org.openrdf.model.impl.URIImpl.class,
-                                org.openrdf.model.impl.LiteralImpl.class,
-                                org.openrdf.model.impl.DecimalLiteralImpl.class,
-                                org.openrdf.model.impl.IntegerLiteralImpl.class);
+                vois.accept(
+                        AggregationState.class,
+                        AverageState.class,
+                        java.lang.Long.class,
+                        java.lang.Number.class,
+                        java.math.BigDecimal.class,
+                        java.math.BigInteger.class,
+                        java.util.HashMap.class,
+                        java.util.LinkedHashMap.class,
+                        org.eclipse.rdf4j.query.impl.MapBindingSet.class,
+                        org.eclipse.rdf4j.query.impl.SimpleBinding.class,
+                        org.eclipse.rdf4j.model.impl.SimpleIRI.class,
+                        org.eclipse.rdf4j.model.impl.SimpleLiteral.class,
+                        org.eclipse.rdf4j.model.impl.DecimalLiteral.class,
+                        org.eclipse.rdf4j.model.impl.IntegerLiteral.class,
+                        org.eclipse.rdf4j.model.impl.NumericLiteral.class,
+                        org.eclipse.rdf4j.query.AbstractBindingSet.class
+                    );
                 vois.accept("[B"); // Array of Bytes
                 final Object o = vois.readObject();
                 if(o instanceof AggregationState) {

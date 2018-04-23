@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.IndexingExpr;
 import org.apache.rya.indexing.entity.model.TypedEntity;
 import org.apache.rya.indexing.entity.storage.mongo.DocumentConverter.DocumentConverterException;
@@ -100,7 +100,7 @@ public class MongoEventStorage implements EventStorage {
     }
 
     @Override
-    public Optional<Event> get(final RyaURI subject) throws EventStorageException {
+    public Optional<Event> get(final RyaIRI subject) throws EventStorageException {
         requireNonNull(subject);
 
         try {
@@ -119,7 +119,7 @@ public class MongoEventStorage implements EventStorage {
     }
 
     @Override
-    public Collection<Event> search(final Optional<RyaURI> subject, final Optional<Collection<IndexingExpr>> geoFilters, final Optional<Collection<IndexingExpr>> temporalFilters) throws EventStorageException {
+    public Collection<Event> search(final Optional<RyaIRI> subject, final Optional<Collection<IndexingExpr>> geoFilters, final Optional<Collection<IndexingExpr>> temporalFilters) throws EventStorageException {
         requireNonNull(subject);
 
         try {
@@ -174,7 +174,7 @@ public class MongoEventStorage implements EventStorage {
     }
 
     @Override
-    public boolean delete(final RyaURI subject) throws EventStorageException {
+    public boolean delete(final RyaIRI subject) throws EventStorageException {
         requireNonNull(subject);
 
         try {
@@ -189,7 +189,7 @@ public class MongoEventStorage implements EventStorage {
         }
     }
 
-    private static Bson makeSubjectFilter(final RyaURI subject) {
+    private static Bson makeSubjectFilter(final RyaIRI subject) {
         return Filters.eq(EventDocumentConverter.SUBJECT, subject.getData());
     }
 }

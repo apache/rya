@@ -32,9 +32,9 @@ import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.fluo.client.PcjAdminClientCommand;
 import org.apache.rya.indexing.pcj.fluo.client.util.FluoLoader;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFParser;
-import org.openrdf.rio.Rio;
+import org.apache.rya.rdftriplestore.utils.RdfFormatUtils;
+import org.eclipse.rdf4j.rio.RDFParser;
+import org.eclipse.rdf4j.rio.Rio;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -98,7 +98,7 @@ public class LoadTriplesCommand implements PcjAdminClientCommand {
         final Path triplesPath = Paths.get( params.nTriplesFile );
 
         try {
-            final RDFParser parser = Rio.createParser(RDFFormat.forFileName(triplesPath.getFileName().toString()));
+            final RDFParser parser = Rio.createParser(RdfFormatUtils.forFileName(triplesPath.getFileName().toString()));
             final FluoLoader loader = new FluoLoader(fluo, new InsertTriples());
             parser.setRDFHandler(loader);
             parser.parse(Files.newInputStream(triplesPath), triplesPath.toUri().toString());

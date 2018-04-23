@@ -29,7 +29,7 @@ import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
 import org.apache.rya.mongodb.AbstractMongoDBRdfConfigurationBuilder;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRdfConfigurationBuilder;
-import org.openrdf.sail.Sail;
+import org.eclipse.rdf4j.sail.Sail;
 
 import com.google.common.base.Preconditions;
 
@@ -44,7 +44,7 @@ import com.google.common.base.Preconditions;
 public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
 
     private MongoIndexingConfiguration() {
-    };
+    }
 
     private MongoIndexingConfiguration(final Configuration conf) {
         super(conf);
@@ -166,7 +166,7 @@ public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
 
     /**
      * Sets the predicates that the {@link MongoFreeTextIndexer} uses for indexing
-     * @param predicates - predicate URI used for freetext indexing
+     * @param predicates - predicate IRI used for freetext indexing
      */
     public void setMongoFreeTextPredicates(final String[] predicates) {
         Preconditions.checkNotNull(predicates, "Freetext predicates cannot be null.");
@@ -174,7 +174,7 @@ public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
     }
 
     /**
-     * @return Array of predicate URI Strings used for freetext indexing
+     * @return Array of predicate IRI Strings used for freetext indexing
      */
     public String[] getMongoFreeTextPredicates() {
         return getStrings(ConfigUtils.FREETEXT_PREDICATES_LIST);
@@ -182,7 +182,7 @@ public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
 
     /**
      * Sets the predicates that the {@link MongoTemporalIndexer} uses for indexing
-     * @param predicates - predicate URI used for temporal indexing
+     * @param predicates - predicate IRI used for temporal indexing
      */
     public void setMongoTemporalPredicates(final String[] predicates) {
         Preconditions.checkNotNull(predicates, "Freetext predicates cannot be null.");
@@ -191,7 +191,7 @@ public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
 
     /**
      * Gets the predicates that the {@link MongoTemporalIndexer} uses for indexing
-     * @return Array of predicate URI Strings used for temporal indexing
+     * @return Array of predicate IRI Strings used for temporal indexing
      */
     public String[] getMongoTemporalPredicates() {
         return getStrings(ConfigUtils.TEMPORAL_PREDICATES_LIST);

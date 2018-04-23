@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.query.EntityQueryNode;
@@ -36,11 +36,12 @@ import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage.TypeStorageException;
 import org.apache.rya.indexing.external.matching.ExternalSetProvider;
 import org.apache.rya.indexing.external.matching.QuerySegment;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -49,6 +50,7 @@ import com.google.common.collect.Multimap;
  * Provides {@link EntityQueryNodes}s.
  */
 public class EntityIndexSetProvider implements ExternalSetProvider<EntityQueryNode> {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     private Multimap<Type, StatementPattern> typeMap;
     private Map<String, Type> subjectTypeMap;
     private final TypeStorage typeStorage;
@@ -70,9 +72,9 @@ public class EntityIndexSetProvider implements ExternalSetProvider<EntityQueryNo
         return pattern.getSubjectVar();
     }
 
-    private RyaURI getPredURI(final StatementPattern pattern) {
+    private RyaIRI getPredIRI(final StatementPattern pattern) {
         final Var pred = pattern.getPredicateVar();
-        return new RyaURI(pred.getValue().stringValue());
+        return new RyaIRI(pred.getValue().stringValue());
     }
 
     @Override
@@ -100,11 +102,11 @@ public class EntityIndexSetProvider implements ExternalSetProvider<EntityQueryNo
     private void discoverEntities(final StatementPattern pattern, final List<StatementPattern> unmatched) {
         final Var subj = pattern.getSubjectVar();
         final String subjStr = subj.getName();
-        final RyaURI predURI = getPredURI(pattern);
+        final RyaIRI predIRI = getPredIRI(pattern);
         //check to see if current node is type
-        if(new URIImpl(predURI.getData()).equals(RDF.TYPE)) {
+        if(VF.createIRI(predIRI.getData()).equals(RDF.TYPE)) {
             final Var obj = pattern.getObjectVar();
-            final RyaURI objURI = new RyaURI(obj.getValue().stringValue());
+            final RyaIRI objURI = new RyaIRI(obj.getValue().stringValue());
             try {
                 final Optional<Type> optType = typeStorage.get(objURI);
                 //if is type, fetch type add to subject -> type map
@@ -115,7 +117,7 @@ public class EntityIndexSetProvider implements ExternalSetProvider<EntityQueryNo
                     //check unmatched properties, add matches
                     for(final StatementPattern propertyPattern : unmatched) {
                         //store sps into the type -> property map
-                        final RyaURI property = getPredURI(propertyPattern);
+                        final RyaIRI property = getPredIRI(propertyPattern);
                         final Var typeSubVar = getTypeSubject(type);
                         final Var patternSubVar = propertyPattern.getSubjectVar();
                         if (type.getPropertyNames().contains(property) && typeSubVar.equals(patternSubVar)) {
@@ -131,7 +133,7 @@ public class EntityIndexSetProvider implements ExternalSetProvider<EntityQueryNo
             if(subjectTypeMap.containsKey(subjStr)) {
                 //if is, check to see if pred is a property of type
                 final Type type = subjectTypeMap.get(subjStr);
-                if(type.getPropertyNames().contains(predURI)) {
+                if(type.getPropertyNames().contains(predIRI)) {
                     //if is, add sp to type -> sp map
                     if(!typeMap.containsKey(type)) {
                         //each variable can only contain 1 type for now @see:Rya-235?

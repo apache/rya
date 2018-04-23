@@ -23,10 +23,10 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
 
 /**
  * Contains all the schema information we might need about a class.
@@ -56,7 +56,7 @@ import org.openrdf.model.vocabulary.OWL;
  */
 public class OwlClass implements Serializable {
     private static final long serialVersionUID = 1L;
-    private Resource uri;
+    private Resource iri;
 
     // Relations to other classes:
     private Set<OwlClass> superClasses = new HashSet<>();
@@ -78,12 +78,12 @@ public class OwlClass implements Serializable {
     int maxCardinality = -1;
     int maxQualifiedCardinality = -1;
 
-    OwlClass(Resource uri) {
-        this.uri = uri;
+    OwlClass(Resource iri) {
+        this.iri = iri;
     }
 
-    public Resource getURI() { return uri; }
-    public void setURI(Resource uri) { this.uri = uri; }
+    public Resource getURI() { return iri; }
+    public void setURI(Resource iri) { this.iri = iri; }
 
     /**
      * Add a superclass
@@ -235,10 +235,10 @@ public class OwlClass implements Serializable {
     public Set<Resource> getSuperClasses() {
         Set<Resource> ancestors = new HashSet<>();
         for (OwlClass ancestor : superClasses) {
-            ancestors.add(ancestor.uri);
+            ancestors.add(ancestor.iri);
         }
         // RL rule scm-cls: Every class is a subclass of itself and owl:Thing
-        ancestors.add(this.uri);
+        ancestors.add(this.iri);
         ancestors.add(OWL.THING);
         return ancestors;
     }
@@ -252,11 +252,11 @@ public class OwlClass implements Serializable {
         Set<Resource> equivalents = new HashSet<>();
         for (OwlClass other : superClasses) {
             if (other.superClasses.contains(this)) {
-                equivalents.add(other.uri);
+                equivalents.add(other.iri);
             }
         }
         // RL rule scm-cls: Every class is its own equivalent
-        equivalents.add(this.uri);
+        equivalents.add(this.iri);
         return equivalents;
     }
 
@@ -266,7 +266,7 @@ public class OwlClass implements Serializable {
     public Set<Resource> getDisjointClasses() {
         Set<Resource> disjoint = new HashSet<>();
         for (OwlClass other : disjointClasses) {
-            disjoint.add(other.uri);
+            disjoint.add(other.iri);
         }
         return disjoint;
     }
@@ -277,7 +277,7 @@ public class OwlClass implements Serializable {
     public Set<Resource> getComplementaryClasses() {
         Set<Resource> complements = new HashSet<>();
         for (OwlClass other : complementaryClasses) {
-            complements.add(other.uri);
+            complements.add(other.iri);
         }
         return complements;
     }
@@ -318,8 +318,8 @@ public class OwlClass implements Serializable {
     /**
      * Get the onProperty relation(s) for this property restriction.
      */
-    public Set<URI> getOnProperty() {
-        Set<URI> onp = new HashSet<>();
+    public Set<IRI> getOnProperty() {
+        Set<IRI> onp = new HashSet<>();
         for (OwlProperty prop : properties) {
             onp.add(prop.getURI());
         }
@@ -411,9 +411,9 @@ public class OwlClass implements Serializable {
      * is a subproperty of the other's.
      */
     boolean onSubProperty(OwlClass other) {
-        Set<URI> otherProp = other.getOnProperty();
+        Set<IRI> otherProp = other.getOnProperty();
         for (OwlProperty prop : this.properties) {
-            Set<URI> intersection = prop.getSuperProperties();
+            Set<IRI> intersection = prop.getSuperProperties();
             intersection.retainAll(otherProp);
             if (!intersection.isEmpty()) {
                 return true;

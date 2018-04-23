@@ -1,14 +1,3 @@
-package org.apache.rya.rdftriplestore.namespace;
-
-import java.io.InputStream;
-
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.persist.RdfDAOException;
-import org.apache.rya.api.persist.RyaDAO;
-import org.apache.rya.api.persist.RyaNamespaceManager;
-import org.openrdf.model.Namespace;
-import org.openrdf.sail.SailException;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -27,10 +16,18 @@ import org.openrdf.sail.SailException;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.rdftriplestore.namespace;
 
+import java.io.InputStream;
 
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.persist.RdfDAOException;
+import org.apache.rya.api.persist.RyaDAO;
+import org.apache.rya.api.persist.RyaNamespaceManager;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Namespace;
+import org.eclipse.rdf4j.sail.SailException;
 
-import info.aduna.iteration.CloseableIteration;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;

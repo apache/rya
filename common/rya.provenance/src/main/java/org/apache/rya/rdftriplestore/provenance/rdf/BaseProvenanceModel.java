@@ -19,31 +19,30 @@ package org.apache.rya.rdftriplestore.provenance.rdf;
  * under the License.
  */
 
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 
 /**
  * Basic representation of Provenance data capture in RDF.
  */
 public class BaseProvenanceModel implements RDFProvenanceModel {
 	
-	private static final ValueFactory vf = ValueFactoryImpl.getInstance();
-	private static final Resource queryEventType = vf.createURI("http://rya.com/provenance#QueryEvent");
-	private static final URI atTimeProperty = vf.createURI("http://www.w3.org/ns/prov#atTime");
-	private static final URI associatedWithUser = vf.createURI("http://rya.com/provenance#associatedWithUser");
-	private static final URI queryTypeProp = vf.createURI("http://rya.com/provenance#queryType");
-	private static final URI executedQueryProperty = vf.createURI("http://rya.com/provenance#executedQuery");
-	private static final String queryNameSpace = "http://rya.com/provenance#queryEvent";
+	private static final ValueFactory VF = SimpleValueFactory.getInstance();
+	private static final Resource QUERY_EVENT_TYPE = VF.createIRI("http://rya.com/provenance#QueryEvent");
+	private static final IRI AT_TIME_PROPERTY = VF.createIRI("http://www.w3.org/ns/prov#atTime");
+	private static final IRI ASSOCIATED_WITH_USER = VF.createIRI("http://rya.com/provenance#associatedWithUser");
+	private static final IRI QUERY_TYPE_PROP = VF.createIRI("http://rya.com/provenance#queryType");
+	private static final IRI EXECUTED_QUERY_PROPERTY = VF.createIRI("http://rya.com/provenance#executedQuery");
+	private static final String QUERY_NAMESPACE = "http://rya.com/provenance#queryEvent";
 
 	/* (non-Javadoc)
 	 * @see org.apache.rya.rdftriplestore.provenance.rdf.RDFProvenanceModel#getStatementsForQuery(java.lang.String, java.lang.String, java.lang.String)
@@ -51,16 +50,16 @@ public class BaseProvenanceModel implements RDFProvenanceModel {
 	public List<Statement> getStatementsForQuery(String query, String user, String queryType) {
 		List<Statement> statements = new ArrayList<Statement>();
 		// create some statements for the query
-		Resource queryEventResource = vf.createURI(queryNameSpace + UUID.randomUUID().toString());
-		Statement queryEventDecl = vf.createStatement(queryEventResource, RDF.TYPE, queryEventType);
+		Resource queryEventResource = VF.createIRI(QUERY_NAMESPACE + UUID.randomUUID().toString());
+		Statement queryEventDecl = VF.createStatement(queryEventResource, RDF.TYPE, QUERY_EVENT_TYPE);
 		statements.add(queryEventDecl);
-		Statement queryEventTime = vf.createStatement(queryEventResource, atTimeProperty, vf.createLiteral(new Date()));
+		Statement queryEventTime = VF.createStatement(queryEventResource, AT_TIME_PROPERTY, VF.createLiteral(new Date()));
 		statements.add(queryEventTime);
-		Statement queryUser = vf.createStatement(queryEventResource, associatedWithUser, vf.createLiteral(user));
+		Statement queryUser = VF.createStatement(queryEventResource, ASSOCIATED_WITH_USER, VF.createLiteral(user));
 		statements.add(queryUser);
-		Statement executedQuery = vf.createStatement(queryEventResource, executedQueryProperty, vf.createLiteral(query));
+		Statement executedQuery = VF.createStatement(queryEventResource, EXECUTED_QUERY_PROPERTY, VF.createLiteral(query));
 		statements.add(executedQuery);
-		Statement queryTypeStatement = vf.createStatement(queryEventResource, queryTypeProp, vf.createLiteral(queryType));
+		Statement queryTypeStatement = VF.createStatement(queryEventResource, QUERY_TYPE_PROP, VF.createLiteral(queryType));
 		statements.add(queryTypeStatement);
 		return statements;
 	}

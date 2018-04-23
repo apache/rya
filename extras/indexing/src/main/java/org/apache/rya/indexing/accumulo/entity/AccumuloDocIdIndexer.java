@@ -48,30 +48,27 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.documentIndex.DocIndexIteratorUtil;
 import org.apache.rya.accumulo.documentIndex.DocumentIndexIntersectingIterator;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.indexing.DocIdIndexer;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Bytes;
-
-import info.aduna.iteration.CloseableIteration;
-
-import info.aduna.iteration.CloseableIteration;
 
 public class AccumuloDocIdIndexer implements DocIdIndexer {
 
@@ -192,10 +189,8 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                         isEmpty = true;
                         return false;
 
-                    } else if (isEmpty) {
-                        return false;
                     } else {
-                        return true;
+                        return !isEmpty;
                     }
 
                 }
@@ -314,10 +309,8 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                         isEmpty = true;
                         return false;
 
-                    } else if (isEmpty) {
-                        return false;
                     } else {
-                        return true;
+                        return !isEmpty;
                     }
                 }
 
@@ -348,9 +341,9 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
         }
 
         if (!commonVarSet && sq.isCommonVarURI()) {
-            final RyaURI rURI = new RyaURI(row.toString());
+            final RyaIRI rIRI = new RyaIRI(row.toString());
             currentSolutionBs.addBinding(sq.getCommonVarName(),
-                    RyaToRdfConversions.convertValue(rURI));
+                    RyaToRdfConversions.convertValue(rIRI));
             commonVarSet = true;
         }
 
@@ -366,7 +359,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
 
             if (tripleComponent.equals("object")) {
                 final byte[] object = Bytes.concat(cqContent, objType);
-                org.openrdf.model.Value v = null;
+                org.eclipse.rdf4j.model.Value v = null;
                 try {
                     v = RyaToRdfConversions.convertValue(RyaContext.getInstance().deserialize(
                             object));
@@ -378,7 +371,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
             } else if (tripleComponent.equals("subject")) {
                 if (!commonVarSet) {
                     final byte[] object = Bytes.concat(row.getBytes(), objType);
-                    org.openrdf.model.Value v = null;
+                    org.eclipse.rdf4j.model.Value v = null;
                     try {
                         v = RyaToRdfConversions.convertValue(RyaContext.getInstance().deserialize(
                                 object));
@@ -388,8 +381,8 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                     currentSolutionBs.addBinding(sq.getCommonVarName(), v);
                     commonVarSet = true;
                 }
-                final RyaURI rURI = new RyaURI(new String(cqContent, StandardCharsets.UTF_8));
-                currentSolutionBs.addBinding(s, RyaToRdfConversions.convertValue(rURI));
+                final RyaIRI rIRI = new RyaIRI(new String(cqContent, StandardCharsets.UTF_8));
+                currentSolutionBs.addBinding(s, RyaToRdfConversions.convertValue(rIRI));
             } else {
                 throw new IllegalArgumentException("Invalid row.");
             }

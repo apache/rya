@@ -53,12 +53,12 @@ import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -231,10 +231,10 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
     }
 
     private static List<TripleRow> serializeStatement(final RyaStatement stmt) throws RyaTypeResolverException {
-        final RyaURI subject = stmt.getSubject();
-        final RyaURI predicate = stmt.getPredicate();
+        final RyaIRI subject = stmt.getSubject();
+        final RyaIRI predicate = stmt.getPredicate();
         final RyaType object = stmt.getObject();
-        final RyaURI context = stmt.getContext();
+        final RyaIRI context = stmt.getContext();
         final Long timestamp = stmt.getTimestamp();
         final byte[] columnVisibility = stmt.getColumnVisibility();
         final byte[] value = stmt.getValue();
@@ -292,19 +292,19 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
         final byte[] otherNodeData = Arrays.copyOf(otherNodeBytes,  split);
         final byte[] typeBytes = Arrays.copyOfRange(otherNodeBytes,  split, otherNodeBytes.length);
         byte[] objectBytes;
-        RyaURI subject;
-        final RyaURI predicate = new RyaURI(new String(predicateBytes, StandardCharsets.UTF_8));
+        RyaIRI subject;
+        final RyaIRI predicate = new RyaIRI(new String(predicateBytes, StandardCharsets.UTF_8));
         RyaType object;
-        RyaURI context = null;
+        RyaIRI context = null;
         // Expect either: entity=subject.data, otherNodeVar="object", otherNodeBytes={object.data, object.datatype}
         //            or: entity=object.data, otherNodeVar="subject", otherNodeBytes={subject.data, object.datatype}
         switch (otherNodeVar) {
             case SUBJECT:
-                subject = new RyaURI(new String(otherNodeData, StandardCharsets.UTF_8));
+                subject = new RyaIRI(new String(otherNodeData, StandardCharsets.UTF_8));
                 objectBytes = Bytes.concat(entityBytes, typeBytes);
                 break;
             case OBJECT:
-                subject = new RyaURI(new String(entityBytes, StandardCharsets.UTF_8));
+                subject = new RyaIRI(new String(entityBytes, StandardCharsets.UTF_8));
                 objectBytes = Bytes.concat(otherNodeData, typeBytes);
                 break;
             default:
@@ -313,7 +313,7 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
         }
         object = RyaContext.getInstance().deserialize(objectBytes);
         if (columnFamily != null && columnFamily.length > 0) {
-            context = new RyaURI(new String(columnFamily, StandardCharsets.UTF_8));
+            context = new RyaIRI(new String(columnFamily, StandardCharsets.UTF_8));
         }
         return new RyaStatement(subject, predicate, object, context,
                 null, columnVisibility, valueBytes, timestamp);
@@ -343,7 +343,7 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
         split = Bytes.indexOf(otherNodeBytes, TYPE_DELIM_BYTES);
         final byte[] typeBytes = Arrays.copyOfRange(otherNodeBytes,  split, otherNodeBytes.length);
         byte[] objectBytes;
-        RyaURI subject;
+        RyaIRI subject;
         RyaType object;
         RyaType type = null;
         switch (otherNodeVar) {
@@ -353,7 +353,7 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
                 type = object;
                 break;
             case OBJECT:
-                subject = new RyaURI(new String(entityBytes, StandardCharsets.UTF_8));
+                subject = new RyaIRI(new String(entityBytes, StandardCharsets.UTF_8));
                 type = subject;
                 break;
             default:
@@ -384,7 +384,7 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
     }
 
     @Override
-    public Set<URI> getIndexablePredicates() {
+    public Set<IRI> getIndexablePredicates() {
         return null;
     }
 }

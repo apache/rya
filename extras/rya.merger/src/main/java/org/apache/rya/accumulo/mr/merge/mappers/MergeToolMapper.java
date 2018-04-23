@@ -40,9 +40,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.log4j.Logger;
-
-import com.google.common.base.Charsets;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRdfConstants;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
@@ -60,6 +57,8 @@ import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
+
+import com.google.common.base.Charsets;
 
 /**
  * Reads from the Parent and Child tables comparing their the keys and adds or deletes the keys
@@ -116,7 +115,7 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
     /**
      * The result of comparing a child key and parent key which determines what should be done with them.
      */
-    private static enum CompareKeysResult {
+    private enum CompareKeysResult {
         /**
          * Indicates that the child iterator should move to the next key in the child
          * table in order to be compared to the current key in the parent table.
@@ -147,7 +146,7 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
         /**
          * Indicates that there are no more keys to compare in the child and parent tables.
          */
-        FINISHED;
+        FINISHED
     }
 
     /**

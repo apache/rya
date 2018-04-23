@@ -33,27 +33,28 @@ import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection.StoreTripleSource;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-
-import info.aduna.iteration.CloseableIteration;
 
 public class StatementPatternEvalTest {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private AccumuloRyaDAO dao;
     private AccumuloRdfConfiguration conf;
@@ -85,16 +86,16 @@ public class StatementPatternEvalTest {
         ParsedQuery pq = parser.parseQuery(query, null);
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
-        RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
-        RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
         dao.add(statement2);
         
-        RyaStatement statement3 = new RyaStatement(new RyaURI("uri:Eric"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context3"), "", new StatementMetadata());
+        RyaStatement statement3 = new RyaStatement(new RyaIRI("uri:Eric"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context3"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
@@ -109,16 +110,16 @@ public class StatementPatternEvalTest {
         Assert.assertEquals(3, bsList.size());
         
         QueryBindingSet expected1 = new QueryBindingSet();
-        expected1.addBinding("x", new URIImpl("uri:Joe"));
-        expected1.addBinding("c", new URIImpl("uri:context1"));
+        expected1.addBinding("x", VF.createIRI("uri:Joe"));
+        expected1.addBinding("c", VF.createIRI("uri:context1"));
 
         QueryBindingSet expected2 = new QueryBindingSet();
-        expected2.addBinding("x", new URIImpl("uri:Doug"));
-        expected2.addBinding("c", new URIImpl("uri:context2"));
+        expected2.addBinding("x", VF.createIRI("uri:Doug"));
+        expected2.addBinding("c", VF.createIRI("uri:context2"));
         
         QueryBindingSet expected3 = new QueryBindingSet();
-        expected3.addBinding("x", new URIImpl("uri:Eric"));
-        expected3.addBinding("c", new URIImpl("uri:context3"));
+        expected3.addBinding("x", VF.createIRI("uri:Eric"));
+        expected3.addBinding("c", VF.createIRI("uri:context3"));
         
         Set<BindingSet> expected = new HashSet<>(Arrays.asList(expected1, expected2, expected3));
         Set<BindingSet> actual = new HashSet<>(bsList);
@@ -136,23 +137,23 @@ public class StatementPatternEvalTest {
         ParsedQuery pq = parser.parseQuery(query, null);
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
-        RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
-        RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
         dao.add(statement2);
         
-        RyaStatement statement3 = new RyaStatement(new RyaURI("uri:Eric"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context3"), "", new StatementMetadata());
+        RyaStatement statement3 = new RyaStatement(new RyaIRI("uri:Eric"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context3"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
-        bsConstraint1.addBinding("c", new URIImpl("uri:context2"));
+        bsConstraint1.addBinding("c", VF.createIRI("uri:context2"));
         
         QueryBindingSet bsConstraint2 = new QueryBindingSet();
-        bsConstraint2.addBinding("c", new URIImpl("uri:context1"));
+        bsConstraint2.addBinding("c", VF.createIRI("uri:context1"));
 
         
         CloseableIteration<BindingSet, QueryEvaluationException> iteration = eval.evaluate(spList.get(0), Arrays.asList(bsConstraint1, bsConstraint2));
@@ -165,12 +166,12 @@ public class StatementPatternEvalTest {
         Assert.assertEquals(2, bsList.size());
         
         QueryBindingSet expected1 = new QueryBindingSet();
-        expected1.addBinding("x", new URIImpl("uri:Joe"));
-        expected1.addBinding("c", new URIImpl("uri:context1"));
+        expected1.addBinding("x", VF.createIRI("uri:Joe"));
+        expected1.addBinding("c", VF.createIRI("uri:context1"));
 
         QueryBindingSet expected2 = new QueryBindingSet();
-        expected2.addBinding("x", new URIImpl("uri:Doug"));
-        expected2.addBinding("c", new URIImpl("uri:context2"));
+        expected2.addBinding("x", VF.createIRI("uri:Doug"));
+        expected2.addBinding("c", VF.createIRI("uri:context2"));
         
         Set<BindingSet> expected = new HashSet<>(Arrays.asList(expected1, expected2));
         Set<BindingSet> actual = new HashSet<>(bsList);
@@ -190,23 +191,23 @@ public class StatementPatternEvalTest {
         ParsedQuery pq = parser.parseQuery(query, null);
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
-        RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
-        RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
         dao.add(statement2);
         
-        RyaStatement statement3 = new RyaStatement(new RyaURI("uri:Eric"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context3"), "", new StatementMetadata());
+        RyaStatement statement3 = new RyaStatement(new RyaIRI("uri:Eric"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context3"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
-        bsConstraint1.addBinding("c", new URIImpl("uri:context1"));
+        bsConstraint1.addBinding("c", VF.createIRI("uri:context1"));
         
         QueryBindingSet bsConstraint2 = new QueryBindingSet();
-        bsConstraint2.addBinding("c", new URIImpl("uri:context1"));
+        bsConstraint2.addBinding("c", VF.createIRI("uri:context1"));
 
         
         CloseableIteration<BindingSet, QueryEvaluationException> iteration = eval.evaluate(spList.get(0), Arrays.asList(bsConstraint1, bsConstraint2));
@@ -219,8 +220,8 @@ public class StatementPatternEvalTest {
         Assert.assertEquals(1, bsList.size());
         
         QueryBindingSet expected = new QueryBindingSet();
-        expected.addBinding("x", new URIImpl("uri:Joe"));
-        expected.addBinding("c", new URIImpl("uri:context1"));
+        expected.addBinding("x", VF.createIRI("uri:Joe"));
+        expected.addBinding("c", VF.createIRI("uri:context1"));
         
         Assert.assertEquals(expected, bsList.get(0));
 
@@ -236,16 +237,16 @@ public class StatementPatternEvalTest {
         ParsedQuery pq = parser.parseQuery(query, null);
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
-        RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
-        RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
         dao.add(statement2);
         
-        RyaStatement statement3 = new RyaStatement(new RyaURI("uri:Eric"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context3"), "", new StatementMetadata());
+        RyaStatement statement3 = new RyaStatement(new RyaIRI("uri:Eric"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context3"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
@@ -260,7 +261,7 @@ public class StatementPatternEvalTest {
         Assert.assertEquals(1, bsList.size());
        
         QueryBindingSet expected = new QueryBindingSet();
-        expected.addBinding("x", new URIImpl("uri:Joe"));
+        expected.addBinding("x", VF.createIRI("uri:Joe"));
         
         Assert.assertEquals(expected, bsList.get(0));
         
@@ -276,20 +277,20 @@ public class StatementPatternEvalTest {
         ParsedQuery pq = parser.parseQuery(query, null);
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
-        RyaStatement statement1 = new RyaStatement(new RyaURI("uri:Joe"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
-        RyaStatement statement2 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context1"), "", new StatementMetadata());
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement2);
         
-        RyaStatement statement3 = new RyaStatement(new RyaURI("uri:Doug"), new RyaURI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaURI("uri:context2"), "", new StatementMetadata());
+        RyaStatement statement3 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
+                new RyaType("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
-        bsConstraint1.addBinding("x", new URIImpl("uri:Doug"));
+        bsConstraint1.addBinding("x", VF.createIRI("uri:Doug"));
         
         CloseableIteration<BindingSet, QueryEvaluationException> iteration = eval.evaluate(spList.get(0), Arrays.asList(bsConstraint1));
 
@@ -301,7 +302,7 @@ public class StatementPatternEvalTest {
         Assert.assertEquals(1, bsList.size());
         
         QueryBindingSet expected = new QueryBindingSet();
-        expected.addBinding("x", new URIImpl("uri:Doug"));
+        expected.addBinding("x", VF.createIRI("uri:Doug"));
 
         Assert.assertEquals(expected, bsList.get(0));
         

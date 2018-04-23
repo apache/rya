@@ -26,11 +26,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Test;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 /**
  * Tests {@link SimpleExternalTupleSet}.

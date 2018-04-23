@@ -23,7 +23,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.Objects;
 
 import org.apache.http.annotation.Immutable;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 
 import com.google.common.collect.ImmutableSet;
@@ -51,12 +51,12 @@ public class Type {
     /**
      * Uniquely identifies the Type within a {@link TypeStorage}.
      */
-    private final RyaURI id;
+    private final RyaIRI id;
 
     /**
      * The names of {@link Property}s that may be part of an {@link TypedEntity} of this type.
      */
-    private final ImmutableSet<RyaURI> propertyNames;
+    private final ImmutableSet<RyaIRI> propertyNames;
 
     /**
      * Constructs an instance of {@link Type}.
@@ -64,7 +64,7 @@ public class Type {
      * @param id - Uniquely identifies the Type within a {@link TypeStorage}. (not null)
      * @param propertyNames - The names of {@link Property}s that may be part of an {@link TypedEntity} of this type. (not null)
      */
-    public Type(final RyaURI id, final ImmutableSet<RyaURI> propertyNames) {
+    public Type(final RyaIRI id, final ImmutableSet<RyaIRI> propertyNames) {
         this.id = requireNonNull(id);
         this.propertyNames = requireNonNull(propertyNames);
     }
@@ -72,14 +72,14 @@ public class Type {
     /**
      * @return Uniquely identifies the Type within a {@link TypeStorage}.
      */
-    public RyaURI getId() {
+    public RyaIRI getId() {
         return id;
     }
 
     /**
      * @return The names of {@link Property}s that may be part of an {@link TypedEntity} of this type.
      */
-    public ImmutableSet<RyaURI> getPropertyNames() {
+    public ImmutableSet<RyaIRI> getPropertyNames() {
         return propertyNames;
     }
 

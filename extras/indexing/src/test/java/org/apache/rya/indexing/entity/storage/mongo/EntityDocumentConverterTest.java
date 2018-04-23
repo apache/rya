@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,13 +21,13 @@ package org.apache.rya.indexing.entity.storage.mongo;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.storage.mongo.DocumentConverter.DocumentConverterException;
 import org.bson.Document;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Test;
-import org.openrdf.model.vocabulary.XMLSchema;
 
 /**
  * Tests the methods of {@link EntityDocumentConverter}.
@@ -38,14 +38,14 @@ public class EntityDocumentConverterTest {
     public void to_and_from_document() throws DocumentConverterException {
         // Convert an Entity into a Document.
         final Entity entity = Entity.builder()
-                .setSubject(new RyaURI("urn:alice"))
+                .setSubject(new RyaIRI("urn:alice"))
                 // Add some explicily typed properties.
-                .setExplicitType(new RyaURI("urn:person"))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")))
-                .setProperty(new RyaURI("urn:person"), new Property(new RyaURI("urn:eye"), new RyaType("blue")))
+                .setExplicitType(new RyaIRI("urn:person"))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:age"), new RyaType(XMLSchema.INT, "30")))
+                .setProperty(new RyaIRI("urn:person"), new Property(new RyaIRI("urn:eye"), new RyaType("blue")))
                 // Add some implicitly typed properties.
-                .setProperty(new RyaURI("urn:employee"), new Property(new RyaURI("urn:hours"), new RyaType(XMLSchema.INT, "40")))
-                .setProperty(new RyaURI("urn:employee"), new Property(new RyaURI("urn:employer"), new RyaType("Burger Joint")))
+                .setProperty(new RyaIRI("urn:employee"), new Property(new RyaIRI("urn:hours"), new RyaType(XMLSchema.INT, "40")))
+                .setProperty(new RyaIRI("urn:employee"), new Property(new RyaIRI("urn:employer"), new RyaType("Burger Joint")))
                 .build();
 
         final Document document = new EntityDocumentConverter().toDocument(entity);

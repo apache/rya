@@ -18,9 +18,10 @@
  */
 package org.apache.rya.streams.api.queries;
 
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * An ordered log of all of the changes that have been applied to the SPARQL Queries that are managed by Rya Streams.

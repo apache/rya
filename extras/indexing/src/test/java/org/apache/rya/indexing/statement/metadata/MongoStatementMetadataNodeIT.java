@@ -25,29 +25,30 @@ import java.util.Set;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataNode;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
 import org.apache.rya.mongodb.MongoITBase;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-
-import info.aduna.iteration.CloseableIteration;
 
 public class MongoStatementMetadataNodeIT extends MongoITBase {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
     private final String query = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotation; ano:Source <http://Joe>; "
             + "ano:Property <http://worksAt>; ano:Target ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }";
     private final String query2 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotation; ano:Source ?x; "
@@ -55,7 +56,7 @@ public class MongoStatementMetadataNodeIT extends MongoITBase {
 
     @Before
     public void init() throws Exception {
-        final Set<RyaURI> propertySet = new HashSet<RyaURI>(Arrays.asList(new RyaURI("http://createdBy"), new RyaURI("http://createdOn")));
+        final Set<RyaIRI> propertySet = new HashSet<RyaIRI>(Arrays.asList(new RyaIRI("http://createdBy"), new RyaIRI("http://createdOn")));
         conf.setUseStatementMetadata(true);
         conf.setStatementMetadataProperties(propertySet);
     }
@@ -67,11 +68,11 @@ public class MongoStatementMetadataNodeIT extends MongoITBase {
             dao.setConf(conf);
             dao.init();
             StatementMetadata metadata = new StatementMetadata();
-            metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-            metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+            metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaType("Joe"));
+            metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-            RyaStatement statement = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                    new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
+            RyaStatement statement = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                    new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
             dao.add(statement);
 
             SPARQLParser parser = new SPARQLParser();
@@ -82,8 +83,8 @@ public class MongoStatementMetadataNodeIT extends MongoITBase {
             CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(new QueryBindingSet());
 
             QueryBindingSet bs = new QueryBindingSet();
-            bs.addBinding("x", new LiteralImpl("CoffeeShop"));
-            bs.addBinding("y", new LiteralImpl("Joe"));
+            bs.addBinding("x", VF.createLiteral("CoffeeShop"));
+            bs.addBinding("y", VF.createLiteral("Joe"));
 
             List<BindingSet> bsList = new ArrayList<>();
             while (iteration.hasNext()) {
@@ -111,11 +112,11 @@ public class MongoStatementMetadataNodeIT extends MongoITBase {
             dao.init();	
 
             StatementMetadata metadata = new StatementMetadata();
-            metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Doug"));
-            metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-15"));
+            metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaType("Doug"));
+            metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-15"));
 
-            RyaStatement statement = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                    new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
+            RyaStatement statement = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                    new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
             dao.add(statement);
 
             SPARQLParser parser = new SPARQLParser();
@@ -142,13 +143,13 @@ public class MongoStatementMetadataNodeIT extends MongoITBase {
             dao.setConf(conf);
             dao.init();
             StatementMetadata metadata = new StatementMetadata();
-            metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-            metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+            metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaType("Joe"));
+            metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-            RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                    new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
-            RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                    new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata);
+            RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                    new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
+            RyaStatement statement2 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                    new RyaType("HardwareStore"), new RyaIRI("http://context"), "", metadata);
             dao.add(statement1);
             dao.add(statement2);
 
@@ -158,15 +159,15 @@ public class MongoStatementMetadataNodeIT extends MongoITBase {
             StatementMetadataNode<MongoDBRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
 
             QueryBindingSet bsConstraint = new QueryBindingSet();
-            bsConstraint.addBinding("x", new LiteralImpl("CoffeeShop"));
-            bsConstraint.addBinding("z", new LiteralImpl("Virginia"));
+            bsConstraint.addBinding("x", VF.createLiteral("CoffeeShop"));
+            bsConstraint.addBinding("z", VF.createLiteral("Virginia"));
 
             CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsConstraint);
 
             QueryBindingSet expected = new QueryBindingSet();
-            expected.addBinding("x", new LiteralImpl("CoffeeShop"));
-            expected.addBinding("y", new LiteralImpl("Joe"));
-            expected.addBinding("z", new LiteralImpl("Virginia"));
+            expected.addBinding("x", VF.createLiteral("CoffeeShop"));
+            expected.addBinding("y", VF.createLiteral("Joe"));
+            expected.addBinding("z", VF.createLiteral("Virginia"));
 
             List<BindingSet> bsList = new ArrayList<>();
             while (iteration.hasNext()) {
@@ -199,13 +200,13 @@ public class MongoStatementMetadataNodeIT extends MongoITBase {
             dao.setConf(conf);
             dao.init();
             StatementMetadata metadata = new StatementMetadata();
-            metadata.addMetadata(new RyaURI("http://createdBy"), new RyaURI("http://Joe"));
-            metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+            metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaIRI("http://Joe"));
+            metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-            RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                    new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
-            RyaStatement statement2 = new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://worksAt"),
-                    new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata);
+            RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                    new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
+            RyaStatement statement2 = new RyaStatement(new RyaIRI("http://Bob"), new RyaIRI("http://worksAt"),
+                    new RyaType("HardwareStore"), new RyaIRI("http://context"), "", metadata);
             dao.add(statement1);
             dao.add(statement2);
 
@@ -216,21 +217,21 @@ public class MongoStatementMetadataNodeIT extends MongoITBase {
 
             List<BindingSet> bsCollection = new ArrayList<>();
             QueryBindingSet bsConstraint1 = new QueryBindingSet();
-            bsConstraint1.addBinding("y", new LiteralImpl("CoffeeShop"));
-            bsConstraint1.addBinding("z", new LiteralImpl("Virginia"));
+            bsConstraint1.addBinding("y", VF.createLiteral("CoffeeShop"));
+            bsConstraint1.addBinding("z", VF.createLiteral("Virginia"));
 
             QueryBindingSet bsConstraint2 = new QueryBindingSet();
-            bsConstraint2.addBinding("y", new LiteralImpl("HardwareStore"));
-            bsConstraint2.addBinding("z", new LiteralImpl("Maryland"));
+            bsConstraint2.addBinding("y", VF.createLiteral("HardwareStore"));
+            bsConstraint2.addBinding("z", VF.createLiteral("Maryland"));
             bsCollection.add(bsConstraint1);
             bsCollection.add(bsConstraint2);
 
             CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsCollection);
 
             QueryBindingSet expected = new QueryBindingSet();
-            expected.addBinding("y", new LiteralImpl("CoffeeShop"));
-            expected.addBinding("x", new URIImpl("http://Joe"));
-            expected.addBinding("z", new LiteralImpl("Virginia"));
+            expected.addBinding("y", VF.createLiteral("CoffeeShop"));
+            expected.addBinding("x", VF.createIRI("http://Joe"));
+            expected.addBinding("z", VF.createLiteral("Virginia"));
 
             List<BindingSet> bsList = new ArrayList<>();
             while (iteration.hasNext()) {
@@ -262,11 +263,11 @@ public class MongoStatementMetadataNodeIT extends MongoITBase {
             dao.setConf(conf);
             dao.init();
             StatementMetadata metadata = new StatementMetadata();
-            metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-            metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+            metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaType("Joe"));
+            metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-            RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                    new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
+            RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                    new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
             dao.add(statement1);
 
             SPARQLParser parser = new SPARQLParser();
@@ -275,8 +276,8 @@ public class MongoStatementMetadataNodeIT extends MongoITBase {
             StatementMetadataNode<MongoDBRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
 
             QueryBindingSet bsConstraint = new QueryBindingSet();
-            bsConstraint.addBinding("x", new LiteralImpl("CoffeeShop"));
-            bsConstraint.addBinding("y", new LiteralImpl("Doug"));
+            bsConstraint.addBinding("x", VF.createLiteral("CoffeeShop"));
+            bsConstraint.addBinding("y", VF.createLiteral("Doug"));
 
             CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsConstraint);
 
@@ -306,13 +307,13 @@ public class MongoStatementMetadataNodeIT extends MongoITBase {
             dao.setConf(conf);
             dao.init();
             StatementMetadata metadata = new StatementMetadata();
-            metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
-            metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+            metadata.addMetadata(new RyaIRI("http://createdBy"), new RyaType("Joe"));
+            metadata.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
 
-            RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                    new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata);
-            RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                    new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata);
+            RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                    new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
+            RyaStatement statement2 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                    new RyaType("HardwareStore"), new RyaIRI("http://context"), "", metadata);
             dao.add(statement1);
             dao.add(statement2);
 
@@ -323,16 +324,16 @@ public class MongoStatementMetadataNodeIT extends MongoITBase {
 
             List<BindingSet> bsCollection = new ArrayList<>();
             QueryBindingSet bsConstraint1 = new QueryBindingSet();
-            bsConstraint1.addBinding("x", new LiteralImpl("CoffeeShop"));
-            bsConstraint1.addBinding("z", new LiteralImpl("Virginia"));
+            bsConstraint1.addBinding("x", VF.createLiteral("CoffeeShop"));
+            bsConstraint1.addBinding("z", VF.createLiteral("Virginia"));
 
             QueryBindingSet bsConstraint2 = new QueryBindingSet();
-            bsConstraint2.addBinding("x", new LiteralImpl("HardwareStore"));
-            bsConstraint2.addBinding("z", new LiteralImpl("Maryland"));
+            bsConstraint2.addBinding("x", VF.createLiteral("HardwareStore"));
+            bsConstraint2.addBinding("z", VF.createLiteral("Maryland"));
 
             QueryBindingSet bsConstraint3 = new QueryBindingSet();
-            bsConstraint3.addBinding("x", new LiteralImpl("BurgerShack"));
-            bsConstraint3.addBinding("z", new LiteralImpl("Delaware"));
+            bsConstraint3.addBinding("x", VF.createLiteral("BurgerShack"));
+            bsConstraint3.addBinding("z", VF.createLiteral("Delaware"));
             bsCollection.add(bsConstraint1);
             bsCollection.add(bsConstraint2);
             bsCollection.add(bsConstraint3);
@@ -341,14 +342,14 @@ public class MongoStatementMetadataNodeIT extends MongoITBase {
 
             Set<BindingSet> expected = new HashSet<>();
             QueryBindingSet expected1 = new QueryBindingSet();
-            expected1.addBinding("x", new LiteralImpl("CoffeeShop"));
-            expected1.addBinding("y", new LiteralImpl("Joe"));
-            expected1.addBinding("z", new LiteralImpl("Virginia"));
+            expected1.addBinding("x", VF.createLiteral("CoffeeShop"));
+            expected1.addBinding("y", VF.createLiteral("Joe"));
+            expected1.addBinding("z", VF.createLiteral("Virginia"));
 
             QueryBindingSet expected2 = new QueryBindingSet();
-            expected2.addBinding("x", new LiteralImpl("HardwareStore"));
-            expected2.addBinding("y", new LiteralImpl("Joe"));
-            expected2.addBinding("z", new LiteralImpl("Maryland"));
+            expected2.addBinding("x", VF.createLiteral("HardwareStore"));
+            expected2.addBinding("y", VF.createLiteral("Joe"));
+            expected2.addBinding("z", VF.createLiteral("Maryland"));
             expected.add(expected1);
             expected.add(expected2);
 

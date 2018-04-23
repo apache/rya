@@ -20,7 +20,7 @@ package org.apache.rya.indexing.entity.storage.mongo;
 
 import static org.junit.Assert.assertEquals;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.storage.mongo.DocumentConverter.DocumentConverterException;
 import org.bson.Document;
@@ -37,11 +37,11 @@ public class TypeDocumentConverterTest {
     @Test
     public void toDocument() {
         // Convert a Type into a Document.
-        final Type type = new Type(new RyaURI("urn:icecream"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:brand"))
-                    .add(new RyaURI("urn:flavor"))
-                    .add(new RyaURI("urn:cost"))
+        final Type type = new Type(new RyaIRI("urn:icecream"),
+                ImmutableSet.<RyaIRI>builder()
+                    .add(new RyaIRI("urn:brand"))
+                    .add(new RyaIRI("urn:flavor"))
+                    .add(new RyaIRI("urn:cost"))
                     .build());
         final Document document = new TypeDocumentConverter().toDocument(type);
 
@@ -61,11 +61,11 @@ public class TypeDocumentConverterTest {
         final Type type = new TypeDocumentConverter().fromDocument(document);
 
         // Show the converted value has the expected structure.
-        final Type expected = new Type(new RyaURI("urn:icecream"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:brand"))
-                    .add(new RyaURI("urn:flavor"))
-                    .add(new RyaURI("urn:cost"))
+        final Type expected = new Type(new RyaIRI("urn:icecream"),
+                ImmutableSet.<RyaIRI>builder()
+                    .add(new RyaIRI("urn:brand"))
+                    .add(new RyaIRI("urn:flavor"))
+                    .add(new RyaIRI("urn:cost"))
                     .build());
         assertEquals(expected, type);
     }

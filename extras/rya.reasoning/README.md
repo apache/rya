@@ -331,10 +331,10 @@ to generate new triples and check for inconsistencies, and add any new triples
 to the set of known triples for the next iteration, until there are no new
 triples or inconsistencies generated.
 
-Reasoning is distributed according to URI: Mappers read in triples from Accumulo
+Reasoning is distributed according to IRI: Mappers read in triples from Accumulo
 and from previous iterations, and partition triples according to their subject
-and object. Reducers perform reasoning around one URI at a time, receiving as
-input only triples involving that URI. This enables us to use MapReduce, but
+and object. Reducers perform reasoning around one IRI at a time, receiving as
+input only triples involving that IRI. This enables us to use MapReduce, but
 requires making several passes through the data in cases where information
 needs to be propagated several steps through the graph (for example, with
 transitivity).
@@ -380,8 +380,8 @@ Together, this yields the following MapReduce jobs and workflow:
             `(:c :d :e)` are relevant to the reducer for `:c`, then
             `<:c, (:a :b :c)>`  will be received before `<:c, (:c :d :e)>`.)
             This allows joins to use less memory than they would otherwise need.
-        * Reduce: Receives a series of triples involving a single URI. Creates a
-            LocalReasoner object for that URI, which combines those triples with
+        * Reduce: Receives a series of triples involving a single IRI. Creates a
+            LocalReasoner object for that IRI, which combines those triples with
             the schema knowledge to apply inference rules. Outputs newly generated
             triples and/or inconsistencies to files.
     2. **DuplicateElimination**
@@ -668,14 +668,14 @@ processType(fact):
 The main reasoning logic is located in **org.apache.rya.reasoning**, while MapReduce
 tools and utilities for interacting with Accumulo are located in
 **org.apache.rya.reasoning.mr**. Reasoning logic makes use of RDF constructs in the
-**org.openrdf.model** API, in particular: Statement, URI, Resource, and Value.
+**org.eclipse.rdf4j.model** API, in particular: Statement, IRI, Resource, and Value.
 
 ### org.apache.rya.reasoning
 
 - **OWL2**:
-    In general, the Sesame/openrdf API is used to represent RDF constructs and
+    In general, the RDF4J API is used to represent RDF constructs and
     refer to the RDF, RDFS, and OWL vocabularies. However, the API only covers
-    OWL 1 constructs. The OWL2 class contains static URIs for new OWL 2
+    OWL 1 constructs. The OWL2 class contains static IRIs for new OWL 2
     vocabulary resources: owl:IrreflexiveProperty, owl:propertyDisjointWith,
     etc.
 
@@ -685,7 +685,7 @@ tools and utilities for interacting with Accumulo are located in
 - **Schema**:
     Schema represents the complete schema/TBox/RBox as a set of Java objects.
     A schema consists of properties, classes, and their relationships.  The
-    Schema object maps URIs to instances of OwlProperty and Resources to
+    Schema object maps IRIs to instances of OwlProperty and Resources to
     instances of OwlClass.
 
     The schema is built one triple at a time: the Schema takes in a single
@@ -702,7 +702,7 @@ tools and utilities for interacting with Accumulo are located in
 
     Once the schema has been constructed, it can be used in reasoning. The
     Schema object serves as a repository for OwlClass and OwlProperty objects,
-    accessed by their URIs (or Resources), which in turn contain detailed schema
+    accessed by their IRIs (or Resources), which in turn contain detailed schema
     information about themselves.
 
     The Schema class also provides static method isSchemaTriple for checking
@@ -710,8 +710,8 @@ tools and utilities for interacting with Accumulo are located in
 
 - An **OwlProperty** or **OwlClass** represents a property or a class, respectively.
     Each object holds a reference to the RDF entity that identifies it (using to
-    the openrdf api): a URI for each OwlProperty, and a Resource for each class
-    (because a class is more general; it can be a URI or a bnode).
+    the RDF4J api): an IRI for each OwlProperty, and a Resource for each class
+    (because a class is more general; it can be an IRI or a bnode).
 
     Both maintain connections to other schema constructs, according to the
     relevant schema connections that can be made for each type. In general,
@@ -719,7 +719,7 @@ tools and utilities for interacting with Accumulo are located in
     Internally, they are represented as sets of those entities they are
     connected to, one set for each type of relationship. (For example, each
     OwlClass contains a set of its superclasses.) These are accessed via getter
-    methods that return sets of URIs or Resources, as appropriate. Both also
+    methods that return sets of IRIs or Resources, as appropriate. Both also
     apply some RL schema rules. Some rules are applied by the getter
     methods (for example, every class being its own subclass), while others must
     be explicitly invoked by the Schema (for example, determining that one
@@ -850,7 +850,7 @@ output/input, takes in `<Fact, NullWritable>` or `<Derivation, NullWritable>`).
     jobs (using those parameters).
 
 - **ResourceWritable**:
-    WritableComparable wrapper for org.openrdf.model.Resource, so it can be used as
+    WritableComparable wrapper for org.eclipse.rdf4j.model.Resource, so it can be used as
     a key/value in MapReduce tasks. Also contains an integer field to enable
     arbitrary secondary sort. Provides static classes **PrimaryComparator** to use
     the Resource alone, and **SecondaryComparator** to use resource followed by key.

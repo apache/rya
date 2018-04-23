@@ -19,14 +19,11 @@ package org.apache.rya.rdftriplestore.evaluation;
  * under the License.
  */
 
-
-
-import info.aduna.iteration.CloseableIteration;
-
 import java.util.Collection;
 
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 public interface ExternalBatchingIterator {
     public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(Collection<BindingSet> bindingset) throws QueryEvaluationException;

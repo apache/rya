@@ -88,8 +88,8 @@ public abstract class RdfCloudTripleStoreConfigurationBuilder<B extends RdfCloud
      *            - visibilities assigned to any triples inserted into Rya
      * @return B - concrete builder class for chaining method invocations
      */
-    public B setVisibilities(String visibilites) {
-        this.visibilities = visibilites;
+    public B setVisibilities(String visibilities) {
+        this.visibilities = visibilities;
         return confBuilder();
     }
 

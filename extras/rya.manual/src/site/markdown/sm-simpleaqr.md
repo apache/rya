@@ -53,9 +53,9 @@ RepositoryConnection conn = myRepository.getConnection();
 
 //define and add statement
 String litdupsNS = "urn:test:litdups#";
-URI cpu = vf.createURI(litdupsNS, "cpu");
-URI loadPerc = vf.createURI(litdupsNS, "loadPerc");
-URI uri1 = vf.createURI(litdupsNS, "uri1");
+IRI cpu = vf.createIRI(litdupsNS, "cpu");
+IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
+IRI uri1 = vf.createIRI(litdupsNS, "uri1");
 conn.add(cpu, loadPerc, uri1);
 conn.commit();
 

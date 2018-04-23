@@ -27,11 +27,11 @@ under the License.
     <bean id="controller" class="org.apache.cloud.rdf.web.sail.RdfController">
     </bean>
 
-    <bean id="repository" class="org.openrdf.repository.sail.SailRepository" init-method="initialize">
+    <bean id="repository" class="org.eclipse.rdf4j.repository.sail.SailRepository" init-method="initialize">
         <constructor-arg ref="memoryStore"/>
     </bean>
 
-    <bean id="memoryStore" class="org.openrdf.sail.memory.MemoryStore">
+    <bean id="memoryStore" class="org.eclipse.rdf4j.sail.memory.MemoryStore">
         <property name="persist" value="false"/>
     </bean>
     

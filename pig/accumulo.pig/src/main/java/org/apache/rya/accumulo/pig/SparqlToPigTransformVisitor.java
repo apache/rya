@@ -18,16 +18,25 @@ package org.apache.rya.accumulo.pig;
  * specific language governing permissions and limitations
  * under the License.
  */
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-
-
-import org.openrdf.model.Literal;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.query.algebra.*;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-
-import java.util.*;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.ProjectionElemList;
+import org.eclipse.rdf4j.query.algebra.Slice;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Union;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 /**
  * Created by IntelliJ IDEA.
@@ -35,7 +44,7 @@ import java.util.*;
  * Time: 10:17 AM
  * To change this template use File | Settings | File Templates.
  */
-public class SparqlToPigTransformVisitor extends QueryModelVisitorBase<RuntimeException> {
+public class SparqlToPigTransformVisitor extends AbstractQueryModelVisitor<RuntimeException> {
     private StringBuilder pigScriptBuilder = new StringBuilder();
     private String tablePrefix;
     private String instance, zk, user, password; //TODO: use a Configuration object to get these
@@ -328,7 +337,7 @@ public class SparqlToPigTransformVisitor extends QueryModelVisitorBase<RuntimeEx
             if (value == null) {
                 return "";
             }
-            if (value instanceof URI) {
+            if (value instanceof IRI) {
                 return "<" + value.stringValue() + ">";
             }
             if (value instanceof Literal) {

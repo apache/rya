@@ -27,15 +27,15 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.rya.api.model.VisibilityBindingSet;
-import org.openrdf.model.BNode;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.BNodeGenerator;
-import org.openrdf.query.algebra.Extension;
-import org.openrdf.query.algebra.ExtensionElem;
-import org.openrdf.query.algebra.MultiProjection;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.BNodeGenerator;
+import org.eclipse.rdf4j.query.algebra.Extension;
+import org.eclipse.rdf4j.query.algebra.ExtensionElem;
+import org.eclipse.rdf4j.query.algebra.MultiProjection;
+import org.eclipse.rdf4j.query.algebra.ProjectionElemList;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -48,7 +48,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 @DefaultAnnotation(NonNull.class)
 public class MultiProjectionEvaluator {
 
-    private final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private final Set<ProjectionEvaluator> projections;
     private final Set<String> blankNodeSourceNames;
@@ -116,7 +116,7 @@ public class MultiProjectionEvaluator {
         // Generate an ID for each blank node that will appear in the results.
         final Map<String, BNode> blankNodes = new HashMap<>();
         for(final String blankNodeSourceName : blankNodeSourceNames) {
-            blankNodes.put(blankNodeSourceName, vf.createBNode(bNodeIdFactory.nextId()));
+            blankNodes.put(blankNodeSourceName, VF.createBNode(bNodeIdFactory.nextId()));
         }
 
         // Iterate through each of the projections and create the results from them.

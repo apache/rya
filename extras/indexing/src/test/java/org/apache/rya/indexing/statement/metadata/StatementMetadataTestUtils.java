@@ -17,28 +17,29 @@ package org.apache.rya.indexing.statement.metadata;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.statement.metadata.matching.OWLReify;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 public class StatementMetadataTestUtils {
 
-    private static final List<RyaURI> uriList = Arrays.asList(new RyaURI(RDF.TYPE.toString()),
-            new RyaURI(OWLReify.SOURCE.toString()), new RyaURI(OWLReify.PROPERTY.toString()),
-            new RyaURI(OWLReify.TARGET.toString()));
+    private static final List<RyaIRI> uriList = Arrays.asList(new RyaIRI(RDF.TYPE.toString()),
+            new RyaIRI(OWLReify.SOURCE.toString()), new RyaIRI(OWLReify.PROPERTY.toString()),
+            new RyaIRI(OWLReify.TARGET.toString()));
 
     public static Set<QueryModelNode> getMetadataNodes(TupleExpr query) {
         MetadataNodeCollector collector = new MetadataNodeCollector();
@@ -46,7 +47,7 @@ public class StatementMetadataTestUtils {
         return collector.getNodes();
     }
 
-    public static class MetadataNodeCollector extends QueryModelVisitorBase<RuntimeException> {
+    public static class MetadataNodeCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
         Set<QueryModelNode> qNodes = new HashSet<>();
 
@@ -63,19 +64,19 @@ public class StatementMetadataTestUtils {
         }
     }
 
-    public static Set<StatementPattern> getMetadataStatementPatterns(TupleExpr te, Set<RyaURI> properties) {
+    public static Set<StatementPattern> getMetadataStatementPatterns(TupleExpr te, Set<RyaIRI> properties) {
         MetadataStatementPatternCollector collector = new MetadataStatementPatternCollector(properties);
         te.visit(collector);
         return collector.getNodes();
 
     }
 
-    public static class MetadataStatementPatternCollector extends QueryModelVisitorBase<RuntimeException> {
+    public static class MetadataStatementPatternCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
         private Set<StatementPattern> nodes;
-        private Set<RyaURI> properties;
+        private Set<RyaIRI> properties;
 
-        public MetadataStatementPatternCollector(Set<RyaURI> properties) {
+        public MetadataStatementPatternCollector(Set<RyaIRI> properties) {
             this.properties = properties;
             nodes = new HashSet<>();
         }
@@ -84,8 +85,8 @@ public class StatementMetadataTestUtils {
         public void meet(StatementPattern node) {
             Var predicate = node.getPredicateVar();
             Value val = predicate.getValue();
-            if (val != null && val instanceof URI) {
-                RyaURI ryaVal = new RyaURI(val.stringValue());
+            if (val != null && val instanceof IRI) {
+                RyaIRI ryaVal = new RyaIRI(val.stringValue());
                 if (uriList.contains(ryaVal) || properties.contains(ryaVal)) {
                     nodes.add(node);
                 }

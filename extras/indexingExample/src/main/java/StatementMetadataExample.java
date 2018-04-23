@@ -23,7 +23,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
 import org.apache.accumulo.core.client.Connector;
 import org.apache.commons.lang3.Validate;
 import org.apache.hadoop.conf.Configuration;
@@ -35,28 +34,29 @@ import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataNode;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataOptimizer;
 import org.apache.rya.sail.config.RyaSailFactory;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.QueryResultHandlerException;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResultHandler;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailException;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryResultHandlerException;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandler;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.Sail;
+import org.eclipse.rdf4j.sail.SailException;
 
 public class StatementMetadataExample {
 
@@ -111,25 +111,25 @@ public class StatementMetadataExample {
                 + "_:blankNode <http://createdOn> ?z }\n";
 
         StatementMetadata metadata1 = new StatementMetadata();
-        metadata1.addMetadata(new RyaURI("http://createdBy"), new RyaURI("http://Dave"));
-        metadata1.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-02"));
+        metadata1.addMetadata(new RyaIRI("http://createdBy"), new RyaIRI("http://Dave"));
+        metadata1.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-02"));
 
-        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata1);
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata1);
 
         StatementMetadata metadata2 = new StatementMetadata();
-        metadata2.addMetadata(new RyaURI("http://createdBy"), new RyaURI("http://Dave"));
-        metadata2.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-04"));
+        metadata2.addMetadata(new RyaIRI("http://createdBy"), new RyaIRI("http://Dave"));
+        metadata2.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-04"));
 
-        RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata2);
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("HardwareStore"), new RyaIRI("http://context"), "", metadata2);
 
         StatementMetadata metadata3 = new StatementMetadata();
-        metadata3.addMetadata(new RyaURI("http://createdBy"), new RyaURI("http://Fred"));
-        metadata3.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-03-08"));
+        metadata3.addMetadata(new RyaIRI("http://createdBy"), new RyaIRI("http://Fred"));
+        metadata3.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-03-08"));
 
-        RyaStatement statement3 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("Library"), new RyaURI("http://context"), "", metadata3);
+        RyaStatement statement3 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("Library"), new RyaIRI("http://context"), "", metadata3);
 
         // add statements for querying
         dao.add(statement1);
@@ -176,12 +176,12 @@ public class StatementMetadataExample {
                 + "_:blankNode <http://hasTimeStamp> ?y }\n";
 
         StatementMetadata metadata = new StatementMetadata();
-        metadata.addMetadata(new RyaURI("http://hasTimeStamp"), new RyaType(XMLSchema.TIME, "09:30:10.5"));
+        metadata.addMetadata(new RyaIRI("http://hasTimeStamp"), new RyaType(XMLSchema.TIME, "09:30:10.5"));
 
-        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Doug"), new RyaURI("http://travelsTo"),
-                new RyaURI("http://NewMexico"), new RyaURI("http://context"), "", metadata);
-        RyaStatement statement2 = new RyaStatement(new RyaURI("http://NewMexico"), new RyaURI("http://locatedWithin"),
-                new RyaType("http://UnitedStates"), new RyaURI("http://context"), "", new StatementMetadata());
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Doug"), new RyaIRI("http://travelsTo"),
+                new RyaIRI("http://NewMexico"), new RyaIRI("http://context"), "", metadata);
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("http://NewMexico"), new RyaIRI("http://locatedWithin"),
+                new RyaType("http://UnitedStates"), new RyaIRI("http://context"), "", new StatementMetadata());
 
         // add statements for querying
         dao.add(statement1);
@@ -223,25 +223,25 @@ public class StatementMetadataExample {
                 + "_:blankNode <http://createdOn> '2017-02-04'^^xsd:date }\n";
 
         StatementMetadata metadata1 = new StatementMetadata();
-        metadata1.addMetadata(new RyaURI("http://createdBy"), new RyaURI("http://Dave"));
-        metadata1.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-02"));
+        metadata1.addMetadata(new RyaIRI("http://createdBy"), new RyaIRI("http://Dave"));
+        metadata1.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-02"));
 
-        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata1);
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata1);
 
         StatementMetadata metadata2 = new StatementMetadata();
-        metadata2.addMetadata(new RyaURI("http://createdBy"), new RyaURI("http://Dave"));
-        metadata2.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-04"));
+        metadata2.addMetadata(new RyaIRI("http://createdBy"), new RyaIRI("http://Dave"));
+        metadata2.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-04"));
 
-        RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata2);
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("HardwareStore"), new RyaIRI("http://context"), "", metadata2);
 
         StatementMetadata metadata3 = new StatementMetadata();
-        metadata3.addMetadata(new RyaURI("http://createdBy"), new RyaURI("http://Fred"));
-        metadata3.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-03-08"));
+        metadata3.addMetadata(new RyaIRI("http://createdBy"), new RyaIRI("http://Fred"));
+        metadata3.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-03-08"));
 
-        RyaStatement statement3 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("Library"), new RyaURI("http://context"), "", metadata3);
+        RyaStatement statement3 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("Library"), new RyaIRI("http://context"), "", metadata3);
 
         // add statements for querying
         dao.add(statement1);
@@ -293,32 +293,32 @@ public class StatementMetadataExample {
                 + "_:blankNode2 <http://createdOn> ?a }\n";
 
         StatementMetadata metadata1 = new StatementMetadata();
-        metadata1.addMetadata(new RyaURI("http://createdBy"), new RyaURI("http://Dave"));
-        metadata1.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-02"));
+        metadata1.addMetadata(new RyaIRI("http://createdBy"), new RyaIRI("http://Dave"));
+        metadata1.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-02"));
 
-        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("CoffeeShop"), new RyaURI("http://context"), "", metadata1);
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata1);
 
         StatementMetadata metadata2 = new StatementMetadata();
-        metadata2.addMetadata(new RyaURI("http://createdBy"), new RyaURI("http://Dave"));
-        metadata2.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-04"));
+        metadata2.addMetadata(new RyaIRI("http://createdBy"), new RyaIRI("http://Dave"));
+        metadata2.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-04"));
 
-        RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata2);
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("HardwareStore"), new RyaIRI("http://context"), "", metadata2);
 
         StatementMetadata metadata3 = new StatementMetadata();
-        metadata3.addMetadata(new RyaURI("http://createdBy"), new RyaURI("http://Fred"));
-        metadata3.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-03-08"));
+        metadata3.addMetadata(new RyaIRI("http://createdBy"), new RyaIRI("http://Fred"));
+        metadata3.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-03-08"));
 
-        RyaStatement statement3 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-                new RyaType("Library"), new RyaURI("http://context"), "", metadata3);
+        RyaStatement statement3 = new RyaStatement(new RyaIRI("http://Joe"), new RyaIRI("http://worksAt"),
+                new RyaType("Library"), new RyaIRI("http://context"), "", metadata3);
         
         StatementMetadata metadata4 = new StatementMetadata();
-        metadata4.addMetadata(new RyaURI("http://createdBy"), new RyaURI("http://Dave"));
-        metadata4.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-04-16"));
+        metadata4.addMetadata(new RyaIRI("http://createdBy"), new RyaIRI("http://Dave"));
+        metadata4.addMetadata(new RyaIRI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-04-16"));
 
-        RyaStatement statement4 = new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://worksAt"),
-                new RyaType("HardwareStore"), new RyaURI("http://context"), "", metadata4);
+        RyaStatement statement4 = new RyaStatement(new RyaIRI("http://Bob"), new RyaIRI("http://worksAt"),
+                new RyaType("HardwareStore"), new RyaIRI("http://context"), "", metadata4);
 
         // add statements for querying
         dao.add(statement1);
@@ -351,8 +351,8 @@ public class StatementMetadataExample {
     private static AccumuloRdfConfiguration getConf() {
 
         AccumuloRdfConfiguration conf;
-        Set<RyaURI> propertySet = new HashSet<RyaURI>(Arrays.asList(new RyaURI("http://createdBy"),
-                new RyaURI("http://createdOn"), new RyaURI("http://hasTimeStamp")));
+        Set<RyaIRI> propertySet = new HashSet<RyaIRI>(Arrays.asList(new RyaIRI("http://createdBy"),
+                new RyaIRI("http://createdOn"), new RyaIRI("http://hasTimeStamp")));
         conf = new AccumuloRdfConfiguration();
         conf.setDisplayQueryPlan(false);
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);

@@ -28,10 +28,10 @@ import org.apache.rya.api.client.InstanceDoesNotExistException;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.mongodb.MongoITBase;
 import org.bson.Document;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
 
 import com.mongodb.client.MongoCursor;
 
@@ -40,7 +40,7 @@ import com.mongodb.client.MongoCursor;
  */
 public class MongoLoadStatementsIT extends MongoITBase {
 
-    private static final ValueFactory VF = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test(expected = InstanceDoesNotExistException.class)
     public void instanceDoesNotExist() throws Exception {
@@ -84,9 +84,9 @@ public class MongoLoadStatementsIT extends MongoITBase {
         while (triplesIterator.hasNext()) {
             final Document triple = triplesIterator.next();
             stmtResults.add(VF.createStatement(
-                    VF.createURI(triple.getString("subject")),
-                    VF.createURI(triple.getString("predicate")),
-                    VF.createURI(triple.getString("object"))));
+                    VF.createIRI(triple.getString("subject")),
+                    VF.createIRI(triple.getString("predicate")),
+                    VF.createIRI(triple.getString("object"))));
         }
 
         // Show the discovered statements match the original statements.
@@ -96,19 +96,19 @@ public class MongoLoadStatementsIT extends MongoITBase {
     public Set<Statement> makeTestStatements() {
         final Set<Statement> statements = new HashSet<>();
         statements.add(VF.createStatement(
-                    VF.createURI("http://example#alice"),
-                    VF.createURI("http://example#talksTo"),
-                    VF.createURI("http://example#bob")));
+                    VF.createIRI("http://example#alice"),
+                    VF.createIRI("http://example#talksTo"),
+                    VF.createIRI("http://example#bob")));
         statements.add(
                 VF.createStatement(
-                    VF.createURI("http://example#bob"),
-                    VF.createURI("http://example#talksTo"),
-                    VF.createURI("http://example#charlie")));
+                    VF.createIRI("http://example#bob"),
+                    VF.createIRI("http://example#talksTo"),
+                    VF.createIRI("http://example#charlie")));
         statements.add(
                 VF.createStatement(
-                    VF.createURI("http://example#charlie"),
-                    VF.createURI("http://example#likes"),
-                    VF.createURI("http://example#icecream")));
+                    VF.createIRI("http://example#charlie"),
+                    VF.createIRI("http://example#likes"),
+                    VF.createIRI("http://example#icecream")));
         return statements;
     }
 

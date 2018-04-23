@@ -32,7 +32,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 public class EqualsTemporalInstant extends TemporalInstantRelationFunction {
     @Override
     public String getURI() {
-        return TemporalURIs.EQUALS;
+        return TemporalIRIs.EQUALS;
     }
 
     @Override

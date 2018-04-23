@@ -34,8 +34,8 @@ import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaRange;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.domain.RyaURIRange;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaIRIRange;
 import org.apache.rya.api.query.strategy.ByteRange;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
@@ -55,8 +55,8 @@ public class HashedSpoWholeRowTriplePatternStrategy extends AbstractHashedTriple
     }
 
     @Override
-    public Map.Entry<TABLE_LAYOUT, ByteRange> defineRange(final RyaURI subject, final RyaURI predicate, final RyaType object,
-                                                          final RyaURI context, final RdfCloudTripleStoreConfiguration conf) throws IOException {
+    public Map.Entry<TABLE_LAYOUT, ByteRange> defineRange(final RyaIRI subject, final RyaIRI predicate, final RyaType object,
+                                                          final RyaIRI context, final RdfCloudTripleStoreConfiguration conf) throws IOException {
         try {
             //spo(ng)
             //sp(ng)
@@ -134,8 +134,8 @@ public class HashedSpoWholeRowTriplePatternStrategy extends AbstractHashedTriple
     }
 
     @Override
-    public boolean handles(final RyaURI subject, final RyaURI predicate, final RyaType object, final RyaURI context) {
+    public boolean handles(final RyaIRI subject, final RyaIRI predicate, final RyaType object, final RyaIRI context) {
         //if subject is not null and not a range (if predicate is null then object must be null)
-        return (subject != null && !(subject instanceof RyaURIRange)) && !((predicate == null || predicate instanceof RyaURIRange) && (object != null));
+        return (subject != null && !(subject instanceof RyaIRIRange)) && !((predicate == null || predicate instanceof RyaIRIRange) && (object != null));
     }
 }

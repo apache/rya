@@ -45,10 +45,11 @@ import org.apache.rya.indexing.pcj.storage.accumulo.ShiftVarOrderFactory;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.mongodb.MongoITBase;
 import org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
@@ -60,6 +61,7 @@ import com.google.common.collect.ImmutableMap;
  * also update the Rya instance's details.
  */
 public class MongoPcjStorageIT extends MongoITBase {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test
     public void createPCJ() throws Exception {
@@ -219,13 +221,13 @@ public class MongoPcjStorageIT extends MongoITBase {
             final Set<VisibilityBindingSet> results = new HashSet<>();
 
             final MapBindingSet aliceBS = new MapBindingSet();
-            aliceBS.addBinding("a", new URIImpl("http://Alice"));
-            aliceBS.addBinding("b", new URIImpl("http://Person"));
+            aliceBS.addBinding("a", VF.createIRI("http://Alice"));
+            aliceBS.addBinding("b", VF.createIRI("http://Person"));
             results.add( new VisibilityBindingSet(aliceBS, "") );
 
             final MapBindingSet charlieBS = new MapBindingSet();
-            charlieBS.addBinding("a", new URIImpl("http://Charlie"));
-            charlieBS.addBinding("b", new URIImpl("http://Comedian"));
+            charlieBS.addBinding("a", VF.createIRI("http://Charlie"));
+            charlieBS.addBinding("b", VF.createIRI("http://Comedian"));
             results.add( new VisibilityBindingSet(charlieBS, "") );
 
             pcjStorage.addResults(pcjId, results);
@@ -264,14 +266,14 @@ public class MongoPcjStorageIT extends MongoITBase {
             final Set<BindingSet> expectedResults = new HashSet<>();
 
             final MapBindingSet aliceBS = new MapBindingSet();
-            aliceBS.addBinding("a", new URIImpl("http://Alice"));
-            aliceBS.addBinding("b", new URIImpl("http://Person"));
+            aliceBS.addBinding("a", VF.createIRI("http://Alice"));
+            aliceBS.addBinding("b", VF.createIRI("http://Person"));
             visiSets.add( new VisibilityBindingSet(aliceBS, "") );
             expectedResults.add(aliceBS);
 
             final MapBindingSet charlieBS = new MapBindingSet();
-            charlieBS.addBinding("a", new URIImpl("http://Charlie"));
-            charlieBS.addBinding("b", new URIImpl("http://Comedian"));
+            charlieBS.addBinding("a", VF.createIRI("http://Charlie"));
+            charlieBS.addBinding("b", VF.createIRI("http://Comedian"));
             visiSets.add( new VisibilityBindingSet(charlieBS, "") );
             expectedResults.add(charlieBS);
 
@@ -313,13 +315,13 @@ public class MongoPcjStorageIT extends MongoITBase {
             final Set<VisibilityBindingSet> expectedResults = new HashSet<>();
 
             final MapBindingSet aliceBS = new MapBindingSet();
-            aliceBS.addBinding("a", new URIImpl("http://Alice"));
-            aliceBS.addBinding("b", new URIImpl("http://Person"));
+            aliceBS.addBinding("a", VF.createIRI("http://Alice"));
+            aliceBS.addBinding("b", VF.createIRI("http://Person"));
             expectedResults.add( new VisibilityBindingSet(aliceBS, "") );
 
             final MapBindingSet charlieBS = new MapBindingSet();
-            charlieBS.addBinding("a", new URIImpl("http://Charlie"));
-            charlieBS.addBinding("b", new URIImpl("http://Comedian"));
+            charlieBS.addBinding("a", VF.createIRI("http://Charlie"));
+            charlieBS.addBinding("b", VF.createIRI("http://Comedian"));
             expectedResults.add( new VisibilityBindingSet(charlieBS, "") );
 
             pcjStorage.addResults(pcjId, expectedResults);

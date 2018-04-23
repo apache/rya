@@ -41,7 +41,7 @@ import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
 import org.apache.rya.api.client.CreatePCJ.QueryType;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.BatchRyaQuery;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
@@ -57,11 +57,11 @@ import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.calrissian.mango.collect.CloseableIterable;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
@@ -418,29 +418,29 @@ public class CreateFluoPcj {
         final Value predVal = sp.getPredicateVar().getValue();
         final Value objVal = sp.getObjectVar().getValue();
 
-        RyaURI subjURI = null;
-        RyaURI predURI = null;
+        RyaIRI subjIRI = null;
+        RyaIRI predIRI = null;
         RyaType objType = null;
 
         if(subjVal != null) {
             if(!(subjVal instanceof Resource)) {
                 throw new AssertionError("Subject must be a Resource.");
             }
-            subjURI = RdfToRyaConversions.convertResource((Resource) subjVal);
+            subjIRI = RdfToRyaConversions.convertResource((Resource) subjVal);
         }
 
         if (predVal != null) {
-            if(!(predVal instanceof URI)) {
-                throw new AssertionError("Predicate must be a URI.");
+            if(!(predVal instanceof IRI)) {
+                throw new AssertionError("Predicate must be a IRI.");
             }
-            predURI = RdfToRyaConversions.convertURI((URI) predVal);
+            predIRI = RdfToRyaConversions.convertIRI((IRI) predVal);
         }
 
         if (objVal != null ) {
             objType = RdfToRyaConversions.convertValue(objVal);
         }
 
-        return new RyaStatement(subjURI, predURI, objType);
+        return new RyaStatement(subjIRI, predIRI, objType);
     }
 
     private String[] getAuths(final Connector accumulo) {

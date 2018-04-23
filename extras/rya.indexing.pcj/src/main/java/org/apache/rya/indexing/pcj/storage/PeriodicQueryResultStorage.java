@@ -25,7 +25,7 @@ import java.util.Optional;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.utils.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * Interface for storing and retrieving Periodic Query Results.
@@ -72,7 +72,7 @@ public interface PeriodicQueryResultStorage {
      * @return PeriodicQueryStorageMetadata
      * @throws PeriodicQueryStorageException
      */
-    public PeriodicQueryStorageMetadata getPeriodicQueryMetadata(String queryID) throws PeriodicQueryStorageException;;
+    public PeriodicQueryStorageMetadata getPeriodicQueryMetadata(String queryID) throws PeriodicQueryStorageException;
 
     /**
      * Add periodic query results to the storage layer indicated by the given query id
@@ -80,7 +80,7 @@ public interface PeriodicQueryResultStorage {
      * @param results - query results to be added to storage
      * @throws PeriodicQueryStorageException
      */
-    public void addPeriodicQueryResults(String queryId, Collection<VisibilityBindingSet> results) throws PeriodicQueryStorageException;;
+    public void addPeriodicQueryResults(String queryId, Collection<VisibilityBindingSet> results) throws PeriodicQueryStorageException;
 
     /**
      * Deletes periodic query results from the storage layer
@@ -88,14 +88,14 @@ public interface PeriodicQueryResultStorage {
      * @param binID - bin id indicating the periodic id of results to be deleted
      * @throws PeriodicQueryStorageException
      */
-    public void deletePeriodicQueryResults(String queryId, long binID) throws PeriodicQueryStorageException;;
+    public void deletePeriodicQueryResults(String queryId, long binID) throws PeriodicQueryStorageException;
 
     /**
      * Deletes all results for the storage layer indicated by the given query id
      * @param queryID - id indicating the storage layer whose results will be deleted
      * @throws PeriodicQueryStorageException
      */
-    public void deletePeriodicQuery(String queryID) throws PeriodicQueryStorageException;;
+    public void deletePeriodicQuery(String queryID) throws PeriodicQueryStorageException;
 
     /**
      * List results in the given storage layer indicated by the query id
@@ -104,7 +104,7 @@ public interface PeriodicQueryResultStorage {
      * @return
      * @throws PeriodicQueryStorageException
      */
-    public CloseableIterator<BindingSet> listResults(String queryId, Optional<Long> binID) throws PeriodicQueryStorageException;;
+    public CloseableIterator<BindingSet> listResults(String queryId, Optional<Long> binID) throws PeriodicQueryStorageException;
 
     /**
      * List all storage tables containing periodic results.

@@ -39,15 +39,15 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.api.persist.RdfEvalStatsDAO.CARDINALITY_OF;
 import org.apache.rya.prospector.mr.Prospector;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Test;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
 
 /**
  * Tests that show when the {@link Prospector} job is run, the
@@ -55,6 +55,7 @@ import org.openrdf.model.vocabulary.XMLSchema;
  * information from the prospect table.
  */
 public class ProspectorServiceEvalStatsDAOTest {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test
     public void testCount() throws Exception {
@@ -72,11 +73,11 @@ public class ProspectorServiceEvalStatsDAOTest {
         ryaDAO.setConnector(connector);
         ryaDAO.init();
 
-        ryaDAO.add(new RyaStatement(new RyaURI("urn:gem:etype#1234"), new RyaURI("urn:gem#pred"), new RyaType("mydata1")));
-        ryaDAO.add(new RyaStatement(new RyaURI("urn:gem:etype#1234"), new RyaURI("urn:gem#pred"), new RyaType("mydata2")));
-        ryaDAO.add(new RyaStatement(new RyaURI("urn:gem:etype#1234"), new RyaURI("urn:gem#pred"), new RyaType("12")));
-        ryaDAO.add(new RyaStatement(new RyaURI("urn:gem:etype#1235"), new RyaURI("urn:gem#pred"), new RyaType(XMLSchema.INTEGER, "12")));
-        ryaDAO.add(new RyaStatement(new RyaURI("urn:gem:etype#1235"), new RyaURI("urn:gem#pred1"), new RyaType("12")));
+        ryaDAO.add(new RyaStatement(new RyaIRI("urn:gem:etype#1234"), new RyaIRI("urn:gem#pred"), new RyaType("mydata1")));
+        ryaDAO.add(new RyaStatement(new RyaIRI("urn:gem:etype#1234"), new RyaIRI("urn:gem#pred"), new RyaType("mydata2")));
+        ryaDAO.add(new RyaStatement(new RyaIRI("urn:gem:etype#1234"), new RyaIRI("urn:gem#pred"), new RyaType("12")));
+        ryaDAO.add(new RyaStatement(new RyaIRI("urn:gem:etype#1235"), new RyaIRI("urn:gem#pred"), new RyaType(XMLSchema.INTEGER, "12")));
+        ryaDAO.add(new RyaStatement(new RyaIRI("urn:gem:etype#1235"), new RyaIRI("urn:gem#pred1"), new RyaType("12")));
 
         final String confFile = "stats_cluster_config.xml";
         final Path confPath = new Path(getClass().getClassLoader().getResource(confFile).toString());
@@ -95,19 +96,19 @@ public class ProspectorServiceEvalStatsDAOTest {
 
         // Get the cardinality of the 'urn:gem#pred' predicate.
         List<Value> values = new ArrayList<Value>();
-        values.add( new URIImpl("urn:gem#pred") );
+        values.add( VF.createIRI("urn:gem#pred") );
         double count = evalDao.getCardinality(rdfConf, CARDINALITY_OF.PREDICATE, values);
         assertEquals(4.0, count, 0.001);
 
         // Get the cardinality of the 'mydata1' object.
         values = new ArrayList<Value>();
-        values.add( new LiteralImpl("mydata1"));
+        values.add( VF.createLiteral("mydata1"));
         count = evalDao.getCardinality(rdfConf, RdfEvalStatsDAO.CARDINALITY_OF.OBJECT, values);
         assertEquals(1.0, count, 0.001);
 
         // Get the cardinality of the 'mydata3' object.
         values = new ArrayList<Value>();
-        values.add( new LiteralImpl("mydata3"));
+        values.add( VF.createLiteral("mydata3"));
         count = evalDao.getCardinality(rdfConf, RdfEvalStatsDAO.CARDINALITY_OF.OBJECT, values);
         assertEquals(-1.0, count, 0.001);
     }
@@ -129,11 +130,11 @@ public class ProspectorServiceEvalStatsDAOTest {
         ryaDAO.setConnector(connector);
         ryaDAO.init();
 
-        ryaDAO.add(new RyaStatement(new RyaURI("urn:gem:etype#1234"), new RyaURI("urn:gem#pred"), new RyaType("mydata1")));
-        ryaDAO.add(new RyaStatement(new RyaURI("urn:gem:etype#1234"), new RyaURI("urn:gem#pred"), new RyaType("mydata2")));
-        ryaDAO.add(new RyaStatement(new RyaURI("urn:gem:etype#1234"), new RyaURI("urn:gem#pred"), new RyaType("12")));
-        ryaDAO.add(new RyaStatement(new RyaURI("urn:gem:etype#1235"), new RyaURI("urn:gem#pred"), new RyaType(XMLSchema.INTEGER, "12")));
-        ryaDAO.add(new RyaStatement(new RyaURI("urn:gem:etype#1235"), new RyaURI("urn:gem#pred1"), new RyaType("12")));
+        ryaDAO.add(new RyaStatement(new RyaIRI("urn:gem:etype#1234"), new RyaIRI("urn:gem#pred"), new RyaType("mydata1")));
+        ryaDAO.add(new RyaStatement(new RyaIRI("urn:gem:etype#1234"), new RyaIRI("urn:gem#pred"), new RyaType("mydata2")));
+        ryaDAO.add(new RyaStatement(new RyaIRI("urn:gem:etype#1234"), new RyaIRI("urn:gem#pred"), new RyaType("12")));
+        ryaDAO.add(new RyaStatement(new RyaIRI("urn:gem:etype#1235"), new RyaIRI("urn:gem#pred"), new RyaType(XMLSchema.INTEGER, "12")));
+        ryaDAO.add(new RyaStatement(new RyaIRI("urn:gem:etype#1235"), new RyaIRI("urn:gem#pred1"), new RyaType("12")));
 
         final String confFile = "stats_cluster_config.xml";
         final Path confPath = new Path(getClass().getClassLoader().getResource(confFile).toString());
@@ -151,19 +152,19 @@ public class ProspectorServiceEvalStatsDAOTest {
 
         // Get the cardinality of the 'urn:gem#pred' predicate.
         List<Value> values = new ArrayList<Value>();
-        values.add( new URIImpl("urn:gem#pred"));
+        values.add( VF.createIRI("urn:gem#pred"));
         double count = evalDao.getCardinality(rdfConf, RdfEvalStatsDAO.CARDINALITY_OF.PREDICATE, values);
         assertEquals(4.0, count, 0.001);
 
         // Get the cardinality of the 'mydata1' object.
         values = new ArrayList<Value>();
-        values.add( new LiteralImpl("mydata1"));
+        values.add( VF.createLiteral("mydata1"));
         count = evalDao.getCardinality(rdfConf, RdfEvalStatsDAO.CARDINALITY_OF.OBJECT, values);
         assertEquals(1.0, count, 0.001);
 
         // Get the cardinality of the 'mydata3' object.
         values = new ArrayList<Value>();
-        values.add( new LiteralImpl("mydata3"));
+        values.add( VF.createLiteral("mydata3"));
         count = evalDao.getCardinality(rdfConf, RdfEvalStatsDAO.CARDINALITY_OF.OBJECT, values);
         assertEquals(-1.0, count, 0.001);
     }
@@ -173,7 +174,7 @@ public class ProspectorServiceEvalStatsDAOTest {
      * debugging the test.
      */
     private void debugTable(Connector connector, String table) throws TableNotFoundException {
-        final Iterator<Entry<Key, org.apache.accumulo.core.data.Value>> it = connector.createScanner(table, new Authorizations(new String[]{"U", "FOUO"})).iterator();
+        final Iterator<Entry<Key, org.apache.accumulo.core.data.Value>> it = connector.createScanner(table, new Authorizations("U", "FOUO")).iterator();
         while(it.hasNext()) {
             System.out.println( it.next() );
         }

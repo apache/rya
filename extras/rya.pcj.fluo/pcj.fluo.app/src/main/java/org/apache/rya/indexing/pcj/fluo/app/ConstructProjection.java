@@ -18,6 +18,7 @@ package org.apache.rya.indexing.pcj.fluo.app;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.Optional;
@@ -26,17 +27,19 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
-import org.openrdf.model.BNode;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.BNodeImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -44,9 +47,9 @@ import com.google.common.base.Preconditions;
 /**
  * This class projects a VisibilityBindingSet onto a RyaStatement. The Binding
  * {@link Value}s that get projected onto subject, predicate and object are
- * indicated by the names {@link ConstructProjection#getSubjectSourceVar()},
- * {@link ConstructProjection#getPredicateSourceVar()} and
- * {@link ConstructProjection#getObjectSourceVar()} and must satisfy standard
+ * indicated by the names {@link ConstructProjection#getSubjectSourceName()},
+ * {@link ConstructProjection#getPredicateSourceName()} and
+ * {@link ConstructProjection#getObjectSourceName()} and must satisfy standard
  * RDF constraints for RDF subjects, predicates and objects. The purpose of
  * projecting {@link BindingSet}s in this way is to provide functionality for
  * SPARQL Construct queries which create RDF statements from query results.
@@ -55,6 +58,7 @@ import com.google.common.base.Preconditions;
 public class ConstructProjection {
 
     private static final Logger log = Logger.getLogger(ConstructProjection.class);
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     private String subjName;
     private String predName;
     private String objName;
@@ -69,17 +73,17 @@ public class ConstructProjection {
         Preconditions.checkNotNull(subjectVar);
         Preconditions.checkNotNull(predicateVar);
         Preconditions.checkNotNull(objectVar);
-        subjName = subjectVar.getName();
-        predName = predicateVar.getName();
-        objName = objectVar.getName();
+        subjName = VarNameUtils.createSimpleConstVarName(subjectVar);
+        predName = VarNameUtils.createSimpleConstVarName(predicateVar);
+        objName = VarNameUtils.createSimpleConstVarName(objectVar);
         Preconditions.checkNotNull(subjName);
         Preconditions.checkNotNull(predName);
         Preconditions.checkNotNull(objName);
         this.subjVar = subjectVar;
         this.predVar = predicateVar;
         this.objVar = objectVar;
-        if((subjVar.isAnonymous() || subjName.startsWith("-anon-")) && subjectVar.getValue() == null) {
-            subjValue = Optional.of(new BNodeImpl(""));
+        if ((subjVar.isAnonymous() || VarNameUtils.isAnonymous(subjName)) && subjectVar.getValue() == null) {
+            subjValue = Optional.of(VF.createBNode(""));
         } else {
             subjValue = Optional.ofNullable(subjectVar.getValue());
         }
@@ -93,12 +97,12 @@ public class ConstructProjection {
 
     /**
      * Returns a Var with info about the Value projected onto the RyaStatement
-     * subject. If the org.openrdf.query.algebra.Var returned by this method is
+     * subject. If the org.eclipse.rdf4j.query.algebra.Var returned by this method is
      * not constant (as indicated by {@link Var#isConstant()}, then
      * {@link Var#getName()} is the Binding name that gets projected. If the Var
      * is constant, then {@link Var#getValue()} is assigned to the subject
      * 
-     * @return {@link org.openrdf.query.algebra.Var} containing info about
+     * @return {@link org.eclipse.rdf4j.query.algebra.Var} containing info about
      *         Binding that gets projected onto the subject
      */
     public String getSubjectSourceName() {
@@ -107,12 +111,12 @@ public class ConstructProjection {
 
     /**
      * Returns a Var with info about the Value projected onto the RyaStatement
-     * predicate. If the org.openrdf.query.algebra.Var returned by this method
+     * predicate. If the org.eclipse.rdf4j.query.algebra.Var returned by this method
      * is not constant (as indicated by {@link Var#isConstant()}, then
      * {@link Var#getName()} is the Binding name that gets projected. If the Var
      * is constant, then {@link Var#getValue()} is assigned to the predicate
      * 
-     * @return {@link org.openrdf.query.algebra.Var} containing info about
+     * @return {@link org.eclipse.rdf4j.query.algebra.Var} containing info about
      *         Binding that gets projected onto the predicate
      */
     public String getPredicateSourceName() {
@@ -121,12 +125,12 @@ public class ConstructProjection {
 
     /**
      * Returns a Var with info about the Value projected onto the RyaStatement
-     * object. If the org.openrdf.query.algebra.Var returned by this method is
+     * object. If the org.eclipse.rdf4j.query.algebra.Var returned by this method is
      * not constant (as indicated by {@link Var#isConstant()}, then
      * {@link Var#getName()} is the Binding name that gets projected. If the Var
      * is constant, then {@link Var#getValue()} is assigned to the object
      * 
-     * @return {@link org.openrdf.query.algebra.Var} containing info about
+     * @return {@link org.eclipse.rdf4j.query.algebra.Var} containing info about
      *         Binding that gets projected onto the object
      */
     public String getObjectSourceName() {
@@ -157,9 +161,9 @@ public class ConstructProjection {
 
     /**
      * @return SubjectPattern representation of this ConstructProjection
-     *         containing the {@link ConstructProjection#subjectSourceVar},
-     *         {@link ConstructProjection#predicateSourceVar},
-     *         {@link ConstructProjection#objectSourceVar}
+     *         containing the {@link ConstructProjection#getSubjectSourceName},
+     *         {@link ConstructProjection#getPredicateSourceName},
+     *         {@link ConstructProjection#getObjectSourceName}
      */
     public StatementPattern getStatementPatternRepresentation() {
         return new StatementPattern(subjVar, predVar, objVar);
@@ -168,22 +172,22 @@ public class ConstructProjection {
     /**
      * Projects a given BindingSet onto a RyaStatement. The subject, predicate,
      * and object are extracted from the input VisibilityBindingSet (if the
-     * subjectSourceVar, predicateSourceVar, objectSourceVar is resp.
-     * non-constant) and from the Var Value itself (if subjectSourceVar,
-     * predicateSource, objectSourceVar is resp. constant).
+     * getSubjectSourceName, getPredicateSourceName, getObjectSourceName is resp.
+     * non-constant) and from the Var Value itself (if getSubjectSourceName,
+     * predicateSource, getObjectSourceName is resp. constant).
      * 
      * 
      * @param vBs
      *            - Visibility BindingSet that gets projected onto an RDF
      *            Statement BindingSet with Binding names subject, predicate and
      *            object
-     * @param   bNodeMap - Optional Map used to pass {@link BNode}s for given variable names into
+     * @param   bNodes - Optional Map used to pass {@link BNode}s for given variable names into
      *          multiple {@link ConstructProjection}s.  This allows a ConstructGraph to create
      *          RyaStatements with the same BNode for a given variable name across multiple ConstructProjections.
      * @return - RyaStatement whose values are determined by
-     *         {@link ConstructProjection#getSubjectSourceVar()},
-     *         {@link ConstructProjection#getPredicateSourceVar()},
-     *         {@link ConstructProjection#getObjectSourceVar()}.
+     *         {@link ConstructProjection#getSubjectSourceName()},
+     *         {@link ConstructProjection#getPredicateSourceName()},
+     *         {@link ConstructProjection#getObjectSourceName()}.
      * 
      */
     public RyaStatement projectBindingSet(VisibilityBindingSet vBs, Map<String, BNode> bNodes) {
@@ -199,10 +203,10 @@ public class ConstructProjection {
         Preconditions.checkNotNull(pred);
         Preconditions.checkNotNull(obj);
         Preconditions.checkArgument(subj instanceof Resource);
-        Preconditions.checkArgument(pred instanceof URI);
+        Preconditions.checkArgument(pred instanceof IRI);
 
-        RyaURI subjType = RdfToRyaConversions.convertResource((Resource) subj);
-        RyaURI predType = RdfToRyaConversions.convertURI((URI) pred);
+        RyaIRI subjType = RdfToRyaConversions.convertResource((Resource) subj);
+        RyaIRI predType = RdfToRyaConversions.convertIRI((IRI) pred);
         RyaType objectType = RdfToRyaConversions.convertValue(obj);
 
         RyaStatement statement = new RyaStatement(subjType, predType, objectType);

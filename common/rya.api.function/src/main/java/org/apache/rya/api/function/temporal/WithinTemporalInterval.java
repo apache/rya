@@ -33,7 +33,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 public class WithinTemporalInterval extends TemporalIntervalRelationFunction {
     @Override
     public String getURI() {
-        return TemporalURIs.WITHIN;
+        return TemporalIRIs.WITHIN;
     }
 
     @Override

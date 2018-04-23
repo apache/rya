@@ -1,3 +1,5 @@
+package org.apache.rya.api.domain;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -6,9 +8,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * 
  *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -16,49 +18,34 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.rdftriplestore.inference;
 
-import org.openrdf.model.URI;
 
-public class InverseURI implements URI {
-    private static final long serialVersionUID = 1L;
 
-    private final URI impl;
+import org.eclipse.rdf4j.model.IRI;
 
-    public InverseURI(final URI uri) {
-        this.impl = uri;
+/**
+ * Created by IntelliJ IDEA.
+ * Date: 4/11/12
+ * Time: 1:03 PM
+ * To change this template use File | Settings | File Templates.
+ */
+public class RangeIRI extends RangeValue<IRI> implements IRI {
+
+    public RangeIRI(IRI start, IRI end) {
+        super(start, end);
     }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((impl == null) ? 0 : impl.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (obj instanceof InverseURI){
-            return impl.equals(((InverseURI) obj).impl);
-        }
-        return false;
-    }
-
-    @Override
-    public String stringValue() {
-        return impl.stringValue();
+    public RangeIRI(RangeValue rangeValue) {
+        super((IRI) rangeValue.getStart(), (IRI) rangeValue.getEnd());
     }
 
     @Override
     public String getNamespace() {
-        return impl.getNamespace();
+        throw new UnsupportedOperationException("Ranges do not have a namespace");
     }
 
     @Override
     public String getLocalName() {
-        return impl.getLocalName();
+        throw new UnsupportedOperationException("Ranges do not have a localname");
     }
-
-
 }

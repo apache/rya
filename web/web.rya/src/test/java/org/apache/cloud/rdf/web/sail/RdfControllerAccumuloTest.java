@@ -19,7 +19,6 @@ package org.apache.cloud.rdf.web.sail;
  * under the License.
  */
 
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -30,18 +29,18 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 
 import java.io.ByteArrayInputStream;
 
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.resultio.QueryResultIO;
+import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.rio.RDFFormat;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.query.resultio.QueryResultIO;
-import org.openrdf.query.resultio.TupleQueryResultFormat;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.rio.RDFFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -154,7 +153,7 @@ public class RdfControllerAccumuloTest {
     private static void validateCount(MockHttpServletResponse response, int count) throws Exception {
 
         String rstString = response.getContentAsString();
-        TupleQueryResult result = QueryResultIO.parse(new ByteArrayInputStream(rstString.getBytes()), TupleQueryResultFormat.SPARQL);
+        TupleQueryResult result = QueryResultIO.parseTuple(new ByteArrayInputStream(rstString.getBytes()), TupleQueryResultFormat.SPARQL);
         
         assertEquals(1, result.getBindingNames().size());
         String binding = result.getBindingNames().get(0);

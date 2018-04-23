@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.rya.api.persist.RdfDAOException;
-import org.openrdf.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
@@ -42,12 +42,12 @@ import com.google.gson.JsonSerializer;
 public class StatementMetadata {
 
     private static Gson gson = new GsonBuilder().enableComplexMapKeySerialization()
-    .registerTypeHierarchyAdapter(RyaType.class, new RyaTypeAdapter()).create();;
+    .registerTypeHierarchyAdapter(RyaType.class, new RyaTypeAdapter()).create();
     public static StatementMetadata EMPTY_METADATA = new StatementMetadata();
 
-    private Map<RyaURI, RyaType> metadataMap = new HashMap<>();
+    private Map<RyaIRI, RyaType> metadataMap = new HashMap<>();
     @SuppressWarnings("serial")
-    private Type type = new TypeToken<Map<RyaURI, RyaType>>(){}.getType();
+    private Type type = new TypeToken<Map<RyaIRI, RyaType>>(){}.getType();
 
     public StatementMetadata() {}
 
@@ -77,11 +77,11 @@ public class StatementMetadata {
         }
     }
 
-    public void addMetadata(RyaURI key, RyaType value) {
+    public void addMetadata(RyaIRI key, RyaType value) {
         metadataMap.put(key, value);
     }
 
-    public Map<RyaURI, RyaType> getMetadata() {
+    public Map<RyaIRI, RyaType> getMetadata() {
         return metadataMap;
     }
 
@@ -124,10 +124,10 @@ public class StatementMetadata {
             String[] array = element.getAsJsonPrimitive().getAsString().split("\u0000");
             Preconditions.checkArgument(array.length == 2);
      
-            if(type.equals(RyaURI.class.getName())){
-                return new RyaURI(array[0]);
+            if(type.equals(RyaIRI.class.getName())){
+                return new RyaIRI(array[0]);
             } else if(type.equals(RyaType.class.getName())){
-                RyaType ryaType = new RyaType(new URIImpl(array[1]), array[0]);
+                RyaType ryaType = new RyaType(SimpleValueFactory.getInstance().createIRI(array[1]), array[0]);
                 return ryaType;
             } else {
                 throw new IllegalArgumentException("Unparseable RyaType.");

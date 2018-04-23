@@ -26,7 +26,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage.TypeStorageException;
@@ -46,11 +46,11 @@ public class MongoTypeStorageIT extends MongoITBase {
     @Test
     public void create_and_get() throws TypeStorageException {
         // A Type that will be stored.
-        final Type type = new Type(new RyaURI("urn:icecream"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:brand"))
-                    .add(new RyaURI("urn:flavor"))
-                    .add(new RyaURI("urn:cost"))
+        final Type type = new Type(new RyaIRI("urn:icecream"),
+                ImmutableSet.<RyaIRI>builder()
+                    .add(new RyaIRI("urn:brand"))
+                    .add(new RyaIRI("urn:flavor"))
+                    .add(new RyaIRI("urn:cost"))
                     .build());
 
         // Create it.
@@ -58,7 +58,7 @@ public class MongoTypeStorageIT extends MongoITBase {
         storage.create(type);
 
         // Get it.
-        final Optional<Type> storedType = storage.get(new RyaURI("urn:icecream"));
+        final Optional<Type> storedType = storage.get(new RyaIRI("urn:icecream"));
 
         // Verify the correct value was returned.
         assertEquals(type, storedType.get());
@@ -67,11 +67,11 @@ public class MongoTypeStorageIT extends MongoITBase {
     @Test
     public void can_not_create_with_same_id() throws TypeStorageException {
         // A Type that will be stored.
-        final Type type = new Type(new RyaURI("urn:icecream"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:brand"))
-                    .add(new RyaURI("urn:flavor"))
-                    .add(new RyaURI("urn:cost"))
+        final Type type = new Type(new RyaIRI("urn:icecream"),
+                ImmutableSet.<RyaIRI>builder()
+                    .add(new RyaIRI("urn:brand"))
+                    .add(new RyaIRI("urn:flavor"))
+                    .add(new RyaIRI("urn:cost"))
                     .build());
 
         // Create it.
@@ -92,7 +92,7 @@ public class MongoTypeStorageIT extends MongoITBase {
     public void get_nonexisting() throws TypeStorageException {
         // Get a Type that hasn't been created.
         final TypeStorage storage = new MongoTypeStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
-        final Optional<Type> storedType = storage.get(new RyaURI("urn:icecream"));
+        final Optional<Type> storedType = storage.get(new RyaIRI("urn:icecream"));
 
         // Verify nothing was returned.
         assertFalse(storedType.isPresent());
@@ -101,11 +101,11 @@ public class MongoTypeStorageIT extends MongoITBase {
     @Test
     public void delete() throws TypeStorageException {
         // An Type that will be stored.
-        final Type type = new Type(new RyaURI("urn:icecream"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:brand"))
-                    .add(new RyaURI("urn:flavor"))
-                    .add(new RyaURI("urn:cost"))
+        final Type type = new Type(new RyaIRI("urn:icecream"),
+                ImmutableSet.<RyaIRI>builder()
+                    .add(new RyaIRI("urn:brand"))
+                    .add(new RyaIRI("urn:flavor"))
+                    .add(new RyaIRI("urn:cost"))
                     .build());
 
         // Create it.
@@ -113,7 +113,7 @@ public class MongoTypeStorageIT extends MongoITBase {
         storage.create(type);
 
         // Delete it.
-        final boolean deleted = storage.delete( new RyaURI("urn:icecream") );
+        final boolean deleted = storage.delete( new RyaIRI("urn:icecream") );
 
         // Verify a document was deleted.
         assertTrue( deleted );
@@ -123,7 +123,7 @@ public class MongoTypeStorageIT extends MongoITBase {
     public void delete_nonexisting() throws TypeStorageException {
         // Delete an Type that has not been created.
         final TypeStorage storage = new MongoTypeStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
-        final boolean deleted = storage.delete( new RyaURI("urn:icecream") );
+        final boolean deleted = storage.delete( new RyaIRI("urn:icecream") );
 
         // Verify no document was deleted.
         assertFalse( deleted );
@@ -132,25 +132,25 @@ public class MongoTypeStorageIT extends MongoITBase {
     @Test
     public void search() throws Exception {
         // Add some Types to the storage.
-        final Type cat = new Type(new RyaURI("urn:cat"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:numLegs"))
-                    .add(new RyaURI("urn:eye"))
-                    .add(new RyaURI("urn:species"))
+        final Type cat = new Type(new RyaIRI("urn:cat"),
+                ImmutableSet.<RyaIRI>builder()
+                    .add(new RyaIRI("urn:numLegs"))
+                    .add(new RyaIRI("urn:eye"))
+                    .add(new RyaIRI("urn:species"))
                     .build());
 
-        final Type dog = new Type(new RyaURI("urn:dog"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:numLegs"))
-                    .add(new RyaURI("urn:eye"))
-                    .add(new RyaURI("urn:species"))
+        final Type dog = new Type(new RyaIRI("urn:dog"),
+                ImmutableSet.<RyaIRI>builder()
+                    .add(new RyaIRI("urn:numLegs"))
+                    .add(new RyaIRI("urn:eye"))
+                    .add(new RyaIRI("urn:species"))
                     .build());
 
-        final Type icecream = new Type(new RyaURI("urn:icecream"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:brand"))
-                    .add(new RyaURI("urn:flavor"))
-                    .add(new RyaURI("urn:cost"))
+        final Type icecream = new Type(new RyaIRI("urn:icecream"),
+                ImmutableSet.<RyaIRI>builder()
+                    .add(new RyaIRI("urn:brand"))
+                    .add(new RyaIRI("urn:flavor"))
+                    .add(new RyaIRI("urn:cost"))
                     .build());
 
         final TypeStorage storage = new MongoTypeStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
@@ -159,7 +159,7 @@ public class MongoTypeStorageIT extends MongoITBase {
         storage.create(icecream);
 
         // Search for all Types that have the 'urn:eye' property.
-        final ConvertingCursor<Type> typeIt = storage.search(new RyaURI("urn:eye"));
+        final ConvertingCursor<Type> typeIt = storage.search(new RyaIRI("urn:eye"));
 
         final Set<Type> types = new HashSet<>();
         while(typeIt.hasNext()) {

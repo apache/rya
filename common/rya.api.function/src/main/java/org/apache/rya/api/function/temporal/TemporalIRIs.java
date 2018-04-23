@@ -22,7 +22,7 @@ package org.apache.rya.api.function.temporal;
 /**
  * Constants for the Temporal Functions used in rya.
  */
-public class TemporalURIs {
+public class TemporalIRIs {
     /**
      * All temporal functions have the namespace (<tt>http://rya.apache.org/ns/temporal#</tt>).
      */

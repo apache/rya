@@ -19,9 +19,11 @@ package org.apache.rya.api.persist.utils;
  * under the License.
  */
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
-
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
@@ -30,17 +32,13 @@ import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.api.utils.NullableStatementImpl;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 /**
  * Date: 7/20/12
@@ -48,7 +46,7 @@ import java.util.NoSuchElementException;
  */
 public class RyaDAOHelper {
 
-    public static CloseableIteration<Statement, QueryEvaluationException> query(RyaDAO ryaDAO, Resource subject, URI predicate, Value object, RdfCloudTripleStoreConfiguration conf, Resource... contexts) throws QueryEvaluationException {
+    public static CloseableIteration<Statement, QueryEvaluationException> query(RyaDAO ryaDAO, Resource subject, IRI predicate, Value object, RdfCloudTripleStoreConfiguration conf, Resource... contexts) throws QueryEvaluationException {
         return query(ryaDAO, new NullableStatementImpl(subject, predicate, object, contexts), conf);
     }
 

@@ -20,7 +20,6 @@ package org.apache.rya.api.domain;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.impl.URIImpl;
 
 public class StatementMetadataTest {
 
@@ -32,7 +31,7 @@ public class StatementMetadataTest {
 
         
         StatementMetadata single = new StatementMetadata();
-        single.addMetadata(new RyaURI("http://uri"), new RyaType("http://type"));
+        single.addMetadata(new RyaIRI("http://uri"), new RyaType("http://type"));
         byte[] singleData = single.toBytes();
         Assert.assertArrayEquals(singleData, new StatementMetadata(singleData).toBytes());
 

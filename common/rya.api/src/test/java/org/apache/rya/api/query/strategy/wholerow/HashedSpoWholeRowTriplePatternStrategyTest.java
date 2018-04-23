@@ -19,50 +19,50 @@ package org.apache.rya.api.query.strategy.wholerow;
  * under the License.
  */
 
-
-//
 import java.util.Map;
 
-import junit.framework.TestCase;
+import org.apache.hadoop.io.Text;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaTypeRange;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.domain.RyaURIRange;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaIRIRange;
 import org.apache.rya.api.query.strategy.ByteRange;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
-
-import org.apache.hadoop.io.Text;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.Before;
-import org.openrdf.model.impl.URIImpl;
+
+import junit.framework.TestCase;
 
 /**
  * Date: 7/14/12
  * Time: 7:47 AM
  */
 public class HashedSpoWholeRowTriplePatternStrategyTest extends TestCase {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
-    RyaURI uri = new RyaURI("urn:test#1234");
-    RyaURI uri2 = new RyaURI("urn:test#1235");
-    RyaURIRange rangeURI = new RyaURIRange(uri, uri2);
-    RyaURIRange rangeURI2 = new RyaURIRange(new RyaURI("urn:test#1235"), new RyaURI("urn:test#1236"));
+    RyaIRI uri = new RyaIRI("urn:test#1234");
+    RyaIRI uri2 = new RyaIRI("urn:test#1235");
+    RyaIRIRange rangeIRI = new RyaIRIRange(uri, uri2);
+    RyaIRIRange rangeIRI2 = new RyaIRIRange(new RyaIRI("urn:test#1235"), new RyaIRI("urn:test#1236"));
     HashedSpoWholeRowTriplePatternStrategy strategy = new HashedSpoWholeRowTriplePatternStrategy();
     RyaContext ryaContext = RyaContext.getInstance();
     RyaTripleContext ryaTripleContext;
 
-    RyaType customType1 = new RyaType(new URIImpl("urn:custom#type"), "1234");
-    RyaType customType2 = new RyaType(new URIImpl("urn:custom#type"), "1235");
-    RyaType customType3 = new RyaType(new URIImpl("urn:custom#type"), "1236");
+    RyaType customType1 = new RyaType(VF.createIRI("urn:custom#type"), "1234");
+    RyaType customType2 = new RyaType(VF.createIRI("urn:custom#type"), "1235");
+    RyaType customType3 = new RyaType(VF.createIRI("urn:custom#type"), "1236");
     RyaTypeRange customTypeRange1 = new RyaTypeRange(customType1, customType2);
     RyaTypeRange customTypeRange2 = new RyaTypeRange(customType2, customType3);
 
     @Before
     public void setUp() {
-    	MockRdfCloudConfiguration config = new MockRdfCloudConfiguration();
-    	config.set(MockRdfCloudConfiguration.CONF_PREFIX_ROW_WITH_HASH, Boolean.TRUE.toString());
+    	MockRdfConfiguration config = new MockRdfConfiguration();
+    	config.set(MockRdfConfiguration.CONF_PREFIX_ROW_WITH_HASH, Boolean.TRUE.toString());
     	ryaTripleContext = RyaTripleContext.getInstance(config);
     }
     
@@ -110,10 +110,10 @@ public class HashedSpoWholeRowTriplePatternStrategyTest extends TestCase {
                 new RyaStatement(uri, uri, uri, null));
         TripleRow tripleRow = serialize.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO);
 
-        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(uri, uri, rangeURI, null, null);
+        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(uri, uri, rangeIRI, null, null);
         assertContains(entry.getValue(), tripleRow.getRow());
 
-        entry = strategy.defineRange(uri, uri, rangeURI2, null, null);
+        entry = strategy.defineRange(uri, uri, rangeIRI2, null, null);
         assertContainsFalse(entry.getValue(), tripleRow.getRow());
     }
 
@@ -145,9 +145,9 @@ public class HashedSpoWholeRowTriplePatternStrategyTest extends TestCase {
                 new RyaStatement(uri, uri, uri, null));
         TripleRow tripleRow = serialize.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO);
 
-        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(uri, rangeURI, null, null, null);
+        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(uri, rangeIRI, null, null, null);
         assertContains(entry.getValue(), tripleRow.getRow());
-        entry = strategy.defineRange(uri, rangeURI2, null, null, null);
+        entry = strategy.defineRange(uri, rangeIRI2, null, null, null);
         assertContainsFalse(entry.getValue(), tripleRow.getRow());
     }
 
@@ -165,7 +165,7 @@ public class HashedSpoWholeRowTriplePatternStrategyTest extends TestCase {
 
     public void testSRange() throws Exception {
  
-        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(rangeURI, null, null, null, null);
+        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(rangeIRI, null, null, null, null);
         assertNull(entry);
     }
 
@@ -180,20 +180,20 @@ public class HashedSpoWholeRowTriplePatternStrategyTest extends TestCase {
         assertTrue(strategy.handles(uri, null, null, null));
         assertTrue(strategy.handles(uri, null, null, uri));
         //sp_r(o)(ng)
-        assertTrue(strategy.handles(uri, uri, rangeURI, null));
-        assertTrue(strategy.handles(uri, uri, rangeURI, uri));
+        assertTrue(strategy.handles(uri, uri, rangeIRI, null));
+        assertTrue(strategy.handles(uri, uri, rangeIRI, uri));
         //s_r(p)(ng)
-        assertTrue(strategy.handles(uri, rangeURI, null, null));
-        assertTrue(strategy.handles(uri, rangeURI, null, uri));
+        assertTrue(strategy.handles(uri, rangeIRI, null, null));
+        assertTrue(strategy.handles(uri, rangeIRI, null, uri));
 
         //fail
         //s_r(p)_r(o)
-        assertFalse(strategy.handles(uri, rangeURI, rangeURI, null));
+        assertFalse(strategy.handles(uri, rangeIRI, rangeIRI, null));
 
         //s==null
         assertFalse(strategy.handles(null, uri, uri, null));
 
         //s_r(o)
-        assertFalse(strategy.handles(uri, null, rangeURI, null));
+        assertFalse(strategy.handles(uri, null, rangeIRI, null));
     }
 }

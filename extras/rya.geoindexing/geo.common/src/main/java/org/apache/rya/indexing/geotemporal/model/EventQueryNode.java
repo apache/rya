@@ -30,7 +30,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.IndexingExpr;
 import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
@@ -38,24 +38,26 @@ import org.apache.rya.indexing.entity.query.EntityQueryNode;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.apache.rya.indexing.mongodb.update.RyaObjectStorage.ObjectStorageException;
 import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.FunctionCall;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.iterator.CollectionIteration;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
-import org.openrdf.query.algebra.evaluation.iterator.CollectionIteration;
-import org.openrdf.query.impl.MapBindingSet;
 
 import com.vividsolutions.jts.geom.Geometry;
 
-import info.aduna.iteration.CloseableIteration;
-
 public class EventQueryNode extends ExternalSet implements ExternalBatchingIterator {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
     private final Collection<FunctionCall> usedFilters;
     private final Collection<IndexingExpr> geoFilters;
     private final Collection<IndexingExpr> temporalFilters;
@@ -177,7 +179,7 @@ public class EventQueryNode extends ExternalSet implements ExternalBatchingItera
             if(subjectConstant.isPresent()) {
                 // if it is, fetch that value and then fetch the entity for the subject.
                 subj = subjectConstant.get();
-                searchEvents = eventStore.search(Optional.of(new RyaURI(subj)), Optional.of(geoFilters), Optional.of(temporalFilters));
+                searchEvents = eventStore.search(Optional.of(new RyaIRI(subj)), Optional.of(geoFilters), Optional.of(temporalFilters));
             } else {
                 searchEvents = eventStore.search(Optional.empty(), Optional.of(geoFilters), Optional.of(temporalFilters));
             }
@@ -186,7 +188,7 @@ public class EventQueryNode extends ExternalSet implements ExternalBatchingItera
                 final MapBindingSet resultSet = new MapBindingSet();
                 if(event.getGeometry().isPresent()) {
                     final Geometry geo = event.getGeometry().get();
-                    final Value geoValue = ValueFactoryImpl.getInstance().createLiteral(geo.toText());
+                    final Value geoValue = VF.createLiteral(geo.toText());
                     final Var geoObj = geoPattern.getObjectVar();
                     resultSet.addBinding(geoObj.getName(), geoValue);
                 }
@@ -197,9 +199,9 @@ public class EventQueryNode extends ExternalSet implements ExternalBatchingItera
                     DateTime dt = opt.get().getAsDateTime();
                     dt = dt.toDateTime(DateTimeZone.UTC);
                     final String str = dt.toString(TemporalInstantRfc3339.FORMATTER);
-                    temporalValue = ValueFactoryImpl.getInstance().createLiteral(str);
+                    temporalValue = VF.createLiteral(str);
                 } else if(event.getInterval().isPresent()) {
-                    temporalValue = ValueFactoryImpl.getInstance().createLiteral(event.getInterval().get().getAsPair());
+                    temporalValue = VF.createLiteral(event.getInterval().get().getAsPair());
                 } else {
                     temporalValue = null;
                 }

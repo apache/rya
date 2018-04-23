@@ -27,13 +27,13 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AbstractAccumuloRdfConfigurationBuilder;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRdfConfigurationBuilder;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.accumulo.entity.EntityCentricIndex;
 import org.apache.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
 import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexer;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataOptimizer;
-import org.openrdf.sail.Sail;
+import org.eclipse.rdf4j.sail.Sail;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -255,7 +255,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
 
     /**
      * Sets the predicates used for freetext indexing
-     * @param predicates - Array of predicate URI strings used for freetext indexing
+     * @param predicates - Array of predicate IRI strings used for freetext indexing
      */
     public void setAccumuloFreeTextPredicates(final String[] predicates) {
         Preconditions.checkNotNull(predicates, "Freetext predicates cannot be null.");
@@ -264,7 +264,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
 
     /**
      * Gets the predicates used for freetext indexing
-     * @return Array of predicate URI strings used for freetext indexing
+     * @return Array of predicate IRI strings used for freetext indexing
      */
     public String[] getAccumuloFreeTextPredicates() {
         return getStrings(ConfigUtils.FREETEXT_PREDICATES_LIST);
@@ -272,7 +272,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
 
     /**
      * Sets the predicates used for temporal indexing
-     * @param predicates - Array of predicate URI strings used for temporal indexing
+     * @param predicates - Array of predicate IRI strings used for temporal indexing
      */
     public void setAccumuloTemporalPredicates(final String[] predicates) {
         Preconditions.checkNotNull(predicates, "Freetext predicates cannot be null.");
@@ -281,18 +281,18 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
 
     /**
      * Gets the predicates used for temporal indexing
-     * @return Array of predicate URI strings used for temporal indexing
+     * @return Array of predicate IRI strings used for temporal indexing
      */
     public String[] getAccumuloTemporalPredicates() {
         return getStrings(ConfigUtils.TEMPORAL_PREDICATES_LIST);
     }
 
-    private static Set<RyaURI> getPropURIFromStrings(final String... props) {
-        final Set<RyaURI> properties = new HashSet<>();
+    private static Set<RyaIRI> getPropURIFromStrings(final String... props) {
+        final Set<RyaIRI> properties = new HashSet<>();
         if (props != null) {
             for(final String prop : props) {
                 if (StringUtils.isNotBlank(prop)) {
-                    properties.add(new RyaURI(prop));
+                    properties.add(new RyaIRI(prop));
                 }
             }
         }
@@ -320,7 +320,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
         private boolean usePcj = false;
         private boolean useOptimalPcj = false;
         private String[] pcjs = new String[0];
-        private Set<RyaURI> metadataProps = new HashSet<>();
+        private Set<RyaIRI> metadataProps = new HashSet<>();
 
         private static final String USE_FREETEXT = "use.freetext";
         private static final String USE_TEMPORAL = "use.temporal";
@@ -587,7 +587,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
          * @param useMetadata
          * @return AccumuloIndexingConfigBuilder for chaining method invocations
          */
-        public AccumuloIndexingConfigBuilder setStatementMetadataProperties(final Set<RyaURI> metadataProps) {
+        public AccumuloIndexingConfigBuilder setStatementMetadataProperties(final Set<RyaIRI> metadataProps) {
             this.metadataProps = metadataProps;
             return this;
         }

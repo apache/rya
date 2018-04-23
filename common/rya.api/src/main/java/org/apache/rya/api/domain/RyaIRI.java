@@ -19,32 +19,30 @@ package org.apache.rya.api.domain;
  * under the License.
  */
 
-
-
-import org.openrdf.model.URI;
-import org.openrdf.model.util.URIUtil;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.util.URIUtil;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 
 /**
  * Date: 7/16/12
  * Time: 11:56 AM
  */
-public class RyaURI extends RyaType {
+public class RyaIRI extends RyaType {
 
-    public RyaURI() {
+    public RyaIRI() {
         setDataType(XMLSchema.ANYURI);
     }
 
-    public RyaURI(String data) {
+    public RyaIRI(String data) {
         super(XMLSchema.ANYURI, data);
     }
 
-    public RyaURI(String namespace, String data) {
+    public RyaIRI(String namespace, String data) {
         super(XMLSchema.ANYURI, namespace + data);
     }
 
-    protected RyaURI(URI datatype, String data) {
+    protected RyaIRI(IRI datatype, String data) {
         super(datatype, data);
     }
 
@@ -56,7 +54,7 @@ public class RyaURI extends RyaType {
 
     protected void validate(String data) {
         if (data == null)
-            throw new IllegalArgumentException("Null not URI");
+            throw new IllegalArgumentException("Null not IRI");
         URIUtil.getLocalNameIndex(data);
     }
 

@@ -19,22 +19,20 @@ package org.apache.rya.api.persist.query.join;
  * under the License.
  */
 
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.utils.EnumerationWrapper;
-
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * Use HashTable to do a HashJoin.
@@ -56,20 +54,20 @@ public class HashJoin<C extends RdfCloudTripleStoreConfiguration> implements Joi
     }
 
     @Override
-    public CloseableIteration<RyaStatement, RyaDAOException> join(C conf, RyaURI... preds) throws RyaDAOException {
-        ConcurrentHashMap<Map.Entry<RyaURI, RyaType>, Integer> ht = new ConcurrentHashMap<Map.Entry<RyaURI, RyaType>, Integer>();
+    public CloseableIteration<RyaStatement, RyaDAOException> join(C conf, RyaIRI... preds) throws RyaDAOException {
+        ConcurrentHashMap<Map.Entry<RyaIRI, RyaType>, Integer> ht = new ConcurrentHashMap<Map.Entry<RyaIRI, RyaType>, Integer>();
         int count = 0;
         boolean first = true;
-        for (RyaURI pred : preds) {
+        for (RyaIRI pred : preds) {
             count++;
             //query
             CloseableIteration<RyaStatement, RyaDAOException> results = ryaQueryEngine.query(new RyaStatement(null, pred, null), null);
             //add to hashtable
             while (results.hasNext()) {
                 RyaStatement next = results.next();
-                RyaURI subject = next.getSubject();
+                RyaIRI subject = next.getSubject();
                 RyaType object = next.getObject();
-                Map.Entry<RyaURI, RyaType> entry = new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(subject, object);
+                Map.Entry<RyaIRI, RyaType> entry = new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(subject, object);
                 if (!first) {
                     if (!ht.containsKey(entry)) {
                         continue; //not in join
@@ -81,14 +79,14 @@ public class HashJoin<C extends RdfCloudTripleStoreConfiguration> implements Joi
             if (first) {
                 first = false;
             } else {
-                for (Map.Entry<Map.Entry<RyaURI, RyaType>, Integer> entry : ht.entrySet()) {
+                for (Map.Entry<Map.Entry<RyaIRI, RyaType>, Integer> entry : ht.entrySet()) {
                     if (entry.getValue() < count) {
                         ht.remove(entry.getKey());
                     }
                 }
             }
         }
-        final Enumeration<Map.Entry<RyaURI, RyaType>> keys = ht.keys();
+        final Enumeration<Map.Entry<RyaIRI, RyaType>> keys = ht.keys();
         return new CloseableIteration<RyaStatement, RyaDAOException>() {
             @Override
             public void close() throws RyaDAOException {
@@ -102,7 +100,7 @@ public class HashJoin<C extends RdfCloudTripleStoreConfiguration> implements Joi
 
             @Override
             public RyaStatement next() throws RyaDAOException {
-                Map.Entry<RyaURI, RyaType> subjObj = keys.nextElement();
+                Map.Entry<RyaIRI, RyaType> subjObj = keys.nextElement();
                 return new RyaStatement(subjObj.getKey(), null, subjObj.getValue());
             }
 
@@ -114,19 +112,19 @@ public class HashJoin<C extends RdfCloudTripleStoreConfiguration> implements Joi
     }
 
     @Override
-    public CloseableIteration<RyaURI, RyaDAOException> join(C conf, Map.Entry<RyaURI, RyaType>... predObjs) throws RyaDAOException {
-        ConcurrentHashMap<RyaURI, Integer> ht = new ConcurrentHashMap<RyaURI, Integer>();
+    public CloseableIteration<RyaIRI, RyaDAOException> join(C conf, Map.Entry<RyaIRI, RyaType>... predObjs) throws RyaDAOException {
+        ConcurrentHashMap<RyaIRI, Integer> ht = new ConcurrentHashMap<RyaIRI, Integer>();
         int count = 0;
         boolean first = true;
-        for (Map.Entry<RyaURI, RyaType> predObj : predObjs) {
+        for (Map.Entry<RyaIRI, RyaType> predObj : predObjs) {
             count++;
-            RyaURI pred = predObj.getKey();
+            RyaIRI pred = predObj.getKey();
             RyaType obj = predObj.getValue();
             //query
             CloseableIteration<RyaStatement, RyaDAOException> results = ryaQueryEngine.query(new RyaStatement(null, pred, obj), null);
             //add to hashtable
             while (results.hasNext()) {
-                RyaURI subject = results.next().getSubject();
+                RyaIRI subject = results.next().getSubject();
                 if (!first) {
                     if (!ht.containsKey(subject)) {
                         continue; //not in join
@@ -138,14 +136,14 @@ public class HashJoin<C extends RdfCloudTripleStoreConfiguration> implements Joi
             if (first) {
                 first = false;
             } else {
-                for (Map.Entry<RyaURI, Integer> entry : ht.entrySet()) {
+                for (Map.Entry<RyaIRI, Integer> entry : ht.entrySet()) {
                     if (entry.getValue() < count) {
                         ht.remove(entry.getKey());
                     }
                 }
             }
         }
-        return new EnumerationWrapper<RyaURI, RyaDAOException>(ht.keys());
+        return new EnumerationWrapper<RyaIRI, RyaDAOException>(ht.keys());
     }
 
     public RyaQueryEngine getRyaQueryEngine() {

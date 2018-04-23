@@ -17,6 +17,7 @@ package org.apache.rya.indexing.pcj.fluo.app;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -24,10 +25,10 @@ import java.util.Set;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaSubGraph;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.eclipse.rdf4j.model.Statement;
 import org.junit.Assert;
-import org.openrdf.model.Statement;
 
 import com.google.common.base.Objects;
 
@@ -60,7 +61,7 @@ public class ConstructGraphTestUtils {
     }
     
     public static void ryaStatementsEqualIgnoresBlankNode(Set<RyaStatement> statements1, Set<RyaStatement> statements2) {
-        Map<String, RyaURI> bNodeMap = new HashMap<>();
+        Map<String, RyaIRI> bNodeMap = new HashMap<>();
         statements1.forEach(x-> bNodeMap.put(x.getPredicate().getData(), x.getSubject()));
         statements2.forEach(x -> x.setSubject(bNodeMap.get(x.getPredicate().getData())));
         ryaStatementSetsEqualIgnoresTimestamp(statements1, statements2);

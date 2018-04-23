@@ -19,9 +19,7 @@ package org.apache.rya.api.domain;
  * under the License.
  */
 
-
-
-import org.openrdf.model.Value;
+import org.eclipse.rdf4j.model.Value;
 
 /**
  * Created by IntelliJ IDEA.

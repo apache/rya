@@ -31,7 +31,7 @@ import org.apache.rya.joinselect.mr.utils.TripleEntry;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolver;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
@@ -51,7 +51,7 @@ public class JoinSelectMapperTest {
   @Test
   public void testOutput() throws TripleRowResolverException, IOException {
 
-    RyaStatement rya = new RyaStatement(new RyaURI("urn:gem:etype#1234"), new RyaURI("urn:gem#pred"), new RyaType("mydata1"));
+    RyaStatement rya = new RyaStatement(new RyaIRI("urn:gem:etype#1234"), new RyaIRI("urn:gem#pred"), new RyaType("mydata1"));
     Text s = new Text(rya.getSubject().getData());
     Text p = new Text(rya.getPredicate().getData());
     Text o = new Text(rya.getObject().getData());

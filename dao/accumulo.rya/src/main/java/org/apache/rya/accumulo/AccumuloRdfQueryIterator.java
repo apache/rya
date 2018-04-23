@@ -23,7 +23,7 @@
 //import com.google.common.collect.Iterators;
 //import com.google.common.io.ByteArrayDataInput;
 //import com.google.common.io.ByteStreams;
-//import info.aduna.iteration.CloseableIteration;
+//import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 //import org.apache.rya.api.RdfCloudTripleStoreConstants;
 //import org.apache.rya.api.RdfCloudTripleStoreUtils;
 //import org.apache.rya.api.persist.RdfDAOException;
@@ -35,11 +35,11 @@
 //import org.apache.accumulo.core.iterators.user.TimestampFilter;
 //import org.apache.accumulo.core.security.Authorizations;
 //import org.apache.hadoop.io.Text;
-//import org.openrdf.model.Resource;
-//import org.openrdf.model.Statement;
-//import org.openrdf.model.URI;
-//import org.openrdf.model.Value;
-//import org.openrdf.query.BindingSet;
+//import org.eclipse.rdf4j.model.Resource;
+//import org.eclipse.rdf4j.model.Statement;
+//import org.eclipse.rdf4j.model.IRI;
+//import org.eclipse.rdf4j.model.Value;
+//import org.eclipse.rdf4j.query.BindingSet;
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 //
@@ -93,7 +93,7 @@
 //        open = true;
 //    }
 //
-//    public AccumuloRdfQueryIterator(Resource subject, URI predicate, Value object, Connector connector,
+//    public AccumuloRdfQueryIterator(Resource subject, IRI predicate, Value object, Connector connector,
 //                                    AccumuloRdfConfiguration conf, Resource[] contexts) throws RdfDAOException {
 //        this(Collections.<Entry<Statement, BindingSet>>singleton(new RdfCloudTripleStoreUtils.CustomEntry<Statement, BindingSet>(
 //                new NullableStatementImpl(subject, predicate, object, contexts),
@@ -114,7 +114,7 @@
 //            for (Entry<Statement, BindingSet> stmtbs : statements) {
 //                Statement stmt = stmtbs.getKey();
 //                Resource subject = stmt.getSubject();
-//                URI predicate = stmt.getPredicate();
+//                IRI predicate = stmt.getPredicate();
 //                Value object = stmt.getObject();
 //                context = stmt.getContext(); //TODO: assumes the same context for all statements
 //                logger.debug("Batch Scan, lookup subject[" + subject + "] predicate[" + predicate + "] object[" + object + "] combination");

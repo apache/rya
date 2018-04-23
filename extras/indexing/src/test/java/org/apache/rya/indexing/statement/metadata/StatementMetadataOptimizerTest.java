@@ -17,6 +17,7 @@ package org.apache.rya.indexing.statement.metadata;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
@@ -29,27 +30,27 @@ import java.util.Set;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.matching.JoinSegment;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataExternalSetProvider;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataNode;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataOptimizer;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 @RunWith(value = Parameterized.class)
 public class StatementMetadataOptimizerTest {
@@ -127,8 +128,8 @@ public class StatementMetadataOptimizerTest {
     private static RdfCloudTripleStoreConfiguration getConf(boolean useMongo) {
 
         RdfCloudTripleStoreConfiguration conf;
-        Set<RyaURI> propertySet = new HashSet<>(
-                Arrays.asList(new RyaURI("http://createdBy"), new RyaURI("http://createdOn")));
+        Set<RyaIRI> propertySet = new HashSet<>(
+                Arrays.asList(new RyaIRI("http://createdBy"), new RyaIRI("http://createdOn")));
         if (useMongo) {
             MongoDBRdfConfiguration mConf = new MongoDBRdfConfiguration();
             mConf.setBoolean("sc.useMongo", true);

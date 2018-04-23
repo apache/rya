@@ -19,14 +19,12 @@ package org.apache.rya.api.date;
  * under the License.
  */
 
-
-
-import org.openrdf.model.Value;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
+import org.eclipse.rdf4j.model.Value;
 
 /**
  * Class DateTimeTtlValueConverter
@@ -51,10 +49,10 @@ public class DateTimeTtlValueConverter implements TtlValueConverter {
             cal.setTimeZone(getTimeZone());
             cal.setTimeInMillis(start_l);
             DatatypeFactory factory = DatatypeFactory.newInstance();
-            start = vf.createLiteral(factory.newXMLGregorianCalendar(cal));
+            start = VF.createLiteral(factory.newXMLGregorianCalendar(cal));
 
             cal.setTimeInMillis(stop_l);
-            stop = vf.createLiteral(factory.newXMLGregorianCalendar(cal));
+            stop = VF.createLiteral(factory.newXMLGregorianCalendar(cal));
         } catch (DatatypeConfigurationException e) {
             throw new RuntimeException("Exception occurred creating DataTypeFactory", e);
         }

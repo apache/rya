@@ -33,7 +33,7 @@ import org.apache.rya.streams.api.queries.QueryRepository;
 import org.apache.rya.streams.client.RyaStreamsCommand;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.queries.KafkaQueryChangeLogFactory;
-import org.openrdf.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.MalformedQueryException;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;

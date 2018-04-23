@@ -1,7 +1,3 @@
-package org.apache.rya.indexing.accumulo.entity;
-
-import java.nio.charset.StandardCharsets;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,8 +16,9 @@ import java.nio.charset.StandardCharsets;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.accumulo.entity;
 
-
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -31,15 +28,16 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.documentIndex.TextColumn;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
-import org.openrdf.model.Value;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -338,7 +336,7 @@ public class StarQuery {
         final String[] cqArray = cq.split("\u0000");
 
         if (cqArray[0].equals("subject")) {
-            // RyaURI subjURI = (RyaURI) RdfToRyaConversions.convertValue(v);
+            // RyaIRI subjIRI = (RyaIRI) RdfToRyaConversions.convertValue(v);
             tc.setColumnQualifier(new Text("subject" + "\u0000" + v.stringValue()));
             tc.setIsPrefix(false);
         } else if (cqArray[0].equals("object")) {
@@ -368,7 +366,7 @@ public class StarQuery {
         final Var predVar = node.getPredicateVar();
         final Var objVar = node.getObjectVar();
 
-        final RyaURI predURI = (RyaURI) RdfToRyaConversions.convertValue(node.getPredicateVar().getValue());
+        final RyaIRI predURI = (RyaIRI) RdfToRyaConversions.convertValue(node.getPredicateVar().getValue());
 
 
         //assumes StatementPattern contains at least on variable
@@ -438,7 +436,7 @@ public class StarQuery {
         }
 
         if(hasContext()) {
-            final RyaURI ctxtURI = (RyaURI) RdfToRyaConversions.convertValue(context.getValue());
+            final RyaIRI ctxtURI = (RyaIRI) RdfToRyaConversions.convertValue(context.getValue());
             contextURI = ctxtURI.getData();
         }
 
@@ -520,7 +518,7 @@ public class StarQuery {
 
 
             for (final String s : bindings) {
-                if (!s.startsWith("-const-")) {
+                if (!VarNameUtils.isConstant(s)) {
                     varCount++;
                 }
                 if (varCount > 1) {

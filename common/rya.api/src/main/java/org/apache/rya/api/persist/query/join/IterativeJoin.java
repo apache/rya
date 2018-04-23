@@ -19,22 +19,23 @@ package org.apache.rya.api.persist.query.join;
  * under the License.
  */
 
-
-
-import com.google.common.base.Preconditions;
-import info.aduna.iteration.CloseableIteration;
-import info.aduna.iteration.ConvertingIteration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.domain.*;
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.api.persist.query.RyaQueryEngine;
-import org.apache.rya.api.resolver.RyaContext;
-import org.openrdf.query.BindingSet;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.query.RyaQueryEngine;
+import org.apache.rya.api.resolver.RyaContext;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.ConvertingIteration;
+import org.eclipse.rdf4j.query.BindingSet;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Date: 7/24/12
@@ -59,14 +60,14 @@ public class IterativeJoin<C extends RdfCloudTripleStoreConfiguration> implement
      * @return
      */
     @Override
-    public CloseableIteration<RyaStatement, RyaDAOException> join(C conf, RyaURI... preds)
+    public CloseableIteration<RyaStatement, RyaDAOException> join(C conf, RyaIRI... preds)
             throws RyaDAOException {
         Preconditions.checkNotNull(preds);
         Preconditions.checkArgument(preds.length > 1, "Must join 2 or more");
         //TODO: Reorder predObjs based on statistics
 
         CloseableIteration<RyaStatement, RyaDAOException> iter = null;
-        for (RyaURI pred : preds) {
+        for (RyaIRI pred : preds) {
             if (iter == null) {
                 iter = ryaQueryEngine.query(new RyaStatement(null, pred, null), null);
             } else {
@@ -87,22 +88,22 @@ public class IterativeJoin<C extends RdfCloudTripleStoreConfiguration> implement
      *
      */
     @Override
-    public CloseableIteration<RyaURI, RyaDAOException> join(C conf, Map.Entry<RyaURI, RyaType>... predObjs)
+    public CloseableIteration<RyaIRI, RyaDAOException> join(C conf, Map.Entry<RyaIRI, RyaType>... predObjs)
             throws RyaDAOException {
         Preconditions.checkNotNull(predObjs);
         Preconditions.checkArgument(predObjs.length > 1, "Must join 2 or more");
 
         //TODO: Reorder predObjs based on statistics
         CloseableIteration<RyaStatement, RyaDAOException> first = null;
-        CloseableIteration<RyaURI, RyaDAOException> iter = null;
-        for (Map.Entry<RyaURI, RyaType> entry : predObjs) {
+        CloseableIteration<RyaIRI, RyaDAOException> iter = null;
+        for (Map.Entry<RyaIRI, RyaType> entry : predObjs) {
             if (first == null) {
                 first = ryaQueryEngine.query(new RyaStatement(null, entry.getKey(), entry.getValue()), null);
             } else if (iter == null) {
-                iter = join(new ConvertingIteration<RyaStatement, RyaURI, RyaDAOException>(first) {
+                iter = join(new ConvertingIteration<RyaStatement, RyaIRI, RyaDAOException>(first) {
 
                     @Override
-                    protected RyaURI convert(RyaStatement statement) throws RyaDAOException {
+                    protected RyaIRI convert(RyaStatement statement) throws RyaDAOException {
                         return statement.getSubject();
                     }
                 }, entry);
@@ -114,12 +115,12 @@ public class IterativeJoin<C extends RdfCloudTripleStoreConfiguration> implement
         return iter;
     }
 
-    protected CloseableIteration<RyaURI, RyaDAOException> join(final CloseableIteration<RyaURI, RyaDAOException> iteration,
-                                                               final Map.Entry<RyaURI, RyaType> predObj) {
+    protected CloseableIteration<RyaIRI, RyaDAOException> join(final CloseableIteration<RyaIRI, RyaDAOException> iteration,
+                                                               final Map.Entry<RyaIRI, RyaType> predObj) {
         //TODO: configure batch
         //TODO: batch = 1, does not work
         final int batch = 100;
-        return new CloseableIteration<RyaURI, RyaDAOException>() {
+        return new CloseableIteration<RyaIRI, RyaDAOException>() {
 
             private CloseableIteration<Map.Entry<RyaStatement, BindingSet>, RyaDAOException> query;
 
@@ -137,7 +138,7 @@ public class IterativeJoin<C extends RdfCloudTripleStoreConfiguration> implement
             }
 
             @Override
-            public RyaURI next() throws RyaDAOException {
+            public RyaIRI next() throws RyaDAOException {
                 if (query == null || !query.hasNext()) {
                     if (!batchNext()) return null;
                 }
@@ -169,7 +170,7 @@ public class IterativeJoin<C extends RdfCloudTripleStoreConfiguration> implement
     }
 
     protected CloseableIteration<RyaStatement, RyaDAOException> join(
-            final CloseableIteration<RyaStatement, RyaDAOException> iteration, final RyaURI pred) {
+            final CloseableIteration<RyaStatement, RyaDAOException> iteration, final RyaIRI pred) {
         //TODO: configure batch
         //TODO: batch = 1, does not work
         final int batch = 100;

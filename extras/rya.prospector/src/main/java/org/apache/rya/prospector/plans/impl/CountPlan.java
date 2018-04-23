@@ -46,15 +46,15 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.prospector.domain.IndexEntry;
 import org.apache.rya.prospector.domain.IntermediateProspect;
 import org.apache.rya.prospector.domain.TripleValueType;
 import org.apache.rya.prospector.plans.IndexWorkPlan;
 import org.apache.rya.prospector.utils.CustomEntry;
 import org.apache.rya.prospector.utils.ProspectorUtils;
-import org.openrdf.model.util.URIUtil;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.util.URIUtil;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 /**
  * An implementation of {@link IndexWorkPlan} that counts the number of times
@@ -64,8 +64,8 @@ public class CountPlan implements IndexWorkPlan {
 
     @Override
     public Collection<Map.Entry<IntermediateProspect, LongWritable>> map(final RyaStatement ryaStatement) {
-        final RyaURI subject = ryaStatement.getSubject();
-        final RyaURI predicate = ryaStatement.getPredicate();
+        final RyaIRI subject = ryaStatement.getSubject();
+        final RyaIRI predicate = ryaStatement.getPredicate();
         final String subjpred = ryaStatement.getSubject().getData() + DELIM + ryaStatement.getPredicate().getData();
         final String predobj = ryaStatement.getPredicate().getData() + DELIM + ryaStatement.getObject().getData();
         final String subjobj = ryaStatement.getSubject().getData() + DELIM + ryaStatement.getObject().getData();

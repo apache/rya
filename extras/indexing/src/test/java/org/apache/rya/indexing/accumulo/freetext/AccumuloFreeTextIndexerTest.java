@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.rya.indexing.accumulo.freetext;
 
 import java.util.HashSet;
@@ -14,49 +32,27 @@ import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.conf.Configuration;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDFS;
-
-import com.google.common.collect.Sets;
-
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
-
-
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.common.collect.Sets;
+
 
 public class AccumuloFreeTextIndexerTest {
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
@@ -96,13 +92,13 @@ public class AccumuloFreeTextIndexerTest {
             f.setMultiTableBatchWriter(ConfigUtils.createMultitableBatchWriter(conf));
             f.init();
 
-            ValueFactory vf = new ValueFactoryImpl();
+            ValueFactory vf = SimpleValueFactory.getInstance();
 
-            URI subject = new URIImpl("foo:subj");
-            URI predicate = RDFS.LABEL;
+            IRI subject = vf.createIRI("foo:subj");
+            IRI predicate = RDFS.LABEL;
             Value object = vf.createLiteral("this is a new hat");
 
-            URI context = new URIImpl("foo:context");
+            IRI context = vf.createIRI("foo:context");
 
             Statement statement = vf.createStatement(subject, predicate, object, context);
             f.storeStatement(RdfToRyaConversions.convertStatement(statement));
@@ -139,22 +135,22 @@ public class AccumuloFreeTextIndexerTest {
             f.setMultiTableBatchWriter(ConfigUtils.createMultitableBatchWriter(conf));
             f.init();
 
-            ValueFactory vf = new ValueFactoryImpl();
+            ValueFactory vf = SimpleValueFactory.getInstance();
 
-            URI subject1 = new URIImpl("foo:subj");
-            URI predicate1 = RDFS.LABEL;
+            IRI subject1 = vf.createIRI("foo:subj");
+            IRI predicate1 = RDFS.LABEL;
             Value object1 = vf.createLiteral("this is a new hat");
 
-            URI context1 = new URIImpl("foo:context");
+            IRI context1 = vf.createIRI("foo:context");
 
             Statement statement1 = vf.createStatement(subject1, predicate1, object1, context1);
             f.storeStatement(RdfToRyaConversions.convertStatement(statement1));
 
-            URI subject2 = new URIImpl("foo:subject");
-            URI predicate2 = RDFS.LABEL;
+            IRI subject2 = vf.createIRI("foo:subject");
+            IRI predicate2 = RDFS.LABEL;
             Value object2 = vf.createLiteral("Do you like my new hat?");
 
-            URI context2 = new URIImpl("foo:context");
+            IRI context2 = vf.createIRI("foo:context");
 
             Statement statement2 = vf.createStatement(subject2, predicate2, object2, context2);
             f.storeStatement(RdfToRyaConversions.convertStatement(statement2));
@@ -195,20 +191,20 @@ public class AccumuloFreeTextIndexerTest {
             f.init();
 
             // These should not be stored because they are not in the predicate list
-            f.storeStatement(new RyaStatement(new RyaURI("foo:subj1"), new RyaURI(RDFS.LABEL.toString()), new RyaType("invalid")));
-            f.storeStatement(new RyaStatement(new RyaURI("foo:subj2"), new RyaURI(RDFS.COMMENT.toString()), new RyaType("invalid")));
+            f.storeStatement(new RyaStatement(new RyaIRI("foo:subj1"), new RyaIRI(RDFS.LABEL.toString()), new RyaType("invalid")));
+            f.storeStatement(new RyaStatement(new RyaIRI("foo:subj2"), new RyaIRI(RDFS.COMMENT.toString()), new RyaType("invalid")));
 
-            RyaURI pred1 = new RyaURI("pred:1");
-            RyaURI pred2 = new RyaURI("pred:2");
+            RyaIRI pred1 = new RyaIRI("pred:1");
+            RyaIRI pred2 = new RyaIRI("pred:2");
 
             // These should be stored because they are in the predicate list
-            RyaStatement s3 = new RyaStatement(new RyaURI("foo:subj3"), pred1, new RyaType("valid"));
-            RyaStatement s4 = new RyaStatement(new RyaURI("foo:subj4"), pred2, new RyaType("valid"));
+            RyaStatement s3 = new RyaStatement(new RyaIRI("foo:subj3"), pred1, new RyaType("valid"));
+            RyaStatement s4 = new RyaStatement(new RyaIRI("foo:subj4"), pred2, new RyaType("valid"));
             f.storeStatement(s3);
             f.storeStatement(s4);
 
             // This should not be stored because the object is not a literal
-            f.storeStatement(new RyaStatement(new RyaURI("foo:subj5"), pred1, new RyaURI("in:valid")));
+            f.storeStatement(new RyaStatement(new RyaIRI("foo:subj5"), pred1, new RyaIRI("in:valid")));
 
             f.flush();
 
@@ -231,11 +227,11 @@ public class AccumuloFreeTextIndexerTest {
             f.setMultiTableBatchWriter(ConfigUtils.createMultitableBatchWriter(conf));
             f.init();
 
-            ValueFactory vf = new ValueFactoryImpl();
-            URI subject = new URIImpl("foo:subj");
-            URI predicate = new URIImpl(RDFS.COMMENT.toString());
+            ValueFactory vf = SimpleValueFactory.getInstance();
+            IRI subject = vf.createIRI("foo:subj");
+            IRI predicate = vf.createIRI(RDFS.COMMENT.toString());
             Value object = vf.createLiteral("this is a new hat");
-            URI context = new URIImpl("foo:context");
+            IRI context = vf.createIRI("foo:context");
 
             Statement statement = vf.createStatement(subject, predicate, object, context);
             f.storeStatement(RdfToRyaConversions.convertStatement(statement));
@@ -244,7 +240,7 @@ public class AccumuloFreeTextIndexerTest {
             Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryText("hat", EMPTY_CONSTRAINTS)));
             Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryText("hat", new StatementConstraints().setContext(context))));
             Assert.assertEquals(Sets.newHashSet(),
-                    getSet(f.queryText("hat", new StatementConstraints().setContext(vf.createURI("foo:context2")))));
+                    getSet(f.queryText("hat", new StatementConstraints().setContext(vf.createIRI("foo:context2")))));
         }
     }
 

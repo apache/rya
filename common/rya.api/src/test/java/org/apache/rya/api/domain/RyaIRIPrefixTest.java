@@ -1,4 +1,4 @@
-package org.apache.rya.api.query.strategy.wholerow;
+package org.apache.rya.api.domain;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -20,13 +20,18 @@ package org.apache.rya.api.query.strategy.wholerow;
  */
 
 
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 
-public class MockRdfCloudConfiguration extends RdfCloudTripleStoreConfiguration {
+import junit.framework.TestCase;
 
-	@Override
-	public RdfCloudTripleStoreConfiguration clone() {
-		return this;
-	}
+/**
+ * Date: 7/24/12
+ * Time: 3:30 PM
+ */
+public class RyaIRIPrefixTest extends TestCase {
 
+    public void testPrefix() throws Exception {
+        String prefix = "urn:test#";
+        RyaIRIPrefix iriPrefix = new RyaIRIPrefix(prefix);
+        assertEquals(prefix, iriPrefix.getPrefix());
+    }
 }

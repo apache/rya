@@ -1,23 +1,3 @@
-package org.apache.rya.accumulo.mr.tools;
-
-import java.util.Map;
-
-import org.apache.accumulo.core.Constants;
-import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.admin.SecurityOperations;
-import org.apache.accumulo.core.client.mock.MockInstance;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Mutation;
-import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.core.security.TablePermission;
-import org.openrdf.model.vocabulary.XMLSchema;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -36,19 +16,35 @@ import org.openrdf.model.vocabulary.XMLSchema;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.accumulo.mr.tools;
 
+import java.util.Map;
 
-
-import junit.framework.TestCase;
+import org.apache.accumulo.core.Constants;
+import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.BatchWriterConfig;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.admin.SecurityOperations;
+import org.apache.accumulo.core.client.mock.MockInstance;
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Mutation;
+import org.apache.accumulo.core.data.Range;
+import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.core.security.TablePermission;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.mr.TestUtils;
-import org.apache.rya.accumulo.mr.tools.Upgrade322Tool;
 import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+
+import junit.framework.TestCase;
 
 /**
  * Created by IntelliJ IDEA.
@@ -223,41 +219,41 @@ public class Upgrade322ToolTest extends TestCase {
         final AccumuloRyaQueryEngine queryEngine = ryaDAO.getQueryEngine();
 
         TestUtils.verify(new RyaStatement(
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uuid10"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#booleanLit"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uuid10"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#booleanLit"),
           new RyaType(XMLSchema.BOOLEAN, "true")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uuid10"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#longLit"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uuid10"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#longLit"),
           new RyaType(XMLSchema.LONG, "10")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uuid10"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#intLit"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uuid10"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#intLit"),
           new RyaType(XMLSchema.INTEGER, "10")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uuid10"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#byteLit"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uuid10"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#byteLit"),
           new RyaType(XMLSchema.BYTE, "10")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uuid10"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#doubleLit"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uuid10"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#doubleLit"),
           new RyaType(XMLSchema.DOUBLE, "10.0")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uuid10"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#dateLit"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uuid10"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#dateLit"),
           new RyaType(XMLSchema.DATETIME, "2011-07-12T06:00:00.000Z")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uuid10"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#stringLit"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uuid10"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#stringLit"),
           new RyaType("stringLit")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uuid10"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns#uriLit"),
-          new RyaURI("http://here/2010/tracked-data-provenance/ns" +
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uuid10"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns#uriLit"),
+          new RyaIRI("http://here/2010/tracked-data-provenance/ns" +
                      "#objectuuid1")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("urn:org.apache.rya/2012/05#rts"),
-          new RyaURI("urn:org.apache.rya/2012/05#version"),
+          new RyaIRI("urn:org.apache.rya/2012/05#rts"),
+          new RyaIRI("urn:org.apache.rya/2012/05#version"),
           new RyaType("3.0.0")), queryEngine);
     }
 

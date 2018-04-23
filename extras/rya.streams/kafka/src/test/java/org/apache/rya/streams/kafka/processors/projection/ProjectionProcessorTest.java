@@ -30,11 +30,11 @@ import org.apache.rya.streams.kafka.RdfTestUtil;
 import org.apache.rya.streams.kafka.processors.ProcessorResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.UnaryResult;
 import org.apache.rya.streams.kafka.processors.projection.ProjectionProcessorSupplier.ProjectionProcessor;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Unit tests the methods of {@link ProjectionProcessor}.
@@ -52,18 +52,18 @@ public class ProjectionProcessorTest {
                 "}");
 
         // Create a Binding Set that contains the result of the WHERE clause.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final MapBindingSet inputBs = new MapBindingSet();
-        inputBs.addBinding("person", vf.createURI("urn:Alice"));
-        inputBs.addBinding("employee", vf.createURI("urn:Bob"));
-        inputBs.addBinding("business", vf.createURI("urn:TacoJoint"));
+        inputBs.addBinding("person", vf.createIRI("urn:Alice"));
+        inputBs.addBinding("employee", vf.createIRI("urn:Bob"));
+        inputBs.addBinding("business", vf.createIRI("urn:TacoJoint"));
         final VisibilityBindingSet inputVisBs = new VisibilityBindingSet(inputBs, "a");
 
         // The expected binding set changes the "person" binding name to "p" and "employee" to "e".
         final MapBindingSet expectedBs = new MapBindingSet();
-        expectedBs.addBinding("p", vf.createURI("urn:Alice"));
-        expectedBs.addBinding("e", vf.createURI("urn:Bob"));
-        expectedBs.addBinding("business", vf.createURI("urn:TacoJoint"));
+        expectedBs.addBinding("p", vf.createIRI("urn:Alice"));
+        expectedBs.addBinding("e", vf.createIRI("urn:Bob"));
+        expectedBs.addBinding("business", vf.createIRI("urn:TacoJoint"));
         final VisibilityBindingSet expectedVisBs = new VisibilityBindingSet(expectedBs, "a");
 
         // Show it resulted in the correct output BindingSet.

@@ -28,12 +28,6 @@ import org.apache.accumulo.core.client.mapreduce.InputTableConfig;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.hadoop.io.Text;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
@@ -43,6 +37,11 @@ import org.apache.rya.api.query.strategy.TriplePatternStrategy;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.utils.NullableStatementImpl;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * A {@link QueryRuleset} that additionally maps rules to ranges in Accumulo tables. Also enables
@@ -85,7 +84,7 @@ public class AccumuloQueryRuleset extends QueryRuleset {
     private Map.Entry<TABLE_LAYOUT, ByteRange> getRange(final StatementPattern sp) throws IOException {
         final Var context = sp.getContextVar();
         final Statement stmt = new NullableStatementImpl((Resource) sp.getSubjectVar().getValue(),
-                (URI) sp.getPredicateVar().getValue(), sp.getObjectVar().getValue(),
+                (IRI) sp.getPredicateVar().getValue(), sp.getObjectVar().getValue(),
                 context == null ? null : (Resource) context.getValue());
         final RyaStatement rs = RdfToRyaConversions.convertStatement(stmt);
         final TriplePatternStrategy strategy = ryaContext.retrieveStrategy(rs);

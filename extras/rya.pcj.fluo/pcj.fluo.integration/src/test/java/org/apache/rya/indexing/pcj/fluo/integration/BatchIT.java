@@ -38,7 +38,7 @@ import org.apache.fluo.api.data.Span;
 import org.apache.fluo.core.client.FluoClientImpl;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.function.join.LazyJoiningIterator.Side;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
@@ -60,11 +60,11 @@ import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -72,8 +72,8 @@ import com.google.common.base.Preconditions;
 public class BatchIT extends RyaExportITBase {
 
     private static final Logger log = Logger.getLogger(BatchIT.class);
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     private static final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
-    private static final ValueFactory vf = new ValueFactoryImpl();
 
     @Test
     public void simpleScanDelete() throws Exception {
@@ -82,9 +82,9 @@ public class BatchIT extends RyaExportITBase {
                 + " <urn:predicate_2> ?object2 } ";
         try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
 
-            RyaURI subj = new RyaURI("urn:subject_1");
-            RyaStatement statement1 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
-            RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
+            RyaIRI subj = new RyaIRI("urn:subject_1");
+            RyaStatement statement1 = new RyaStatement(subj, new RyaIRI("urn:predicate_1"), null);
+            RyaStatement statement2 = new RyaStatement(subj, new RyaIRI("urn:predicate_2"), null);
             Set<RyaStatement> statements1 = getRyaStatements(statement1, 10);
             Set<RyaStatement> statements2 = getRyaStatements(statement2, 10);
 
@@ -122,9 +122,9 @@ public class BatchIT extends RyaExportITBase {
                 + " <urn:predicate_2> ?object2 } ";
         try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
 
-            RyaURI subj = new RyaURI("urn:subject_1");
-            RyaStatement statement1 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
-            RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
+            RyaIRI subj = new RyaIRI("urn:subject_1");
+            RyaStatement statement1 = new RyaStatement(subj, new RyaIRI("urn:predicate_1"), null);
+            RyaStatement statement2 = new RyaStatement(subj, new RyaIRI("urn:predicate_2"), null);
             Set<RyaStatement> statements1 = getRyaStatements(statement1, 5);
             Set<RyaStatement> statements2 = getRyaStatements(statement2, 5);
 
@@ -140,13 +140,13 @@ public class BatchIT extends RyaExportITBase {
             String joinId = ids.get(2);
             String rightSp = ids.get(4);
             QueryBindingSet bs = new QueryBindingSet();
-            bs.addBinding("subject", vf.createURI("urn:subject_1"));
-            bs.addBinding("object1", vf.createURI("urn:object_0"));
+            bs.addBinding("subject", VF.createIRI("urn:subject_1"));
+            bs.addBinding("object1", VF.createIRI("urn:object_0"));
             VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
 
             //create sharded span for deletion
-            URI uri = vf.createURI("urn:subject_1");
-            Bytes prefixBytes = BindingHashShardingFunction.getShardedScanPrefix(rightSp, uri);
+            IRI iri = VF.createIRI("urn:subject_1");
+            Bytes prefixBytes = BindingHashShardingFunction.getShardedScanPrefix(rightSp, iri);
             Span span = Span.prefix(prefixBytes);
 
             // Stream the data into Fluo.
@@ -174,8 +174,8 @@ public class BatchIT extends RyaExportITBase {
                 + " <urn:predicate_2> ?object2 } ";
         try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
 
-            RyaURI subj = new RyaURI("urn:subject_1");
-            RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
+            RyaIRI subj = new RyaIRI("urn:subject_1");
+            RyaStatement statement2 = new RyaStatement(subj, new RyaIRI("urn:predicate_2"), null);
             Set<RyaStatement> statements2 = getRyaStatements(statement2, 5);
 
             // Create the PCJ table.
@@ -190,12 +190,12 @@ public class BatchIT extends RyaExportITBase {
             String joinId = ids.get(2);
             String rightSp = ids.get(4);
             QueryBindingSet bs = new QueryBindingSet();
-            bs.addBinding("subject", vf.createURI("urn:subject_1"));
-            bs.addBinding("object1", vf.createURI("urn:object_0"));
+            bs.addBinding("subject", VF.createIRI("urn:subject_1"));
+            bs.addBinding("object1", VF.createIRI("urn:object_0"));
             VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
 
-            URI uri = vf.createURI("urn:subject_1");
-            Bytes prefixBytes = BindingHashShardingFunction.getShardedScanPrefix(rightSp, uri);
+            IRI iri = VF.createIRI("urn:subject_1");
+            Bytes prefixBytes = BindingHashShardingFunction.getShardedScanPrefix(rightSp, iri);
             Span span = Span.prefix(prefixBytes);
 
             // Stream the data into Fluo.
@@ -222,9 +222,9 @@ public class BatchIT extends RyaExportITBase {
                 + " <urn:predicate_2> ?object2 } ";
         try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
 
-            RyaURI subj = new RyaURI("urn:subject_1");
-            RyaStatement statement1 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
-            RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
+            RyaIRI subj = new RyaIRI("urn:subject_1");
+            RyaStatement statement1 = new RyaStatement(subj, new RyaIRI("urn:predicate_1"), null);
+            RyaStatement statement2 = new RyaStatement(subj, new RyaIRI("urn:predicate_2"), null);
 
             Set<RyaStatement> statements1 = getRyaStatements(statement1, 15);
             Set<RyaStatement> statements2 = getRyaStatements(statement2, 15);
@@ -256,12 +256,12 @@ public class BatchIT extends RyaExportITBase {
                 + "OPTIONAL{ ?subject <urn:predicate_2> ?object2} } ";
         try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
 
-            RyaURI subj = new RyaURI("urn:subject_1");
-            RyaStatement statement1 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
-            RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
+            RyaIRI subj = new RyaIRI("urn:subject_1");
+            RyaStatement statement1 = new RyaStatement(subj, new RyaIRI("urn:predicate_1"), null);
+            RyaStatement statement2 = new RyaStatement(subj, new RyaIRI("urn:predicate_2"), null);
 
-            subj = new RyaURI("urn:subject_2");
-            RyaStatement statement3 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
+            subj = new RyaIRI("urn:subject_2");
+            RyaStatement statement3 = new RyaStatement(subj, new RyaIRI("urn:predicate_1"), null);
 
             Set<RyaStatement> statements1 = getRyaStatements(statement1, 10);
             Set<RyaStatement> statements2 = getRyaStatements(statement2, 10);
@@ -295,15 +295,15 @@ public class BatchIT extends RyaExportITBase {
                 + " <urn:predicate_2> ?object2 ." + " ?subject2 <urn:predicate_3> ?object2 } ";
         try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
 
-            RyaURI subj1 = new RyaURI("urn:subject_1");
-            RyaStatement statement1 = new RyaStatement(subj1, new RyaURI("urn:predicate_1"), null);
-            RyaStatement statement2 = new RyaStatement(subj1, new RyaURI("urn:predicate_2"), null);
+            RyaIRI subj1 = new RyaIRI("urn:subject_1");
+            RyaStatement statement1 = new RyaStatement(subj1, new RyaIRI("urn:predicate_1"), null);
+            RyaStatement statement2 = new RyaStatement(subj1, new RyaIRI("urn:predicate_2"), null);
 
             Set<RyaStatement> statements1 = getRyaStatements(statement1, 10);
             Set<RyaStatement> statements2 = getRyaStatements(statement2, 10);
 
-            RyaURI subj2 = new RyaURI("urn:subject_2");
-            RyaStatement statement3 = new RyaStatement(subj2, new RyaURI("urn:predicate_3"), null);
+            RyaIRI subj2 = new RyaIRI("urn:subject_2");
+            RyaStatement statement3 = new RyaStatement(subj2, new RyaIRI("urn:predicate_3"), null);
             Set<RyaStatement> statements3 = getRyaStatements(statement3, 10);
 
             // Create the PCJ table.
@@ -338,13 +338,13 @@ public class BatchIT extends RyaExportITBase {
         for (int i = 0; i < numTriples; i++) {
             RyaStatement stmnt = new RyaStatement(statement.getSubject(), statement.getPredicate(), statement.getObject());
             if (stmnt.getSubject() == null) {
-                stmnt.setSubject(new RyaURI(subject + i));
+                stmnt.setSubject(new RyaIRI(subject + i));
             }
             if (stmnt.getPredicate() == null) {
-                stmnt.setPredicate(new RyaURI(predicate + i));
+                stmnt.setPredicate(new RyaIRI(predicate + i));
             }
             if (stmnt.getObject() == null) {
-                stmnt.setObject(new RyaURI(object + i));
+                stmnt.setObject(new RyaIRI(object + i));
             }
             statements.add(stmnt);
         }
@@ -368,8 +368,8 @@ public class BatchIT extends RyaExportITBase {
             for (int i = 0; i < ids.size(); i++) {
                 String id = ids.get(i);
                 String bsPrefix = prefixes.get(i);
-                URI uri = vf.createURI(bsPrefix);
-                Bytes prefixBytes = BindingHashShardingFunction.getShardedScanPrefix(id, uri);
+                IRI iri = VF.createIRI(bsPrefix);
+                Bytes prefixBytes = BindingHashShardingFunction.getShardedScanPrefix(id, iri);
                 NodeType type = NodeType.fromNodeId(id).get();
                 Column bsCol = type.getResultColumn();
                 SpanBatchDeleteInformation.Builder builder = SpanBatchDeleteInformation.builder().setBatchSize(batchSize)

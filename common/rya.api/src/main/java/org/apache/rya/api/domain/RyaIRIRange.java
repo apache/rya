@@ -25,34 +25,34 @@ package org.apache.rya.api.domain;
  * Date: 7/17/12
  * Time: 9:59 AM
  */
-public class RyaURIRange extends RyaURI implements RyaRange {
-    public static final RyaURI LAST_URI = new RyaURI(((char) 255) + ":#" + ((char) 255));
+public class RyaIRIRange extends RyaIRI implements RyaRange {
+    public static final RyaIRI LAST_IRI = new RyaIRI(((char) 255) + ":#" + ((char) 255));
 
-    private RyaURI start;
-    private RyaURI stop;
+    private RyaIRI start;
+    private RyaIRI stop;
 
-    public RyaURIRange() {
+    public RyaIRIRange() {
         super();
     }
 
-    public RyaURIRange(RyaURI start, RyaURI stop) {
+    public RyaIRIRange(RyaIRI start, RyaIRI stop) {
         this.start = start;
         this.stop = stop;
     }
 
-    public RyaURI getStart() {
+    public RyaIRI getStart() {
         return start;
     }
 
-    public void setStart(RyaURI start) {
+    public void setStart(RyaIRI start) {
         this.start = start;
     }
 
-    public RyaURI getStop() {
+    public RyaIRI getStop() {
         return stop;
     }
 
-    public void setStop(RyaURI stop) {
+    public void setStop(RyaIRI stop) {
         this.stop = stop;
     }
 
@@ -64,7 +64,7 @@ public class RyaURIRange extends RyaURI implements RyaRange {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("RyaURIRange");
+        sb.append("RyaIRIRange");
         sb.append("{start=").append(start);
         sb.append(", stop=").append(stop);
         sb.append('}');
@@ -77,7 +77,7 @@ public class RyaURIRange extends RyaURI implements RyaRange {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        RyaURIRange that = (RyaURIRange) o;
+        RyaIRIRange that = (RyaIRIRange) o;
 
         if (start != null ? !start.equals(that.start) : that.start != null) return false;
         if (stop != null ? !stop.equals(that.stop) : that.stop != null) return false;

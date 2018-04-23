@@ -38,17 +38,18 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.KeyValueLineRecordReader;
 import org.apache.log4j.Logger;
-import org.openrdf.model.Statement;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFHandler;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.RDFParseException;
-import org.openrdf.rio.RDFParser;
-import org.openrdf.rio.Rio;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.rdftriplestore.utils.RdfFormatUtils;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFHandler;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.RDFParseException;
+import org.eclipse.rdf4j.rio.RDFParser;
+import org.eclipse.rdf4j.rio.Rio;
 
 /**
  * {@link FileInputFormat} that can read multiple RDF files and convert into
@@ -124,7 +125,7 @@ public class RdfFileInputFormat extends FileInputFormat<LongWritable, RyaStateme
 
     private RDFFormat getRDFFormat(JobContext context) {
         String name = context.getConfiguration().get(FORMAT_PROP);
-        return RDFFormat.valueOf(name);
+        return RdfFormatUtils.getRdfFormatFromName(name);
     }
 
     /**

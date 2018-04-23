@@ -19,30 +19,24 @@ package org.apache.rya.accumulo.query;
  * under the License.
  */
 
-
-
-import info.aduna.iteration.CloseableIteration;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.apache.accumulo.core.client.BatchScanner;
+import org.apache.accumulo.core.client.ScannerBase;
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Value;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
-
-import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.ScannerBase;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Value;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * Date: 7/17/12
@@ -60,7 +54,8 @@ public class RyaStatementBindingSetKeyValueIterator implements CloseableIteratio
 	private RyaTripleContext ryaContext;
 
     public RyaStatementBindingSetKeyValueIterator(TABLE_LAYOUT tableLayout, RyaTripleContext context, ScannerBase scannerBase, RangeBindingSetEntries rangeMap) {
-        this(tableLayout, ((scannerBase instanceof BatchScanner) ? ((BatchScanner) scannerBase).iterator() : ((Scanner) scannerBase).iterator()), rangeMap, context);
+        this(tableLayout, ((scannerBase instanceof BatchScanner) ? scannerBase.iterator() : scannerBase
+                .iterator()), rangeMap, context);
         this.scanner = scannerBase;
         isBatchScanner = scanner instanceof BatchScanner;
     }
@@ -76,7 +71,7 @@ public class RyaStatementBindingSetKeyValueIterator implements CloseableIteratio
     public void close() throws RyaDAOException {
         dataIterator = null;
         if (scanner != null && isBatchScanner) {
-            ((BatchScanner) scanner).close();
+            scanner.close();
         }
     }
 

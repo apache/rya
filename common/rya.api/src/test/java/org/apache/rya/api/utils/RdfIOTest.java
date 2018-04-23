@@ -22,8 +22,8 @@
 //
 //import junit.framework.TestCase;
 //import org.apache.rya.api.RdfCloudTripleStoreUtils;
-//import org.openrdf.model.Statement;
-//import org.openrdf.model.impl.StatementImpl;
+//import org.eclipse.rdf4j.model.Statement;
+//import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 //
 //import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 //
@@ -34,7 +34,7 @@
 // */
 //public class RdfIOTest extends TestCase {
 //
-//    Statement st = new StatementImpl(RTS_SUBJECT, RTS_VERSION_PREDICATE, VERSION);
+//    Statement st = SimpleValueFactory.getInstance().createStatement(RTS_SUBJECT, RTS_VERSION_PREDICATE, VERSION);
 //    int num = 100000;
 //
 //    public void testPerf() throws Exception {

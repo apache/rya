@@ -27,7 +27,7 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.rya.api.utils.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * Implementation of CloseableIterator for retrieving results from a {@link PeriodicQueryResultStorage}

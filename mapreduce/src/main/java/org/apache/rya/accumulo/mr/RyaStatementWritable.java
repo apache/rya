@@ -38,7 +38,7 @@ import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 /**
  * Basic {@link WritableComparable} for using Rya data with Hadoop.
  * RyaStatementWritable wraps a {@link RyaStatement}, which in turn represents a
- * statement as  a collection of {@link org.apache.rya.api.domain.RyaURI} and
+ * statement as  a collection of {@link org.apache.rya.api.domain.RyaIRI} and
  * {@link org.apache.rya.api.domain.RyaType} objects.
  * <p>
  * This class is mutable, like all {@link org.apache.hadoop.io.Writable}s. When

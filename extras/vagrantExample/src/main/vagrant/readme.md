@@ -21,7 +21,7 @@
 
 # Rya Vagrant Example Documentation
 
-The Rya Vagrant Example project allows users to quickly get up and running on Rya using a Virtual Machine.  Specifically, this project uses Vagrant to create a VM, install Rya on Accumulo, and configure the OpenRDF Workbench Web Application to use Rya. 
+The Rya Vagrant Example project allows users to quickly get up and running on Rya using a Virtual Machine.  Specifically, this project uses Vagrant to create a VM, install Rya on Accumulo, and configure the RDF4J Workbench Web Application to use Rya. 
 
 ## Setting up the VM
 
@@ -49,9 +49,9 @@ By default, the VM should be assigned the IP address of `192.168.33.10`.  This v
 
 1. **Verify the Tomcat instance**:  Open a browser to <http://rya-example-box:8080/>.  You should see a webpage that says “It works!  If you're seeing this page via a web browser, it means you've setup Tomcat successfully. Congratulations!
 
-1. **Verify the deployed OpenRDF Sesame service**: Open your browser to <http://rya-example-box:8080/openrdf-sesame/protocol> and you should see a `6` (this is the OpenRDF Protocol Version).
+1. **Verify the deployed RDF4J Server service**: Open your browser to <http://rya-example-box:8080/rdf4j-server/protocol> and you should see a `6` (this is the RDF4J Protocol Version).
 
-1. **Verify the deployed OpenRDF Workbench**: Open your browser to <http://rya-example-box:8080/openrdf-workbench>
+1. **Verify the deployed RDF4J Workbench**: Open your browser to <http://rya-example-box:8080/rdf4j-workbench>
 
 1. **Verify the deployed Rya Web**: Open your browser to <http://rya-example-box:8080/web.rya/sparqlQuery.jsp>
  
@@ -74,15 +74,15 @@ the Vagrantfile.
 Run these two commands and see if you have any Rya files in the two lib directories:
 
 ```
-    ls /var/lib/tomcat7/webapps/openrdf-sesame/WEB-INF/lib/rya*
-    ls /var/lib/tomcat7/webapps/openrdf-workbench/WEB-INF/lib/rya* 
+    ls /var/lib/tomcat7/webapps/rdf4j-server/WEB-INF/lib/rya*
+    ls /var/lib/tomcat7/webapps/rdf4j-workbench/WEB-INF/lib/rya* 
 ```
 
 If these files do note exists, open the vagrant file and look for the line `echo "Downloading Rya"`. Try working through those commands manually on your Vagrant VM.
 
-#### OpenRDF Workbench transformations are not installed
+#### RDF4J Workbench transformations are not installed
 
-OpenRDF Workbench requires a set of "transformations" for listing Rya in the OpenRDF Workbench Repository list. The transforms are in this directory: /var/lib/tomcat7/webapps/openrdf-workbench/transformations/
+RDF4J Workbench requires a set of "transformations" for listing Rya in the RDF4J Workbench Repository list. The transforms are in this directory: /var/lib/tomcat7/webapps/rdf4j-workbench/transformations/
 
 1. Verify that this file exists: create-RyaAccumuloSail.xsl
 1. Verify that create.xsl has been updated for rya.  (run: "cat create.xsl | grep Rya" and make sure there's some stuff there.)
@@ -183,30 +183,30 @@ From within the VM, run:
     
 ## Interacting with Rya on the VM
 
-### Connecting to Rya via OpenRDF Workbench
+### Connecting to Rya via RDF4J Workbench
 
-The first step to using Rya via the OpenRDF Workbench is to create a repository using the Rya Accumulo Store connector.
+The first step to using Rya via the RDF4J Workbench is to create a repository using the Rya Accumulo Store connector.
 
-1. Open your browser to the [OpenRDF Workbench](http://rya-example-box:8080/openrdf-workbench)
+1. Open your browser to the [RDF4j Workbench](http://rya-example-box:8080/rdf4j-workbench)
 2. Click on `New Repository`
 3. Choose "Type" of `Rya Accumulo Store`, a Repository "ID" (e.g., `RyaAccumulo`), and a Repository "Title" (e.g., `Rya Accumulo`).  Click on `Next` when complete.
 4. Enter the Rya Accumulo Store connection parameters.  The default parameters will connect to the Rya Example Box Acccumulo deployment (i.e., Accumulo User: `root`, Accumulo Password: `root`, Accumulo Instance: `dev`, Zookeepers: `localhost`, is Mock?: `false`).  Click on `Create` when complete.
 
-### Uploading Data via OpenRDF Workbench
+### Uploading Data via RDF4J Workbench
 
-Once we've created a Rya repository, we can load data into Rya via the OpenRDF Workbench.
+Once we've created a Rya repository, we can load data into Rya via the RDF4J Workbench.
 
-1.  Open your browser to the [OpenRDF Workbench](http://rya-example-box:8080/openrdf-workbench)
-1. Verify that OpenRDF Workbench is connected to Rya.  The OpenRDF Workbench screen should have `Current Selections: Repository:	Rya Accumulo ( RyaAccumulo )` at the top of the page.	
+1.  Open your browser to the [RDF4J Workbench](http://rya-example-box:8080/rdf4j-workbench)
+1. Verify that RDF4J Workbench is connected to Rya.  The RDF4j Workbench screen should have `Current Selections: Repository:	Rya Accumulo ( RyaAccumulo )` at the top of the page.	
 2. Click on `Add` on the left side of the page.
 3. This page allows a user to add data either through a local file (uploaded through the browser), cut-and-pasted RDF, or a file located on the web.  For this example, let's choose a file on the web.  Set "Data Format" to `RDF/XML` and "Location of the RDF data you wish to upload" to `http://telegraphis.net/data/currencies/currencies.rdf`.  All other fields should remain empty.  Click on `Upload` when complete.
 
-### Querying Data via OpenRDF Workbench
+### Querying Data via RDF4J Workbench
 
-Once we've created a Rya repository and uploaded data, we can query Rya via the OpenRDF Workbench.
+Once we've created a Rya repository and uploaded data, we can query Rya via the RDF4J Workbench.
 
-1. Open your browser to the [OpenRDF Workbench](http://rya-example-box:8080/openrdf-workbench)
-1. Verify that OpenRDF Workbench is connected to Rya.  The OpenRDF Workbench screen should have `Current Selections: Repository:	Rya Accumulo ( RyaAccumulo )` at the top of the page.	
+1. Open your browser to the [RDF4J Workbench](http://rya-example-box:8080/rdf4j-workbench)
+1. Verify that RDF4J Workbench is connected to Rya.  The RDF4J Workbench screen should have `Current Selections: Repository:	Rya Accumulo ( RyaAccumulo )` at the top of the page.	
 1. Click on `Query` on the left side of the page.
 1. Use the example SPARQL query below to query for Currencies with a Short Name of "dollar"
 
@@ -220,9 +220,10 @@ Once we've created a Rya repository and uploaded data, we can query Rya via the 
     }
     ```
 
-### Using the OpenRDF REST Service
+### Using the RDF4J REST Service
 
-More information about the Sesame REST HTTP Protocol is availible in the [OpenRDF 2.7 Docs] (http://rdf4j.org/sesame/2.7/docs/system.docbook?view#The_Sesame_REST_HTTP_Protocol)
+More information about the RDF4J REST HTTP Protocol is availible in the [RDF4J 2.3.1 Docs] 
+(http://docs.rdf4j.org/rest-api/)
 
 ### Using Rya Java Client
 TODO

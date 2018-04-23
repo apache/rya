@@ -1,5 +1,3 @@
-package org.apache.rya.joinselect.mr;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,24 +16,17 @@ package org.apache.rya.joinselect.mr;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
-import static org.junit.Assert.*;
-
-import org.junit.Test;
+package org.apache.rya.joinselect.mr;
 
 import java.io.IOException;
 
-import org.apache.rya.joinselect.mr.JoinSelectProspectOutput;
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Value;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mrunit.mapreduce.MapDriver;
 import org.apache.rya.joinselect.mr.utils.CardinalityType;
 import org.apache.rya.joinselect.mr.utils.CompositeType;
 import org.apache.rya.joinselect.mr.utils.TripleCard;
-
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Value;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mrunit.mapreduce.MapDriver;
 import org.junit.Test;
 
 public class JoinSelectProspectOutputTest {

@@ -19,7 +19,6 @@ package org.apache.rya.indexing.accumulo.entity;
  * under the License.
  */
 
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -31,21 +30,22 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
 import org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO;
 import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.Dataset;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.evaluation.QueryOptimizer;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.Dataset;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,7 +132,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
         tupleExpr.visit(new JoinVisitor());
     }
 
-    protected class JoinVisitor extends QueryModelVisitorBase<RuntimeException> {
+    protected class JoinVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         @Override
         public void meet(Join node) {
@@ -332,7 +332,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
 
                 // weight starQuery where common Var is constant slightly more -- this factor is subject
                 // to change
-                if(s.startsWith("-const-")) {
+                if (VarNameUtils.isConstant(s)) {
                     tempPriority *= 10;
                 }
                 if (tempPriority > priority) {

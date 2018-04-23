@@ -20,11 +20,11 @@
 //package org.apache.cloud.rdf.web.cloudbase.sail;
 
 //
-//import org.openrdf.query.QueryLanguage;
-//import org.openrdf.query.TupleQuery;
-//import org.openrdf.query.resultio.TupleQueryResultWriter;
-//import org.openrdf.repository.RepositoryConnection;
-//import org.openrdf.repository.RepositoryException;
+//import org.eclipse.rdf4j.query.QueryLanguage;
+//import org.eclipse.rdf4j.query.TupleQuery;
+//import org.eclipse.rdf4j.query.resultio.TupleQueryResultWriter;
+//import org.eclipse.rdf4j.repository.RepositoryConnection;
+//import org.eclipse.rdf4j.repository.RepositoryException;
 //
 //import javax.servlet.ServletException;
 //import javax.servlet.http.HttpServletRequest;

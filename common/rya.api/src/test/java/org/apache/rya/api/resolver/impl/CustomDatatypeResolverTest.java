@@ -19,11 +19,10 @@ package org.apache.rya.api.resolver.impl;
  * under the License.
  */
 
-
+import org.apache.rya.api.domain.RyaType;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 import junit.framework.TestCase;
-import org.apache.rya.api.domain.RyaType;
-import org.openrdf.model.impl.URIImpl;
 
 /**
  * Date: 7/16/12
@@ -32,7 +31,7 @@ import org.openrdf.model.impl.URIImpl;
 public class CustomDatatypeResolverTest extends TestCase {
 
     public void testCustomDataTypeSerialization() throws Exception {
-        RyaType ryaType = new RyaType(new URIImpl("urn:test#datatype"), "testdata");
+        RyaType ryaType = new RyaType(SimpleValueFactory.getInstance().createIRI("urn:test#datatype"), "testdata");
         byte[] serialize = new CustomDatatypeResolver().serialize(ryaType);
         RyaType deserialize = new CustomDatatypeResolver().deserialize(serialize);
         assertEquals(ryaType, deserialize);

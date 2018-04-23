@@ -22,7 +22,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Optional;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
@@ -36,7 +36,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * Performs update operations over an {@link EntityStorage}.
  */
 @DefaultAnnotation(NonNull.class)
-public class EntityUpdater implements MongoDocumentUpdater<RyaURI, Entity>{
+public class EntityUpdater implements MongoDocumentUpdater<RyaIRI, Entity>{
 
     private final EntityStorage storage;
 
@@ -68,7 +68,7 @@ public class EntityUpdater implements MongoDocumentUpdater<RyaURI, Entity>{
     }
 
     @Override
-    public Optional<Entity> getOld(final RyaURI key) throws EntityStorageException {
+    public Optional<Entity> getOld(final RyaIRI key) throws EntityStorageException {
         try {
             return storage.get(key);
         } catch (final ObjectStorageException e) {

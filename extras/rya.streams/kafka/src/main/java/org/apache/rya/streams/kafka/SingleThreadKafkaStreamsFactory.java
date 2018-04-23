@@ -31,7 +31,7 @@ import org.apache.rya.streams.api.entity.StreamsQuery;
 import org.apache.rya.streams.kafka.topology.TopologyBuilderFactory;
 import org.apache.rya.streams.kafka.topology.TopologyBuilderFactory.TopologyBuilderException;
 import org.apache.rya.streams.kafka.topology.TopologyFactory;
-import org.openrdf.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.MalformedQueryException;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;

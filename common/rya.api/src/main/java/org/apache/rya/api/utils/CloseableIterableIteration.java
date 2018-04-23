@@ -19,15 +19,12 @@ package org.apache.rya.api.utils;
  * under the License.
  */
 
-
-
-import info.aduna.iteration.CloseableIteration;
-
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.calrissian.mango.collect.CloseableIterable;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * Date: 1/30/13

@@ -25,12 +25,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 
 /**
  * Perform reasoning with respect to a particular node, given a global schema.
@@ -112,7 +112,7 @@ public class LocalReasoner extends AbstractReasoner {
         }
         // Otherwise, consider the semantics of the statement:
         Resource subject = fact.getSubject();
-        URI predURI = fact.getPredicate();
+        IRI predIRI = fact.getPredicate();
         Value object = fact.getObject();
         boolean relevantToSubject = false;
         boolean relevantToObject = false;
@@ -121,18 +121,18 @@ public class LocalReasoner extends AbstractReasoner {
 
         // Type statements could be relevant to the subject, if the schema gives
         // them any meaning:
-        if (predURI.equals(RDF.TYPE)) {
+        if (predIRI.equals(RDF.TYPE)) {
             // Assume the object is a valid URI
-            Resource typeURI = (Resource) fact.getObject();
-            if (typeURI.equals(OWL.NOTHING)
-                || schema.hasClass(typeURI)) {
+            Resource typeIRI = (Resource) fact.getObject();
+            if (typeIRI.equals(OWL.NOTHING)
+                || schema.hasClass(typeIRI)) {
                 relevantToSubject = true;
             }
         }
 
         // If the schema knows about the property:
-        if (schema.hasProperty(predURI)) {
-            OwlProperty prop = schema.getProperty(predURI);
+        if (schema.hasProperty(predIRI)) {
+            OwlProperty prop = schema.getProperty(predIRI);
 
             // Relevant to both:
                     // Any statement with an asymmetric property
@@ -185,7 +185,7 @@ public class LocalReasoner extends AbstractReasoner {
             return Relevance.NONE;
         }
         // Otherwise, consider the semantics of the statement:
-        URI predURI = fact.getPredicate();
+        IRI predIRI = fact.getPredicate();
         Value object = fact.getObject();
         boolean relevantToSubject = false;
         boolean relevantToObject = false;
@@ -193,10 +193,10 @@ public class LocalReasoner extends AbstractReasoner {
         boolean literalObject = object instanceof Literal;
 
         // Type statements can be joined if...
-        if (predURI.equals(RDF.TYPE)) {
-            Resource typeURI = (Resource) fact.getObject();
-            if (schema.hasClass(typeURI)) {
-                OwlClass c = schema.getClass(typeURI);
+        if (predIRI.equals(RDF.TYPE)) {
+            Resource typeIRI = (Resource) fact.getObject();
+            if (schema.hasClass(typeIRI)) {
+                OwlClass c = schema.getClass(typeIRI);
                 // 1. the type is a property restriction
                 if (!c.getOnProperty().isEmpty()
                 // 2. the type is relevant to a property restriction
@@ -212,8 +212,8 @@ public class LocalReasoner extends AbstractReasoner {
         }
 
         // If the schema knows about the property:
-        if (schema.hasProperty(predURI)) {
-            OwlProperty prop = schema.getProperty(predURI);
+        if (schema.hasProperty(predIRI)) {
+            OwlProperty prop = schema.getProperty(predIRI);
             // transitivity: relevant to both
             if (prop.isTransitive()) {
                 relevantToSubject = true;
@@ -289,9 +289,9 @@ public class LocalReasoner extends AbstractReasoner {
     TypeReasoner types;
 
     // Keep track of statements whose properties might make them relevant later
-    Map<URI, List<Fact>> transitiveIncoming = new HashMap<>();
-    Map<URI, List<Fact>> asymmetricIncoming = new HashMap<>();
-    Map<URI, List<Fact>> disjointOutgoing = new HashMap<>();
+    Map<IRI, List<Fact>> transitiveIncoming = new HashMap<>();
+    Map<IRI, List<Fact>> asymmetricIncoming = new HashMap<>();
+    Map<IRI, List<Fact>> disjointOutgoing = new HashMap<>();
 
     // Only combine transitive paths of a certain size, based on the current
     // iteration, to avoid duplicate derivations and unnecessary memory use.
@@ -326,7 +326,7 @@ public class LocalReasoner extends AbstractReasoner {
      */
     public void processFact(Fact fact) {
         Resource subject = fact.getSubject();
-        URI pred = fact.getPredicate();
+        IRI pred = fact.getPredicate();
         Value object = fact.getObject();
         // Whether this is a recursive call on a fact that's just been inferred
         boolean recursive = fact.getIteration() == currentIteration;
@@ -360,11 +360,11 @@ public class LocalReasoner extends AbstractReasoner {
      * Process a triple in which this node is the subject.
      */
     private void processOutgoing(Fact fact) {
-        URI predURI = fact.getPredicate();
+        IRI predURI = fact.getPredicate();
         Value object = fact.getObject();
         OwlProperty prop = schema.getProperty(predURI);
         Set<Resource> restrictions = prop.getRestrictions();
-        Set<URI> disjointProps = prop.getDisjointProperties();
+        Set<IRI> disjointProps = prop.getDisjointProperties();
         // RL rule prp-dom: Apply domain(s), if appropriate
         for (Resource type : prop.getDomain()) {
             types.processType(type, OwlRule.PRP_DOM, fact);
@@ -374,7 +374,7 @@ public class LocalReasoner extends AbstractReasoner {
         // if the input fact was derived using this rule, we must have  gotten
         // all the superproperties and don't need to apply them again.
         if (!fact.hasRule(OwlRule.PRP_SPO1)) {
-            for (URI superProp : prop.getSuperProperties()) {
+            for (IRI superProp : prop.getSuperProperties()) {
                 // (everything is its own superproperty)
                 if (superProp.equals(predURI)) {
                     continue;
@@ -384,7 +384,7 @@ public class LocalReasoner extends AbstractReasoner {
         }
         // RL rule prp-pdw: Check if this conflicts with any disjoint properties
         if (!disjointProps.isEmpty()) {
-            for (URI disjointProp : disjointProps) {
+            for (IRI disjointProp : disjointProps) {
                 if (disjointOutgoing.containsKey(disjointProp)) {
                     for (Fact other : disjointOutgoing.get(disjointProp)) {
                         if (object.equals(other.getObject())) {
@@ -474,14 +474,14 @@ public class LocalReasoner extends AbstractReasoner {
      */
     private void processIncoming(Fact fact) {
         Resource subject = fact.getSubject();
-        URI predURI = fact.getPredicate();
+        IRI predURI = fact.getPredicate();
         OwlProperty prop = schema.getProperty(predURI);
         // RL rule prp-rng: Apply range(s), if appropriate
         for (Resource type : prop.getRange()) {
             types.processType(type, OwlRule.PRP_RNG, fact);
         }
         // RL rules prp-inv1, prp-inv2: assert any inverse properties
-        for (URI inverseProp : prop.getInverseProperties()) {
+        for (IRI inverseProp : prop.getInverseProperties()) {
             collect(triple(node, inverseProp, subject, OwlRule.PRP_INV, fact));
         }
         // RL rule prp-symp: Assert the symmetric statement if appropriate
@@ -583,10 +583,10 @@ public class LocalReasoner extends AbstractReasoner {
         int sumOutgoingDisjoint = 0;
         int sumIncomingTransitive = 0;
         for (List<Fact> l : asymmetricIncoming.values()) {
-            sumIncomingAsymmetric += l.size();;
+            sumIncomingAsymmetric += l.size();
         }
         for (List<Fact> l : disjointOutgoing.values()) {
-            sumOutgoingDisjoint += l.size();;
+            sumOutgoingDisjoint += l.size();
         }
         int maxTransitiveSpan = (int) Math.pow(2, currentIteration);
         int[] distribution = new int[maxTransitiveSpan+1];
@@ -632,10 +632,10 @@ public class LocalReasoner extends AbstractReasoner {
     public int getNumStored() {
         int total = 0;
         for (List<Fact> l : asymmetricIncoming.values()) {
-            total += l.size();;
+            total += l.size();
         }
         for (List<Fact> l : disjointOutgoing.values()) {
-            total += l.size();;
+            total += l.size();
         }
         for (List<Fact> l : transitiveIncoming.values()) {
             total += l.size();

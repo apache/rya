@@ -31,7 +31,7 @@ import java.util.Map;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.api.resolver.triple.TripleRow;
@@ -50,10 +50,10 @@ public class WholeRowTripleResolver implements TripleRowResolver {
     @Override
     public Map<TABLE_LAYOUT, TripleRow> serialize(final RyaStatement stmt) throws TripleRowResolverException {
         try {
-            final RyaURI subject = stmt.getSubject();
-            final RyaURI predicate = stmt.getPredicate();
+            final RyaIRI subject = stmt.getSubject();
+            final RyaIRI predicate = stmt.getPredicate();
             final RyaType object = stmt.getObject();
-            final RyaURI context = stmt.getContext();
+            final RyaIRI context = stmt.getContext();
             final Long timestamp = stmt.getTimestamp();
             final byte[] columnVisibility = stmt.getColumnVisibility();
             final String qualifer = stmt.getQualifer();
@@ -100,7 +100,7 @@ public class WholeRowTripleResolver implements TripleRowResolver {
             final byte[] type = Arrays.copyOfRange(row, typeIndex, row.length);
             final byte[] columnFamily = tripleRow.getColumnFamily();
             final boolean contextExists = columnFamily != null && columnFamily.length > 0;
-            final RyaURI context = (contextExists) ? (new RyaURI(new String(columnFamily, StandardCharsets.UTF_8))) : null;
+            final RyaIRI context = (contextExists) ? (new RyaIRI(new String(columnFamily, StandardCharsets.UTF_8))) : null;
             final byte[] columnQualifier = tripleRow.getColumnQualifier();
             final String qualifier = columnQualifier != null && columnQualifier.length > 0 ? new String(columnQualifier, StandardCharsets.UTF_8) : null;
             final Long timestamp = tripleRow.getTimestamp();
@@ -111,24 +111,24 @@ public class WholeRowTripleResolver implements TripleRowResolver {
                 case SPO: {
                     final byte[] obj = Bytes.concat(third, type);
                     return new RyaStatement(
-                            new RyaURI(new String(first, StandardCharsets.UTF_8)),
-                            new RyaURI(new String(second, StandardCharsets.UTF_8)),
+                            new RyaIRI(new String(first, StandardCharsets.UTF_8)),
+                            new RyaIRI(new String(second, StandardCharsets.UTF_8)),
                             RyaContext.getInstance().deserialize(obj),
                             context, qualifier, columnVisibility, value, timestamp);
                 }
                 case PO: {
                     final byte[] obj = Bytes.concat(second, type);
                     return new RyaStatement(
-                            new RyaURI(new String(third, StandardCharsets.UTF_8)),
-                            new RyaURI(new String(first, StandardCharsets.UTF_8)),
+                            new RyaIRI(new String(third, StandardCharsets.UTF_8)),
+                            new RyaIRI(new String(first, StandardCharsets.UTF_8)),
                             RyaContext.getInstance().deserialize(obj),
                             context, qualifier, columnVisibility, value, timestamp);
                 }
                 case OSP: {
                     final byte[] obj = Bytes.concat(first, type);
                     return new RyaStatement(
-                            new RyaURI(new String(second, StandardCharsets.UTF_8)),
-                            new RyaURI(new String(third, StandardCharsets.UTF_8)),
+                            new RyaIRI(new String(second, StandardCharsets.UTF_8)),
+                            new RyaIRI(new String(third, StandardCharsets.UTF_8)),
                             RyaContext.getInstance().deserialize(obj),
                             context, qualifier, columnVisibility, value, timestamp);
                 }

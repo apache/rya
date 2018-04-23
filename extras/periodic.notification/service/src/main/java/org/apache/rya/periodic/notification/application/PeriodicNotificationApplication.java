@@ -32,7 +32,7 @@ import org.apache.rya.periodic.notification.exporter.KafkaExporterExecutor;
 import org.apache.rya.periodic.notification.processor.NotificationProcessorExecutor;
 import org.apache.rya.periodic.notification.pruner.PeriodicQueryPrunerExecutor;
 import org.apache.rya.periodic.notification.registration.kafka.KafkaNotificationProvider;
-import org.openrdf.query.algebra.evaluation.function.Function;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -18,6 +18,7 @@ package org.apache.rya.indexing.pcj.matching;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -33,17 +34,17 @@ import org.apache.rya.indexing.pcj.matching.provider.AbstractPcjIndexSetProvider
 import org.apache.rya.indexing.pcj.matching.provider.AccumuloIndexSetProvider;
 import org.apache.rya.mongodb.EmbeddedMongoSingleton;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -548,7 +549,7 @@ public class PCJOptimizerTest {
     }
 
 
-    public static class NodeCollector extends QueryModelVisitorBase<RuntimeException> {
+    public static class NodeCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
         List<QueryModelNode> qNodes = new ArrayList<>();
 

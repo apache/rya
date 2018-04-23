@@ -19,12 +19,10 @@ package org.apache.rya.api.persist.joinselect;
  * under the License.
  */
 
-
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
 public interface SelectivityEvalDAO<C extends RdfCloudTripleStoreConfiguration> extends RdfEvalStatsDAO<C> {
 

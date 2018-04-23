@@ -37,11 +37,11 @@ import org.apache.rya.streams.kafka.processors.join.JoinProcessorSupplier.JoinPr
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
 import org.apache.rya.streams.kafka.topology.TopologyFactory;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.collect.Lists;
 
@@ -81,33 +81,33 @@ public class JoinProcessorIT {
         final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Create some statements that generate a bunch of right SP results.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:worksAt"), vf.createURI("urn:TacoPlace")), "a&b") );
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:TacoPlace")), "a&b") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:worksAt"), vf.createURI("urn:BurgerJoint")), "a") );
+                vf.createStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:BurgerJoint")), "a") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Eve"), vf.createURI("urn:worksAt"), vf.createURI("urn:CoffeeShop")), "b") );
+                vf.createStatement(vf.createIRI("urn:Eve"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:CoffeeShop")), "b") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:worksAt"), vf.createURI("urn:BurgerJoint")), "b|c") );
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:BurgerJoint")), "b|c") );
 
         // Add a statement that will generate a left result that joins with some of those right results.
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob")), "c") );
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob")), "c") );
 
         // Make the expected results.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("employee", vf.createURI("urn:Bob"));
-        bs.addBinding("business", vf.createURI("urn:TacoPlace"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("employee", vf.createIRI("urn:Bob"));
+        bs.addBinding("business", vf.createIRI("urn:TacoPlace"));
         expected.add( new VisibilityBindingSet(bs, "a&b&c") );
 
         bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("employee", vf.createURI("urn:Bob"));
-        bs.addBinding("business", vf.createURI("urn:BurgerJoint"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("employee", vf.createIRI("urn:Bob"));
+        bs.addBinding("business", vf.createIRI("urn:BurgerJoint"));
         expected.add( new VisibilityBindingSet(bs, "c&(b|c)") );
 
         // Run the test.
@@ -132,33 +132,33 @@ public class JoinProcessorIT {
         final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Create some statements that generate a bunch of right SP results.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:worksAt"), vf.createURI("urn:TacoPlace")), "a&b") );
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:TacoPlace")), "a&b") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:worksAt"), vf.createURI("urn:BurgerJoint")), "a") );
+                vf.createStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:BurgerJoint")), "a") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Eve"), vf.createURI("urn:worksAt"), vf.createURI("urn:CoffeeShop")), "b") );
+                vf.createStatement(vf.createIRI("urn:Eve"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:CoffeeShop")), "b") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:worksAt"), vf.createURI("urn:BurgerJoint")), "b|c") );
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:BurgerJoint")), "b|c") );
 
         // Add a statement that will generate a left result that joins with some of those right results.
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob")), "c") );
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob")), "c") );
 
         // Make the expected results.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("employee", vf.createURI("urn:Bob"));
-        bs.addBinding("business", vf.createURI("urn:TacoPlace"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("employee", vf.createIRI("urn:Bob"));
+        bs.addBinding("business", vf.createIRI("urn:TacoPlace"));
         expected.add( new VisibilityBindingSet(bs, "a&b&c") );
 
         bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("employee", vf.createURI("urn:Bob"));
-        bs.addBinding("business", vf.createURI("urn:BurgerJoint"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("employee", vf.createIRI("urn:Bob"));
+        bs.addBinding("business", vf.createIRI("urn:BurgerJoint"));
         expected.add( new VisibilityBindingSet(bs, "c&(b|c)") );
 
         // Run the test.
@@ -183,39 +183,39 @@ public class JoinProcessorIT {
         final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Create some statements that generate a bunch of right SP results.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:worksAt"), vf.createURI("urn:TacoPlace")), "a&b") );
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:TacoPlace")), "a&b") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob")), "c") );
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob")), "c") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:worksAt"), vf.createURI("urn:BurgerJoint")), "a") );
+                vf.createStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:BurgerJoint")), "a") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Eve"), vf.createURI("urn:worksAt"), vf.createURI("urn:CoffeeShop")), "b") );
+                vf.createStatement(vf.createIRI("urn:Eve"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:CoffeeShop")), "b") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:worksAt"), vf.createURI("urn:BurgerJoint")), "b|c") );
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:BurgerJoint")), "b|c") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:talksTo"), vf.createURI("urn:Charlie")), "c") );
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Charlie")), "c") );
 
         // Make the expected results.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("employee", vf.createURI("urn:Bob"));
-        bs.addBinding("business", vf.createURI("urn:TacoPlace"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("employee", vf.createIRI("urn:Bob"));
+        bs.addBinding("business", vf.createIRI("urn:TacoPlace"));
         expected.add( new VisibilityBindingSet(bs, "a&b&c") );
 
         bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("employee", vf.createURI("urn:Bob"));
-        bs.addBinding("business", vf.createURI("urn:BurgerJoint"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("employee", vf.createIRI("urn:Bob"));
+        bs.addBinding("business", vf.createIRI("urn:BurgerJoint"));
         expected.add( new VisibilityBindingSet(bs, "c&(b|c)") );
 
         bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Bob"));
-        bs.addBinding("employee", vf.createURI("urn:Charlie"));
-        bs.addBinding("business", vf.createURI("urn:BurgerJoint"));
+        bs.addBinding("person", vf.createIRI("urn:Bob"));
+        bs.addBinding("employee", vf.createIRI("urn:Charlie"));
+        bs.addBinding("business", vf.createIRI("urn:BurgerJoint"));
         expected.add( new VisibilityBindingSet(bs, "a&c") );
 
         // Run the test.
@@ -241,21 +241,21 @@ public class JoinProcessorIT {
         final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Create some statements that generate a bunch of right SP results.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob")), "a") );
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob")), "a") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:worksAt"), vf.createURI("urn:BurgerJoint")), "a") );
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:BurgerJoint")), "a") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:hourlyWage"), vf.createLiteral(7.25)), "a") );
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:hourlyWage"), vf.createLiteral(7.25)), "a") );
 
         // Make the expected results.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
         final MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("employee", vf.createURI("urn:Bob"));
-        bs.addBinding("business", vf.createURI("urn:BurgerJoint"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("employee", vf.createIRI("urn:Bob"));
+        bs.addBinding("business", vf.createIRI("urn:BurgerJoint"));
         bs.addBinding("wage", vf.createLiteral(7.25));
         expected.add( new VisibilityBindingSet(bs, "a") );
 
@@ -281,33 +281,33 @@ public class JoinProcessorIT {
         final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Create some statements that generate a result that includes the optional value as well as one that does not.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob")), "a") );
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob")), "a") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:worksAt"), vf.createURI("urn:TacoPlace")), "b") );
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:TacoPlace")), "b") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:talksTo"), vf.createURI("urn:Charlie")), "c") );
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Charlie")), "c") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:David"), vf.createURI("urn:worksAt"), vf.createURI("urn:BurgerJoint")), "d") );
+                vf.createStatement(vf.createIRI("urn:David"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:BurgerJoint")), "d") );
 
         // Make the expected results.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("employee", vf.createURI("urn:Bob"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("employee", vf.createIRI("urn:Bob"));
         expected.add( new VisibilityBindingSet(bs, "a") );
 
         bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("employee", vf.createURI("urn:Bob"));
-        bs.addBinding("business", vf.createURI("urn:TacoPlace"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("employee", vf.createIRI("urn:Bob"));
+        bs.addBinding("business", vf.createIRI("urn:TacoPlace"));
         expected.add( new VisibilityBindingSet(bs, "a&b") );
 
         bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Bob"));
-        bs.addBinding("employee", vf.createURI("urn:Charlie"));
+        bs.addBinding("person", vf.createIRI("urn:Bob"));
+        bs.addBinding("employee", vf.createIRI("urn:Charlie"));
         expected.add( new VisibilityBindingSet(bs, "c") );
 
         // Run the test.

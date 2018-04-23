@@ -37,8 +37,8 @@ import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.prospector.domain.IndexEntry;
 import org.apache.rya.prospector.domain.TripleValueType;
 import org.apache.rya.prospector.utils.ProspectorConstants;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Value;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
 
 /**
  * An ${@link org.apache.rya.api.persist.RdfEvalStatsDAO} that uses the Prospector Service underneath return counts.

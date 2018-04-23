@@ -19,11 +19,9 @@ package org.apache.rya.api.persist;
  * under the License.
  */
 
-
-
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.openrdf.model.Namespace;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Namespace;
 
 /**
  * Date: 7/17/12

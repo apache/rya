@@ -68,8 +68,8 @@ public class SchemaWritable extends Schema implements Writable {
                             org.apache.rya.reasoning.OwlProperty.class, //
                             java.util.HashSet.class, //
                             org.apache.rya.reasoning.OwlClass.class, //
-                            org.openrdf.model.impl.URIImpl.class, //
-                            org.openrdf.model.impl.BNodeImpl.class); 
+                            org.eclipse.rdf4j.model.impl.SimpleIRI.class, //
+                            org.eclipse.rdf4j.model.impl.SimpleBNode.class); 
         try {
                 Iterable<?> propList = (Iterable<?>) vois.readObject();
                 Iterable<?> classList = (Iterable<?>) vois.readObject();

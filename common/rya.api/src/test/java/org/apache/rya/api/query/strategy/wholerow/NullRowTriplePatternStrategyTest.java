@@ -18,18 +18,22 @@
  */
 package org.apache.rya.api.query.strategy.wholerow;
 
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Arrays;
 import java.util.Map;
+
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.query.strategy.ByteRange;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -81,10 +85,10 @@ public class NullRowTriplePatternStrategyTest {
    */
   @Test
   public void testDefineRange() throws Exception {
-    RyaURI subject = null;
-    RyaURI predicate = null;
+    RyaIRI subject = null;
+    RyaIRI predicate = null;
     RyaType object = null;
-    RyaURI context = null;
+    RyaIRI context = null;
     RdfCloudTripleStoreConfiguration conf = new MockRdfConfiguration();
     NullRowTriplePatternStrategy instance = new NullRowTriplePatternStrategy();
     Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> expResult = new RdfCloudTripleStoreUtils.CustomEntry<>(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO, new ByteRange(new byte[]{}, LAST_BYTES));
@@ -99,14 +103,14 @@ public class NullRowTriplePatternStrategyTest {
    */
   @Test
   public void testHandles() {
-    RyaURI subject = null;
-    RyaURI predicate = null;
+    RyaIRI subject = null;
+    RyaIRI predicate = null;
     RyaType object = null;
-    RyaURI context = null;
+    RyaIRI context = null;
     NullRowTriplePatternStrategy instance = new NullRowTriplePatternStrategy();
     assertTrue(instance.handles(subject, predicate, object, context));
 
-    RyaURI uri = new RyaURI("urn:test#1234");
+    RyaIRI uri = new RyaIRI("urn:test#1234");
     assertFalse(instance.handles(uri, predicate, object, context));
     assertFalse(instance.handles(subject, uri, object, context));
     assertFalse(instance.handles(subject, predicate, uri, context));

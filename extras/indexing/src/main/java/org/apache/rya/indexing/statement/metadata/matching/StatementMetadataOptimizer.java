@@ -17,6 +17,7 @@ package org.apache.rya.indexing.statement.metadata.matching;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.hadoop.conf.Configurable;
@@ -28,9 +29,9 @@ import org.apache.rya.indexing.external.matching.ExternalSetMatcher;
 import org.apache.rya.indexing.external.matching.ExternalSetProvider;
 import org.apache.rya.indexing.external.matching.QueryNodeListRater;
 import org.apache.rya.indexing.external.matching.QuerySegment;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.Dataset;
-import org.openrdf.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.Dataset;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
 import com.google.common.base.Optional;
 

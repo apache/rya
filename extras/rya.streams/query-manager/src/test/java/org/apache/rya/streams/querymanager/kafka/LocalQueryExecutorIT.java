@@ -42,13 +42,13 @@ import org.apache.rya.streams.kafka.serialization.VisibilityStatementSerializer;
 import org.apache.rya.streams.querymanager.QueryExecutor;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.apache.rya.test.kafka.KafkaTestUtil;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.collect.Lists;
 
@@ -89,34 +89,34 @@ public class LocalQueryExecutorIT {
         final StreamsQuery sQuery = new StreamsQuery(UUID.randomUUID(), "SELECT * WHERE { ?person <urn:worksAt> ?business . }", true, false);
 
         // Create the statements that will be loaded.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
         statements.add(new VisibilityStatement(vf.createStatement(
-                vf.createURI("urn:Alice"),
-                vf.createURI("urn:worksAt"),
-                vf.createURI("urn:BurgerJoint")), "a"));
+                vf.createIRI("urn:Alice"),
+                vf.createIRI("urn:worksAt"),
+                vf.createIRI("urn:BurgerJoint")), "a"));
         statements.add(new VisibilityStatement(vf.createStatement(
-                vf.createURI("urn:Bob"),
-                vf.createURI("urn:worksAt"),
-                vf.createURI("urn:TacoShop")), "a"));
+                vf.createIRI("urn:Bob"),
+                vf.createIRI("urn:worksAt"),
+                vf.createIRI("urn:TacoShop")), "a"));
         statements.add(new VisibilityStatement(vf.createStatement(
-                vf.createURI("urn:Charlie"),
-                vf.createURI("urn:worksAt"),
-                vf.createURI("urn:TacoShop")), "a"));
+                vf.createIRI("urn:Charlie"),
+                vf.createIRI("urn:worksAt"),
+                vf.createIRI("urn:TacoShop")), "a"));
 
         // Create the expected results.
         final List<VisibilityBindingSet> expected = new ArrayList<>();
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("business", vf.createURI("urn:BurgerJoint"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("business", vf.createIRI("urn:BurgerJoint"));
         expected.add(new VisibilityBindingSet(bs, "a"));
         bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Bob"));
-        bs.addBinding("business", vf.createURI("urn:TacoShop"));
+        bs.addBinding("person", vf.createIRI("urn:Bob"));
+        bs.addBinding("business", vf.createIRI("urn:TacoShop"));
         expected.add(new VisibilityBindingSet(bs, "a"));
         bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Charlie"));
-        bs.addBinding("business", vf.createURI("urn:TacoShop"));
+        bs.addBinding("person", vf.createIRI("urn:Charlie"));
+        bs.addBinding("business", vf.createIRI("urn:TacoShop"));
         expected.add(new VisibilityBindingSet(bs, "a"));
 
         // Start the executor that will be tested.

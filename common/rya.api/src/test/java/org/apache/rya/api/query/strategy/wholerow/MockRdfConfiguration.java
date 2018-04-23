@@ -1,4 +1,4 @@
-package org.apache.rya.api.resolver.impl;
+package org.apache.rya.api.query.strategy.wholerow;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -20,21 +20,13 @@ package org.apache.rya.api.resolver.impl;
  */
 
 
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 
-import junit.framework.TestCase;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+public class MockRdfConfiguration extends RdfCloudTripleStoreConfiguration {
 
-/**
- * Date: 7/16/12
- * Time: 2:51 PM
- */
-public class RyaURIResolverTest extends TestCase {
+	@Override
+	public RdfCloudTripleStoreConfiguration clone() {
+		return this;
+	}
 
-    public void testSerialization() throws Exception {
-        RyaURI ryaURI = new RyaURI("urn:testdata#data");
-        byte[] serialize = new RyaURIResolver().serialize(ryaURI);
-        RyaType deserialize = new RyaURIResolver().deserialize(serialize);
-        assertEquals(ryaURI, deserialize);
-    }
 }

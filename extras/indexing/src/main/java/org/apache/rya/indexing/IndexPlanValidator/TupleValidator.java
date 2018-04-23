@@ -19,10 +19,9 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * under the License.
  */
 
-
 import java.util.Iterator;
 
-import org.openrdf.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
 public interface TupleValidator {
 

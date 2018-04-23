@@ -19,22 +19,18 @@ package org.apache.rya.indexing;
  * under the License.
  */
 
-
-
 import java.io.IOException;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ContextStatementImpl;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 /**
  * A set of Utilities to serialize {@link Statement}s to/from {@link String}s.
@@ -42,7 +38,7 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 public class StatementSerializer {
     private static String SEP = "\u0000";
 
-    private static ValueFactory VALUE_FACTORY = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     /**
      * Read a {@link Statement} from a {@link String}
@@ -71,7 +67,7 @@ public class StatementSerializer {
 
     public static Statement readStatement(String subjectString, String predicateString, String objectString, String contextString) {
         Resource subject = createResource(subjectString);
-        URI predicate = VALUE_FACTORY.createURI(predicateString);
+        IRI predicate = VF.createIRI(predicateString);
 
         boolean isObjectLiteral = objectString.startsWith("\"");
 
@@ -83,18 +79,18 @@ public class StatementSerializer {
         }
 
         if (contextString == null || contextString.isEmpty()) {
-            return new StatementImpl(subject, predicate, object);
+            return VF.createStatement(subject, predicate, object);
         } else {
-            Resource context = VALUE_FACTORY.createURI(contextString);
-            return new ContextStatementImpl(subject, predicate, object, context);
+            Resource context = VF.createIRI(contextString);
+            return VF.createStatement(subject, predicate, object, context);
         }
     }
 
     private static Resource createResource(String str) {
         if (str.startsWith("_")) {
-            return VALUE_FACTORY.createBNode(str.substring(2));
+            return VF.createBNode(str.substring(2));
         }
-        return VALUE_FACTORY.createURI(str);
+        return VF.createIRI(str);
 
     }
 
@@ -104,7 +100,7 @@ public class StatementSerializer {
 
         if (fullLiteralString.endsWith("\"")) {
             String fullLiteralWithoutQuotes = fullLiteralString.substring(1, fullLiteralString.length() - 1);
-            return VALUE_FACTORY.createLiteral(fullLiteralWithoutQuotes, (String) null);
+            return VF.createLiteral(fullLiteralWithoutQuotes);
         } else {
 
             // find the closing quote
@@ -117,12 +113,12 @@ public class StatementSerializer {
             if (data.startsWith("@")) {
                 // the data is "language"
                 String lang = data.substring(1);
-                return VALUE_FACTORY.createLiteral(label, lang);
+                return VF.createLiteral(label, lang);
             } else if (data.startsWith("^^<")) {
                 // the data is a "datatype"
                 String datatype = data.substring(3, data.length() - 1);
-                URI datatypeUri = VALUE_FACTORY.createURI(datatype);
-                return VALUE_FACTORY.createLiteral(label, datatypeUri);
+                IRI datatypeUri = VF.createIRI(datatype);
+                return VF.createLiteral(label, datatypeUri);
             }
         }
         return null;
@@ -165,7 +161,7 @@ public class StatementSerializer {
     public static String writeStatement(Statement statement) {
         Resource subject = statement.getSubject();
         Resource context = statement.getContext();
-        URI predicate = statement.getPredicate();
+        IRI predicate = statement.getPredicate();
         Value object = statement.getObject();
 
         Validate.notNull(subject);
@@ -197,7 +193,7 @@ public class StatementSerializer {
     public static String createStatementRegex(StatementConstraints contraints) {
         Resource context = contraints.getContext();
         Resource subject = contraints.getSubject();
-        Set<URI> predicates = contraints.getPredicates();
+        Set<IRI> predicates = contraints.getPredicates();
         if (context == null && subject == null && (predicates == null || predicates.isEmpty())) {
             return null;
         }

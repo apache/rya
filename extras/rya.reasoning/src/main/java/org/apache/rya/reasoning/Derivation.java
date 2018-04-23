@@ -27,12 +27,11 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.rya.reasoning.mr.ResourceWritable;
-
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableUtils;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Value;
+import org.apache.rya.reasoning.mr.ResourceWritable;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
 
 /**
  * Represents the derivation of a fact.
@@ -133,7 +132,7 @@ public class Derivation implements WritableComparable<Derivation>, Cloneable {
      * in any step of the derivation.
      */
     public boolean hasSourceNode(Value v) {
-        return v instanceof Resource && sourceNodes.contains((Resource) v);
+        return v instanceof Resource && sourceNodes.contains(v);
     }
 
     /**
@@ -284,11 +283,8 @@ public class Derivation implements WritableComparable<Derivation>, Cloneable {
             || (rule != null && !rule.equals(other.rule))) {
             return false;
         }
-        if ((sources == null && other.sources != null)
-            || (sources != null && !sources.equals(other.sources))) {
-            return false;
-        }
-        return true;
+        return (sources != null || other.sources == null)
+                && (sources == null || sources.equals(other.sources));
     }
 
     /**

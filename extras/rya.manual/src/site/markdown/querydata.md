@@ -110,7 +110,7 @@ RepositoryConnection conn = myRepository.getConnection();
 System.out.println(query);
 TupleQuery tupleQuery = conn.prepareTupleQuery(
         QueryLanguage.SPARQL, query);
-ValueFactory vf = ValueFactoryImpl.getInstance();
+ValueFactory vf = SimpleValueFactory.getInstance();
 
 TupleQueryResultHandler writer = new SPARQLResultsXMLWriter(System.out);
 tupleQuery.evaluate(new TupleQueryResultHandler() {

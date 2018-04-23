@@ -32,7 +32,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 public class AfterTemporalInstant extends TemporalInstantRelationFunction {
     @Override
     public String getURI() {
-        return TemporalURIs.AFTER;
+        return TemporalIRIs.AFTER;
     }
 
     @Override

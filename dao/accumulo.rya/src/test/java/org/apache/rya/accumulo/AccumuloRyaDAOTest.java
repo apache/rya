@@ -19,28 +19,15 @@ package org.apache.rya.accumulo;
  * under the License.
  */
 
-
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import info.aduna.iteration.CloseableIteration;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
-
-import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.domain.StatementMetadata;
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.api.persist.query.RyaQuery;
-import org.apache.rya.api.resolver.RdfToRyaConversions;
-import org.apache.rya.api.resolver.RyaContext;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IteratorSetting;
@@ -48,13 +35,23 @@ import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.iterators.FirstEntryInRowIterator;
+import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.StatementMetadata;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.query.RyaQuery;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.api.resolver.RyaContext;
 import org.calrissian.mango.collect.FluentCloseableIterable;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
 
 /**
  * Class AccumuloRdfDAOTest
@@ -64,7 +61,7 @@ import org.openrdf.model.vocabulary.XMLSchema;
 public class AccumuloRyaDAOTest {
 
     private AccumuloRyaDAO dao;
-    private ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     static String litdupsNS = "urn:test:litdups#";
     private AccumuloRdfConfiguration conf;
     private Connector connector;
@@ -87,9 +84,9 @@ public class AccumuloRyaDAOTest {
 
     @Test
     public void testAdd() throws Exception {
-        RyaURI cpu = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "cpu"));
-        RyaURI loadPerc = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "loadPerc"));
-        RyaURI uri1 = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "uri1"));
+        RyaIRI cpu = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "cpu"));
+        RyaIRI loadPerc = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "loadPerc"));
+        RyaIRI uri1 = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "uri1"));
         dao.add(new RyaStatement(cpu, loadPerc, uri1));
 
         CloseableIteration<RyaStatement, RyaDAOException> iter = dao.getQueryEngine().query(new RyaStatement(cpu, loadPerc, null), conf);
@@ -115,9 +112,9 @@ public class AccumuloRyaDAOTest {
 
     @Test
     public void testDeleteDiffVisibility() throws Exception {
-        RyaURI cpu = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "cpu"));
-        RyaURI loadPerc = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "loadPerc"));
-        RyaURI uri1 = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "uri1"));
+        RyaIRI cpu = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "cpu"));
+        RyaIRI loadPerc = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "loadPerc"));
+        RyaIRI uri1 = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "uri1"));
         RyaStatement stmt1 = new RyaStatement(cpu, loadPerc, uri1, null, "1", new StatementMetadata(), "vis1".getBytes());
         dao.add(stmt1);
         RyaStatement stmt2 = new RyaStatement(cpu, loadPerc, uri1, null, "2", new StatementMetadata(), "vis2".getBytes());
@@ -149,9 +146,9 @@ public class AccumuloRyaDAOTest {
 
     @Test
     public void testDeleteDiffTimestamp() throws Exception {
-        RyaURI cpu = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "cpu"));
-        RyaURI loadPerc = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "loadPerc"));
-        RyaURI uri1 = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "uri1"));
+        RyaIRI cpu = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "cpu"));
+        RyaIRI loadPerc = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "loadPerc"));
+        RyaIRI uri1 = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "uri1"));
         RyaStatement stmt1 = new RyaStatement(cpu, loadPerc, uri1, null, "1", null, null, 100l);
         dao.add(stmt1);
         RyaStatement stmt2 = new RyaStatement(cpu, loadPerc, uri1, null, "2", null, null, 100l);
@@ -173,14 +170,14 @@ public class AccumuloRyaDAOTest {
 
     @Test
     public void testDelete() throws Exception {
-        RyaURI predicate = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "pred"));
-        RyaURI subj = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "subj"));
+        RyaIRI predicate = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "pred"));
+        RyaIRI subj = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "subj"));
 
         // create a "bulk load" of 10,000 statements
         int statement_count = 10000;
         for (int i = 0 ; i < statement_count ; i++){
             //make the statement very large so we will get a lot of random flushes
-            RyaURI obj = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, String.format("object%050d",i)));
+            RyaIRI obj = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, String.format("object%050d",i)));
             RyaStatement stmt = new RyaStatement(subj, predicate, obj);
             dao.add(stmt);
         }
@@ -211,8 +208,8 @@ public class AccumuloRyaDAOTest {
 
     @Test
     public void testAddEmptyString() throws Exception {
-        RyaURI cpu = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "cpu"));
-        RyaURI loadPerc = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "loadPerc"));
+        RyaIRI cpu = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "cpu"));
+        RyaIRI loadPerc = RdfToRyaConversions.convertIRI(VF.createIRI(litdupsNS, "loadPerc"));
         RyaType empty = new RyaType("");
         dao.add(new RyaStatement(cpu, loadPerc, empty));
 
@@ -225,13 +222,13 @@ public class AccumuloRyaDAOTest {
 
     @Test
     public void testMaxResults() throws Exception {
-        RyaURI cpu = new RyaURI(litdupsNS + "cpu");
-        RyaURI loadPerc = new RyaURI(litdupsNS + "loadPerc");
-        dao.add(new RyaStatement(cpu, loadPerc, new RyaURI(litdupsNS + "uri1")));
-        dao.add(new RyaStatement(cpu, loadPerc, new RyaURI(litdupsNS + "uri2")));
-        dao.add(new RyaStatement(cpu, loadPerc, new RyaURI(litdupsNS + "uri3")));
-        dao.add(new RyaStatement(cpu, loadPerc, new RyaURI(litdupsNS + "uri4")));
-        dao.add(new RyaStatement(cpu, loadPerc, new RyaURI(litdupsNS + "uri5")));
+        RyaIRI cpu = new RyaIRI(litdupsNS + "cpu");
+        RyaIRI loadPerc = new RyaIRI(litdupsNS + "loadPerc");
+        dao.add(new RyaStatement(cpu, loadPerc, new RyaIRI(litdupsNS + "uri1")));
+        dao.add(new RyaStatement(cpu, loadPerc, new RyaIRI(litdupsNS + "uri2")));
+        dao.add(new RyaStatement(cpu, loadPerc, new RyaIRI(litdupsNS + "uri3")));
+        dao.add(new RyaStatement(cpu, loadPerc, new RyaIRI(litdupsNS + "uri4")));
+        dao.add(new RyaStatement(cpu, loadPerc, new RyaIRI(litdupsNS + "uri5")));
 
         AccumuloRyaQueryEngine queryEngine = dao.getQueryEngine();
         AccumuloRdfConfiguration queryConf = new AccumuloRdfConfiguration(conf);
@@ -250,9 +247,9 @@ public class AccumuloRyaDAOTest {
 
     @Test
     public void testAddValue() throws Exception {
-        RyaURI cpu = new RyaURI(litdupsNS + "cpu");
-        RyaURI loadPerc = new RyaURI(litdupsNS + "loadPerc");
-        RyaURI uri1 = new RyaURI(litdupsNS + "uri1");
+        RyaIRI cpu = new RyaIRI(litdupsNS + "cpu");
+        RyaIRI loadPerc = new RyaIRI(litdupsNS + "loadPerc");
+        RyaIRI uri1 = new RyaIRI(litdupsNS + "uri1");
         String myval = "myval";
         byte[] columnVis = null;
         dao.add(new RyaStatement(cpu, loadPerc, uri1, null, null, columnVis, myval.getBytes()));
@@ -266,11 +263,11 @@ public class AccumuloRyaDAOTest {
 
     @Test
     public void testAddCv() throws Exception {
-        RyaURI cpu = new RyaURI(litdupsNS + "cpu");
-        RyaURI loadPerc = new RyaURI(litdupsNS + "loadPerc");
-        RyaURI uri1 = new RyaURI(litdupsNS + "uri1");
-        RyaURI uri2 = new RyaURI(litdupsNS + "uri2");
-        RyaURI uri3 = new RyaURI(litdupsNS + "uri3");
+        RyaIRI cpu = new RyaIRI(litdupsNS + "cpu");
+        RyaIRI loadPerc = new RyaIRI(litdupsNS + "loadPerc");
+        RyaIRI uri1 = new RyaIRI(litdupsNS + "uri1");
+        RyaIRI uri2 = new RyaIRI(litdupsNS + "uri2");
+        RyaIRI uri3 = new RyaIRI(litdupsNS + "uri3");
         byte[] colVisABC = "A|B|C".getBytes();
         byte[] colVisAB = "A|B".getBytes();
         byte[] colVisA = "A".getBytes();
@@ -314,14 +311,14 @@ public class AccumuloRyaDAOTest {
 
     @Test
     public void testTTL() throws Exception {
-        RyaURI cpu = new RyaURI(litdupsNS + "cpu");
-        RyaURI loadPerc = new RyaURI(litdupsNS + "loadPerc");
+        RyaIRI cpu = new RyaIRI(litdupsNS + "cpu");
+        RyaIRI loadPerc = new RyaIRI(litdupsNS + "loadPerc");
         long current = System.currentTimeMillis();
-        dao.add(new RyaStatement(cpu, loadPerc, new RyaURI(litdupsNS + "uri1"), null, null, null, null, current));
-        dao.add(new RyaStatement(cpu, loadPerc, new RyaURI(litdupsNS + "uri2"), null, null, null, null, current - 1010l));
-        dao.add(new RyaStatement(cpu, loadPerc, new RyaURI(litdupsNS + "uri3"), null, null, null, null, current - 2010l));
-        dao.add(new RyaStatement(cpu, loadPerc, new RyaURI(litdupsNS + "uri4"), null, null, null, null, current - 3010l));
-        dao.add(new RyaStatement(cpu, loadPerc, new RyaURI(litdupsNS + "uri5"), null, null, null, null, current - 4010l));
+        dao.add(new RyaStatement(cpu, loadPerc, new RyaIRI(litdupsNS + "uri1"), null, null, null, null, current));
+        dao.add(new RyaStatement(cpu, loadPerc, new RyaIRI(litdupsNS + "uri2"), null, null, null, null, current - 1010l));
+        dao.add(new RyaStatement(cpu, loadPerc, new RyaIRI(litdupsNS + "uri3"), null, null, null, null, current - 2010l));
+        dao.add(new RyaStatement(cpu, loadPerc, new RyaIRI(litdupsNS + "uri4"), null, null, null, null, current - 3010l));
+        dao.add(new RyaStatement(cpu, loadPerc, new RyaIRI(litdupsNS + "uri5"), null, null, null, null, current - 4010l));
 
         AccumuloRyaQueryEngine queryEngine = dao.getQueryEngine();
         AccumuloRdfConfiguration queryConf = conf.clone();
@@ -358,14 +355,14 @@ public class AccumuloRyaDAOTest {
     //TOOD: Add test for set of queries
     @Test
     public void testQuery() throws Exception {
-        RyaURI cpu = new RyaURI(litdupsNS + "cpu");
-        RyaURI loadPerc = new RyaURI(litdupsNS + "loadPerc");
-        RyaURI uri1 = new RyaURI(litdupsNS + "uri1");
-        RyaURI uri2 = new RyaURI(litdupsNS + "uri2");
-        RyaURI uri3 = new RyaURI(litdupsNS + "uri3");
-        RyaURI uri4 = new RyaURI(litdupsNS + "uri4");
-        RyaURI uri5 = new RyaURI(litdupsNS + "uri5");
-        RyaURI uri6 = new RyaURI(litdupsNS + "uri6");
+        RyaIRI cpu = new RyaIRI(litdupsNS + "cpu");
+        RyaIRI loadPerc = new RyaIRI(litdupsNS + "loadPerc");
+        RyaIRI uri1 = new RyaIRI(litdupsNS + "uri1");
+        RyaIRI uri2 = new RyaIRI(litdupsNS + "uri2");
+        RyaIRI uri3 = new RyaIRI(litdupsNS + "uri3");
+        RyaIRI uri4 = new RyaIRI(litdupsNS + "uri4");
+        RyaIRI uri5 = new RyaIRI(litdupsNS + "uri5");
+        RyaIRI uri6 = new RyaIRI(litdupsNS + "uri6");
         dao.add(new RyaStatement(cpu, loadPerc, uri1));
         dao.add(new RyaStatement(cpu, loadPerc, uri2));
         dao.add(new RyaStatement(cpu, loadPerc, uri3));
@@ -375,7 +372,7 @@ public class AccumuloRyaDAOTest {
 
         AccumuloRyaQueryEngine queryEngine = dao.getQueryEngine();
 
-        Collection<RyaStatement> coll = new ArrayList();
+        Collection<RyaStatement> coll = new ArrayList<>();
         coll.add(new RyaStatement(null, loadPerc, uri1));
         coll.add(new RyaStatement(null, loadPerc, uri2));
         CloseableIteration<RyaStatement, RyaDAOException> iter = queryEngine.batchQuery(coll, conf);
@@ -391,7 +388,7 @@ public class AccumuloRyaDAOTest {
         AccumuloRdfConfiguration queryConf = new AccumuloRdfConfiguration(conf);
         queryConf.setMaxRangesForScanner(2);
 
-        coll = new ArrayList();
+        coll = new ArrayList<>();
         coll.add(new RyaStatement(null, loadPerc, uri1));
         coll.add(new RyaStatement(null, loadPerc, uri2));
         coll.add(new RyaStatement(null, loadPerc, uri3));
@@ -412,8 +409,8 @@ public class AccumuloRyaDAOTest {
 
 	@Test
 	public void testQueryDates() throws Exception {
-	    RyaURI cpu = new RyaURI(litdupsNS + "cpu");
-	    RyaURI loadPerc = new RyaURI(litdupsNS + "loadPerc");
+	    RyaIRI cpu = new RyaIRI(litdupsNS + "cpu");
+	    RyaIRI loadPerc = new RyaIRI(litdupsNS + "loadPerc");
 	    RyaType uri0 = new RyaType(XMLSchema.DATETIME, "1960-01-01"); // How handles local time
 	    RyaType uri1 = new RyaType(XMLSchema.DATETIME, "1992-01-01T+10:00"); // See Magadan Time
 	    RyaType uri2 = new RyaType(XMLSchema.DATETIME, "2000-01-01TZ"); // How it handles UTC.
@@ -438,7 +435,7 @@ public class AccumuloRyaDAOTest {
 	
 	    AccumuloRyaQueryEngine queryEngine = dao.getQueryEngine();
 	
-	    Collection<RyaStatement> coll = new ArrayList();
+	    Collection<RyaStatement> coll = new ArrayList<>();
 	    coll.add(new RyaStatement(null, loadPerc, uri0));
 	    coll.add(new RyaStatement(null, loadPerc, uri1));
 	    coll.add(new RyaStatement(null, loadPerc, uri2));
@@ -455,7 +452,7 @@ public class AccumuloRyaDAOTest {
 	    AccumuloRdfConfiguration queryConf = new AccumuloRdfConfiguration(conf);
 	    queryConf.setMaxRangesForScanner(2);
 	
-	    coll = new ArrayList();
+	    coll = new ArrayList<>();
 	    coll.add(new RyaStatement(null, loadPerc, uri0));
 	    coll.add(new RyaStatement(null, loadPerc, uri1));
 	    coll.add(new RyaStatement(null, loadPerc, uri2));
@@ -478,14 +475,14 @@ public class AccumuloRyaDAOTest {
 
 	@Test
     public void testQueryCollectionRegex() throws Exception {
-        RyaURI cpu = new RyaURI(litdupsNS + "cpu");
-        RyaURI loadPerc = new RyaURI(litdupsNS + "loadPerc");
-        RyaURI uri1 = new RyaURI(litdupsNS + "uri1");
-        RyaURI uri2 = new RyaURI(litdupsNS + "uri2");
-        RyaURI uri3 = new RyaURI(litdupsNS + "uri3");
-        RyaURI uri4 = new RyaURI(litdupsNS + "uri4");
-        RyaURI uri5 = new RyaURI(litdupsNS + "uri5");
-        RyaURI uri6 = new RyaURI(litdupsNS + "uri6");
+        RyaIRI cpu = new RyaIRI(litdupsNS + "cpu");
+        RyaIRI loadPerc = new RyaIRI(litdupsNS + "loadPerc");
+        RyaIRI uri1 = new RyaIRI(litdupsNS + "uri1");
+        RyaIRI uri2 = new RyaIRI(litdupsNS + "uri2");
+        RyaIRI uri3 = new RyaIRI(litdupsNS + "uri3");
+        RyaIRI uri4 = new RyaIRI(litdupsNS + "uri4");
+        RyaIRI uri5 = new RyaIRI(litdupsNS + "uri5");
+        RyaIRI uri6 = new RyaIRI(litdupsNS + "uri6");
         dao.add(new RyaStatement(cpu, loadPerc, uri1));
         dao.add(new RyaStatement(cpu, loadPerc, uri2));
         dao.add(new RyaStatement(cpu, loadPerc, uri3));
@@ -495,7 +492,7 @@ public class AccumuloRyaDAOTest {
 
         AccumuloRyaQueryEngine queryEngine = dao.getQueryEngine();
 
-        Collection<RyaStatement> coll = new ArrayList();
+        Collection<RyaStatement> coll = new ArrayList<>();
         coll.add(new RyaStatement(null, loadPerc, uri1));
         coll.add(new RyaStatement(null, loadPerc, uri2));
         conf.setRegexPredicate(loadPerc.getData());
@@ -521,14 +518,14 @@ public class AccumuloRyaDAOTest {
 
     @Test
     public void testQueryCollectionRegexWBatchScanner() throws Exception {
-        RyaURI cpu = new RyaURI(litdupsNS + "cpu");
-        RyaURI loadPerc = new RyaURI(litdupsNS + "loadPerc");
-        RyaURI uri1 = new RyaURI(litdupsNS + "uri1");
-        RyaURI uri2 = new RyaURI(litdupsNS + "uri2");
-        RyaURI uri3 = new RyaURI(litdupsNS + "uri3");
-        RyaURI uri4 = new RyaURI(litdupsNS + "uri4");
-        RyaURI uri5 = new RyaURI(litdupsNS + "uri5");
-        RyaURI uri6 = new RyaURI(litdupsNS + "uri6");
+        RyaIRI cpu = new RyaIRI(litdupsNS + "cpu");
+        RyaIRI loadPerc = new RyaIRI(litdupsNS + "loadPerc");
+        RyaIRI uri1 = new RyaIRI(litdupsNS + "uri1");
+        RyaIRI uri2 = new RyaIRI(litdupsNS + "uri2");
+        RyaIRI uri3 = new RyaIRI(litdupsNS + "uri3");
+        RyaIRI uri4 = new RyaIRI(litdupsNS + "uri4");
+        RyaIRI uri5 = new RyaIRI(litdupsNS + "uri5");
+        RyaIRI uri6 = new RyaIRI(litdupsNS + "uri6");
         dao.add(new RyaStatement(cpu, loadPerc, uri1));
         dao.add(new RyaStatement(cpu, loadPerc, uri2));
         dao.add(new RyaStatement(cpu, loadPerc, uri3));
@@ -540,7 +537,7 @@ public class AccumuloRyaDAOTest {
         AccumuloRdfConfiguration queryConf = new AccumuloRdfConfiguration(conf);
         queryConf.setMaxRangesForScanner(1);
 
-        Collection<RyaStatement> coll = new ArrayList();
+        Collection<RyaStatement> coll = new ArrayList<>();
         coll.add(new RyaStatement(null, loadPerc, uri1));
         coll.add(new RyaStatement(null, loadPerc, uri2));
         conf.setRegexPredicate(loadPerc.getData());
@@ -566,8 +563,8 @@ public class AccumuloRyaDAOTest {
 
     @Test
     public void testLiteralTypes() throws Exception {
-        RyaURI cpu = new RyaURI(litdupsNS + "cpu");
-        RyaURI loadPerc = new RyaURI(litdupsNS + "loadPerc");
+        RyaIRI cpu = new RyaIRI(litdupsNS + "cpu");
+        RyaIRI loadPerc = new RyaIRI(litdupsNS + "loadPerc");
         RyaType longLit = new RyaType(XMLSchema.LONG, "3");
 
         dao.add(new RyaStatement(cpu, loadPerc, longLit));
@@ -593,8 +590,8 @@ public class AccumuloRyaDAOTest {
 
     @Test
     public void testSameLiteralStringTypes() throws Exception {
-        RyaURI cpu = new RyaURI(litdupsNS + "cpu");
-        RyaURI loadPerc = new RyaURI(litdupsNS + "loadPerc");
+        RyaIRI cpu = new RyaIRI(litdupsNS + "cpu");
+        RyaIRI loadPerc = new RyaIRI(litdupsNS + "loadPerc");
         RyaType longLit = new RyaType(XMLSchema.LONG, "10");
         RyaType strLit = new RyaType(XMLSchema.STRING, new String(RyaContext.getInstance().serializeType(longLit)[0]));
 
@@ -644,9 +641,9 @@ public class AccumuloRyaDAOTest {
 
     @Test
     public void testQueryWithIterators() throws Exception {
-        RyaURI cpu = new RyaURI(litdupsNS + "cpu");
-        RyaURI loadPerc = new RyaURI(litdupsNS + "loadPerc");
-        RyaURI uri1 = new RyaURI(litdupsNS + "uri1");
+        RyaIRI cpu = new RyaIRI(litdupsNS + "cpu");
+        RyaIRI loadPerc = new RyaIRI(litdupsNS + "loadPerc");
+        RyaIRI uri1 = new RyaIRI(litdupsNS + "uri1");
         dao.add(new RyaStatement(cpu, loadPerc, uri1, null, "qual1"));
         dao.add(new RyaStatement(cpu, loadPerc, uri1, null, "qual2"));
 
@@ -702,8 +699,8 @@ public class AccumuloRyaDAOTest {
     }
 
     private RyaStatement newRyaStatement() {
-        RyaURI subject = new RyaURI(litdupsNS + randomString());
-        RyaURI predicate = new RyaURI(litdupsNS + randomString());
+        RyaIRI subject = new RyaIRI(litdupsNS + randomString());
+        RyaIRI predicate = new RyaIRI(litdupsNS + randomString());
         RyaType object = new RyaType(randomString());
 
         return new RyaStatement(subject, predicate, object);

@@ -20,35 +20,36 @@ package org.apache.rya.forwardchain.rule;
 
 import java.util.Arrays;
 
+import org.apache.rya.api.domain.VarNameUtils;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.FOAF;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.parser.ParsedGraphQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.FOAF;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.parser.ParsedGraphQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 
 public class SpinConstructRuleTest {
-    private static ValueFactory VF = ValueFactoryImpl.getInstance();
-    private static SPARQLParser PARSER = new SPARQLParser();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+    private static final SPARQLParser PARSER = new SPARQLParser();
 
-    private static URI RL_CAX_SCO = VF.createURI("http://example.org/rl/cax-sco");
-    private static URI RL_SCM_CLS = VF.createURI("http://example.org/rl/scm-cls");
-    private static URI RL_PRP_SPO1 = VF.createURI("http://example.org/rl/prp-spo");
-    private static URI LIVING_THING = VF.createURI("http://example.org/LivingThing");
+    private static final IRI RL_CAX_SCO = VF.createIRI("http://example.org/rl/cax-sco");
+    private static final IRI RL_SCM_CLS = VF.createIRI("http://example.org/rl/scm-cls");
+    private static final IRI RL_PRP_SPO1 = VF.createIRI("http://example.org/rl/prp-spo");
+    private static final IRI LIVING_THING = VF.createIRI("http://example.org/LivingThing");
 
     private static Var c(Value val) {
-        return new Var("-const-" + val.stringValue(), val);
+        return VarNameUtils.createUniqueConstVar(val);
     }
     private static Var ac(Value val) {
         Var v = c(val);
@@ -62,7 +63,7 @@ public class SpinConstructRuleTest {
                 + "  ?this a <" + LIVING_THING.stringValue() + "> .\n"
                 + "} WHERE { }";
         ParsedGraphQuery query = (ParsedGraphQuery) PARSER.parseQuery(text, null);
-        SpinConstructRule rule = new SpinConstructRule(FOAF.PERSON, VF.createURI("urn:person-is-living"), query);
+        SpinConstructRule rule = new SpinConstructRule(FOAF.PERSON, VF.createIRI("urn:person-is-living"), query);
         Multiset<StatementPattern> expectedAntecedents = HashMultiset.create(Arrays.asList(
                 new StatementPattern(new Var("this"), c(RDF.TYPE), c(FOAF.PERSON))));
         Multiset<StatementPattern> expectedConsequents = HashMultiset.create(Arrays.asList(
@@ -120,6 +121,8 @@ public class SpinConstructRuleTest {
         String text = "CONSTRUCT {\n"
                 // actual rule is "?this subClassOf ?this", but reflexive construct patterns produce
                 // bnodes due to an openrdf bug, resulting in incorrect matches
+                // TODO: is the above comment still a concern with RDF4J? bnodes
+                // don't appear to be produced with RDF4J
                 + "  ?this rdfs:subClassOf ?something .\n"
                 + "  ?this owl:equivalentClass ?something .\n"
                 + "  ?this rdfs:subClassOf owl:Thing .\n"

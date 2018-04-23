@@ -19,7 +19,6 @@ package org.apache.rya.api.persist.index;
  * under the License.
  */
 
-
 import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
@@ -27,23 +26,23 @@ import java.util.Collection;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configurable;
-import org.openrdf.model.URI;
-
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
+import org.eclipse.rdf4j.model.IRI;
 
 public interface RyaSecondaryIndexer extends Closeable, Flushable, Configurable {
-	/**
-	 * initialize after setting configuration.
-	 */
-    public void init();    
+    /**
+     * initialize after setting configuration.
+     */
+    public void init();
+
     /**
      * Returns the table name if the implementation supports it.
      * Note that some indexers use multiple tables, this only returns one.
      * TODO recommend that we deprecate this method because it's a leaky interface. 
      * @return table name as a string.
      */
-    public String getTableName(); 
+    public String getTableName();
 
     public void storeStatements(Collection<RyaStatement> statements) throws IOException;
 
@@ -51,16 +50,16 @@ public interface RyaSecondaryIndexer extends Closeable, Flushable, Configurable 
 
     public void deleteStatement(RyaStatement stmt) throws IOException;
 
-    public void dropGraph(RyaURI... graphs);
+    public void dropGraph(RyaIRI... graphs);
 
     /**
      * @return the set of predicates indexed by the indexer.
      */
-    public abstract Set<URI> getIndexablePredicates();
+    public Set<IRI> getIndexablePredicates();
 
     @Override
-    public abstract void flush() throws IOException;
+    public void flush() throws IOException;
 
     @Override
-    public abstract void close() throws IOException;
+    public void close() throws IOException;
 }

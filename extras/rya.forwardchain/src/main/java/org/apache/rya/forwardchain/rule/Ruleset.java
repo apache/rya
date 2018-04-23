@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
-import org.openrdf.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
 
 import com.google.common.base.Preconditions;
 

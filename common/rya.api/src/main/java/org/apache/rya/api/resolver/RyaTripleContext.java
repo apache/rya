@@ -19,21 +19,18 @@ package org.apache.rya.api.resolver;
  * under the License.
  */
 
-
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.query.strategy.TriplePatternStrategy;
 import org.apache.rya.api.query.strategy.wholerow.HashedPoWholeRowTriplePatternStrategy;
 import org.apache.rya.api.query.strategy.wholerow.HashedSpoWholeRowTriplePatternStrategy;
@@ -104,7 +101,7 @@ public class RyaTripleContext {
     }
 
     //retrieve triple pattern strategy
-    public TriplePatternStrategy retrieveStrategy(final RyaURI subject, final RyaURI predicate, final RyaType object, final RyaURI context) {
+    public TriplePatternStrategy retrieveStrategy(final RyaIRI subject, final RyaIRI predicate, final RyaType object, final RyaIRI context) {
         for (final TriplePatternStrategy strategy : triplePatternStrategyList) {
             if (strategy.handles(subject, predicate, object, context)) {
                 return strategy;

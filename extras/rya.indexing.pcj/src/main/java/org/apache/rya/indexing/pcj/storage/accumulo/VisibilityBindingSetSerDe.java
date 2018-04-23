@@ -26,7 +26,6 @@ import java.io.ObjectOutputStream;
 
 import org.apache.commons.io.serialization.ValidatingObjectInputStream;
 import org.apache.fluo.api.data.Bytes;
-import org.apache.rya.api.model.BindingSetDecorator;
 import org.apache.rya.api.model.VisibilityBindingSet;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -67,20 +66,30 @@ public class VisibilityBindingSetSerDe {
         requireNonNull(bytes);
         try (final ValidatingObjectInputStream vois = new ValidatingObjectInputStream(new ByteArrayInputStream(bytes.toArray()))) {
             // Perform input validation.  Only the following classes are allowed to be deserialized.
-            vois.accept(VisibilityBindingSet.class,
-                    BindingSetDecorator.class,
-                    org.openrdf.query.impl.MapBindingSet.class,
+            vois.accept(
+                    VisibilityBindingSet.class,
+                    java.lang.Byte.class,
+                    java.lang.Double.class,
+                    java.lang.Float.class,
+                    java.lang.Integer.class,
+                    java.lang.Long.class,
+                    java.lang.Number.class,
+                    java.lang.Short.class,
+                    java.math.BigDecimal.class,
+                    java.math.BigInteger.class,
                     java.util.LinkedHashMap.class,
                     java.util.HashMap.class,
-                    java.math.BigInteger.class,
-                    java.math.BigDecimal.class,
-                    java.lang.Number.class,
-                    org.openrdf.query.impl.BindingImpl.class,
-                    org.openrdf.model.impl.LiteralImpl.class,
-                    org.openrdf.model.impl.IntegerLiteralImpl.class,
-                    org.openrdf.model.impl.DecimalLiteralImpl.class,
-                    org.openrdf.model.impl.URIImpl.class,
-                    org.openrdf.query.algebra.evaluation.QueryBindingSet.class);
+                    org.apache.rya.api.model.BindingSetDecorator.class,
+                    org.eclipse.rdf4j.query.impl.SimpleBinding.class,
+                    org.eclipse.rdf4j.model.impl.SimpleIRI.class,
+                    org.eclipse.rdf4j.model.impl.SimpleLiteral.class,
+                    org.eclipse.rdf4j.model.impl.IntegerLiteral.class,
+                    org.eclipse.rdf4j.model.impl.DecimalLiteral.class,
+                    org.eclipse.rdf4j.model.impl.NumericLiteral.class,
+                    org.eclipse.rdf4j.query.AbstractBindingSet.class,
+                    org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet.class,
+                    org.eclipse.rdf4j.query.impl.MapBindingSet.class
+                );
             vois.accept("[B");
             final Object o = vois.readObject();
             if(o instanceof VisibilityBindingSet) {

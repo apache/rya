@@ -19,28 +19,27 @@ package org.apache.rya;
  * under the License.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
+import java.util.HashSet;
+import java.util.Set;
 
-import info.aduna.iteration.CloseableIteration;
-import junit.framework.TestCase;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.join.IterativeJoin;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.mock.MockInstance;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import static junit.framework.Assert.*;
 
 /**
  * Date: 7/24/12
@@ -69,13 +68,13 @@ public class IterativeJoinTest {
     @Test
     public void testSimpleIterativeJoin() throws Exception {
         //add data
-        RyaURI pred = new RyaURI(litdupsNS, "pred1");
+        RyaIRI pred = new RyaIRI(litdupsNS, "pred1");
         RyaType one = new RyaType("1");
         RyaType two = new RyaType("2");
-        RyaURI subj1 = new RyaURI(litdupsNS, "subj1");
-        RyaURI subj2 = new RyaURI(litdupsNS, "subj2");
-        RyaURI subj3 = new RyaURI(litdupsNS, "subj3");
-        RyaURI subj4 = new RyaURI(litdupsNS, "subj4");
+        RyaIRI subj1 = new RyaIRI(litdupsNS, "subj1");
+        RyaIRI subj2 = new RyaIRI(litdupsNS, "subj2");
+        RyaIRI subj3 = new RyaIRI(litdupsNS, "subj3");
+        RyaIRI subj4 = new RyaIRI(litdupsNS, "subj4");
 
         dao.add(new RyaStatement(subj1, pred, one));
         dao.add(new RyaStatement(subj1, pred, two));
@@ -88,10 +87,10 @@ public class IterativeJoinTest {
 
         //1 join
         IterativeJoin iterJoin = new IterativeJoin(dao.getQueryEngine());
-        CloseableIteration<RyaURI, RyaDAOException> join = iterJoin.join(null, new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, one),
-                new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, two));
+        CloseableIteration<RyaIRI, RyaDAOException> join = iterJoin.join(null, new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, one),
+                new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, two));
 
-        Set<RyaURI> uris = new HashSet<RyaURI>();
+        Set<RyaIRI> uris = new HashSet<RyaIRI>();
         while (join.hasNext()) {
             uris.add(join.next());
         }
@@ -105,15 +104,15 @@ public class IterativeJoinTest {
     @Test
     public void testSimpleIterativeJoinMultiWay() throws Exception {
         //add data
-        RyaURI pred = new RyaURI(litdupsNS, "pred1");
+        RyaIRI pred = new RyaIRI(litdupsNS, "pred1");
         RyaType one = new RyaType("1");
         RyaType two = new RyaType("2");
         RyaType three = new RyaType("3");
         RyaType four = new RyaType("4");
-        RyaURI subj1 = new RyaURI(litdupsNS, "subj1");
-        RyaURI subj2 = new RyaURI(litdupsNS, "subj2");
-        RyaURI subj3 = new RyaURI(litdupsNS, "subj3");
-        RyaURI subj4 = new RyaURI(litdupsNS, "subj4");
+        RyaIRI subj1 = new RyaIRI(litdupsNS, "subj1");
+        RyaIRI subj2 = new RyaIRI(litdupsNS, "subj2");
+        RyaIRI subj3 = new RyaIRI(litdupsNS, "subj3");
+        RyaIRI subj4 = new RyaIRI(litdupsNS, "subj4");
 
         dao.add(new RyaStatement(subj1, pred, one));
         dao.add(new RyaStatement(subj1, pred, two));
@@ -134,14 +133,14 @@ public class IterativeJoinTest {
 
         //1 join
         IterativeJoin iterativeJoin = new IterativeJoin(dao.getQueryEngine());
-        CloseableIteration<RyaURI, RyaDAOException> join = iterativeJoin.join(null,
-                new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, one),
-                new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, two),
-                new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, three),
-                new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, four)
+        CloseableIteration<RyaIRI, RyaDAOException> join = iterativeJoin.join(null,
+                new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, one),
+                new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, two),
+                new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, three),
+                new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, four)
         );
 
-        Set<RyaURI> uris = new HashSet<RyaURI>();
+        Set<RyaIRI> uris = new HashSet<RyaIRI>();
         while (join.hasNext()) {
             uris.add(join.next());
         }
@@ -155,16 +154,16 @@ public class IterativeJoinTest {
     @Test
     public void testIterativeJoinMultiWay() throws Exception {
         //add data
-        RyaURI pred = new RyaURI(litdupsNS, "pred1");
+        RyaIRI pred = new RyaIRI(litdupsNS, "pred1");
         RyaType zero = new RyaType("0");
         RyaType one = new RyaType("1");
         RyaType two = new RyaType("2");
         RyaType three = new RyaType("3");
         RyaType four = new RyaType("4");
-        RyaURI subj1 = new RyaURI(litdupsNS, "subj1");
-        RyaURI subj2 = new RyaURI(litdupsNS, "subj2");
-        RyaURI subj3 = new RyaURI(litdupsNS, "subj3");
-        RyaURI subj4 = new RyaURI(litdupsNS, "subj4");
+        RyaIRI subj1 = new RyaIRI(litdupsNS, "subj1");
+        RyaIRI subj2 = new RyaIRI(litdupsNS, "subj2");
+        RyaIRI subj3 = new RyaIRI(litdupsNS, "subj3");
+        RyaIRI subj4 = new RyaIRI(litdupsNS, "subj4");
 
         dao.add(new RyaStatement(subj1, pred, one));
         dao.add(new RyaStatement(subj1, pred, two));
@@ -185,14 +184,14 @@ public class IterativeJoinTest {
 
         //1 join
         IterativeJoin iterativeJoin = new IterativeJoin(dao.getQueryEngine());
-        CloseableIteration<RyaURI, RyaDAOException> join = iterativeJoin.join(null,
-                new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, one),
-                new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, two),
-                new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, three),
-                new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, four)
+        CloseableIteration<RyaIRI, RyaDAOException> join = iterativeJoin.join(null,
+                new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, one),
+                new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, two),
+                new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, three),
+                new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, four)
         );
 
-        Set<RyaURI> uris = new HashSet<RyaURI>();
+        Set<RyaIRI> uris = new HashSet<RyaIRI>();
         while (join.hasNext()) {
             uris.add(join.next());
         }
@@ -205,16 +204,16 @@ public class IterativeJoinTest {
     @Test
     public void testIterativeJoinMultiWayNone() throws Exception {
         //add data
-        RyaURI pred = new RyaURI(litdupsNS, "pred1");
+        RyaIRI pred = new RyaIRI(litdupsNS, "pred1");
         RyaType zero = new RyaType("0");
         RyaType one = new RyaType("1");
         RyaType two = new RyaType("2");
         RyaType three = new RyaType("3");
         RyaType four = new RyaType("4");
-        RyaURI subj1 = new RyaURI(litdupsNS, "subj1");
-        RyaURI subj2 = new RyaURI(litdupsNS, "subj2");
-        RyaURI subj3 = new RyaURI(litdupsNS, "subj3");
-        RyaURI subj4 = new RyaURI(litdupsNS, "subj4");
+        RyaIRI subj1 = new RyaIRI(litdupsNS, "subj1");
+        RyaIRI subj2 = new RyaIRI(litdupsNS, "subj2");
+        RyaIRI subj3 = new RyaIRI(litdupsNS, "subj3");
+        RyaIRI subj4 = new RyaIRI(litdupsNS, "subj4");
 
         dao.add(new RyaStatement(subj1, pred, one));
         dao.add(new RyaStatement(subj1, pred, three));
@@ -230,11 +229,11 @@ public class IterativeJoinTest {
 
         //1 join
         IterativeJoin iterativeJoin = new IterativeJoin(dao.getQueryEngine());
-        CloseableIteration<RyaURI, RyaDAOException> join = iterativeJoin.join(null,
-                new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, one),
-                new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, two),
-                new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, three),
-                new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, four)
+        CloseableIteration<RyaIRI, RyaDAOException> join = iterativeJoin.join(null,
+                new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, one),
+                new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, two),
+                new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, three),
+                new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, four)
         );
 
         assertFalse(join.hasNext());
@@ -244,16 +243,16 @@ public class IterativeJoinTest {
     @Test
     public void testIterativeJoinMultiWayNone2() throws Exception {
         //add data
-        RyaURI pred = new RyaURI(litdupsNS, "pred1");
+        RyaIRI pred = new RyaIRI(litdupsNS, "pred1");
         RyaType zero = new RyaType("0");
         RyaType one = new RyaType("1");
         RyaType two = new RyaType("2");
         RyaType three = new RyaType("3");
         RyaType four = new RyaType("4");
-        RyaURI subj1 = new RyaURI(litdupsNS, "subj1");
-        RyaURI subj2 = new RyaURI(litdupsNS, "subj2");
-        RyaURI subj3 = new RyaURI(litdupsNS, "subj3");
-        RyaURI subj4 = new RyaURI(litdupsNS, "subj4");
+        RyaIRI subj1 = new RyaIRI(litdupsNS, "subj1");
+        RyaIRI subj2 = new RyaIRI(litdupsNS, "subj2");
+        RyaIRI subj3 = new RyaIRI(litdupsNS, "subj3");
+        RyaIRI subj4 = new RyaIRI(litdupsNS, "subj4");
 
         dao.add(new RyaStatement(subj1, pred, one));
         dao.add(new RyaStatement(subj1, pred, four));
@@ -267,10 +266,10 @@ public class IterativeJoinTest {
 
         //1 join
         IterativeJoin iterativeJoin = new IterativeJoin(dao.getQueryEngine());
-        CloseableIteration<RyaURI, RyaDAOException> join = iterativeJoin.join(null, new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, one),
-                new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, two),
-                new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, three),
-                new RdfCloudTripleStoreUtils.CustomEntry<RyaURI, RyaType>(pred, four)
+        CloseableIteration<RyaIRI, RyaDAOException> join = iterativeJoin.join(null, new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, one),
+                new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, two),
+                new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, three),
+                new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(pred, four)
         );
 
         assertFalse(join.hasNext());
@@ -280,13 +279,13 @@ public class IterativeJoinTest {
     @Test
     public void testSimpleIterativeJoinPredicateOnly() throws Exception {
         //add data
-        RyaURI pred1 = new RyaURI(litdupsNS, "pred1");
-        RyaURI pred2 = new RyaURI(litdupsNS, "pred2");
+        RyaIRI pred1 = new RyaIRI(litdupsNS, "pred1");
+        RyaIRI pred2 = new RyaIRI(litdupsNS, "pred2");
         RyaType one = new RyaType("1");
-        RyaURI subj1 = new RyaURI(litdupsNS, "subj1");
-        RyaURI subj2 = new RyaURI(litdupsNS, "subj2");
-        RyaURI subj3 = new RyaURI(litdupsNS, "subj3");
-        RyaURI subj4 = new RyaURI(litdupsNS, "subj4");
+        RyaIRI subj1 = new RyaIRI(litdupsNS, "subj1");
+        RyaIRI subj2 = new RyaIRI(litdupsNS, "subj2");
+        RyaIRI subj3 = new RyaIRI(litdupsNS, "subj3");
+        RyaIRI subj4 = new RyaIRI(litdupsNS, "subj4");
 
         dao.add(new RyaStatement(subj1, pred1, one));
         dao.add(new RyaStatement(subj1, pred2, one));
@@ -314,15 +313,15 @@ public class IterativeJoinTest {
     @Test
     public void testSimpleIterativeJoinPredicateOnly2() throws Exception {
         //add data
-        RyaURI pred1 = new RyaURI(litdupsNS, "pred1");
-        RyaURI pred2 = new RyaURI(litdupsNS, "pred2");
+        RyaIRI pred1 = new RyaIRI(litdupsNS, "pred1");
+        RyaIRI pred2 = new RyaIRI(litdupsNS, "pred2");
         RyaType one = new RyaType("1");
         RyaType two = new RyaType("2");
         RyaType three = new RyaType("3");
-        RyaURI subj1 = new RyaURI(litdupsNS, "subj1");
-        RyaURI subj2 = new RyaURI(litdupsNS, "subj2");
-        RyaURI subj3 = new RyaURI(litdupsNS, "subj3");
-        RyaURI subj4 = new RyaURI(litdupsNS, "subj4");
+        RyaIRI subj1 = new RyaIRI(litdupsNS, "subj1");
+        RyaIRI subj2 = new RyaIRI(litdupsNS, "subj2");
+        RyaIRI subj3 = new RyaIRI(litdupsNS, "subj3");
+        RyaIRI subj4 = new RyaIRI(litdupsNS, "subj4");
 
         dao.add(new RyaStatement(subj1, pred1, one));
         dao.add(new RyaStatement(subj1, pred1, two));

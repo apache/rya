@@ -245,11 +245,11 @@ public class MergeToolDemo {
 
         // Change statements that were updated by the parent or child after the start time.
         final RyaStatement ryaStatementCase7Updated = TestUtils.copyRyaStatement(ryaStatementCase7);
-        ryaStatementCase7Updated.setSubject(TestUtils.createRyaUri("c7 BOB"));
+        ryaStatementCase7Updated.setSubject(TestUtils.createRyaIri("c7 BOB"));
         ryaStatementCase7Updated.setTimestamp(TODAY.getTime());
 
         final RyaStatement ryaStatementCase8Updated = TestUtils.copyRyaStatement(ryaStatementCase8);
-        ryaStatementCase8Updated.setSubject(TestUtils.createRyaUri("c8 SUSAN"));
+        ryaStatementCase8Updated.setSubject(TestUtils.createRyaIri("c8 SUSAN"));
         ryaStatementCase8Updated.setTimestamp(TODAY.getTime());
 
         final RyaStatement ryaStatementVisibilityDifferentUpdated = TestUtils.copyRyaStatement(ryaStatementVisibilityDifferent);

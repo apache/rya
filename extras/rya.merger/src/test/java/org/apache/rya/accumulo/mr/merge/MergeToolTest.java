@@ -40,13 +40,6 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.mr.MRUtils;
@@ -59,6 +52,12 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
  * Tests for {@link MergeTool}.
@@ -213,7 +212,7 @@ public class MergeToolTest {
         // (1 updated row, 1 row left alone because it was unchanged, 1 row outside time range,
         // 1 row deleted, 1 new row added, 1 modified visibility, 1 deleted by child, 1 added by child).
         // There should be 5 rows in the child instance (4 which will be scanned over from the start time).
-        ryaStatementUpdatedByChild.setObject(TestUtils.createRyaUri("football"));
+        ryaStatementUpdatedByChild.setObject(TestUtils.createRyaIri("football"));
         ryaStatementUpdatedByChild.setTimestamp(TODAY.getTime());
         ryaStatementVisibilityDifferent.setColumnVisibility(CHILD_COLUMN_VISIBILITY.getExpression());
         childDao.add(ryaStatementOutOfTimeRange);

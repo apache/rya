@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -40,11 +40,11 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.impl.WholeRowTripleResolver;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.rio.RDFFormat;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.rio.RDFFormat;
 
 /**
  * Integration tests the methods of {@link AccumuloLoadStatementsFile}.
@@ -90,12 +90,12 @@ public class AccumuloLoadStatementsFileIT extends AccumuloITBase {
         ryaClient.getLoadStatementsFile().loadStatements(getRyaInstanceName(), Paths.get("src/test/resources/example.ttl"), RDFFormat.TURTLE);
 
         // Verify that the statements were loaded.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
 
         final List<Statement> expected = new ArrayList<>();
-        expected.add( vf.createStatement(vf.createURI("http://example#alice"), vf.createURI("http://example#talksTo"), vf.createURI("http://example#bob")) );
-        expected.add( vf.createStatement(vf.createURI("http://example#bob"), vf.createURI("http://example#talksTo"), vf.createURI("http://example#charlie")) );
-        expected.add( vf.createStatement(vf.createURI("http://example#charlie"), vf.createURI("http://example#likes"), vf.createURI("http://example#icecream")) );
+        expected.add( vf.createStatement(vf.createIRI("http://example#alice"), vf.createIRI("http://example#talksTo"), vf.createIRI("http://example#bob")) );
+        expected.add( vf.createStatement(vf.createIRI("http://example#bob"), vf.createIRI("http://example#talksTo"), vf.createIRI("http://example#charlie")) );
+        expected.add( vf.createStatement(vf.createIRI("http://example#charlie"), vf.createIRI("http://example#likes"), vf.createIRI("http://example#icecream")) );
 
         final List<Statement> statements = new ArrayList<>();
 
@@ -124,7 +124,7 @@ public class AccumuloLoadStatementsFileIT extends AccumuloITBase {
     }
 
     private boolean isRyaMetadataStatement(final ValueFactory vf, final Statement statement) {
-        return statement.getPredicate().equals( vf.createURI("urn:org.apache.rya/2012/05#version") ) ||
-                statement.getPredicate().equals( vf.createURI("urn:org.apache.rya/2012/05#rts") );
+        return statement.getPredicate().equals( vf.createIRI("urn:org.apache.rya/2012/05#version") ) ||
+                statement.getPredicate().equals( vf.createIRI("urn:org.apache.rya/2012/05#rts") );
     }
 }

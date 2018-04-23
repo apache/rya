@@ -26,15 +26,14 @@ import java.util.List;
 
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 
 import com.google.common.base.Joiner;
 
@@ -52,7 +51,7 @@ public class BindingSetStringConverter implements BindingSetConverter<String> {
     public static final String TYPE_DELIM = "<<~>>";
     public static final String NULL_VALUE_STRING = Character.toString( '\0' );
 
-    private static final ValueFactory valueFactory = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Override
     public String convert(final BindingSet bindingSet, final VariableOrder varOrder) {
@@ -123,13 +122,13 @@ public class BindingSetStringConverter implements BindingSetConverter<String> {
         final String dataString = valueAndType[0];
         final String typeString = valueAndType[1];
 
-        // Convert the String Type into a URI that describes the type.
-        final URI typeURI = valueFactory.createURI(typeString);
+        // Convert the String Type into a IRI that describes the type.
+        final IRI typeIRI = VF.createIRI(typeString);
 
         // Convert the String Value into a Value.
-        final Value value = typeURI.equals(XMLSchema.ANYURI) ?
-                valueFactory.createURI(dataString) :
-                valueFactory.createLiteral(dataString, new URIImpl(typeString));
+        final Value value = typeIRI.equals(XMLSchema.ANYURI) ?
+                VF.createIRI(dataString) :
+                VF.createLiteral(dataString, VF.createIRI(typeString));
 
         return value;
     }

@@ -25,14 +25,14 @@ import java.util.UUID;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * Expands the query tree to account for any relevant has-value class
@@ -94,17 +94,17 @@ public class HasValueVisitor extends AbstractInferVisitor {
         // { ?var rdf:type :Restriction } and { ?var :property ?value }
         // Both require defined predicate
         if (predVar != null && predVar.getValue() != null) {
-            final URI predURI = (URI) predVar.getValue();
-            if (RDF.TYPE.equals(predURI) && objVar != null && objVar.getValue() != null
+            final IRI predIRI = (IRI) predVar.getValue();
+            if (RDF.TYPE.equals(predIRI) && objVar != null && objVar.getValue() != null
                     && objVar.getValue() instanceof Resource) {
                 // If the predicate is rdf:type and the type is specified, check whether it can be
                 // inferred using any hasValue restriction(s)
                 final Resource objType = (Resource) objVar.getValue();
-                final Map<URI, Set<Value>> sufficientValues = inferenceEngine.getHasValueByType(objType);
+                final Map<IRI, Set<Value>> sufficientValues = inferenceEngine.getHasValueByType(objType);
                 if (sufficientValues.size() > 0) {
                     final Var valueVar = new Var("v-" + UUID.randomUUID());
                     TupleExpr currentNode = node.clone();
-                    for (URI property : sufficientValues.keySet()) {
+                    for (IRI property : sufficientValues.keySet()) {
                         final Var propVar = new Var(property.toString(), property);
                         final TupleExpr valueSP = new DoNotExpandSP(subjVar, propVar, valueVar);
                         final FixedStatementPattern relevantValues = new FixedStatementPattern(objVar, propVar, valueVar);
@@ -119,7 +119,7 @@ public class HasValueVisitor extends AbstractInferVisitor {
             else {
                 // If the predicate has some hasValue restriction associated with it, then finding
                 // that the object belongs to the appropriate type implies a value.
-                final Map<Resource, Set<Value>> impliedValues = inferenceEngine.getHasValueByProperty(predURI);
+                final Map<Resource, Set<Value>> impliedValues = inferenceEngine.getHasValueByProperty(predIRI);
                 if (impliedValues.size() > 0) {
                     final Var rdfTypeVar = new Var(RDF.TYPE.stringValue(), RDF.TYPE);
                     final Var typeVar = new Var("t-" + UUID.randomUUID());

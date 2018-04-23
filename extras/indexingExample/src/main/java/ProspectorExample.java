@@ -31,12 +31,12 @@ import org.apache.rya.api.persist.RdfEvalStatsDAO.CARDINALITY_OF;
 import org.apache.rya.prospector.mr.Prospector;
 import org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO;
 import org.apache.rya.sail.config.RyaSailFactory;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailConnection;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.sail.Sail;
+import org.eclipse.rdf4j.sail.SailConnection;
 
 import com.google.common.collect.Lists;
 
@@ -47,18 +47,18 @@ import com.google.common.collect.Lists;
 public class ProspectorExample {
     private static final Logger log = Logger.getLogger(RyaClientExample.class);
 
-    private static final ValueFactory VALUE_FACTORY = new ValueFactoryImpl();
+    private static final ValueFactory VALUE_FACTORY = SimpleValueFactory.getInstance();
 
-    private static final URI ALICE = VALUE_FACTORY.createURI("urn:alice");
-    private static final URI BOB = VALUE_FACTORY.createURI("urn:bob");
-    private static final URI CHARLIE = VALUE_FACTORY.createURI("urn:charlie");
+    private static final IRI ALICE = VALUE_FACTORY.createIRI("urn:alice");
+    private static final IRI BOB = VALUE_FACTORY.createIRI("urn:bob");
+    private static final IRI CHARLIE = VALUE_FACTORY.createIRI("urn:charlie");
 
-    private static final URI WORKS_AT = VALUE_FACTORY.createURI("urn:worksAt");
-    private static final URI ADMIRES = VALUE_FACTORY.createURI("urn:admires");
-    private static final URI LIVES_WITH = VALUE_FACTORY.createURI("urn:livesWith");
+    private static final IRI WORKS_AT = VALUE_FACTORY.createIRI("urn:worksAt");
+    private static final IRI ADMIRES = VALUE_FACTORY.createIRI("urn:admires");
+    private static final IRI LIVES_WITH = VALUE_FACTORY.createIRI("urn:livesWith");
 
-    private static final URI BURGER_JOINT = VALUE_FACTORY.createURI("urn:burgerJoint");
-    private static final URI DONUT_SHOP= VALUE_FACTORY.createURI("urn:donutShop");
+    private static final IRI BURGER_JOINT = VALUE_FACTORY.createIRI("urn:burgerJoint");
+    private static final IRI DONUT_SHOP= VALUE_FACTORY.createIRI("urn:donutShop");
 
     public static void main(final String[] args) throws Exception {
         setupLogging();

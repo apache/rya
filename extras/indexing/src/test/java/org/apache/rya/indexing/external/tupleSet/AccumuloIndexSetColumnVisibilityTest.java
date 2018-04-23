@@ -16,14 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.rya.indexing.external.tupleSet;
 
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -56,22 +55,20 @@ import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.openrdf.model.impl.NumericLiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.repository.RepositoryException;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * Tests the evaluation of {@link AccumuloIndexSet}.
@@ -94,6 +91,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
     private static String pcjId;
     private static QueryBindingSet pcjBs1;
     private static QueryBindingSet pcjBs2;
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @BeforeClass
     public static void init() throws AccumuloException, AccumuloSecurityException, PCJStorageException, IOException, InterruptedException, TableNotFoundException, AlreadyInitializedException, RyaDetailsRepositoryException {
@@ -119,12 +117,12 @@ public class AccumuloIndexSetColumnVisibilityTest {
 
         // Store the PCJ's results.
         pcjBs1 = new QueryBindingSet();
-        pcjBs1.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
-        pcjBs1.addBinding("name", new URIImpl("http://Alice"));
+        pcjBs1.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
+        pcjBs1.addBinding("name", VF.createIRI("http://Alice"));
 
         pcjBs2 = new QueryBindingSet();
-        pcjBs2.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
-        pcjBs2.addBinding("name", new URIImpl("http://Bob"));
+        pcjBs2.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
+        pcjBs2.addBinding("name", VF.createIRI("http://Bob"));
 
         final Set<VisibilityBindingSet> visBs = new HashSet<>();
         for (final BindingSet bs : Sets.<BindingSet>newHashSet(pcjBs1, pcjBs2)) {
@@ -179,8 +177,8 @@ public class AccumuloIndexSetColumnVisibilityTest {
                 .setPCJIndexDetails(
                         PCJIndexDetails.builder()
                             .setEnabled(true) )
-                .setJoinSelectivityDetails( new JoinSelectivityDetails( Optional.<Date>absent() ) )
-                .setProspectorDetails( new ProspectorDetails( Optional.<Date>absent() ))
+                .setJoinSelectivityDetails( new JoinSelectivityDetails( Optional.absent() ) )
+                .setProspectorDetails( new ProspectorDetails( Optional.absent() ))
                 .build();
 
         detailsRepo.initialize(details);
@@ -205,11 +203,11 @@ public class AccumuloIndexSetColumnVisibilityTest {
 
         // Setup the binding sets that will be evaluated.
         final QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("name", new URIImpl("http://Alice"));
+        bs.addBinding("name", VF.createIRI("http://Alice"));
         final QueryBindingSet bs2 = new QueryBindingSet();
-        bs2.addBinding("name", new URIImpl("http://Bob"));
+        bs2.addBinding("name", VF.createIRI("http://Bob"));
 
-        final Set<BindingSet> bSets = Sets.<BindingSet> newHashSet(bs, bs2);
+        final Set<BindingSet> bSets = Sets.newHashSet(bs, bs2);
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
 
         final Set<BindingSet> fetchedResults = new HashSet<>();
@@ -218,7 +216,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
             fetchedResults.add(next);
         }
 
-        final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(pcjBs1, pcjBs2);
+        final Set<BindingSet> expected = Sets.newHashSet(pcjBs1, pcjBs2);
         assertEquals(expected, fetchedResults);
     }
 
@@ -230,11 +228,11 @@ public class AccumuloIndexSetColumnVisibilityTest {
 
         // Setup the binding sets that will be evaluated.
         final QueryBindingSet bs1 = new QueryBindingSet();
-        bs1.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+        bs1.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
         final QueryBindingSet bs2 = new QueryBindingSet();
-        bs2.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        bs2.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
-        final Set<BindingSet> bSets = Sets.<BindingSet> newHashSet(bs1, bs2);
+        final Set<BindingSet> bSets = Sets.newHashSet(bs1, bs2);
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
 
         final Set<BindingSet> fetchedResults = new HashSet<>();
@@ -243,7 +241,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
             fetchedResults.add(next);
         }
 
-        final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(pcjBs1, pcjBs2);
+        final Set<BindingSet> expected = Sets.newHashSet(pcjBs1, pcjBs2);
         assertEquals(expected, fetchedResults);
     }
 }

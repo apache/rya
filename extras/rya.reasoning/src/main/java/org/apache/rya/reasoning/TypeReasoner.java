@@ -19,18 +19,17 @@ package org.apache.rya.reasoning;
  * under the License.
  */
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 
 /**
  * Keep track of a single node's types and do reasoning about its types.
@@ -125,7 +124,7 @@ public class TypeReasoner extends AbstractReasoner {
             }
         }
         // Apply property restriction rules:
-        for (URI prop : c.getOnProperty()) {
+        for (IRI prop : c.getOnProperty()) {
             // RL rule cls-hv1: if type is an owl:hasValue restriction
             for (Value val : c.hasValue()) {
                 collect(triple(node, prop, val, OwlRule.CLS_HV1, typeFact));
@@ -200,11 +199,11 @@ public class TypeReasoner extends AbstractReasoner {
     public String getDiagnostics() {
         int total = 0;
         int incTotal = 0;
-        for (Resource uri : possibleInferences.keySet()) {
-            total += possibleInferences.get(uri).size();
+        for (Resource iri : possibleInferences.keySet()) {
+            total += possibleInferences.get(iri).size();
         }
-        for (Resource uri : possibleInconsistencies.keySet()) {
-            incTotal += possibleInconsistencies.get(uri).size();
+        for (Resource iri : possibleInconsistencies.keySet()) {
+            incTotal += possibleInconsistencies.get(iri).size();
         }
         StringBuilder sb = new StringBuilder();
         sb.append(knownTypes.size()).append(" total types known\n");

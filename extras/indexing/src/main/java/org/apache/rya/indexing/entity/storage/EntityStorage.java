@@ -21,7 +21,7 @@ package org.apache.rya.indexing.entity.storage;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
@@ -42,13 +42,13 @@ public interface EntityStorage extends RyaObjectStorage<Entity> {
      * Search the stored {@link Entity}s that have a specific {@link Type} as
      * well as the provided {@link Property} values.
      *
-     * @param subject - The {@link RyaURI} subject of the Entity. (Optional)
+     * @param subject - The {@link RyaIRI} subject of the Entity. (Optional)
      * @param type - The {@link Type} of the Entities. (not null)
      * @param properties - The {@link Property} values that must be set on the Entity. (not null)
      * @return A {@link CloseableIterator} over the {@link TypedEntity}s that match the search parameters.
      * @throws EntityStorageException A problem occurred while searching the storage.
      */
-    public ConvertingCursor<TypedEntity> search(final Optional<RyaURI> subject, Type type, Set<Property> properties) throws EntityStorageException;
+    public ConvertingCursor<TypedEntity> search(final Optional<RyaIRI> subject, Type type, Set<Property> properties) throws EntityStorageException;
 
     /**
      * Indicates a problem while interacting with an {@link EntityStorage}.

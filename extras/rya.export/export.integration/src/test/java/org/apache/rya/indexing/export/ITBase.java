@@ -35,7 +35,7 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -44,16 +44,16 @@ import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.sail.Sail;
+import org.eclipse.rdf4j.sail.SailException;
 import org.junit.AfterClass;
-import org.openrdf.model.Statement;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailException;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
@@ -159,11 +159,11 @@ public abstract class ITBase {
         checkNotNull(predicate);
         checkNotNull(object);
 
-        final RyaStatementBuilder builder = RyaStatement.builder().setSubject(new RyaURI(subject))
-                .setPredicate(new RyaURI(predicate));
+        final RyaStatementBuilder builder = RyaStatement.builder().setSubject(new RyaIRI(subject))
+                .setPredicate(new RyaIRI(predicate));
 
         if (object.startsWith("http://")) {
-            builder.setObject(new RyaURI(object));
+            builder.setObject(new RyaIRI(object));
         } else {
             builder.setObject(new RyaType(object));
         }
@@ -188,12 +188,12 @@ public abstract class ITBase {
         checkNotNull(subject);
         checkNotNull(predicate);
 
-        return RyaStatement.builder().setSubject(new RyaURI(subject)).setPredicate(new RyaURI(predicate))
+        return RyaStatement.builder().setSubject(new RyaIRI(subject)).setPredicate(new RyaIRI(predicate))
                 .setObject(new RyaType(XMLSchema.INT, "" + object)).build();
     }
 
     /**
-     * A helper function for creating a Sesame {@link Statement} that represents
+     * A helper function for creating a RDF4J {@link Statement} that represents
      * a Triple..
      *
      * @param subject

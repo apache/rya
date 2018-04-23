@@ -30,11 +30,11 @@ import org.apache.rya.streams.kafka.RdfTestUtil;
 import org.apache.rya.streams.kafka.processors.ProcessorResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.UnaryResult;
 import org.apache.rya.streams.kafka.processors.filter.FilterProcessorSupplier.FilterProcessor;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Unit tests the methods of {@link FilterProcessor}.
@@ -52,9 +52,9 @@ public class FilterProcessorTest {
                 "}");
 
         // Create a Binding Set that will be passed into the Filter function based on the where clause.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
         bs.addBinding("age", vf.createLiteral(9));
         final VisibilityBindingSet inputVisBs = new VisibilityBindingSet(bs, "a");
 

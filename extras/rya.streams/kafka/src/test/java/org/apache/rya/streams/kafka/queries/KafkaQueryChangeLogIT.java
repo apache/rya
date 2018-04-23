@@ -39,14 +39,13 @@ import org.apache.rya.streams.kafka.serialization.queries.QueryChangeSerializer;
 import org.apache.rya.test.kafka.KafkaITBase;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.apache.rya.test.kafka.KafkaTestUtil;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
-
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * Integration tests the {@link KafkaQueryChangeLog}.

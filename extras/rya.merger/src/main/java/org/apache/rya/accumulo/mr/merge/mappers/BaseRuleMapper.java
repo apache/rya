@@ -27,10 +27,6 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.Or;
-import org.openrdf.query.algebra.ValueExpr;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.accumulo.mr.merge.MergeTool;
@@ -46,6 +42,9 @@ import org.apache.rya.api.resolver.triple.TripleRowResolver;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 import org.apache.rya.api.resolver.triple.impl.WholeRowTripleResolver;
 import org.apache.rya.rdftriplestore.evaluation.ParallelEvaluationStrategyImpl;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.Or;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
 
 /**
  * Take in rows from a table and range defined by query-based rules, convert the rows to
@@ -55,7 +54,7 @@ public abstract class BaseRuleMapper<KEYOUT, VALUEOUT> extends BaseCopyToolMappe
     /**
      * Hadoop counters for tracking the number of statements and/or raw rows that have been processed.
      */
-    public static enum Counters { STATEMENTS_COPIED, DIRECT_ROWS_COPIED };
+    public enum Counters { STATEMENTS_COPIED, DIRECT_ROWS_COPIED }
 
     private static final Logger log = Logger.getLogger(BaseRuleMapper.class);
 

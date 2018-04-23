@@ -44,7 +44,7 @@ import java.util.function.Function;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.mongodb.MongoDbRdfConstants;
@@ -54,22 +54,23 @@ import org.apache.rya.mongodb.document.operators.query.ConditionalOperators;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibilityAdapter;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.Compare;
-import org.openrdf.query.algebra.ExtensionElem;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.Compare;
+import org.eclipse.rdf4j.query.algebra.ExtensionElem;
+import org.eclipse.rdf4j.query.algebra.ProjectionElem;
+import org.eclipse.rdf4j.query.algebra.ProjectionElemList;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -82,8 +83,6 @@ import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.BsonField;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
-
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * Represents a portion of a query tree as MongoDB aggregation pipeline. Should
@@ -257,21 +256,21 @@ public class AggregationPipelineQueryNode extends ExternalSet {
         final Var predVar = sp.getPredicateVar();
         final Var objVar = sp.getObjectVar();
         final Var contextVar = sp.getContextVar();
-        RyaURI s = null;
-        RyaURI p = null;
+        RyaIRI s = null;
+        RyaIRI p = null;
         RyaType o = null;
-        RyaURI c = null;
+        RyaIRI c = null;
         if (subjVar != null && subjVar.getValue() instanceof Resource) {
             s = RdfToRyaConversions.convertResource((Resource) subjVar.getValue());
         }
-        if (predVar != null && predVar.getValue() instanceof URI) {
-            p = RdfToRyaConversions.convertURI((URI) predVar.getValue());
+        if (predVar != null && predVar.getValue() instanceof IRI) {
+            p = RdfToRyaConversions.convertIRI((IRI) predVar.getValue());
         }
         if (objVar != null && objVar.getValue() != null) {
             o = RdfToRyaConversions.convertValue(objVar.getValue());
         }
-        if (contextVar != null && contextVar.getValue() instanceof URI) {
-            c = RdfToRyaConversions.convertURI((URI) contextVar.getValue());
+        if (contextVar != null && contextVar.getValue() instanceof IRI) {
+            c = RdfToRyaConversions.convertIRI((IRI) contextVar.getValue());
         }
         RyaStatement rs = new RyaStatement(s, p, o, c);
         DBObject obj = strategy.getQuery(rs);

@@ -21,9 +21,9 @@ package org.apache.rya.indexing.pcj.fluo.app.util;
 import static java.util.Objects.requireNonNull;
 
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 
 /**
  * A utility class that defines functions that make it easier to work with {@link BindingSet} objects.

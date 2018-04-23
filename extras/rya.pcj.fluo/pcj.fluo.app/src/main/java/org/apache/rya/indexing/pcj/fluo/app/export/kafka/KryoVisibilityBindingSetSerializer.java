@@ -28,15 +28,14 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.ListBindingSet;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.ListBindingSet;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
@@ -54,6 +53,7 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
             return kryo;
         };
     };
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     /**
      * Deserialize a VisibilityBindingSet using Kyro lib. Exporting results of queries.
@@ -111,13 +111,12 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
         // Do nothing.
     }
 
-    private static Value makeValue(final String valueString, final URI typeURI) {
+    private static Value makeValue(final String valueString, final IRI typeURI) {
         // Convert the String Value into a Value.
-        final ValueFactory valueFactory = ValueFactoryImpl.getInstance();
         if (typeURI.equals(XMLSchema.ANYURI)) {
-            return valueFactory.createURI(valueString);
+            return VF.createIRI(valueString);
         } else {
-            return valueFactory.createLiteral(valueString, typeURI);
+            return VF.createLiteral(valueString, typeURI);
         }
     }
 
@@ -135,7 +134,7 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
                 output.writeString(binding.getName());
                 final RyaType ryaValue = RdfToRyaConversions.convertValue(binding.getValue());
                 final String valueString = ryaValue.getData();
-                final URI type = ryaValue.getDataType();
+                final IRI type = ryaValue.getDataType();
                 output.writeString(valueString);
                 output.writeString(type.toString());
             }
@@ -150,7 +149,7 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
             for (int i = bindingCount; i > 0; i--) {
                 namesList.add(input.readString());
                 final String valueString = input.readString();
-                final URI type = new URIImpl(input.readString());
+                final IRI type = VF.createIRI(input.readString());
                 valuesList.add(makeValue(valueString, type));
             }
             final BindingSet bindingSet = new ListBindingSet(namesList, valuesList);

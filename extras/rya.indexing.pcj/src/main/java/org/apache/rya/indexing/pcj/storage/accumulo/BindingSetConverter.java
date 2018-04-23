@@ -18,8 +18,8 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;

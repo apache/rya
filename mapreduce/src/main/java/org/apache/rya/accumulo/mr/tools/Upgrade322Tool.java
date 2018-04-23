@@ -1,5 +1,3 @@
-package org.apache.rya.accumulo.mr.tools;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,11 +16,17 @@ package org.apache.rya.accumulo.mr.tools;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.accumulo.mr.tools;
 
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TBL_OSP_SUFFIX;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TBL_PO_SUFFIX;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TBL_PRFX_DEF;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM;
 
-
-import org.apache.rya.accumulo.mr.AbstractAccumuloMRTool;
-import org.apache.rya.accumulo.mr.MRUtils;
+import java.io.IOException;
+import java.util.Date;
 
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
@@ -37,13 +41,10 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.rya.accumulo.mr.AbstractAccumuloMRTool;
+import org.apache.rya.accumulo.mr.MRUtils;
 import org.calrissian.mango.types.LexiTypeEncoders;
 import org.calrissian.mango.types.TypeEncoder;
-
-import java.io.IOException;
-import java.util.Date;
-
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 
 /**
  */
@@ -60,7 +61,7 @@ public class Upgrade322Tool extends AbstractAccumuloMRTool implements Tool {
         setupAccumuloInput(job);
         AccumuloInputFormat.setInputTableName(job, MRUtils.getTablePrefix(conf) + TBL_OSP_SUFFIX);
 
-        //we do not need to change any row that is a string, custom, or uri type
+        //we do not need to change any row that is a string, custom, or iri type
         IteratorSetting regex = new IteratorSetting(30, "regex",
                                                     RegExFilter.class);
         RegExFilter.setRegexs(regex, "\\w*" + TYPE_DELIM + "[\u0003|\u0008|\u0002]", null, null, null, false);

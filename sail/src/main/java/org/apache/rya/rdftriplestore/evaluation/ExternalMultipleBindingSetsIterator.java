@@ -19,18 +19,14 @@ package org.apache.rya.rdftriplestore.evaluation;
  * under the License.
  */
 
-
-
-import info.aduna.iteration.CloseableIteration;
-import info.aduna.iteration.LookAheadIteration;
-
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.LookAheadIteration;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
 /**
  */

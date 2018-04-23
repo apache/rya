@@ -43,8 +43,8 @@ import org.apache.rya.api.utils.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.PCJIdFactory;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;

@@ -37,14 +37,14 @@ import org.apache.rya.streams.kafka.processors.ProcessorResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.ResultType;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.UnaryResult;
 import org.apache.rya.streams.kafka.processors.projection.MultiProjectionProcessorSupplier.MultiProjectionProcessor;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.MultiProjection;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.openrdf.model.BNode;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.MultiProjection;
-import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Unit test the methods of {@link MultiProjectionProcessor}.
@@ -66,10 +66,10 @@ public class MultiProjectionProcessorTest {
                 "}");
 
         // Create a Binding Set that contains the result of the WHERE clause.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final MapBindingSet inputBs = new MapBindingSet();
-        inputBs.addBinding("location", vf.createURI("urn:corner1"));
-        inputBs.addBinding("direction", vf.createURI("urn:NW"));
+        inputBs.addBinding("location", vf.createIRI("urn:corner1"));
+        inputBs.addBinding("direction", vf.createIRI("urn:NW"));
         final VisibilityBindingSet inputVisBs = new VisibilityBindingSet(inputBs, "a|b");
 
         // Make the expected results.
@@ -80,19 +80,19 @@ public class MultiProjectionProcessorTest {
         MapBindingSet expectedBs = new MapBindingSet();
         expectedBs.addBinding("subject", blankNode);
         expectedBs.addBinding("predicate", RDF.TYPE);
-        expectedBs.addBinding("object", vf.createURI("urn:movementObservation"));
+        expectedBs.addBinding("object", vf.createIRI("urn:movementObservation"));
         expected.add(new VisibilityBindingSet(expectedBs, "a|b"));
 
         expectedBs = new MapBindingSet();
         expectedBs.addBinding("subject", blankNode);
-        expectedBs.addBinding("predicate", vf.createURI("urn:direction"));
-        expectedBs.addBinding("object", vf.createURI("urn:NW"));
+        expectedBs.addBinding("predicate", vf.createIRI("urn:direction"));
+        expectedBs.addBinding("object", vf.createIRI("urn:NW"));
         expected.add(new VisibilityBindingSet(expectedBs, "a|b"));
 
         expectedBs = new MapBindingSet();
         expectedBs.addBinding("subject", blankNode);
-        expectedBs.addBinding("predicate", vf.createURI("urn:location"));
-        expectedBs.addBinding("object", vf.createURI("urn:corner1"));
+        expectedBs.addBinding("predicate", vf.createIRI("urn:location"));
+        expectedBs.addBinding("object", vf.createIRI("urn:corner1"));
         expected.add(new VisibilityBindingSet(expectedBs, "a|b"));
 
         // Mock the processor context that will be invoked.

@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 
@@ -46,7 +46,7 @@ public abstract class AbstractAccumuloIndexer implements AccumuloIndexer {
     }
 
     @Override
-    public void dropGraph(RyaURI... graphs) {
+    public void dropGraph(RyaIRI... graphs) {
     }
 
     @Override

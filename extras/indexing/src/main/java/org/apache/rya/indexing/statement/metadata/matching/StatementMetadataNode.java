@@ -18,6 +18,7 @@ package org.apache.rya.indexing.statement.metadata.matching;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
@@ -38,30 +39,29 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
-import org.openrdf.model.BNode;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.EmptyIteration;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-
-import info.aduna.iteration.CloseableIteration;
-import info.aduna.iteration.EmptyIteration;
 
 /**
  * This class provides users with the ability to issue reified queries to Rya.
@@ -104,16 +104,16 @@ import info.aduna.iteration.EmptyIteration;
 public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> extends ExternalSet
         implements ExternalBatchingIterator {
 
-    private static final RyaURI TYPE_ID_URI = new RyaURI(RDF.TYPE.toString());
-    private static final RyaURI SUBJ_ID_URI = new RyaURI(OWLReify.SOURCE.toString());
-    private static final RyaURI PRED_ID_URI = new RyaURI(OWLReify.PROPERTY.toString());
-    private static final RyaURI OBJ_ID_URI = new RyaURI(OWLReify.TARGET.toString());
-    private static final RyaURI STATEMENT_ID_URI = new RyaURI(OWLReify.ANNOTATION.toString());
+    private static final RyaIRI TYPE_ID_URI = new RyaIRI(RDF.TYPE.toString());
+    private static final RyaIRI SUBJ_ID_URI = new RyaIRI(OWLReify.SOURCE.toString());
+    private static final RyaIRI PRED_ID_URI = new RyaIRI(OWLReify.PROPERTY.toString());
+    private static final RyaIRI OBJ_ID_URI = new RyaIRI(OWLReify.TARGET.toString());
+    private static final RyaIRI STATEMENT_ID_URI = new RyaIRI(OWLReify.ANNOTATION.toString());
 
     private StatementPattern statement;
-    private Map<RyaURI, Var> properties;
+    private Map<RyaIRI, Var> properties;
     private Collection<StatementPattern> patterns;
-    private List<RyaURI> uriList = Arrays.asList(TYPE_ID_URI, SUBJ_ID_URI, PRED_ID_URI, OBJ_ID_URI);
+    private List<RyaIRI> uriList = Arrays.asList(TYPE_ID_URI, SUBJ_ID_URI, PRED_ID_URI, OBJ_ID_URI);
     private C conf;
     private Set<String> bindingNames;
     private RyaQueryEngine<C> queryEngine;
@@ -206,7 +206,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
         Var context = null;
         
         for (final StatementPattern pattern : patterns) {
-            final RyaURI predicate = new RyaURI(pattern.getPredicateVar().getValue().toString());
+            final RyaIRI predicate = new RyaIRI(pattern.getPredicateVar().getValue().toString());
 
             if (!contextSet) {
                 context = pattern.getContextVar();
@@ -218,7 +218,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
             }
             
             if (predicate.equals(TYPE_ID_URI)) {
-                final RyaURI statementID = new RyaURI(pattern.getObjectVar().getValue().stringValue());
+                final RyaIRI statementID = new RyaIRI(pattern.getObjectVar().getValue().stringValue());
                 if (statementID.equals(STATEMENT_ID_URI)) {
                     statementFound = true;
                 } else {
@@ -281,10 +281,10 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
     private void setStatementPatternAndProperties(Collection<StatementPattern> patterns) {
 
         StatementPattern sp = new StatementPattern();
-        Map<RyaURI, Var> properties = new HashMap<>();
+        Map<RyaIRI, Var> properties = new HashMap<>();
 
         for (final StatementPattern pattern : patterns) {
-            final RyaURI predicate = new RyaURI(pattern.getPredicateVar().getValue().toString());
+            final RyaIRI predicate = new RyaIRI(pattern.getPredicateVar().getValue().toString());
 
             if (!uriList.contains(predicate)) {
                 Var objVar = pattern.getObjectVar();
@@ -355,19 +355,19 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
         Value predValue = getVarValue(statement.getPredicateVar(), bs);
         Value objValue = getVarValue(statement.getObjectVar(), bs);
         Value contextValue = getVarValue(statement.getContextVar(), bs);
-        RyaURI subj = null;
-        RyaURI pred = null;
+        RyaIRI subj = null;
+        RyaIRI pred = null;
         RyaType obj = null;
-        RyaURI context = null;
+        RyaIRI context = null;
 
         if (subjValue != null) {
-            Preconditions.checkArgument(subjValue instanceof URI);
-            subj = RdfToRyaConversions.convertURI((URI) subjValue);
+            Preconditions.checkArgument(subjValue instanceof IRI);
+            subj = RdfToRyaConversions.convertIRI((IRI) subjValue);
         }
 
         if (predValue != null) {
-            Preconditions.checkArgument(predValue instanceof URI);
-            pred = RdfToRyaConversions.convertURI((URI) predValue);
+            Preconditions.checkArgument(predValue instanceof IRI);
+            pred = RdfToRyaConversions.convertIRI((IRI) predValue);
         }
 
         if (objValue != null) {
@@ -375,7 +375,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
         }
         
         if(contextValue != null) {
-            context = RdfToRyaConversions.convertURI((URI) contextValue);
+            context = RdfToRyaConversions.convertIRI((IRI) contextValue);
         }
         return new RyaStatement(subj, pred, obj, context);
     }
@@ -480,7 +480,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
      * This is an {@link CloseableIteration} class that serves a number of
      * purposes. It's primary purpose is to filter a CloseableIteration over
      * {@link Map.Entry<RyaStatement,BindingSet>} using a specified property Map
-     * from {@link RyaURI} to {@link org.openrdf.query.algebra.Var}. This
+     * from {@link RyaIRI} to {@link org.eclipse.rdf4j.query.algebra.Var}. This
      * Iteration iterates over the Entries in the user specified Iteration,
      * comparing properties in the {@link StatementMetadata} Map contained in
      * the RyaStatements with the property Map for this class. If the properties
@@ -496,7 +496,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
     class PropertyFilterAndBindingSetJoinIteration implements CloseableIteration<BindingSet, QueryEvaluationException> {
 
         private CloseableIteration<? extends Entry<RyaStatement, BindingSet>, RyaDAOException> statements;
-        private Map<RyaURI, Var> properties;
+        private Map<RyaIRI, Var> properties;
         private StatementPattern sp;
         private BindingSet next;
         private boolean hasNextCalled = false;
@@ -504,7 +504,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
 
         public PropertyFilterAndBindingSetJoinIteration(
                 CloseableIteration<? extends Entry<RyaStatement, BindingSet>, RyaDAOException> statements,
-                Map<RyaURI, Var> properties, StatementPattern sp) {
+                Map<RyaIRI, Var> properties, StatementPattern sp) {
             this.statements = statements;
             this.properties = properties;
             this.sp = sp;
@@ -631,13 +631,13 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
          */
         private Optional<BindingSet> buildPropertyBindingSet(RyaStatement statement) {
             StatementMetadata metadata = statement.getMetadata();
-            Map<RyaURI, RyaType> statementProps = metadata.getMetadata();
+            Map<RyaIRI, RyaType> statementProps = metadata.getMetadata();
             if (statementProps.size() < properties.size()) {
                 return Optional.empty();
             }
             QueryBindingSet bs = new QueryBindingSet();
-            for (Map.Entry<RyaURI, Var> entry : properties.entrySet()) {
-                RyaURI key = entry.getKey();
+            for (Map.Entry<RyaIRI, Var> entry : properties.entrySet()) {
+                RyaIRI key = entry.getKey();
                 Var var = entry.getValue();
                 if (!statementProps.containsKey(key)) {
                     return Optional.empty();
@@ -657,7 +657,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
          * Builds the BindingSet from the specified RyaStatement by using the
          * StatementPattern for this class. This method checks whether
          * StatementPattern has a {@link Value} for each position
-         * {@link org.openrdf.query.algebra.Var} (Subject, Predicate, Object).
+         * {@link org.eclipse.rdf4j.query.algebra.Var} (Subject, Predicate, Object).
          * If it doesn't have a Value, a Binding is created from the
          * RyaStatement using the {@link RyaType} for the corresponding position
          * (Subject, Predicate, Object).

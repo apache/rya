@@ -21,13 +21,6 @@ package org.apache.rya.reasoning.mr;
 
 import java.io.IOException;
 
-import org.apache.rya.accumulo.mr.RyaStatementWritable;
-import org.apache.rya.reasoning.Derivation;
-import org.apache.rya.reasoning.LocalReasoner;
-import org.apache.rya.reasoning.LocalReasoner.Relevance;
-import org.apache.rya.reasoning.Fact;
-import org.apache.rya.reasoning.Schema;
-
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.conf.Configuration;
@@ -39,7 +32,13 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
-import org.openrdf.model.Resource;
+import org.apache.rya.accumulo.mr.RyaStatementWritable;
+import org.apache.rya.reasoning.Derivation;
+import org.apache.rya.reasoning.Fact;
+import org.apache.rya.reasoning.LocalReasoner;
+import org.apache.rya.reasoning.LocalReasoner.Relevance;
+import org.apache.rya.reasoning.Schema;
+import org.eclipse.rdf4j.model.Resource;
 
 public class ForwardChain extends AbstractReasoningTool {
     @Override

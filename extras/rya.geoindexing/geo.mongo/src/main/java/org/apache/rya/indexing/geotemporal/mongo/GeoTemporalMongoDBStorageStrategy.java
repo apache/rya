@@ -48,10 +48,10 @@ import org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQuery;
 import org.apache.rya.indexing.mongodb.geo.GmlParser;
 import org.apache.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStrategy;
 import org.joda.time.DateTime;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.query.MalformedQueryException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.MalformedQueryException;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
@@ -116,7 +116,7 @@ public class GeoTemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStr
     @Override
     public DBObject serialize(final RyaStatement ryaStatement) {
         final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start("_id", ryaStatement.getSubject().hashCode());
-        final URI obj = ryaStatement.getObject().getDataType();
+        final IRI obj = ryaStatement.getObject().getDataType();
 
 
         if(obj.equals(GeoConstants.GEO_AS_WKT) || obj.equals(GeoConstants.GEO_AS_GML) ||

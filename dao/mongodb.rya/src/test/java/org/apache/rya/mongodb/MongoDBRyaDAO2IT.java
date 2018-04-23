@@ -27,7 +27,7 @@ import java.io.IOException;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibility;
 import org.bson.Document;
@@ -50,7 +50,7 @@ public class MongoDBRyaDAO2IT extends MongoITBase {
             dao.init();
 
             final RyaStatementBuilder builder = new RyaStatementBuilder();
-            builder.setPredicate(new RyaURI("http://temp.com"));
+            builder.setPredicate(new RyaIRI("http://temp.com"));
             dao.delete(builder.build(), conf);
         } finally {
             dao.destroy();
@@ -66,9 +66,9 @@ public class MongoDBRyaDAO2IT extends MongoITBase {
             dao.init();
 
             final RyaStatementBuilder builder = new RyaStatementBuilder();
-            builder.setPredicate(new RyaURI("http://temp.com"));
-            builder.setSubject(new RyaURI("http://subject.com"));
-            builder.setObject(new RyaURI("http://object.com"));
+            builder.setPredicate(new RyaIRI("http://temp.com"));
+            builder.setSubject(new RyaIRI("http://subject.com"));
+            builder.setObject(new RyaIRI("http://object.com"));
 
             final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
             final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
@@ -89,9 +89,9 @@ public class MongoDBRyaDAO2IT extends MongoITBase {
             dao.init();
 
             final RyaStatementBuilder builder = new RyaStatementBuilder();
-            builder.setPredicate(new RyaURI("http://temp.com"));
-            builder.setSubject(new RyaURI("http://subject.com"));
-            builder.setObject(new RyaURI("http://object.com"));
+            builder.setPredicate(new RyaIRI("http://temp.com"));
+            builder.setSubject(new RyaIRI("http://subject.com"));
+            builder.setObject(new RyaIRI("http://object.com"));
             final RyaStatement statement = builder.build();
 
             final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
@@ -115,10 +115,10 @@ public class MongoDBRyaDAO2IT extends MongoITBase {
             dao.init();
 
             final RyaStatementBuilder builder = new RyaStatementBuilder();
-            builder.setPredicate(new RyaURI("http://temp.com"));
-            builder.setSubject(new RyaURI("http://subject.com"));
-            builder.setObject(new RyaURI("http://object.com"));
-            builder.setContext(new RyaURI("http://context.com"));
+            builder.setPredicate(new RyaIRI("http://temp.com"));
+            builder.setSubject(new RyaIRI("http://subject.com"));
+            builder.setObject(new RyaIRI("http://object.com"));
+            builder.setContext(new RyaIRI("http://context.com"));
             final RyaStatement statement = builder.build();
 
             final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
@@ -128,9 +128,9 @@ public class MongoDBRyaDAO2IT extends MongoITBase {
             assertEquals(coll.count(),1);
 
             final RyaStatementBuilder builder2 = new RyaStatementBuilder();
-            builder2.setPredicate(new RyaURI("http://temp.com"));
-            builder2.setObject(new RyaURI("http://object.com"));
-            builder2.setContext(new RyaURI("http://context3.com"));
+            builder2.setPredicate(new RyaIRI("http://temp.com"));
+            builder2.setObject(new RyaIRI("http://object.com"));
+            builder2.setContext(new RyaIRI("http://context3.com"));
             final RyaStatement query = builder2.build();
 
             dao.delete(query, conf);
@@ -148,9 +148,9 @@ public class MongoDBRyaDAO2IT extends MongoITBase {
             dao.init();
 
             final RyaStatementBuilder builder = new RyaStatementBuilder();
-            builder.setPredicate(new RyaURI("http://temp.com"));
-            builder.setSubject(new RyaURI("http://subject.com"));
-            builder.setObject(new RyaURI("http://object.com"));
+            builder.setPredicate(new RyaIRI("http://temp.com"));
+            builder.setSubject(new RyaIRI("http://subject.com"));
+            builder.setObject(new RyaIRI("http://object.com"));
             builder.setColumnVisibility(new DocumentVisibility("B").flatten());
 
             final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
@@ -181,9 +181,9 @@ public class MongoDBRyaDAO2IT extends MongoITBase {
             dao.init();
 
             final RyaStatementBuilder builder = new RyaStatementBuilder();
-            builder.setPredicate(new RyaURI("http://temp.com"));
-            builder.setSubject(new RyaURI("http://subject.com"));
-            builder.setObject(new RyaURI("http://object.com"));
+            builder.setPredicate(new RyaIRI("http://temp.com"));
+            builder.setSubject(new RyaIRI("http://subject.com"));
+            builder.setObject(new RyaIRI("http://object.com"));
             builder.setColumnVisibility(new DocumentVisibility("B").flatten());
 
             final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));

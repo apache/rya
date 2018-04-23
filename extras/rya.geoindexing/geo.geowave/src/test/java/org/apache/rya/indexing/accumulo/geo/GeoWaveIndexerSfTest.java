@@ -43,6 +43,13 @@ import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.GeoIndexerType;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.geotools.geometry.jts.Geometries;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -52,14 +59,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -76,7 +75,6 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.gml2.GMLWriter;
 
-import info.aduna.iteration.CloseableIteration;
 import mil.nga.giat.geowave.datastore.accumulo.minicluster.MiniAccumuloClusterFactory;
 
 /**
@@ -85,6 +83,8 @@ import mil.nga.giat.geowave.datastore.accumulo.minicluster.MiniAccumuloClusterFa
  */
 @RunWith(value = Parameterized.class)
 public class GeoWaveIndexerSfTest {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
     private static AccumuloRdfConfiguration conf;
     private static GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
     private static GeoWaveGeoIndexer g;
@@ -139,24 +139,24 @@ public class GeoWaveIndexerSfTest {
      * JUnit 4 parameterized iterates thru this list and calls the constructor with each.
      * For each test, Call the constructor three times, for WKT and for GML encoding 1, and GML encoding 2
      */
-    private static final URI USE_JTS_LIB_ENCODING = new URIImpl("uri:useLib") ;
-    private static final URI USE_ROUGH_ENCODING = new URIImpl("uri:useRough") ;
+    private static final IRI USE_JTS_LIB_ENCODING = VF.createIRI("uri:useLib") ;
+    private static final IRI USE_ROUGH_ENCODING = VF.createIRI("uri:useRough") ;
 
     @Parameters
-    public static Collection<URI[]> constructorData() {
-        final URI[][] data = new URI[][] { { GeoConstants.XMLSCHEMA_OGC_WKT, USE_JTS_LIB_ENCODING }, { GeoConstants.XMLSCHEMA_OGC_GML, USE_JTS_LIB_ENCODING }, { GeoConstants.XMLSCHEMA_OGC_GML, USE_JTS_LIB_ENCODING } };
+    public static Collection<IRI[]> constructorData() {
+        final IRI[][] data = new IRI[][] { { GeoConstants.XMLSCHEMA_OGC_WKT, USE_JTS_LIB_ENCODING }, { GeoConstants.XMLSCHEMA_OGC_GML, USE_JTS_LIB_ENCODING }, { GeoConstants.XMLSCHEMA_OGC_GML, USE_JTS_LIB_ENCODING } };
         return Arrays.asList(data);
     }
 
-    private final URI schemaToTest;
-    private final URI encodeMethod;
+    private final IRI schemaToTest;
+    private final IRI encodeMethod;
 
     /**
      * Constructor required by JUnit parameterized runner.  See {@link #constructorData()} for constructor values.
-     * @param schemaToTest the schema to test {@link URI}.
-     * @param encodeMethod the encode method {@link URI}.
+     * @param schemaToTest the schema to test {@link IRI}.
+     * @param encodeMethod the encode method {@link IRI}.
      */
-    public GeoWaveIndexerSfTest(final URI schemaToTest, final URI encodeMethod) {
+    public GeoWaveIndexerSfTest(final IRI schemaToTest, final IRI encodeMethod) {
         this.schemaToTest = schemaToTest;
         this.encodeMethod = encodeMethod;
     }
@@ -228,11 +228,11 @@ public class GeoWaveIndexerSfTest {
         g.storeStatement(createRyaStatement(G, schemaToTest, encodeMethod));
     }
 
-    private static RyaStatement createRyaStatement(final Geometry geo, final URI schema, final URI encodingMethod) {
+    private static RyaStatement createRyaStatement(final Geometry geo, final IRI schema, final IRI encodingMethod) {
         return RdfToRyaConversions.convertStatement(genericStatement(geo,schema,encodingMethod));
     }
 
-    private static Statement genericStatement(final Geometry geo, final URI schema, final URI encodingMethod) {
+    private static Statement genericStatement(final Geometry geo, final IRI schema, final IRI encodingMethod) {
         if (schema.equals(GeoConstants.XMLSCHEMA_OGC_WKT)) {
             return genericStatementWkt(geo);
         } else if (schema.equals(GeoConstants.XMLSCHEMA_OGC_GML)) {
@@ -242,17 +242,15 @@ public class GeoWaveIndexerSfTest {
     }
 
     private static Statement genericStatementWkt(final Geometry geo) {
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Resource subject = vf.createURI("uri:" + NAMES.get(geo));
-        final URI predicate = GeoConstants.GEO_AS_WKT;
-        final Value object = vf.createLiteral(geo.toString(), GeoConstants.XMLSCHEMA_OGC_WKT);
-        return new StatementImpl(subject, predicate, object);
+        final Resource subject = VF.createIRI("uri:" + NAMES.get(geo));
+        final IRI predicate = GeoConstants.GEO_AS_WKT;
+        final Value object = VF.createLiteral(geo.toString(), GeoConstants.XMLSCHEMA_OGC_WKT);
+        return VF.createStatement(subject, predicate, object);
     }
 
-    private static Statement genericStatementGml(final Geometry geo, final URI encodingMethod) {
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Resource subject = vf.createURI("uri:" + NAMES.get(geo));
-        final URI predicate = GeoConstants.GEO_AS_GML;
+    private static Statement genericStatementGml(final Geometry geo, final IRI encodingMethod) {
+        final Resource subject = VF.createIRI("uri:" + NAMES.get(geo));
+        final IRI predicate = GeoConstants.GEO_AS_GML;
 
         final String gml ;
         if (encodingMethod == USE_JTS_LIB_ENCODING) {
@@ -267,8 +265,8 @@ public class GeoWaveIndexerSfTest {
         //        System.out.println("========== GML====");
         }
 
-        final Value object = vf.createLiteral(gml, GeoConstants.XMLSCHEMA_OGC_GML);
-        return new StatementImpl(subject, predicate, object);
+        final Value object = VF.createLiteral(gml, GeoConstants.XMLSCHEMA_OGC_GML);
+        return VF.createStatement(subject, predicate, object);
     }
 
     /**

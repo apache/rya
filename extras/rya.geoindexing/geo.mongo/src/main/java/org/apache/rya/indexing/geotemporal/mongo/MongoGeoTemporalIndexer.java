@@ -30,7 +30,7 @@ import java.util.regex.Matcher;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.TemporalInstant;
@@ -46,8 +46,8 @@ import org.apache.rya.indexing.mongodb.IndexingException;
 import org.apache.rya.indexing.mongodb.geo.GmlParser;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.joda.time.DateTime;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
@@ -112,7 +112,7 @@ public class MongoGeoTemporalIndexer extends AbstractMongoIndexer<GeoTemporalMon
     @Override
     public void deleteStatement(final RyaStatement statement) throws IOException {
         requireNonNull(statement);
-        final RyaURI subject = statement.getSubject();
+        final RyaIRI subject = statement.getSubject();
         try {
             final EventStorage eventStore = events.get();
             checkState(events != null, "Must set this indexers configuration before storing statements.");
@@ -126,7 +126,7 @@ public class MongoGeoTemporalIndexer extends AbstractMongoIndexer<GeoTemporalMon
                 }
 
                 final Event currentEvent = updated.build();
-                final URI pred = statement.getObject().getDataType();
+                final IRI pred = statement.getObject().getDataType();
                 if((pred.equals(GeoConstants.GEO_AS_WKT) || pred.equals(GeoConstants.GEO_AS_GML) ||
                    pred.equals(GeoConstants.XMLSCHEMA_OGC_WKT) || pred.equals(GeoConstants.XMLSCHEMA_OGC_GML))
                    && currentEvent.getGeometry().isPresent()) {
@@ -161,7 +161,7 @@ public class MongoGeoTemporalIndexer extends AbstractMongoIndexer<GeoTemporalMon
         }
     }
 
-    private void updateEvent(final RyaURI subject, final RyaStatement statement) throws IndexingException, ParseException {
+    private void updateEvent(final RyaIRI subject, final RyaStatement statement) throws IndexingException, ParseException {
         final EventStorage eventStore = events.get();
         checkState(events != null, "Must set this indexers configuration before storing statements.");
 
@@ -174,7 +174,7 @@ public class MongoGeoTemporalIndexer extends AbstractMongoIndexer<GeoTemporalMon
                 updated = Event.builder(old.get());
             }
 
-            final URI pred = statement.getObject().getDataType();
+            final IRI pred = statement.getObject().getDataType();
             if(pred.equals(GeoConstants.GEO_AS_WKT) || pred.equals(GeoConstants.GEO_AS_GML) ||
                pred.equals(GeoConstants.XMLSCHEMA_OGC_WKT) || pred.equals(GeoConstants.XMLSCHEMA_OGC_GML)) {
                 //is geo

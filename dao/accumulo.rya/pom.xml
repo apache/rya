@@ -43,16 +43,20 @@ under the License.
         </dependency>
 
         <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-rio-ntriples</artifactId>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-rio-ntriples</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-rio-nquads</artifactId>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-rio-nquads</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-queryalgebra-evaluation</artifactId>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-queryalgebra-evaluation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-sail-api</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -60,8 +64,8 @@ under the License.
             </dependency>
         <!--  testing dependencies -->
         <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-rio-trig</artifactId>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-rio-trig</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

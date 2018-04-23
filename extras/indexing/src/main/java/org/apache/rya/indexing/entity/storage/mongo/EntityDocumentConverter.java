@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,12 +24,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.storage.mongo.key.MongoDbSafeKey;
 import org.bson.Document;
-import org.openrdf.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -60,7 +60,7 @@ public class EntityDocumentConverter implements DocumentConverter<Entity> {
                 .collect(Collectors.toList()));
 
         final Document propertiesDoc = new Document();
-        for(final RyaURI typeId : entity.getProperties().keySet()) {
+        for(final RyaIRI typeId : entity.getProperties().keySet()) {
             final Document typePropertiesDoc = new Document();
             entity.getProperties().get(typeId)
                 .forEach((propertyNameUri, property) -> {
@@ -112,10 +112,10 @@ public class EntityDocumentConverter implements DocumentConverter<Entity> {
 
         // Perform the conversion.
         final Entity.Builder builder = Entity.builder()
-                .setSubject( new RyaURI(document.getString(SUBJECT)) );
+                .setSubject( new RyaIRI(document.getString(SUBJECT)) );
 
         ((List<String>)document.get(EXPLICIT_TYPE_IDS)).stream()
-            .forEach(explicitTypeId -> builder.setExplicitType(new RyaURI(explicitTypeId)));
+            .forEach(explicitTypeId -> builder.setExplicitType(new RyaIRI(explicitTypeId)));
 
         final Document propertiesDoc = (Document) document.get(PROPERTIES);
         for(final String typeId : propertiesDoc.keySet()) {
@@ -124,13 +124,13 @@ public class EntityDocumentConverter implements DocumentConverter<Entity> {
                 final String decodedPropertyName = MongoDbSafeKey.decodeKey(propertyName);
                 final Document value = (Document) typePropertiesDoc.get(propertyName);
                 final RyaType propertyValue = ryaTypeConverter.fromDocument( value );
-                builder.setProperty(new RyaURI(typeId), new Property(new RyaURI(decodedPropertyName), propertyValue));
+                builder.setProperty(new RyaIRI(typeId), new Property(new RyaIRI(decodedPropertyName), propertyValue));
             }
         }
 
         builder.setVersion( document.getInteger(VERSION) );
 
-        builder.setSmartUri( new URIImpl(document.getString(SMART_URI)) );
+        builder.setSmartUri( SimpleValueFactory.getInstance().createIRI(document.getString(SMART_URI)) );
 
         return builder.build();
     }

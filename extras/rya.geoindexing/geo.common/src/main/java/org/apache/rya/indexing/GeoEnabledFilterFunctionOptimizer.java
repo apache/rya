@@ -43,31 +43,30 @@ import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
 import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
 import org.apache.rya.mongodb.MongoSecondaryIndex;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.Dataset;
-import org.openrdf.query.algebra.And;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.LeftJoin;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.QueryOptimizer;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.Dataset;
+import org.eclipse.rdf4j.query.algebra.And;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.FunctionCall;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.LeftJoin;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 import com.google.common.collect.Lists;
 
 public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Configurable {
     private static final Logger LOG = Logger.getLogger(GeoEnabledFilterFunctionOptimizer.class);
-    private final ValueFactory valueFactory = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private Configuration conf;
     private GeoIndexer geoIndexer;
@@ -160,7 +159,7 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
         for (final StatementPattern matchStatement: matchStatements.matchStatements) {
             final Var subject = matchStatement.getSubjectVar();
             if (subject.hasValue() && !(subject.getValue() instanceof Resource)) {
-                throw new IllegalArgumentException("Query error: Found " + subject.getValue() + ", expected an URI or BNode");
+                throw new IllegalArgumentException("Query error: Found " + subject.getValue() + ", expected an IRI or BNode");
             }
             Validate.isTrue(subject.hasValue() || subject.getName() != null);
             Validate.isTrue(!matchStatement.getObjectVar().hasValue() && matchStatement.getObjectVar().getName() != null);
@@ -190,12 +189,12 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
     }
 
     //find vars contained in filters
-    private static class SearchVarVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class SearchVarVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         private final Collection<Var> searchProperties = new ArrayList<>();
 
         @Override
         public void meet(final FunctionCall fn) {
-            final URI fun = new URIImpl(fn.getURI());
+            final IRI fun = VF.createIRI(fn.getURI());
             final Var result = IndexingFunctionRegistry.getResultVarFromFunctionCall(fun, fn.getArgs());
             if (result != null && !searchProperties.contains(result)) {
                 searchProperties.add(result);
@@ -204,7 +203,7 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
     }
 
     //find StatementPatterns containing filter variables
-    private static class MatchStatementVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class MatchStatementVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         private final Collection<Var> propertyVars;
         private final Collection<Var> usedVars = new ArrayList<>();
         private final List<StatementPattern> matchStatements = new ArrayList<>();
@@ -226,17 +225,17 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
         }
     }
 
-    private abstract class AbstractEnhanceVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private abstract class AbstractEnhanceVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         final String matchVar;
-        List<URI> func = Lists.newArrayList();
+        List<IRI> func = Lists.newArrayList();
         List<Object[]> args = Lists.newArrayList();
 
         public AbstractEnhanceVisitor(final String matchVar) {
             this.matchVar = matchVar;
         }
 
-        protected void addFilter(final URI uri, final Object[] values) {
-            func.add(uri);
+        protected void addFilter(final IRI iri, final Object[] values) {
+            func.add(iri);
             args.add(values);
         }
     }
@@ -250,12 +249,12 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
 
         @Override
         public void meet(final FunctionCall call) {
-            final URI fnUri = valueFactory.createURI(call.getURI());
-            final Var resultVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(fnUri, call.getArgs());
+            final IRI fnIri = VF.createIRI(call.getURI());
+            final Var resultVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(fnIri, call.getArgs());
             if (resultVar != null && resultVar.getName().equals(matchVar)) {
-                addFilter(valueFactory.createURI(call.getURI()), GeoParseUtils.extractArguments(matchVar, call));
+                addFilter(VF.createIRI(call.getURI()), GeoParseUtils.extractArguments(matchVar, call));
                 if (call.getParentNode() instanceof Filter || call.getParentNode() instanceof And || call.getParentNode() instanceof LeftJoin) {
-                    call.replaceWith(new ValueConstant(valueFactory.createLiteral(true)));
+                    call.replaceWith(new ValueConstant(VF.createLiteral(true)));
                 } else {
                     throw new IllegalArgumentException("Query error: Found " + call + " as part of an expression that is too complex");
                 }
@@ -299,7 +298,7 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
 
         public IndexerExprReplacer(final List<IndexingExpr> indxExpr) {
             this.indxExpr = indxExpr;
-            final URI func = indxExpr.get(0).getFunction();
+            final IRI func = indxExpr.get(0).getFunction();
             type = IndexingFunctionRegistry.getFunctionType(func);
         }
 
@@ -329,7 +328,7 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
         }
     }
 
-    private static class VarExchangeVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class VarExchangeVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         private final  StatementPattern exchangeVar;
         public VarExchangeVisitor(final StatementPattern sp) {
             exchangeVar = sp;

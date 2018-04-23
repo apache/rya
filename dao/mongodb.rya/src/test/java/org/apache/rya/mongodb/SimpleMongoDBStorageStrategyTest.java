@@ -18,15 +18,15 @@ package org.apache.rya.mongodb;
  * under the License.
  */
 
+import static org.eclipse.rdf4j.model.vocabulary.XMLSchema.ANYURI;
 import static org.junit.Assert.assertEquals;
-import static org.openrdf.model.vocabulary.XMLSchema.ANYURI;
 
 import java.io.IOException;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 import org.apache.rya.mongodb.document.util.DocumentVisibilityConversionException;
@@ -52,10 +52,10 @@ public class SimpleMongoDBStorageStrategyTest {
 
     static {
         final RyaStatementBuilder builder = new RyaStatementBuilder();
-        builder.setPredicate(new RyaURI(PREDICATE));
-        builder.setSubject(new RyaURI(SUBJECT));
-        builder.setObject(new RyaURI(OBJECT));
-        builder.setContext(new RyaURI(CONTEXT));
+        builder.setPredicate(new RyaIRI(PREDICATE));
+        builder.setSubject(new RyaIRI(SUBJECT));
+        builder.setObject(new RyaIRI(OBJECT));
+        builder.setContext(new RyaIRI(CONTEXT));
         builder.setColumnVisibility(DOCUMENT_VISIBILITY.flatten());
         builder.setTimestamp(null);
         testStatement = builder.build();

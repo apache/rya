@@ -31,19 +31,19 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.ProjectionElem;
+import org.eclipse.rdf4j.query.algebra.ProjectionElemList;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Union;
+import org.eclipse.rdf4j.query.algebra.Var;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Union;
-import org.openrdf.query.algebra.Var;
 
 import com.google.common.collect.Sets;
 
@@ -52,22 +52,22 @@ import com.google.common.collect.Sets;
  */
 public class IntersectionOfVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory VF = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
-    private static final URI MOTHER = VF.createURI("urn:Mother");
-    private static final URI FATHER = VF.createURI("urn:Father");
+    private static final IRI MOTHER = VF.createIRI("urn:Mother");
+    private static final IRI FATHER = VF.createIRI("urn:Father");
 
     // Definition #1: :Mother owl:intersectionOf(:Animal, :Female, :Parent)
-    private static final URI ANIMAL = VF.createURI("urn:Animal");
-    private static final URI FEMALE = VF.createURI("urn:Female");
-    private static final URI PARENT = VF.createURI("urn:Parent");
+    private static final IRI ANIMAL = VF.createIRI("urn:Animal");
+    private static final IRI FEMALE = VF.createIRI("urn:Female");
+    private static final IRI PARENT = VF.createIRI("urn:Parent");
 
     // Definition #2: :Mother owl:intersectionOf(:Female, :Leader, :Nun)
-    private static final URI NUN = VF.createURI("urn:Nun");
-    private static final URI LEADER = VF.createURI("urn:Leader");
+    private static final IRI NUN = VF.createIRI("urn:Nun");
+    private static final IRI LEADER = VF.createIRI("urn:Leader");
 
     // Definition #3: :Father owl:intersectionOf(:Man, :Parent)
-    private static final URI MAN = VF.createURI("urn:Man");
+    private static final IRI MAN = VF.createIRI("urn:Man");
 
     @Test
     public void testIntersectionOf() throws Exception {
@@ -226,7 +226,7 @@ public class IntersectionOfVisitorTest {
         assertEquals(expectedFatherSp, actualFatherSp);
     }
 
-    private static void assertStatementPattern(final StatementPattern statementPattern, final URI uri) {
+    private static void assertStatementPattern(final StatementPattern statementPattern, final IRI uri) {
         assertNotNull(statementPattern.getPredicateVar());
         assertEquals(RDF.TYPE, statementPattern.getPredicateVar().getValue());
         assertNotNull(statementPattern.getObjectVar());

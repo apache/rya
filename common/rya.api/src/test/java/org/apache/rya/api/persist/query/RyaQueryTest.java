@@ -22,7 +22,7 @@ package org.apache.rya.api.persist.query;
 
 
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -37,9 +37,9 @@ public class RyaQueryTest {
 
     @Test
     public void testBuildQueryWithOptions() {
-        RyaURI subj = new RyaURI("urn:test#1234");
-        RyaURI pred = new RyaURI("urn:test#pred");
-        RyaURI obj = new RyaURI("urn:test#obj");
+        RyaIRI subj = new RyaIRI("urn:test#1234");
+        RyaIRI pred = new RyaIRI("urn:test#pred");
+        RyaIRI obj = new RyaIRI("urn:test#obj");
         RyaStatement ryaStatement = new RyaStatement(subj, pred, obj);
         String[] auths = {"U,FOUO"};
         long currentTime = System.currentTimeMillis();

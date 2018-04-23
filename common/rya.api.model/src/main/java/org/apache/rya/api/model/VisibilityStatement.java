@@ -22,7 +22,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
-import org.openrdf.model.Statement;
+import org.eclipse.rdf4j.model.Statement;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;

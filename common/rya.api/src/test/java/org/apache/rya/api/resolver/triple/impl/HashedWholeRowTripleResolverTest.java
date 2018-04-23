@@ -26,7 +26,7 @@ import java.util.Map;
 import junit.framework.TestCase;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.triple.TripleRow;
 
 /**
@@ -39,10 +39,10 @@ public class HashedWholeRowTripleResolverTest extends TestCase {
 
     public void testSerialize() throws Exception {
         //no context
-        RyaURI subj = new RyaURI("urn:test#1234");
-        RyaURI pred = new RyaURI("urn:test#pred");
-        RyaURI obj = new RyaURI("urn:test#obj");
-        RyaURI cntxt = new RyaURI("urn:test#cntxt");
+        RyaIRI subj = new RyaIRI("urn:test#1234");
+        RyaIRI pred = new RyaIRI("urn:test#pred");
+        RyaIRI obj = new RyaIRI("urn:test#obj");
+        RyaIRI cntxt = new RyaIRI("urn:test#cntxt");
         final RyaStatement stmt = new RyaStatement(subj, pred, obj, null, null, null, null, 100l);
         final RyaStatement stmtContext = new RyaStatement(subj, pred, obj, cntxt, null, null, null, 100l);
 
@@ -61,10 +61,10 @@ public class HashedWholeRowTripleResolverTest extends TestCase {
     public void testSerializePO() throws Exception {
         RdfCloudTripleStoreConstants.TABLE_LAYOUT po = RdfCloudTripleStoreConstants.TABLE_LAYOUT.PO;
         //no context
-        RyaURI subj = new RyaURI("urn:test#1234");
-        RyaURI pred = new RyaURI("urn:test#pred");
-        RyaURI obj = new RyaURI("urn:test#obj");
-        RyaURI cntxt = new RyaURI("urn:test#cntxt");
+        RyaIRI subj = new RyaIRI("urn:test#1234");
+        RyaIRI pred = new RyaIRI("urn:test#pred");
+        RyaIRI obj = new RyaIRI("urn:test#obj");
+        RyaIRI cntxt = new RyaIRI("urn:test#cntxt");
         final RyaStatement stmt = new RyaStatement(subj, pred, obj, null, null, null, null, 100l);
         final RyaStatement stmtContext = new RyaStatement(subj, pred, obj, cntxt, null, null, null, 100l);
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = tripleResolver.serialize(stmt);
@@ -82,10 +82,10 @@ public class HashedWholeRowTripleResolverTest extends TestCase {
     public void testSerializeOSP() throws Exception {
         RdfCloudTripleStoreConstants.TABLE_LAYOUT po = RdfCloudTripleStoreConstants.TABLE_LAYOUT.OSP;
         //no context
-        RyaURI subj = new RyaURI("urn:test#1234");
-        RyaURI pred = new RyaURI("urn:test#pred");
-        RyaURI obj = new RyaURI("urn:test#obj");
-        RyaURI cntxt = new RyaURI("urn:test#cntxt");
+        RyaIRI subj = new RyaIRI("urn:test#1234");
+        RyaIRI pred = new RyaIRI("urn:test#pred");
+        RyaIRI obj = new RyaIRI("urn:test#obj");
+        RyaIRI cntxt = new RyaIRI("urn:test#cntxt");
         final RyaStatement stmt = new RyaStatement(subj, pred, obj, null, null, null, null, 100l);
         final RyaStatement stmtContext = new RyaStatement(subj, pred, obj, cntxt, null, null, null, 100l);
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = tripleResolver.serialize(stmt);
@@ -103,10 +103,10 @@ public class HashedWholeRowTripleResolverTest extends TestCase {
     public void testSerializeOSPCustomType() throws Exception {
         RdfCloudTripleStoreConstants.TABLE_LAYOUT po = RdfCloudTripleStoreConstants.TABLE_LAYOUT.OSP;
         //no context
-        RyaURI subj = new RyaURI("urn:test#1234");
-        RyaURI pred = new RyaURI("urn:test#pred");
-        RyaURI obj = new RyaURI("urn:test#obj");
-        RyaURI cntxt = new RyaURI("urn:test#cntxt");
+        RyaIRI subj = new RyaIRI("urn:test#1234");
+        RyaIRI pred = new RyaIRI("urn:test#pred");
+        RyaIRI obj = new RyaIRI("urn:test#obj");
+        RyaIRI cntxt = new RyaIRI("urn:test#cntxt");
         final RyaStatement stmt = new RyaStatement(subj, pred, obj, null, null, null, null, 100l);
         final RyaStatement stmtContext = new RyaStatement(subj, pred, obj, cntxt, null, null, null, 100l);
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = tripleResolver.serialize(stmt);

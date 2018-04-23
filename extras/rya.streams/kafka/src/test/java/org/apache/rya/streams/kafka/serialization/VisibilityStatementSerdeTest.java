@@ -23,10 +23,10 @@ import static org.junit.Assert.assertNull;
 
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.rya.api.model.VisibilityStatement;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
 
 /**
  * Tests the methods of {@link VisibilityStatementSerde}.
@@ -36,12 +36,12 @@ public class VisibilityStatementSerdeTest {
     @Test
     public void serializeAndDeserialize() {
         // Create the object that will be serialized.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Statement statement = vf.createStatement(
-                vf.createURI("urn:person1"),
-                vf.createURI("urn:hasName"),
+                vf.createIRI("urn:person1"),
+                vf.createIRI("urn:hasName"),
                 vf.createLiteral("alice"),
-                vf.createURI("urn:testContext"));
+                vf.createIRI("urn:testContext"));
 
         final VisibilityStatement original = new VisibilityStatement(statement, "a|b|c");
 

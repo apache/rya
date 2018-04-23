@@ -1,4 +1,4 @@
-package org.apache.rya.api.domain;
+package org.apache.rya.api.resolver.impl;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -19,34 +19,24 @@ package org.apache.rya.api.domain;
  * under the License.
  */
 
-
-
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaIRI;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 /**
- * Created by IntelliJ IDEA.
- * Date: 4/11/12
- * Time: 1:03 PM
- * To change this template use File | Settings | File Templates.
+ * Date: 7/16/12
+ * Time: 12:41 PM
  */
-public class RangeURI extends RangeValue<URI> implements URI {
+public class RyaIRIResolver extends RyaTypeResolverImpl {
 
-    public RangeURI(URI start, URI end) {
-        super(start, end);
-    }
+    public static final int URI_MARKER = 2;
 
-    public RangeURI(RangeValue rangeValue) {
-        super((URI) rangeValue.getStart(), (URI) rangeValue.getEnd());
-    }
-
-    @Override
-    public String getNamespace() {
-        throw new UnsupportedOperationException("Ranges do not have a namespace");
+    public RyaIRIResolver() {
+        super((byte) URI_MARKER, XMLSchema.ANYURI);
     }
 
     @Override
-    public String getLocalName() {
-        throw new UnsupportedOperationException("Ranges do not have a localname");
+    public RyaType newInstance() {
+        return new RyaIRI();
     }
 }

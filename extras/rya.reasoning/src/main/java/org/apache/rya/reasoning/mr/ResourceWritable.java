@@ -25,11 +25,11 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
-import org.openrdf.model.Resource;
-import org.openrdf.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 /**
- * Allows us to use a URI or bnode for a key.
+ * Allows us to use an IRI or bnode for a key.
  */
 public class ResourceWritable implements WritableComparable<ResourceWritable> {
     private Resource val;
@@ -68,10 +68,10 @@ public class ResourceWritable implements WritableComparable<ResourceWritable> {
         String s = in.readUTF();
         if (s.length() > 0) {
             if (s.startsWith("_")) {
-                val = ValueFactoryImpl.getInstance().createBNode(s.substring(2));
+                val = SimpleValueFactory.getInstance().createBNode(s.substring(2));
             }
             else {
-                val = ValueFactoryImpl.getInstance().createURI(s);
+                val = SimpleValueFactory.getInstance().createIRI(s);
             }
         }
         key = in.readInt();

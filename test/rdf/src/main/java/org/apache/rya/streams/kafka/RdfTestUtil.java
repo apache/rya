@@ -22,13 +22,13 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.MultiProjection;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.MultiProjection;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -45,7 +45,7 @@ public final class RdfTestUtil {
     /**
      * Fetch the {@link StatementPattern} from a SPARQL string.
      *
-     * @param sparql - A SPARQL query that contains only a single Statement Patern. (not nul)
+     * @param sparql - A SPARQL query that contains only a single Statement Pattern. (not null)
      * @return The {@link StatementPattern} that was in the query, if it could be found. Otherwise {@code null}
      * @throws Exception The statement pattern could not be found in the parsed SPARQL query.
      */
@@ -54,7 +54,7 @@ public final class RdfTestUtil {
 
         final AtomicReference<StatementPattern> statementPattern = new AtomicReference<>();
         final ParsedQuery parsed = new SPARQLParser().parseQuery(sparql, null);
-        parsed.getTupleExpr().visitChildren(new QueryModelVisitorBase<Exception>() {
+        parsed.getTupleExpr().visitChildren(new AbstractQueryModelVisitor<Exception>() {
             @Override
             public void meet(final StatementPattern node) throws Exception {
                 statementPattern.set(node);
@@ -75,7 +75,7 @@ public final class RdfTestUtil {
 
         final AtomicReference<Projection> projection = new AtomicReference<>();
         final ParsedQuery parsed = new SPARQLParser().parseQuery(sparql, null);
-        parsed.getTupleExpr().visit(new QueryModelVisitorBase<Exception>() {
+        parsed.getTupleExpr().visit(new AbstractQueryModelVisitor<Exception>() {
             @Override
             public void meet(final Projection node) throws Exception {
                 projection.set(node);
@@ -97,7 +97,7 @@ public final class RdfTestUtil {
 
         final AtomicReference<MultiProjection> multiProjection = new AtomicReference<>();
         final ParsedQuery parsed = new SPARQLParser().parseQuery(sparql, null);
-        parsed.getTupleExpr().visit(new QueryModelVisitorBase<Exception>() {
+        parsed.getTupleExpr().visit(new AbstractQueryModelVisitor<Exception>() {
             @Override
             public void meet(final MultiProjection node) throws Exception {
                 multiProjection.set(node);
@@ -119,7 +119,7 @@ public final class RdfTestUtil {
 
         final AtomicReference<Filter> filter = new AtomicReference<>();
         final ParsedQuery parsed = new SPARQLParser().parseQuery(sparql, null);
-        parsed.getTupleExpr().visit(new QueryModelVisitorBase<Exception>() {
+        parsed.getTupleExpr().visit(new AbstractQueryModelVisitor<Exception>() {
             @Override
             public void meet(final Filter node) throws Exception {
                 filter.set(node);

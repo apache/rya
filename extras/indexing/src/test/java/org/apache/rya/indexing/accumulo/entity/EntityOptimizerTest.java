@@ -19,22 +19,11 @@ package org.apache.rya.indexing.accumulo.entity;
  * under the License.
  */
 
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
-import org.apache.rya.api.persist.RdfEvalStatsDAO;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.accumulo.entity.EntityOptimizer;
-import org.apache.rya.indexing.accumulo.entity.EntityTupleSet;
-import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
-import org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -48,19 +37,26 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
+import org.apache.rya.api.persist.RdfEvalStatsDAO;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
+import org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.FilterOptimizer;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.evaluation.impl.FilterOptimizer;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.repository.RepositoryException;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -1017,11 +1013,11 @@ public class EntityOptimizerTest {
         Assert.assertEquals(2, nodes.size());
 
         for (QueryModelNode q : nodes) {
-
-            if (((EntityTupleSet) q).getStarQuery().getNodes().size() == 2) {
-                Assert.assertEquals("m", ((EntityTupleSet) q).getStarQuery().getCommonVarName());
-            } else if (((EntityTupleSet) q).getStarQuery().getNodes().size() == 3) {
-                Assert.assertEquals("uri:chickens", ((EntityTupleSet) q).getStarQuery().getCommonVarName());
+            final StarQuery starQuery = ((EntityTupleSet) q).getStarQuery();
+            if (starQuery.getNodes().size() == 2) {
+                Assert.assertEquals("m", starQuery.getCommonVarName());
+            } else if (starQuery.getNodes().size() == 3) {
+                Assert.assertEquals("uri:chickens", starQuery.getCommonVarValue());
             } else {
                 Assert.assertTrue(false);
             }
@@ -1121,11 +1117,11 @@ public class EntityOptimizerTest {
         Assert.assertEquals(2, nodes.size());
 
         for (QueryModelNode q : nodes) {
-
-            if (((EntityTupleSet) q).getStarQuery().getNodes().size() == 2) {
-                Assert.assertEquals("m", ((EntityTupleSet) q).getStarQuery().getCommonVarName());
-            } else if (((EntityTupleSet) q).getStarQuery().getNodes().size() == 3) {
-                Assert.assertEquals("uri:chickens", ((EntityTupleSet) q).getStarQuery().getCommonVarName());
+            final StarQuery starQuery = ((EntityTupleSet) q).getStarQuery();
+            if (starQuery.getNodes().size() == 2) {
+                Assert.assertEquals("m", starQuery.getCommonVarName());
+            } else if (starQuery.getNodes().size() == 3) {
+                Assert.assertEquals("uri:chickens", starQuery.getCommonVarValue());
             } else {
                 Assert.assertTrue(false);
             }
@@ -1323,7 +1319,7 @@ public class EntityOptimizerTest {
     
     
     
-    private class EntityCentricVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private class EntityCentricVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         
         private Set<QueryModelNode> ccNodes = Sets.newHashSet();
         

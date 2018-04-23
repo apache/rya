@@ -47,8 +47,8 @@ under the License.
         
         <!-- 3rd Party Runtime Dependencies. -->
         <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-queryrender</artifactId>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-queryrender</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.fluo</groupId>

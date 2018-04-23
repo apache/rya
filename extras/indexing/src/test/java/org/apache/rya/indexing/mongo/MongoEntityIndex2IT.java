@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,7 +21,7 @@ package org.apache.rya.indexing.mongo;
 import java.util.List;
 
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.EntityIndexOptimizer;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
@@ -30,30 +30,29 @@ import org.apache.rya.indexing.entity.query.EntityQueryNode;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.mongodb.MongoITBase;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.collect.ImmutableSet;
 
 public class MongoEntityIndex2IT extends MongoITBase {
     private static final Type PERSON_TYPE =
-            new Type(new RyaURI("urn:person"),
-                ImmutableSet.<RyaURI>builder()
-                    .add(new RyaURI("urn:name"))
-                    .add(new RyaURI("urn:age"))
-                    .add(new RyaURI("urn:eye"))
+            new Type(new RyaIRI("urn:person"),
+                ImmutableSet.<RyaIRI>builder()
+                    .add(new RyaIRI("urn:name"))
+                    .add(new RyaIRI("urn:age"))
+                    .add(new RyaIRI("urn:eye"))
                     .build());
-    private static final RyaURI RYA_PERSON_TYPE = new RyaURI("urn:person");
+    private static final RyaIRI RYA_PERSON_TYPE = new RyaIRI("urn:person");
 
     private EntityIndexOptimizer optimizer;
     private EntityStorage entityStorage;
@@ -67,11 +66,11 @@ public class MongoEntityIndex2IT extends MongoITBase {
         typeStorage.create(PERSON_TYPE);
 
         final Entity entity = Entity.builder()
-                .setSubject(new RyaURI("urn:SSN:111-11-1111"))
+                .setSubject(new RyaIRI("urn:SSN:111-11-1111"))
                 .setExplicitType(RYA_PERSON_TYPE)
-                .setProperty(RYA_PERSON_TYPE, new Property(new RyaURI("urn:age"), new RyaType("25")))
-                .setProperty(RYA_PERSON_TYPE, new Property(new RyaURI("urn:eye"), new RyaType("blue")))
-                .setProperty(RYA_PERSON_TYPE, new Property(new RyaURI("urn:name"), new RyaType("bob")))
+                .setProperty(RYA_PERSON_TYPE, new Property(new RyaIRI("urn:age"), new RyaType("25")))
+                .setProperty(RYA_PERSON_TYPE, new Property(new RyaIRI("urn:eye"), new RyaType("blue")))
+                .setProperty(RYA_PERSON_TYPE, new Property(new RyaIRI("urn:name"), new RyaType("bob")))
                 .build();
         entityStorage = optimizer.getEntityStorage();
         entityStorage.create(entity);
@@ -230,7 +229,7 @@ public class MongoEntityIndex2IT extends MongoITBase {
         expr.visit(new EntityFetchingAsserterVisitor(expected));
     }
 
-    private class EntityFetchingAsserterVisitor extends QueryModelVisitorBase<Exception> {
+    private class EntityFetchingAsserterVisitor extends AbstractQueryModelVisitor<Exception> {
         private final EntityQueryNode expected;
         public EntityFetchingAsserterVisitor(final EntityQueryNode expected) {
             this.expected = expected;

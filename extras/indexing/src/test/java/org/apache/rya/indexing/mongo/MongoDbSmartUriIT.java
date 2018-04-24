@@ -24,10 +24,10 @@ import static org.apache.rya.api.domain.RyaTypeUtils.dateRyaType;
 import static org.apache.rya.api.domain.RyaTypeUtils.doubleRyaType;
 import static org.apache.rya.api.domain.RyaTypeUtils.floatRyaType;
 import static org.apache.rya.api.domain.RyaTypeUtils.intRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.iriRyaType;
 import static org.apache.rya.api.domain.RyaTypeUtils.longRyaType;
 import static org.apache.rya.api.domain.RyaTypeUtils.shortRyaType;
 import static org.apache.rya.api.domain.RyaTypeUtils.stringRyaType;
-import static org.apache.rya.api.domain.RyaTypeUtils.iriRyaType;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -38,8 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.rya.api.domain.RyaSchema;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaSchema;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.entity.model.Entity;
@@ -51,7 +51,7 @@ import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
 import org.apache.rya.indexing.mongodb.MongoDbSmartUri;
 import org.apache.rya.indexing.smarturi.SmartUriAdapter;
 import org.apache.rya.indexing.smarturi.SmartUriException;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
@@ -74,7 +74,7 @@ import com.google.common.collect.Lists;
 /**
  * Tests for MongoDB based Smart URI.
  */
-public class MongoDbSmartUriIT extends MongoITBase {
+public class MongoDbSmartUriIT extends MongoRyaITBase {
     private static final String NAMESPACE = RyaSchema.NAMESPACE;
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 

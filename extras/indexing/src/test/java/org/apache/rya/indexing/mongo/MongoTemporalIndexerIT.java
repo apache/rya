@@ -39,7 +39,7 @@ import org.apache.rya.indexing.TemporalInterval;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
@@ -76,7 +76,7 @@ import com.mongodb.MongoSecurityException;
  * And a few more.
  *
  */
-public final class MongoTemporalIndexerIT extends MongoITBase {
+public final class MongoTemporalIndexerIT extends MongoRyaITBase {
 
     private static final String URI_PROPERTY_EVENT_TIME = "Property:event:time";
     private static final String URI_PROPERTY_CIRCA = "Property:circa";
@@ -232,7 +232,7 @@ public final class MongoTemporalIndexerIT extends MongoITBase {
 
             final String dbName = conf.getMongoDBName();
             final DB db = super.getMongoClient().getDB(dbName);
-            DBCollection collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + tIndexer.getCollectionName());
+            final DBCollection collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + tIndexer.getCollectionName());
 
             printTables(tIndexer, "junit testing: Temporal entities stored in testDelete before delete");
             assertEquals("Number of rows stored.", 2, collection.count()); // 4 index entries per statement
@@ -707,7 +707,7 @@ public final class MongoTemporalIndexerIT extends MongoITBase {
      * @return Count of entries in the index table.
      * @throws IOException
      */
-    public void printTables(MongoTemporalIndexer tIndexer, final String description) throws IOException {
+    public void printTables(final MongoTemporalIndexer tIndexer, final String description) throws IOException {
         System.out.println("-- start printTables() -- " + description);
         System.out.println("Reading : " + tIndexer.getCollection().getFullName());
         final DBCursor cursor = tIndexer.getCollection().find();

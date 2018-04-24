@@ -29,7 +29,7 @@ import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.accumulo.AccumuloCreatePCJ;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.junit.Test;
 
 import com.google.common.base.Optional;
@@ -38,7 +38,7 @@ import com.google.common.collect.ImmutableMap;
 /**
  * Integration tests the methods of {@link AccumuloCreatePCJ}.
  */
-public class MongoDeletePCJIT extends MongoITBase {
+public class MongoDeletePCJIT extends MongoRyaITBase {
     @Test(expected = InstanceDoesNotExistException.class)
     public void instanceDoesNotExist() throws Exception {
         final RyaClient ryaClient = MongoRyaClientFactory.build(getConnectionDetails(), getMongoClient());

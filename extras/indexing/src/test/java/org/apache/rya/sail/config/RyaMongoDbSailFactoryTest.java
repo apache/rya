@@ -20,7 +20,7 @@ package org.apache.rya.sail.config;
 
 import static org.junit.Assert.assertFalse;
 
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -32,7 +32,7 @@ import org.junit.Test;
 /**
  * Tests {@link RyaSailFactory} with a MongoDB backend.
  */
-public class RyaMongoDbSailFactoryTest extends MongoITBase {
+public class RyaMongoDbSailFactoryTest extends MongoRyaITBase {
     @Test
     public void testCreateMongoDbSail() throws Exception {
         Sail sail = null;

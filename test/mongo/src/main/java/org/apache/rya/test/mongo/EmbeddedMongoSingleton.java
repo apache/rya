@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.mongodb;
+package org.apache.rya.test.mongo;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -60,7 +60,7 @@ public class EmbeddedMongoSingleton {
     public static IMongodConfig getMongodConfig() {
         return InstanceHolder.SINGLETON.mongodConfig;
     }
-    
+
     private EmbeddedMongoSingleton() {
         // hiding implicit default constructor
     }

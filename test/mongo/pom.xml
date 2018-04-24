@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-     Licensed to the Apache Software Foundation (ASF) under one
+Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
 regarding copyright ownership.  The ASF licenses this file
@@ -21,42 +21,43 @@ under the License.
 
     <parent>
         <groupId>org.apache.rya</groupId>
-        <artifactId>rya.export.parent</artifactId>
+        <artifactId>rya.test.parent</artifactId>
         <version>4.0.0-incubating-SNAPSHOT</version>
     </parent>
     
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>rya.export.integration</artifactId>
+    <artifactId>rya.test.mongo</artifactId>
     
-    <name>Apache Rya Export Integration Tests</name>
-    <description>Integration tests for the Rya Export application.</description>
-    
+    <name>Apache Rya Test Mongo DB</name>
+    <description>
+        This module contains the Rya Test Mongo DB components that help write 
+        Mongo DB based integration tests.
+    </description>
+
     <dependencies>
-        <!-- Rya Runtime Dependencies. -->
+        <!-- 3rd party dependencies. -->
         <dependency>
-            <groupId>org.apache.rya</groupId>
-            <artifactId>rya.api</artifactId>
+            <groupId>com.github.stephenc.findbugs</groupId>
+            <artifactId>findbugs-annotations</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.rya</groupId>
-            <artifactId>rya.export.api</artifactId>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.rya</groupId>
-            <artifactId>rya.export.client</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.flapdoodle.embed</groupId>
+            <artifactId>de.flapdoodle.embed.mongo</artifactId>
         </dependency>
     
         <!-- Testing dependencies. -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.rya</groupId>
-            <artifactId>rya.test.mongo</artifactId>
-            <scope>test</scope>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

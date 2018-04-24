@@ -35,7 +35,7 @@ import org.apache.rya.indexing.mongodb.pcj.MongoPcjIndexSetProvider;
 import org.apache.rya.indexing.mongodb.pcj.MongoPcjQueryNode;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.eclipse.rdf4j.model.IRI;
@@ -58,7 +58,7 @@ import org.junit.Test;
 
 import com.google.common.collect.Lists;
 
-public class MongoPcjIntegrationTest extends MongoITBase {
+public class MongoPcjIntegrationTest extends MongoRyaITBase {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private static final IRI talksTo = VF.createIRI("uri:talksTo");

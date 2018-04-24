@@ -30,7 +30,7 @@ import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.ListInstances;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
@@ -39,7 +39,7 @@ import com.mongodb.MongoException;
 /**
  * Integration tests the methods of {@link MongoListInstances}.
  */
-public class MongoListInstancesIT extends MongoITBase {
+public class MongoListInstancesIT extends MongoRyaITBase {
 
     @Test
     public void listInstances_hasRyaDetailsTable() throws MongoException, DuplicateInstanceNameException, RyaClientException {

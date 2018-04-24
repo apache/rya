@@ -88,6 +88,10 @@ under the License.
             <artifactId>rya.api</artifactId>
             <type>test-jar</type>
         </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.test.mongo</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

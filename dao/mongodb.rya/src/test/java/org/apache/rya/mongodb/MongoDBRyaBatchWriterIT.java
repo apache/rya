@@ -24,9 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.BasicConfigurator;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
-import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriter;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterConfig;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterUtils;
@@ -44,7 +44,7 @@ import com.mongodb.DBObject;
 /**
  * Integration tests for the {@link MongoDbBatchWriter}.
  */
-public class MongoDBRyaBatchWriterIT extends MongoITBase {
+public class MongoDBRyaBatchWriterIT extends MongoRyaITBase {
 
     private static void setupLogging() {
         BasicConfigurator.configure();

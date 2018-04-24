@@ -36,7 +36,7 @@ import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
 import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
@@ -57,7 +57,7 @@ import com.vividsolutions.jts.geom.Polygon;
 /**
  * Tests all of the "simple functions" of the geoindexer.
  */
-public class MongoGeoIndexerSfIT extends MongoITBase {
+public class MongoGeoIndexerSfIT extends MongoRyaITBase {
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
     // Here is the landscape:

@@ -28,13 +28,13 @@ import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.instance.RyaDetails.RyaStreamsDetails;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.junit.Test;
 
 /**
  * Integration tests the methods of {@link MongoSetRyaStreamsConfiguration}.
  */
-public class MongoSetRyaStreamsConfigurationIT extends MongoITBase {
+public class MongoSetRyaStreamsConfigurationIT extends MongoRyaITBase {
 
     @Test(expected = InstanceDoesNotExistException.class)
     public void instanceDoesNotExist() throws Exception {

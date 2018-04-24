@@ -40,7 +40,7 @@ import org.apache.rya.api.instance.RyaDetailsRepository.AlreadyInitializedExcept
 import org.apache.rya.api.instance.RyaDetailsRepository.ConcurrentUpdateException;
 import org.apache.rya.api.instance.RyaDetailsRepository.NotInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.test.mongo.MongoITBase;
 import org.junit.Before;
 import org.junit.Test;
 

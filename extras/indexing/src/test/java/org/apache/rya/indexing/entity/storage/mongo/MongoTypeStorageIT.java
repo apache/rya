@@ -30,7 +30,7 @@ import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage.TypeStorageException;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.test.mongo.MongoITBase;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;

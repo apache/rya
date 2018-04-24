@@ -24,15 +24,15 @@ import static org.junit.Assert.assertTrue;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
@@ -47,7 +47,7 @@ import com.google.common.collect.Sets;
 /**
  * Integration tests the methods of {@link MongoFreeTextIndexer}.
  */
-public class MongoFreeTextIndexerIT extends MongoITBase {
+public class MongoFreeTextIndexerIT extends MongoRyaITBase {
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
     @Test

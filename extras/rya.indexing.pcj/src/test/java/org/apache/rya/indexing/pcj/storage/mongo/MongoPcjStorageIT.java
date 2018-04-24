@@ -43,7 +43,7 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.ShiftVarOrderFactory;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -60,7 +60,7 @@ import com.google.common.collect.ImmutableMap;
  * These tests ensures that the PCJ tables are maintained and that these operations
  * also update the Rya instance's details.
  */
-public class MongoPcjStorageIT extends MongoITBase {
+public class MongoPcjStorageIT extends MongoRyaITBase {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test

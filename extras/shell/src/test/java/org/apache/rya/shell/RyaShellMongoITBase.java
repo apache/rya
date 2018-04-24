@@ -22,7 +22,7 @@ import java.io.IOException;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.test.mongo.MongoITBase;
 import org.junit.After;
 import org.junit.Before;
 import org.springframework.shell.Bootstrap;

@@ -28,7 +28,7 @@ import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -62,7 +62,7 @@ import com.google.common.collect.Multiset;
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 
-public class PipelineQueryIT extends MongoITBase {
+public class PipelineQueryIT extends MongoRyaITBase {
 
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
     private static final SPARQLParser PARSER = new SPARQLParser();
@@ -78,18 +78,18 @@ public class PipelineQueryIT extends MongoITBase {
         dao.init();
     }
 
-    private void insert(Resource subject, IRI predicate, Value object) throws RyaDAOException {
+    private void insert(final Resource subject, final IRI predicate, final Value object) throws RyaDAOException {
         insert(subject, predicate, object, 0);
     }
 
-    private void insert(Resource subject, IRI predicate, Value object, int derivationLevel) throws RyaDAOException {
+    private void insert(final Resource subject, final IRI predicate, final Value object, final int derivationLevel) throws RyaDAOException {
         final RyaStatementBuilder builder = new RyaStatementBuilder();
         builder.setSubject(RdfToRyaConversions.convertResource(subject));
         builder.setPredicate(RdfToRyaConversions.convertIRI(predicate));
         builder.setObject(RdfToRyaConversions.convertValue(object));
         final RyaStatement rstmt = builder.build();
         if (derivationLevel > 0) {
-            DBObject obj = new SimpleMongoDBStorageStrategy().serialize(builder.build());
+            final DBObject obj = new SimpleMongoDBStorageStrategy().serialize(builder.build());
             obj.put("derivation_level", derivationLevel);
             getRyaDbCollection().insert(obj);
         }
@@ -98,16 +98,16 @@ public class PipelineQueryIT extends MongoITBase {
         }
     }
 
-    private void testPipelineQuery(String query, Multiset<BindingSet> expectedSolutions) throws Exception {
+    private void testPipelineQuery(final String query, final Multiset<BindingSet> expectedSolutions) throws Exception {
         // Prepare query and convert to pipeline
-        QueryRoot queryTree = new QueryRoot(PARSER.parseQuery(query, null).getTupleExpr());
-        SparqlToPipelineTransformVisitor visitor = new SparqlToPipelineTransformVisitor(getRyaCollection());
+        final QueryRoot queryTree = new QueryRoot(PARSER.parseQuery(query, null).getTupleExpr());
+        final SparqlToPipelineTransformVisitor visitor = new SparqlToPipelineTransformVisitor(getRyaCollection());
         queryTree.visit(visitor);
         // Execute pipeline and verify results
         Assert.assertTrue(queryTree.getArg() instanceof AggregationPipelineQueryNode);
-        AggregationPipelineQueryNode pipelineNode = (AggregationPipelineQueryNode) queryTree.getArg();
-        Multiset<BindingSet> solutions = HashMultiset.create();
-        CloseableIteration<BindingSet, QueryEvaluationException> iter = pipelineNode.evaluate(new QueryBindingSet());
+        final AggregationPipelineQueryNode pipelineNode = (AggregationPipelineQueryNode) queryTree.getArg();
+        final Multiset<BindingSet> solutions = HashMultiset.create();
+        final CloseableIteration<BindingSet, QueryEvaluationException> iter = pipelineNode.evaluate(new QueryBindingSet());
         while (iter.hasNext()) {
             solutions.add(iter.next());
         }
@@ -126,8 +126,8 @@ public class PipelineQueryIT extends MongoITBase {
         final String query = "SELECT * WHERE {\n"
                 + "  ?individual a ?type .\n"
                 + "}";
-        List<String> varNames = Arrays.asList("individual", "type");
-        Multiset<BindingSet> expectedSolutions = HashMultiset.create();
+        final List<String> varNames = Arrays.asList("individual", "type");
+        final Multiset<BindingSet> expectedSolutions = HashMultiset.create();
         expectedSolutions.add(new ListBindingSet(varNames, OWL.THING, OWL.CLASS));
         expectedSolutions.add(new ListBindingSet(varNames, FOAF.PERSON, OWL.CLASS));
         expectedSolutions.add(new ListBindingSet(varNames, VF.createIRI("urn:Alice"), FOAF.PERSON));
@@ -147,18 +147,18 @@ public class PipelineQueryIT extends MongoITBase {
         final String query = "SELECT * WHERE {\n"
                 + "  owl:Thing a owl:Class .\n"
                 + "}";
-        Multiset<BindingSet> expectedSolutions = HashMultiset.create();
+        final Multiset<BindingSet> expectedSolutions = HashMultiset.create();
         expectedSolutions.add(new EmptyBindingSet());
         // Execute pipeline and verify results
-        QueryRoot queryTree = new QueryRoot(PARSER.parseQuery(query, null).getTupleExpr());
-        SparqlToPipelineTransformVisitor visitor = new SparqlToPipelineTransformVisitor(getRyaCollection());
+        final QueryRoot queryTree = new QueryRoot(PARSER.parseQuery(query, null).getTupleExpr());
+        final SparqlToPipelineTransformVisitor visitor = new SparqlToPipelineTransformVisitor(getRyaCollection());
         queryTree.visit(visitor);
         Assert.assertTrue(queryTree.getArg() instanceof Projection);
-        Projection projection = (Projection) queryTree.getArg();
+        final Projection projection = (Projection) queryTree.getArg();
         Assert.assertTrue(projection.getArg() instanceof AggregationPipelineQueryNode);
-        AggregationPipelineQueryNode pipelineNode = (AggregationPipelineQueryNode) projection.getArg();
-        Multiset<BindingSet> solutions = HashMultiset.create();
-        CloseableIteration<BindingSet, QueryEvaluationException> iter = pipelineNode.evaluate(new QueryBindingSet());
+        final AggregationPipelineQueryNode pipelineNode = (AggregationPipelineQueryNode) projection.getArg();
+        final Multiset<BindingSet> solutions = HashMultiset.create();
+        final CloseableIteration<BindingSet, QueryEvaluationException> iter = pipelineNode.evaluate(new QueryBindingSet());
         while (iter.hasNext()) {
             solutions.add(iter.next());
         }
@@ -168,11 +168,11 @@ public class PipelineQueryIT extends MongoITBase {
     @Test
     public void testJoinTwoSharedVariables() throws Exception {
         // Insert data
-        IRI person = VF.createIRI("urn:Person");
-        IRI livingThing = VF.createIRI("urn:LivingThing");
-        IRI human = VF.createIRI("urn:Human");
-        IRI programmer = VF.createIRI("urn:Programmer");
-        IRI thing = VF.createIRI("urn:Thing");
+        final IRI person = VF.createIRI("urn:Person");
+        final IRI livingThing = VF.createIRI("urn:LivingThing");
+        final IRI human = VF.createIRI("urn:Human");
+        final IRI programmer = VF.createIRI("urn:Programmer");
+        final IRI thing = VF.createIRI("urn:Thing");
         insert(programmer, RDFS.SUBCLASSOF, person);
         insert(person, RDFS.SUBCLASSOF, FOAF.PERSON);
         insert(FOAF.PERSON, RDFS.SUBCLASSOF, person);
@@ -187,8 +187,8 @@ public class PipelineQueryIT extends MongoITBase {
                 + "  ?A rdfs:subClassOf ?B .\n"
                 + "  ?B rdfs:subClassOf ?A .\n"
                 + "}";
-        List<String> varNames = Arrays.asList("A", "B");
-        Multiset<BindingSet> expectedSolutions = HashMultiset.create();
+        final List<String> varNames = Arrays.asList("A", "B");
+        final Multiset<BindingSet> expectedSolutions = HashMultiset.create();
         expectedSolutions.add(new ListBindingSet(varNames, person, FOAF.PERSON));
         expectedSolutions.add(new ListBindingSet(varNames, FOAF.PERSON, person));
         expectedSolutions.add(new ListBindingSet(varNames, thing, OWL.THING));
@@ -200,12 +200,12 @@ public class PipelineQueryIT extends MongoITBase {
     @Test
     public void testVariableRename() throws Exception {
         // Insert data
-        IRI alice = VF.createIRI("urn:Alice");
-        IRI bob = VF.createIRI("urn:Bob");
-        IRI carol = VF.createIRI("urn:Carol");
-        IRI dan = VF.createIRI("urn:Dan");
-        IRI eve = VF.createIRI("urn:Eve");
-        IRI friend = VF.createIRI("urn:friend");
+        final IRI alice = VF.createIRI("urn:Alice");
+        final IRI bob = VF.createIRI("urn:Bob");
+        final IRI carol = VF.createIRI("urn:Carol");
+        final IRI dan = VF.createIRI("urn:Dan");
+        final IRI eve = VF.createIRI("urn:Eve");
+        final IRI friend = VF.createIRI("urn:friend");
         insert(alice, friend, bob);
         insert(alice, friend, carol);
         insert(bob, friend, eve);
@@ -217,8 +217,8 @@ public class PipelineQueryIT extends MongoITBase {
                 + "  ?x <urn:friend> ?y .\n"
                 + "  ?y <urn:friend> ?z .\n"
                 + "}";
-        Multiset<BindingSet> expectedSolutions1 = HashMultiset.create();
-        List<String> varNames = Arrays.asList("x", "friendOfFriend");
+        final Multiset<BindingSet> expectedSolutions1 = HashMultiset.create();
+        final List<String> varNames = Arrays.asList("x", "friendOfFriend");
         expectedSolutions1.add(new ListBindingSet(varNames, alice, eve));
         expectedSolutions1.add(new ListBindingSet(varNames, alice, eve));
         expectedSolutions1.add(new ListBindingSet(varNames, bob, alice));
@@ -231,7 +231,7 @@ public class PipelineQueryIT extends MongoITBase {
                 + "  ?x <urn:friend> ?y .\n"
                 + "  ?y <urn:friend> ?z .\n"
                 + "}";
-        Multiset<BindingSet> expectedSolutions2 = HashMultiset.create();
+        final Multiset<BindingSet> expectedSolutions2 = HashMultiset.create();
         expectedSolutions2.add(new ListBindingSet(varNames, alice, eve));
         expectedSolutions2.add(new ListBindingSet(varNames, bob, alice));
         expectedSolutions2.add(new ListBindingSet(varNames, carol, alice));
@@ -246,10 +246,10 @@ public class PipelineQueryIT extends MongoITBase {
     @Test
     public void testFilterQuery() throws Exception {
         // Insert data
-        IRI alice = VF.createIRI("urn:Alice");
-        IRI bob = VF.createIRI("urn:Bob");
-        IRI eve = VF.createIRI("urn:Eve");
-        IRI relatedTo = VF.createIRI("urn:relatedTo");
+        final IRI alice = VF.createIRI("urn:Alice");
+        final IRI bob = VF.createIRI("urn:Bob");
+        final IRI eve = VF.createIRI("urn:Eve");
+        final IRI relatedTo = VF.createIRI("urn:relatedTo");
         insert(alice, FOAF.KNOWS, bob);
         insert(alice, FOAF.KNOWS, alice);
         insert(alice, FOAF.KNOWS, eve);
@@ -284,12 +284,12 @@ public class PipelineQueryIT extends MongoITBase {
     @Test
     public void testMultiConstruct() throws Exception {
         // Insert data
-        IRI alice = VF.createIRI("urn:Alice");
-        IRI bob = VF.createIRI("urn:Bob");
-        IRI eve = VF.createIRI("urn:Eve");
-        IRI friend = VF.createIRI("urn:friend");
-        IRI knows = VF.createIRI("urn:knows");
-        IRI person = VF.createIRI("urn:Person");
+        final IRI alice = VF.createIRI("urn:Alice");
+        final IRI bob = VF.createIRI("urn:Bob");
+        final IRI eve = VF.createIRI("urn:Eve");
+        final IRI friend = VF.createIRI("urn:friend");
+        final IRI knows = VF.createIRI("urn:knows");
+        final IRI person = VF.createIRI("urn:Person");
         insert(alice, friend, bob);
         insert(bob, knows, eve);
         insert(eve, knows, alice);
@@ -299,7 +299,7 @@ public class PipelineQueryIT extends MongoITBase {
                 + "    ?x rdf:type <urn:Person> .\n"
                 + "} WHERE { ?x <urn:knows> ?y }";
         final Multiset<BindingSet> expected = HashMultiset.create();
-        List<String> varNames = Arrays.asList("subject", "predicate", "object");
+        final List<String> varNames = Arrays.asList("subject", "predicate", "object");
         expected.add(new ListBindingSet(varNames, bob, RDF.TYPE, OWL.THING));
         expected.add(new ListBindingSet(varNames, bob, RDF.TYPE, person));
         expected.add(new ListBindingSet(varNames, eve, RDF.TYPE, OWL.THING));
@@ -310,13 +310,13 @@ public class PipelineQueryIT extends MongoITBase {
 
     @Test
     public void testTriplePipeline() throws Exception {
-        IRI alice = VF.createIRI("urn:Alice");
-        IRI bob = VF.createIRI("urn:Bob");
-        IRI eve = VF.createIRI("urn:Eve");
-        IRI friend = VF.createIRI("urn:friend");
-        IRI knows = VF.createIRI("urn:knows");
-        IRI year = VF.createIRI("urn:year");
-        Literal yearLiteral = VF.createLiteral("2017", XMLSchema.GYEAR);
+        final IRI alice = VF.createIRI("urn:Alice");
+        final IRI bob = VF.createIRI("urn:Bob");
+        final IRI eve = VF.createIRI("urn:Eve");
+        final IRI friend = VF.createIRI("urn:friend");
+        final IRI knows = VF.createIRI("urn:knows");
+        final IRI year = VF.createIRI("urn:year");
+        final Literal yearLiteral = VF.createLiteral("2017", XMLSchema.GYEAR);
         final String query = "CONSTRUCT {\n"
                 + "    ?x <urn:knows> ?y .\n"
                 + "    ?x <urn:year> \"2017\"^^<" + XMLSchema.GYEAR + "> .\n"
@@ -325,20 +325,20 @@ public class PipelineQueryIT extends MongoITBase {
         insert(bob, knows, eve);
         insert(eve, knows, alice);
         // Prepare query and convert to pipeline
-        QueryRoot queryTree = new QueryRoot(PARSER.parseQuery(query, null).getTupleExpr());
-        SparqlToPipelineTransformVisitor visitor = new SparqlToPipelineTransformVisitor(getRyaCollection());
+        final QueryRoot queryTree = new QueryRoot(PARSER.parseQuery(query, null).getTupleExpr());
+        final SparqlToPipelineTransformVisitor visitor = new SparqlToPipelineTransformVisitor(getRyaCollection());
         queryTree.visit(visitor);
         // Get pipeline, add triple conversion, and verify that the result is a
         // properly serialized statement
         Assert.assertTrue(queryTree.getArg() instanceof AggregationPipelineQueryNode);
-        AggregationPipelineQueryNode pipelineNode = (AggregationPipelineQueryNode) queryTree.getArg();
-        List<Bson> triplePipeline = pipelineNode.getTriplePipeline(System.currentTimeMillis(), false);
-        SimpleMongoDBStorageStrategy strategy = new SimpleMongoDBStorageStrategy();
-        List<Statement> results = new LinkedList<>();
-        for (Document doc : getRyaCollection().aggregate(triplePipeline)) {
+        final AggregationPipelineQueryNode pipelineNode = (AggregationPipelineQueryNode) queryTree.getArg();
+        final List<Bson> triplePipeline = pipelineNode.getTriplePipeline(System.currentTimeMillis(), false);
+        final SimpleMongoDBStorageStrategy strategy = new SimpleMongoDBStorageStrategy();
+        final List<Statement> results = new LinkedList<>();
+        for (final Document doc : getRyaCollection().aggregate(triplePipeline)) {
             final DBObject dbo = (DBObject) JSON.parse(doc.toJson());
-            RyaStatement rstmt = strategy.deserializeDBObject(dbo);
-            Statement stmt = RyaToRdfConversions.convertStatement(rstmt);
+            final RyaStatement rstmt = strategy.deserializeDBObject(dbo);
+            final Statement stmt = RyaToRdfConversions.convertStatement(rstmt);
             results.add(stmt);
         }
         Assert.assertEquals(2, results.size());
@@ -349,11 +349,11 @@ public class PipelineQueryIT extends MongoITBase {
     @Test
     public void testRequiredDerivationLevel() throws Exception {
         // Insert data
-        IRI person = VF.createIRI("urn:Person");
-        IRI livingThing = VF.createIRI("urn:LivingThing");
-        IRI human = VF.createIRI("urn:Human");
-        IRI programmer = VF.createIRI("urn:Programmer");
-        IRI thing = VF.createIRI("urn:Thing");
+        final IRI person = VF.createIRI("urn:Person");
+        final IRI livingThing = VF.createIRI("urn:LivingThing");
+        final IRI human = VF.createIRI("urn:Human");
+        final IRI programmer = VF.createIRI("urn:Programmer");
+        final IRI thing = VF.createIRI("urn:Thing");
         insert(programmer, RDFS.SUBCLASSOF, person);
         insert(person, RDFS.SUBCLASSOF, FOAF.PERSON);
         insert(FOAF.PERSON, RDFS.SUBCLASSOF, person);
@@ -368,18 +368,18 @@ public class PipelineQueryIT extends MongoITBase {
                 + "  ?A rdfs:subClassOf ?B .\n"
                 + "  ?B rdfs:subClassOf ?A .\n"
                 + "}";
-        List<String> varNames = Arrays.asList("A", "B");
+        final List<String> varNames = Arrays.asList("A", "B");
         Multiset<BindingSet> expectedSolutions = HashMultiset.create();
         expectedSolutions.add(new ListBindingSet(varNames, person, FOAF.PERSON));
         expectedSolutions.add(new ListBindingSet(varNames, FOAF.PERSON, person));
         expectedSolutions.add(new ListBindingSet(varNames, thing, OWL.THING));
         expectedSolutions.add(new ListBindingSet(varNames, OWL.THING, thing));
         // Prepare query and convert to pipeline
-        QueryRoot queryTree = new QueryRoot(PARSER.parseQuery(query, null).getTupleExpr());
-        SparqlToPipelineTransformVisitor visitor = new SparqlToPipelineTransformVisitor(getRyaCollection());
+        final QueryRoot queryTree = new QueryRoot(PARSER.parseQuery(query, null).getTupleExpr());
+        final SparqlToPipelineTransformVisitor visitor = new SparqlToPipelineTransformVisitor(getRyaCollection());
         queryTree.visit(visitor);
         Assert.assertTrue(queryTree.getArg() instanceof AggregationPipelineQueryNode);
-        AggregationPipelineQueryNode pipelineNode = (AggregationPipelineQueryNode) queryTree.getArg();
+        final AggregationPipelineQueryNode pipelineNode = (AggregationPipelineQueryNode) queryTree.getArg();
         // Extend the pipeline by requiring a derivation level of zero (should have no effect)
         pipelineNode.requireSourceDerivationDepth(0);
         Multiset<BindingSet> solutions = HashMultiset.create();
@@ -404,11 +404,11 @@ public class PipelineQueryIT extends MongoITBase {
     @Test
     public void testRequiredTimestamp() throws Exception {
         // Insert data
-        IRI person = VF.createIRI("urn:Person");
-        IRI livingThing = VF.createIRI("urn:LivingThing");
-        IRI human = VF.createIRI("urn:Human");
-        IRI programmer = VF.createIRI("urn:Programmer");
-        IRI thing = VF.createIRI("urn:Thing");
+        final IRI person = VF.createIRI("urn:Person");
+        final IRI livingThing = VF.createIRI("urn:LivingThing");
+        final IRI human = VF.createIRI("urn:Human");
+        final IRI programmer = VF.createIRI("urn:Programmer");
+        final IRI thing = VF.createIRI("urn:Thing");
         insert(programmer, RDFS.SUBCLASSOF, person);
         insert(person, RDFS.SUBCLASSOF, FOAF.PERSON, 2);
         insert(FOAF.PERSON, RDFS.SUBCLASSOF, person);
@@ -423,28 +423,28 @@ public class PipelineQueryIT extends MongoITBase {
                 + "  ?A rdfs:subClassOf ?B .\n"
                 + "  ?B rdfs:subClassOf ?A .\n"
                 + "}";
-        List<String> varNames = Arrays.asList("A", "B");
-        Multiset<BindingSet> expectedSolutions = HashMultiset.create();
+        final List<String> varNames = Arrays.asList("A", "B");
+        final Multiset<BindingSet> expectedSolutions = HashMultiset.create();
         expectedSolutions.add(new ListBindingSet(varNames, person, FOAF.PERSON));
         expectedSolutions.add(new ListBindingSet(varNames, FOAF.PERSON, person));
         expectedSolutions.add(new ListBindingSet(varNames, thing, OWL.THING));
         expectedSolutions.add(new ListBindingSet(varNames, OWL.THING, thing));
         // Prepare query and convert to pipeline
-        QueryRoot queryTree = new QueryRoot(PARSER.parseQuery(query, null).getTupleExpr());
-        SparqlToPipelineTransformVisitor visitor = new SparqlToPipelineTransformVisitor(getRyaCollection());
+        final QueryRoot queryTree = new QueryRoot(PARSER.parseQuery(query, null).getTupleExpr());
+        final SparqlToPipelineTransformVisitor visitor = new SparqlToPipelineTransformVisitor(getRyaCollection());
         queryTree.visit(visitor);
         Assert.assertTrue(queryTree.getArg() instanceof AggregationPipelineQueryNode);
-        AggregationPipelineQueryNode pipelineNode = (AggregationPipelineQueryNode) queryTree.getArg();
+        final AggregationPipelineQueryNode pipelineNode = (AggregationPipelineQueryNode) queryTree.getArg();
         // Extend the pipeline by requiring a timestamp of zero (should have no effect)
         pipelineNode.requireSourceTimestamp(0);
-        Multiset<BindingSet> solutions = HashMultiset.create();
+        final Multiset<BindingSet> solutions = HashMultiset.create();
         CloseableIteration<BindingSet, QueryEvaluationException> iter = pipelineNode.evaluate(new QueryBindingSet());
         while (iter.hasNext()) {
             solutions.add(iter.next());
         }
         Assert.assertEquals(expectedSolutions, solutions);
         // Extend the pipeline by requiring a future timestamp (should produce no results)
-        long delta = 1000 * 60 * 60 * 24;
+        final long delta = 1000 * 60 * 60 * 24;
         pipelineNode.requireSourceTimestamp(System.currentTimeMillis() + delta);
         iter = pipelineNode.evaluate(new QueryBindingSet());
         Assert.assertFalse(iter.hasNext());

@@ -25,9 +25,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
-import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibility;
 import org.bson.Document;
@@ -40,11 +40,11 @@ import com.mongodb.client.MongoDatabase;
 /**
  * Integration tests the methods of {@link MongoDBRyaDAO}.
  */
-public class MongoDBRyaDAO2IT extends MongoITBase {
+public class MongoDBRyaDAO2IT extends MongoRyaITBase {
 
     @Test
     public void testDeleteWildcard() throws RyaDAOException {
-        MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         try {
             dao.setConf(conf);
             dao.init();
@@ -60,7 +60,7 @@ public class MongoDBRyaDAO2IT extends MongoITBase {
 
     @Test
     public void testAdd() throws RyaDAOException, MongoException, IOException {
-        MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         try {
             dao.setConf(conf);
             dao.init();
@@ -83,7 +83,7 @@ public class MongoDBRyaDAO2IT extends MongoITBase {
 
     @Test
     public void testDelete() throws RyaDAOException, MongoException, IOException {
-        MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         try {
             dao.setConf(conf);
             dao.init();
@@ -109,7 +109,7 @@ public class MongoDBRyaDAO2IT extends MongoITBase {
 
     @Test
     public void testDeleteWildcardSubjectWithContext() throws RyaDAOException, MongoException, IOException {
-        MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         try {
             dao.setConf(conf);
             dao.init();

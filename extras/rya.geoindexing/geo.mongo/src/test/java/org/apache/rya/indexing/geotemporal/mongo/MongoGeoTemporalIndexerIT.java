@@ -31,21 +31,21 @@ import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.geotemporal.model.Event;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
-import org.apache.rya.mongodb.MongoITBase;
-import org.junit.Before;
-import org.junit.Test;
-import org.eclipse.rdf4j.model.Resource;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * Integration tests the methods of {@link MongoGeoTemporalIndexer}.
  */
-public class MongoGeoTemporalIndexerIT extends MongoITBase {
+public class MongoGeoTemporalIndexerIT extends MongoRyaITBase {
     private MongoGeoTemporalIndexer indexer;
 
     @Before

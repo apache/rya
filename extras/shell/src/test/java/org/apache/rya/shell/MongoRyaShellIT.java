@@ -21,29 +21,21 @@ package org.apache.rya.shell;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import org.apache.rya.api.client.Install.InstallConfiguration;
-import org.apache.rya.api.client.RyaClient;
-import org.apache.rya.api.client.mongo.MongoConnectionDetails;
-import org.apache.rya.api.client.mongo.MongoRyaClientFactory;
 import org.apache.rya.shell.SharedShellState.ConnectionState;
 import org.apache.rya.shell.SharedShellState.ShellState;
 import org.apache.rya.shell.util.ConsolePrinter;
 import org.apache.rya.shell.util.InstallPrompt;
 import org.apache.rya.shell.util.PasswordPrompt;
-import org.apache.rya.shell.util.SparqlPrompt;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
-
-import com.mongodb.MongoClient;
 
 /**
  * Integration tests the functions of the Mongo Rya Shell.
@@ -57,8 +49,8 @@ public class MongoRyaShellIT extends RyaShellMongoITBase {
         // Connect to the Mongo instance.
         final String cmd =
                 RyaConnectionCommands.CONNECT_MONGO_CMD + " " +
-                        "--hostname " + super.conf.getMongoHostname() + " " +
-                        "--port " + super.conf.getMongoPort();
+                        "--hostname " + super.getMongoHostname() + " " +
+                        "--port " + super.getMongoPort();
 
         final CommandResult connectResult = shell.executeCommand(cmd);
 
@@ -85,8 +77,8 @@ public class MongoRyaShellIT extends RyaShellMongoITBase {
         // Connect to the Mongo instance.
         final String cmd =
                 RyaConnectionCommands.CONNECT_MONGO_CMD + " " +
-                        "--hostname " + super.conf.getMongoHostname() + " " +
-                        "--port " + super.conf.getMongoPort();
+                        "--hostname " + super.getMongoHostname() + " " +
+                        "--port " + super.getMongoPort();
         shell.executeCommand(cmd);
 
         // Run the print connection details command.
@@ -95,8 +87,8 @@ public class MongoRyaShellIT extends RyaShellMongoITBase {
 
         final String expected =
                 "The shell is connected to an instance of MongoDB using the following parameters:\n" +
-                "    Hostname: " + super.conf.getMongoHostname() + "\n" +
-                "    Port: " + super.conf.getMongoPort() + "\n";
+                "    Hostname: " + super.getMongoHostname() + "\n" +
+                "    Port: " + super.getMongoPort() + "\n";
         assertEquals(expected, msg);
     }
 
@@ -113,8 +105,8 @@ public class MongoRyaShellIT extends RyaShellMongoITBase {
         // Connect to the Mongo instance.
         final String cmd =
                 RyaConnectionCommands.CONNECT_MONGO_CMD + " " +
-                        "--hostname " + super.conf.getMongoHostname() + " " +
-                        "--port " + super.conf.getMongoPort() + " " +
+                        "--hostname " + super.getMongoHostname() + " " +
+                        "--port " + super.getMongoPort() + " " +
                         "--username bob";
         shell.executeCommand(cmd);
 
@@ -124,8 +116,8 @@ public class MongoRyaShellIT extends RyaShellMongoITBase {
 
         final String expected =
                 "The shell is connected to an instance of MongoDB using the following parameters:\n" +
-                "    Hostname: " + super.conf.getMongoHostname() + "\n" +
-                "    Port: " + super.conf.getMongoPort() + "\n" +
+                "    Hostname: " + super.getMongoHostname() + "\n" +
+                "    Port: " + super.getMongoPort() + "\n" +
                 "    Username: bob\n";
         assertEquals(expected, msg);
     }
@@ -137,8 +129,8 @@ public class MongoRyaShellIT extends RyaShellMongoITBase {
         // Connect to the Mongo instance.
         String cmd =
                 RyaConnectionCommands.CONNECT_MONGO_CMD + " " +
-                        "--hostname " + super.conf.getMongoHostname() + " " +
-                        "--port " + super.conf.getMongoPort();
+                        "--hostname " + super.getMongoHostname() + " " +
+                        "--port " + super.getMongoPort();
         shell.executeCommand(cmd);
 
         // Try to connect to a non-existing instance.
@@ -155,8 +147,8 @@ public class MongoRyaShellIT extends RyaShellMongoITBase {
         // Connect to the Mongo instance.
         String cmd =
                 RyaConnectionCommands.CONNECT_MONGO_CMD + " " +
-                        "--hostname " + super.conf.getMongoHostname() + " " +
-                        "--port " + super.conf.getMongoPort();
+                        "--hostname " + super.getMongoHostname() + " " +
+                        "--port " + super.getMongoPort();
         shell.executeCommand(cmd);
 
         // Install an instance of rya.
@@ -190,8 +182,8 @@ public class MongoRyaShellIT extends RyaShellMongoITBase {
         // Connect to the Mongo instance.
         final String cmd =
                 RyaConnectionCommands.CONNECT_MONGO_CMD + " " +
-                        "--hostname " + super.conf.getMongoHostname() + " " +
-                        "--port " + super.conf.getMongoPort();
+                        "--hostname " + super.getMongoHostname() + " " +
+                        "--port " + super.getMongoPort();
         shell.executeCommand(cmd);
 
         // Disconnect from it.
@@ -200,28 +192,6 @@ public class MongoRyaShellIT extends RyaShellMongoITBase {
     }
 
     // TODO the rest of them?
-
-
-    @Test
-    public void blah() throws Exception {
-        final MongoConnectionDetails details =
-                new MongoConnectionDetails(
-                        "localhost",
-                        27017,
-                        Optional.empty(),
-                        Optional.empty());
-        final RyaClient client = MongoRyaClientFactory.build(details, new MongoClient("localhost", 27017));
-        final SharedShellState state = new SharedShellState();
-        state.connectedToMongo(details, client);
-        state.connectedToInstance("rya_");
-        final ShellState shell = state.getShellState();
-        final SparqlPrompt sparqlPrompt = mock(SparqlPrompt.class);
-        when(sparqlPrompt.getSparql()).thenReturn(
-                com.google.common.base.Optional.<String>of("SELECT * WHERE { ?a ?b ?c }"));
-        final RyaCommands cmnds = new RyaCommands
-                (state, sparqlPrompt, systemPrinter);
-        cmnds.sparqlQuery(null);
-    }
 
     private static final ConsolePrinter systemPrinter = new ConsolePrinter() {
 

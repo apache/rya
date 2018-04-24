@@ -34,7 +34,7 @@ import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.update.mongo.MongoEntityIndexer;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
@@ -52,7 +52,7 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
 
-public class MongoEntityIndexIT extends MongoITBase {
+public class MongoEntityIndexIT extends MongoRyaITBase {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Override
@@ -64,7 +64,7 @@ public class MongoEntityIndexIT extends MongoITBase {
     @Test
     public void ensureInEntityStore_Test() throws Exception {
         final Sail sail = RyaSailFactory.getInstance(conf);
-        SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+        final SailRepositoryConnection conn = new SailRepository(sail).getConnection();
         conn.begin();
 
         try(MongoEntityIndexer indexer = new MongoEntityIndexer()) {
@@ -86,7 +86,7 @@ public class MongoEntityIndexIT extends MongoITBase {
     @Test
     public void sparqlQuery_Test() throws Exception {
         final Sail sail = RyaSailFactory.getInstance(conf);
-        SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+        final SailRepositoryConnection conn = new SailRepository(sail).getConnection();
         conn.begin();
 
         try(MongoEntityIndexer indexer = new MongoEntityIndexer()) {
@@ -122,7 +122,7 @@ public class MongoEntityIndexIT extends MongoITBase {
     @Test
     public void partialQuery_Test() throws Exception {
         final Sail sail = RyaSailFactory.getInstance(conf);
-        SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+        final SailRepositoryConnection conn = new SailRepository(sail).getConnection();
         conn.begin();
 
         try(MongoEntityIndexer indexer = new MongoEntityIndexer()) {
@@ -158,7 +158,7 @@ public class MongoEntityIndexIT extends MongoITBase {
         }
     }
 
-    private void setupTypes(MongoEntityIndexer indexer) throws Exception {
+    private void setupTypes(final MongoEntityIndexer indexer) throws Exception {
         final TypeStorage typeStore = indexer.getTypeStorage();
         // Add some Types to the storage.
         final Type cat = new Type(new RyaIRI("urn:cat"),
@@ -195,7 +195,7 @@ public class MongoEntityIndexIT extends MongoITBase {
         typeStore.create(person);
     }
 
-    private void addStatements(SailRepositoryConnection conn) throws Exception {
+    private void addStatements(final SailRepositoryConnection conn) throws Exception {
         //alice
         IRI subject = VF.createIRI("urn:alice");
         IRI predicate = VF.createIRI("urn:name");

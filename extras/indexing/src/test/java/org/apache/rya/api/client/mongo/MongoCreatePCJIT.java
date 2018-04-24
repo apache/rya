@@ -34,7 +34,7 @@ import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.mongo.MongoPcjStorage;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.junit.Test;
 
 import com.google.common.base.Optional;
@@ -43,7 +43,7 @@ import com.google.common.collect.ImmutableMap;
 /**
  * Integration tests the methods of {@link AccumuloCreatePCJ}.
  */
-public class MongoCreatePCJIT extends MongoITBase {
+public class MongoCreatePCJIT extends MongoRyaITBase {
     @Test(expected = InstanceDoesNotExistException.class)
     public void instanceDoesNotExist() throws Exception {
         final RyaClient ryaClient = MongoRyaClientFactory.build(getConnectionDetails(), getMongoClient());

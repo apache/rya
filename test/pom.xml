@@ -36,6 +36,7 @@
     <modules>
         <module>accumulo</module>
         <module>kafka</module>
+        <module>mongo</module>
         <module>rdf</module>
     </modules>
 </project>

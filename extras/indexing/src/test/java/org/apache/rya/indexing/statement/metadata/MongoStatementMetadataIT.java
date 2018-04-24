@@ -26,14 +26,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -49,7 +49,7 @@ import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.sail.Sail;
 import org.junit.Test;
 
-public class MongoStatementMetadataIT extends MongoITBase {
+public class MongoStatementMetadataIT extends MongoRyaITBase {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private final String query1 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotation; ano:Source <http://Joe>; "
@@ -69,8 +69,8 @@ public class MongoStatementMetadataIT extends MongoITBase {
 
     @Test
     public void simpleQueryWithoutBindingSet() throws Exception {
-        Sail sail = RyaSailFactory.getInstance(conf);
-        MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        final Sail sail = RyaSailFactory.getInstance(conf);
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         try {
             dao.setConf(conf);
             dao.init();
@@ -83,7 +83,7 @@ public class MongoStatementMetadataIT extends MongoITBase {
                     new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
             dao.add(statement);
 
-            SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+            final SailRepositoryConnection conn = new SailRepository(sail).getConnection();
             final TupleQueryResult result = conn.prepareTupleQuery(QueryLanguage.SPARQL, query1).evaluate();
 
             final QueryBindingSet bs = new QueryBindingSet();
@@ -115,8 +115,8 @@ public class MongoStatementMetadataIT extends MongoITBase {
      */
     @Test
     public void simpleQueryWithoutBindingSetInvalidProperty() throws Exception {
-        Sail sail = RyaSailFactory.getInstance(conf);
-        MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        final Sail sail = RyaSailFactory.getInstance(conf);
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         try {
             dao.setConf(conf);
             dao.init();
@@ -128,7 +128,7 @@ public class MongoStatementMetadataIT extends MongoITBase {
                     new RyaType("CoffeeShop"), new RyaIRI("http://context"), "", metadata);
             dao.add(statement);
 
-            SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+            final SailRepositoryConnection conn = new SailRepository(sail).getConnection();
             final TupleQueryResult result = conn.prepareTupleQuery(QueryLanguage.SPARQL, query1).evaluate();
 
             final List<BindingSet> bsList = new ArrayList<>();
@@ -145,8 +145,8 @@ public class MongoStatementMetadataIT extends MongoITBase {
 
     @Test
     public void simpleQueryWithBindingSet() throws Exception {
-        Sail sail = RyaSailFactory.getInstance(conf);
-        MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        final Sail sail = RyaSailFactory.getInstance(conf);
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         try {
             dao.setConf(conf);
             dao.init();
@@ -161,7 +161,7 @@ public class MongoStatementMetadataIT extends MongoITBase {
             dao.add(statement1);
             dao.add(statement2);
 
-            SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+            final SailRepositoryConnection conn = new SailRepository(sail).getConnection();
             final TupleQueryResult result = conn.prepareTupleQuery(QueryLanguage.SPARQL, query1).evaluate();
 
             final Set<BindingSet> expected = new HashSet<>();
@@ -204,8 +204,8 @@ public class MongoStatementMetadataIT extends MongoITBase {
      */
     @Test
     public void simpleQueryWithBindingSetJoinPropertyToSubject() throws Exception {
-        Sail sail = RyaSailFactory.getInstance(conf);
-        MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        final Sail sail = RyaSailFactory.getInstance(conf);
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         try {
             dao.setConf(conf);
             dao.init();
@@ -229,7 +229,7 @@ public class MongoStatementMetadataIT extends MongoITBase {
             dao.add(statement3);
             dao.add(statement4);
 
-            SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+            final SailRepositoryConnection conn = new SailRepository(sail).getConnection();
             final TupleQueryResult result = conn.prepareTupleQuery(QueryLanguage.SPARQL, query2).evaluate();
 
             final Set<BindingSet> expected = new HashSet<>();

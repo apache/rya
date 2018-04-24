@@ -26,7 +26,7 @@ import java.util.List;
 import org.apache.rya.api.client.ExecuteSparqlQuery;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.RyaClient;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -38,7 +38,7 @@ import org.junit.Test;
 /**
  * Integration tests the methods of {@link }.
  */
-public class MongoExecuteSparqlQueryIT extends MongoITBase {
+public class MongoExecuteSparqlQueryIT extends MongoRyaITBase {
 
     @Test
     public void ExecuteSparqlQuery_exec() throws Exception {

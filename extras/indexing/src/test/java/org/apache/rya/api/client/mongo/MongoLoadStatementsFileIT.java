@@ -28,7 +28,7 @@ import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
 import org.apache.rya.api.client.RyaClient;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.bson.Document;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -40,7 +40,7 @@ import com.mongodb.client.MongoCursor;
 /**
  * Integration tests the methods of {@link MongoLoadStatementsFile}.
  */
-public class MongoLoadStatementsFileIT extends MongoITBase {
+public class MongoLoadStatementsFileIT extends MongoRyaITBase {
 
     @Test(expected = InstanceDoesNotExistException.class)
     public void instanceDoesNotExist() throws Exception {

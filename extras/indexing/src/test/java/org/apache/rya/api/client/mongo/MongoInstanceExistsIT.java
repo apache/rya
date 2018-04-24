@@ -22,8 +22,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.rya.mongodb.MongoITBase;
 import org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
+import org.apache.rya.test.mongo.MongoITBase;
 import org.junit.Test;
 
 import com.mongodb.MongoClient;

@@ -35,7 +35,7 @@ import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.Precomputed
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.mongo.MongoPcjStorage;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -46,7 +46,7 @@ import org.junit.Test;
 /**
  * Integration tests the methods of {@link AccumuloBatchUpdatePCJ}.
  */
-public class MongoBatchUpdatePCJIT extends MongoITBase {
+public class MongoBatchUpdatePCJIT extends MongoRyaITBase {
 
     @Override
     protected void updateConfiguration(final MongoDBRdfConfiguration conf) {

@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.IndexingExpr;
@@ -428,10 +429,12 @@ public class GeoTemporalMongoDBStorageStrategyTest {
         Value object = VF.createLiteral("Point(-77.03524 38.889468)", GeoConstants.XMLSCHEMA_OGC_WKT);
 
         Statement statement = VF.createStatement(subject, predicate, object, context);
-        DBObject actual = adapter.serialize(RdfToRyaConversions.convertStatement(statement));
+        RyaStatement ryaStatement = RdfToRyaConversions.convertStatement(statement);
+        int expectedId = ryaStatement.getSubject().hashCode();
+        DBObject actual = adapter.serialize(ryaStatement);
         String expectedString =
             "{ "
-            + "\"_id\" : -852305321 , "
+            + "\"_id\" : " + expectedId + ", "
             + "\"location\" : { "
               + "\"coordinates\" : [ -77.03524 , 38.889468] , "
               + "\"type\" : \"Point\""
@@ -444,10 +447,12 @@ public class GeoTemporalMongoDBStorageStrategyTest {
         predicate = VF.createIRI("Property:event:time");
         object = VF.createLiteral("2015-12-30T12:00:00Z");
         statement = VF.createStatement(subject, predicate, object, context);
-        actual = adapter.serialize(RdfToRyaConversions.convertStatement(statement));
+        ryaStatement = RdfToRyaConversions.convertStatement(statement);
+        expectedId = ryaStatement.getSubject().hashCode();
+        actual = adapter.serialize(ryaStatement);
         expectedString =
                 "{"
-                  +"_id : -852305321, "
+                  +"_id : " + expectedId + ", "
                   +"time: {"
                     + "instant : {"
                       +"\"$date\" : \"2015-12-30T12:00:00.000Z\""
@@ -461,10 +466,12 @@ public class GeoTemporalMongoDBStorageStrategyTest {
         predicate = VF.createIRI("Property:circa");
         object = VF.createLiteral("[1969-12-31T19:00:00-05:00,1969-12-31T19:00:01-05:00]");
         statement = VF.createStatement(subject, predicate, object, context);
-        actual = adapter.serialize(RdfToRyaConversions.convertStatement(statement));
+        ryaStatement = RdfToRyaConversions.convertStatement(statement);
+        expectedId = ryaStatement.getSubject().hashCode();
+        actual = adapter.serialize(ryaStatement);
         expectedString =
                 "{"
-                +"_id : -852305321, "
+                +"_id : " + expectedId + ", "
                 +"time: {"
                   + "start : {"
                     +"\"$date\" : \"1970-01-01T00:00:00.000Z\""

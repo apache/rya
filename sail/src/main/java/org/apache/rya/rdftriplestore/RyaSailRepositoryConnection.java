@@ -8,9 +8,9 @@ package org.apache.rya.rdftriplestore;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -30,9 +30,11 @@ import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.repository.util.RDFLoader;
+import org.eclipse.rdf4j.rio.ParserConfig;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFHandlerException;
 import org.eclipse.rdf4j.rio.RDFParseException;
+import org.eclipse.rdf4j.rio.helpers.BasicParserSettings;
 import org.eclipse.rdf4j.sail.SailConnection;
 
 /**
@@ -40,65 +42,60 @@ import org.eclipse.rdf4j.sail.SailConnection;
  */
 public class RyaSailRepositoryConnection extends SailRepositoryConnection {
 
-    protected RyaSailRepositoryConnection(SailRepository repository, SailConnection sailConnection) {
+    protected RyaSailRepositoryConnection(final SailRepository repository, final SailConnection sailConnection) {
         super(repository, sailConnection);
     }
 
     @Override
-    public void add(InputStream in, String baseURI, RDFFormat dataFormat, Resource... contexts) throws IOException, RDFParseException,
+    public ParserConfig getParserConfig() {
+        final ParserConfig parserConfig = super.getParserConfig();
+        parserConfig.set(BasicParserSettings.VERIFY_URI_SYNTAX, false);
+        return parserConfig;
+    }
+
+    @Override
+    public void add(final InputStream in, final String baseURI, final RDFFormat dataFormat, final Resource... contexts) throws IOException, RDFParseException,
             RepositoryException {
         OpenRDFUtil.verifyContextNotNull(contexts);
 
-        CombineContextsRdfInserter rdfInserter = new CombineContextsRdfInserter(this);
+        final CombineContextsRdfInserter rdfInserter = new CombineContextsRdfInserter(this);
         rdfInserter.enforceContext(contexts);
 
-        boolean localTransaction = startLocalTransaction();
+        final boolean localTransaction = startLocalTransaction();
         try {
-            RDFLoader loader = new RDFLoader(getParserConfig(), getValueFactory());
+            final RDFLoader loader = new RDFLoader(getParserConfig(), getValueFactory());
             loader.load(in, baseURI, dataFormat, rdfInserter);
 
             conditionalCommit(localTransaction);
-        } catch (RDFHandlerException e) {
+        } catch (final RDFHandlerException e) {
             conditionalRollback(localTransaction);
 
             throw ((RepositoryException) e.getCause());
-        } catch (RDFParseException e) {
-            conditionalRollback(localTransaction);
-            throw e;
-        } catch (IOException e) {
-            conditionalRollback(localTransaction);
-            throw e;
-        } catch (RuntimeException e) {
+        } catch (final IOException | RuntimeException e) {
             conditionalRollback(localTransaction);
             throw e;
         }
     }
 
     @Override
-    public void add(Reader reader, String baseURI, RDFFormat dataFormat, Resource... contexts) throws IOException, RDFParseException,
+    public void add(final Reader reader, final String baseURI, final RDFFormat dataFormat, final Resource... contexts) throws IOException, RDFParseException,
             RepositoryException {
         OpenRDFUtil.verifyContextNotNull(contexts);
 
-        CombineContextsRdfInserter rdfInserter = new CombineContextsRdfInserter(this);
+        final CombineContextsRdfInserter rdfInserter = new CombineContextsRdfInserter(this);
         rdfInserter.enforceContext(contexts);
 
-        boolean localTransaction = startLocalTransaction();
+        final boolean localTransaction = startLocalTransaction();
         try {
-            RDFLoader loader = new RDFLoader(getParserConfig(), getValueFactory());
+            final RDFLoader loader = new RDFLoader(getParserConfig(), getValueFactory());
             loader.load(reader, baseURI, dataFormat, rdfInserter);
 
             conditionalCommit(localTransaction);
-        } catch (RDFHandlerException e) {
+        } catch (final RDFHandlerException e) {
             conditionalRollback(localTransaction);
 
             throw ((RepositoryException) e.getCause());
-        } catch (RDFParseException e) {
-            conditionalRollback(localTransaction);
-            throw e;
-        } catch (IOException e) {
-            conditionalRollback(localTransaction);
-            throw e;
-        } catch (RuntimeException e) {
+        } catch (final IOException | RuntimeException e) {
             conditionalRollback(localTransaction);
             throw e;
         }

@@ -133,6 +133,7 @@
                         <excludes>
                             <!-- RDF data Files -->
                             <exclude>**/*.ttl</exclude>
+                            <exclude>**/src/test/resources/rdf_format_files/**</exclude>
 
                             <!-- Services Files -->
                             <exclude>**/resources/META-INF/services/**</exclude>

@@ -1,0 +1,10 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix personnel: <http://rya.apache.org/ns/personnel/> .
+@prefix : <http://rya.apache.org/ns/> .
+
+:Graph1 { :Bob personnel:name "Bob Smitch" .
+          :Bob personnel:email <mailto:bobsmitch00@gmail.com> .
+          :Bob personnel:hasSkill personnel:Programming }
+ 
+:Graph2 { :Susan rdf:type personnel:Person .
+          :Susan personnel:hasSkill personnel:Management }

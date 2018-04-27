@@ -25,7 +25,10 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.api.utils.LiteralLanguageUtils;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.util.Literals;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 
 import com.google.common.primitives.Bytes;
 
@@ -42,7 +45,15 @@ public class CustomDatatypeResolver extends RyaTypeResolverImpl {
 
     @Override
     public byte[][] serializeType(final RyaType ryaType) throws RyaTypeResolverException {
-        final byte[] bytes = serializeData(ryaType.getData()).getBytes(StandardCharsets.UTF_8);
+        final StringBuilder dataBuilder = new StringBuilder();
+        dataBuilder.append(ryaType.getData());
+        final String validatedLanguage = LiteralLanguageUtils.validateLanguage(ryaType.getLanguage(), ryaType.getDataType());
+        if (validatedLanguage != null) {
+            dataBuilder.append(LiteralLanguageUtils.LANGUAGE_DELIMITER);
+            dataBuilder.append(validatedLanguage);
+        }
+        // Combine data and language
+        final byte[] bytes = serializeData(dataBuilder.toString()).getBytes(StandardCharsets.UTF_8);
         return new byte[][]{bytes, Bytes.concat(TYPE_DELIM_BYTES, ryaType.getDataType().stringValue().getBytes(StandardCharsets.UTF_8), TYPE_DELIM_BYTES, markerBytes)};
     }
 
@@ -63,9 +74,20 @@ public class CustomDatatypeResolver extends RyaTypeResolverImpl {
         if (indexOfType < 1) {
             throw new RyaTypeResolverException("Not a datatype literal");
         }
-        final String label = deserializeData(new String(bytes, 0, indexOfType, StandardCharsets.UTF_8));
+        String data = deserializeData(new String(bytes, 0, indexOfType, StandardCharsets.UTF_8));
         rt.setDataType(SimpleValueFactory.getInstance().createIRI(new String(bytes, indexOfType + 1, (length - indexOfType) - 3, StandardCharsets.UTF_8)));
-        rt.setData(label);
+        if (RDF.LANGSTRING.equals(rt.getDataType())) {
+            final int langDelimiterPos = data.lastIndexOf(LiteralLanguageUtils.LANGUAGE_DELIMITER);
+            final String parsedData = data.substring(0, langDelimiterPos);
+            final String language = data.substring(langDelimiterPos + 1, data.length());
+            if (language != null && Literals.isValidLanguageTag(language)) {
+                rt.setLanguage(language);
+            } else {
+                rt.setLanguage(LiteralLanguageUtils.UNDETERMINED_LANGUAGE);
+            }
+            data = parsedData;
+        }
+        rt.setData(data);
         return rt;
     }
 }

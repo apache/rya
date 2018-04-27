@@ -24,14 +24,16 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
-import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 import org.apache.rya.mongodb.document.util.DocumentVisibilityConversionException;
 import org.apache.rya.mongodb.document.util.DocumentVisibilityUtil;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibility;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.junit.Test;
 
 import com.mongodb.BasicDBObject;
@@ -47,11 +49,13 @@ public class SimpleMongoDBStorageStrategyTest {
     private static final DocumentVisibility DOCUMENT_VISIBILITY = new DocumentVisibility("A&B");
 
     private static final RyaStatement testStatement;
+    private static final RyaStatement testStatement2;
     private static final DBObject testDBO;
+    private static final DBObject testDBO2;
     private final SimpleMongoDBStorageStrategy storageStrategy = new SimpleMongoDBStorageStrategy();
 
     static {
-        final RyaStatementBuilder builder = new RyaStatementBuilder();
+        RyaStatementBuilder builder = new RyaStatementBuilder();
         builder.setPredicate(new RyaIRI(PREDICATE));
         builder.setSubject(new RyaIRI(SUBJECT));
         builder.setObject(new RyaIRI(OBJECT));
@@ -69,6 +73,7 @@ public class SimpleMongoDBStorageStrategyTest {
         testDBO.put(SimpleMongoDBStorageStrategy.OBJECT, OBJECT);
         testDBO.put(SimpleMongoDBStorageStrategy.OBJECT_HASH, DigestUtils.sha256Hex(OBJECT));
         testDBO.put(SimpleMongoDBStorageStrategy.OBJECT_TYPE, ANYURI.stringValue());
+        testDBO.put(SimpleMongoDBStorageStrategy.OBJECT_LANGUAGE, null);
         testDBO.put(SimpleMongoDBStorageStrategy.CONTEXT, CONTEXT);
         testDBO.put(SimpleMongoDBStorageStrategy.STATEMENT_METADATA, STATEMENT_METADATA);
         try {
@@ -77,18 +82,51 @@ public class SimpleMongoDBStorageStrategyTest {
             e.printStackTrace();
         }
         testDBO.put(SimpleMongoDBStorageStrategy.TIMESTAMP, null);
+
+
+        builder = new RyaStatementBuilder();
+        builder.setPredicate(new RyaIRI(PREDICATE));
+        builder.setSubject(new RyaIRI(SUBJECT));
+        builder.setObject(new RyaType(RDF.LANGSTRING, OBJECT, "en-US"));
+        builder.setContext(new RyaIRI(CONTEXT));
+        builder.setColumnVisibility(DOCUMENT_VISIBILITY.flatten());
+        builder.setTimestamp(null);
+        testStatement2 = builder.build();
+
+        // Check language support
+        testDBO2 = new BasicDBObject();
+        testDBO2.put(SimpleMongoDBStorageStrategy.ID, "580fb5d11f0b62fa735ac98b36bba1fc37ddc3fc");
+        testDBO2.put(SimpleMongoDBStorageStrategy.SUBJECT, SUBJECT);
+        testDBO2.put(SimpleMongoDBStorageStrategy.SUBJECT_HASH, DigestUtils.sha256Hex(SUBJECT));
+        testDBO2.put(SimpleMongoDBStorageStrategy.PREDICATE, PREDICATE);
+        testDBO2.put(SimpleMongoDBStorageStrategy.PREDICATE_HASH, DigestUtils.sha256Hex(PREDICATE));
+        testDBO2.put(SimpleMongoDBStorageStrategy.OBJECT, OBJECT);
+        testDBO2.put(SimpleMongoDBStorageStrategy.OBJECT_HASH, DigestUtils.sha256Hex(OBJECT));
+        testDBO2.put(SimpleMongoDBStorageStrategy.OBJECT_TYPE, RDF.LANGSTRING.stringValue());
+        testDBO2.put(SimpleMongoDBStorageStrategy.OBJECT_LANGUAGE, "en-US");
+        testDBO2.put(SimpleMongoDBStorageStrategy.CONTEXT, CONTEXT);
+        testDBO2.put(SimpleMongoDBStorageStrategy.STATEMENT_METADATA, STATEMENT_METADATA);
+        try {
+            testDBO2.put(SimpleMongoDBStorageStrategy.DOCUMENT_VISIBILITY, DocumentVisibilityUtil.toMultidimensionalArray(DOCUMENT_VISIBILITY));
+        } catch (final DocumentVisibilityConversionException e) {
+            e.printStackTrace();
+        }
+        testDBO2.put(SimpleMongoDBStorageStrategy.TIMESTAMP, null);
     }
 
     @Test
     public void testSerializeStatementToDBO() throws RyaDAOException, MongoException, IOException {
 
-        final DBObject dbo = storageStrategy.serialize(testStatement);
+        DBObject dbo = storageStrategy.serialize(testStatement);
         assertEquals(testDBO, dbo);
+
+        dbo = storageStrategy.serialize(testStatement2);
+        assertEquals(testDBO2, dbo);
     }
 
     @Test
     public void testDeSerializeStatementToDBO() throws RyaDAOException, MongoException, IOException {
-        final RyaStatement statement = storageStrategy.deserializeDBObject(testDBO);
+        RyaStatement statement = storageStrategy.deserializeDBObject(testDBO);
         /*
          * Since RyaStatement creates a timestamp using JVM time if the timestamp is null, we want to re-null it
          * for this test.  Timestamp is created at insert time by the Server, this test
@@ -96,5 +134,14 @@ public class SimpleMongoDBStorageStrategyTest {
          */
         statement.setTimestamp(null);
         assertEquals(testStatement, statement);
+
+        statement = storageStrategy.deserializeDBObject(testDBO2);
+        /*
+         * Since RyaStatement creates a timestamp using JVM time if the timestamp is null, we want to re-null it
+         * for this test.  Timestamp is created at insert time by the Server, this test
+         * can be found in the RyaDAO.
+         */
+        statement.setTimestamp(null);
+        assertEquals(testStatement2, statement);
     }
 }

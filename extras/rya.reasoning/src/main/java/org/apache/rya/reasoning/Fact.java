@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.api.utils.LiteralLanguageUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Resource;
@@ -63,14 +64,14 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
     /**
      * A fact containing a triple and no generating rule.
      */
-    public Fact(Statement stmt) {
+    public Fact(final Statement stmt) {
         this.triple = stmt;
     }
 
     /**
      * A fact containing a triple and no generating rule.
      */
-    public Fact(Resource s, IRI p, Value o) {
+    public Fact(final Resource s, final IRI p, final Value o) {
         this.triple = VF.createStatement(s, p, o);
     }
 
@@ -78,8 +79,8 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
      * A fact which contains a triple and was generated using a
      * particular rule by a reasoner for a particular node.
      */
-    public Fact(Resource s, IRI p, Value o, int iteration,
-            OwlRule rule, Resource node) {
+    public Fact(final Resource s, final IRI p, final Value o, final int iteration,
+            final OwlRule rule, final Resource node) {
         this.triple = VF.createStatement(s, p, o);
         this.derivation = new Derivation(iteration, rule, node);
     }
@@ -142,14 +143,14 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
     /**
      * Assign a particular statement to this fact.
      */
-    public void setTriple(Statement stmt) {
+    public void setTriple(final Statement stmt) {
         triple = stmt;
     }
 
     /**
      * Assign a particular statement to this fact.
      */
-    public void setTriple(RyaStatement rs) {
+    public void setTriple(final RyaStatement rs) {
         setTriple(RyaToRdfConversions.convertStatement(rs));
     }
 
@@ -157,14 +158,14 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
      * Set a flag if this triple *could* be used in future derivations
      * (may only actually happen if certain other facts are seen as well.)
      */
-    public void setUseful(boolean useful) {
+    public void setUseful(final boolean useful) {
         this.useful = useful;
     }
 
     /**
      * Set derivation. Allows reconstructing a fact and the way it was produced.
      */
-    public void setDerivation(Derivation d) {
+    public void setDerivation(final Derivation d) {
         this.derivation = d;
     }
 
@@ -173,7 +174,7 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
      * of the fact from the way it was produced.
      */
     public Derivation unsetDerivation() {
-        Derivation d = getDerivation();
+        final Derivation d = getDerivation();
         this.derivation = null;
         return d;
     }
@@ -183,7 +184,7 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
      * @param   multiline    Print a multi-line tree as opposed to a nested list
      * @param   schema       Use schema knowledge to further explain BNodes
      */
-    public String explain(boolean multiline, Schema schema) {
+    public String explain(final boolean multiline, final Schema schema) {
         return explain(multiline, "", schema);
     }
 
@@ -192,15 +193,15 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
      * schema information.
      * @param   multiline    Print a multi-line tree as opposed to a nested list
      */
-    public String explain(boolean multiline) {
+    public String explain(final boolean multiline) {
         return explain(multiline, "", null);
     }
 
     /**
      * Recursively generate a String to show this fact's derivation.
      */
-    String explain(boolean multiline, String prefix, Schema schema) {
-        StringBuilder sb = new StringBuilder();
+    String explain(final boolean multiline, final String prefix, final Schema schema) {
+        final StringBuilder sb = new StringBuilder();
         String sep = " ";
         if (multiline) {
             sep = "\n" + prefix;
@@ -209,15 +210,15 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
             sb.append("(empty)").append(sep);
         }
         else {
-            Resource s = getSubject();
-            IRI p = getPredicate();
-            Value o = getObject();
+            final Resource s = getSubject();
+            final IRI p = getPredicate();
+            final Value o = getObject();
             sb.append("<").append(s.toString()).append(">").append(sep);
             sb.append("<").append(p.toString()).append(">").append(sep);
             sb.append("<").append(o.toString()).append(">");
             // Restrictions warrant further explanation
             if (schema != null && p.equals(RDF.TYPE)) {
-                Resource objClass = (Resource) o;
+                final Resource objClass = (Resource) o;
                 if (schema.hasRestriction(objClass)) {
                     sb.append(" { ");
                     sb.append(schema.explainRestriction(objClass));
@@ -240,7 +241,7 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
      */
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         if (triple != null) {
             sb.append("<").append(getSubject().toString()).append("> ");
             sb.append("<").append(getPredicate().toString()).append("> ");
@@ -255,25 +256,25 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
     }
 
     @Override
-    public void write(DataOutput out) throws IOException {
+    public void write(final DataOutput out) throws IOException {
         if (triple == null) {
             out.writeInt(0);
         }
         else {
-            StringBuilder sb = new StringBuilder();
+            final StringBuilder sb = new StringBuilder();
             if (triple.getContext() != null) {
                 sb.append(triple.getContext().toString());
             }
             sb.append(SEP).append(getSubject().toString());
             sb.append(SEP).append(getPredicate().toString());
             sb.append(SEP).append(getObject().toString());
-            byte[] encoded = sb.toString().getBytes(StandardCharsets.UTF_8);
+            final byte[] encoded = sb.toString().getBytes(StandardCharsets.UTF_8);
             out.writeInt(encoded.length);
             out.write(encoded);
         }
         out.writeBoolean(useful);
         // Write the derivation if there is one
-        boolean derived = isInference();
+        final boolean derived = isInference();
         out.writeBoolean(derived);
         if (derived) {
             derivation.write(out);
@@ -281,21 +282,21 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
     }
 
     @Override
-    public void readFields(DataInput in) throws IOException {
+    public void readFields(final DataInput in) throws IOException {
         derivation = null;
-        int tripleLength = in.readInt();
+        final int tripleLength = in.readInt();
         if (tripleLength == 0) {
             triple = null;
         }
         else {
-            byte[] tripleBytes = new byte[tripleLength];
+            final byte[] tripleBytes = new byte[tripleLength];
             in.readFully(tripleBytes);
-            String tripleString = new String(tripleBytes, StandardCharsets.UTF_8);
-            String[] parts = tripleString.split(SEP);
-            ValueFactory factory = SimpleValueFactory.getInstance();
-            String context = parts[0];
+            final String tripleString = new String(tripleBytes, StandardCharsets.UTF_8);
+            final String[] parts = tripleString.split(SEP);
+            final ValueFactory factory = SimpleValueFactory.getInstance();
+            final String context = parts[0];
             Resource s = null;
-            IRI p = factory.createIRI(parts[2]);
+            final IRI p = factory.createIRI(parts[2]);
             Value o = null;
             // Subject: either bnode or URI
             if (parts[1].startsWith("_")) {
@@ -310,17 +311,17 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
             }
             else if (parts[3].startsWith("\"")) {
                 //literal: may have language or datatype
-                int close = parts[3].lastIndexOf("\"");
-                int length = parts[3].length();
-                String label = parts[3].substring(1, close);
+                final int close = parts[3].lastIndexOf("\"");
+                final int length = parts[3].length();
+                final String label = parts[3].substring(1, close);
                 if (close == length - 1) {
                     // Just a string enclosed in quotes
                     o = factory.createLiteral(label);
                 }
                 else {
-                    String data = parts[3].substring(close + 1);
-                    if (data.startsWith("@")) {
-                        String lang = data.substring(1);
+                    final String data = parts[3].substring(close + 1);
+                    if (data.startsWith(LiteralLanguageUtils.LANGUAGE_DELIMITER)) {
+                        final String lang = data.substring(1);
                         o = factory.createLiteral(label, lang);
                     }
                     else if (data.startsWith("^^<")) {
@@ -354,7 +355,7 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
      * (represent no triple), compare their derivations instead.
      */
     @Override
-    public int compareTo(Fact other) {
+    public int compareTo(final Fact other) {
         if (this.equals(other)) {
             return 0;
         }
@@ -395,14 +396,14 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
      * compare their derivations.
      */
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
         if (o == null || this.getClass() != o.getClass()) {
             return false;
         }
-        Fact other = (Fact) o;
+        final Fact other = (Fact) o;
         if (this.triple == null) {
             if (other.triple == null) {
                 // Derivations only matter if both facts are empty
@@ -433,7 +434,7 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
 
     @Override
     public Fact clone() {
-        Fact other = new Fact();
+        final Fact other = new Fact();
         other.triple = this.triple;
         other.useful = this.useful;
         if (this.derivation != null) {
@@ -446,7 +447,7 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
      * Specify a source. Wrapper for Derivation.addSource. Instantiates a
      * derivation if none exists.
      */
-    public void addSource(Fact other) {
+    public void addSource(final Fact other) {
         if (derivation == null) {
             derivation = new Derivation();
         }
@@ -477,14 +478,14 @@ public class Fact implements WritableComparable<Fact>, Cloneable {
      * Return whether a particular fact is identical to one used to derive this.
      * Wrapper for Derivation.hasSource.
      */
-    public boolean hasSource(Fact other) {
+    public boolean hasSource(final Fact other) {
         return derivation != null && derivation.hasSource(other);
     }
 
     /**
      * Return whether this fact was derived using a particular rule.
      */
-    public boolean hasRule(OwlRule rule) {
+    public boolean hasRule(final OwlRule rule) {
         return derivation != null && derivation.getRule() == rule;
     }
 

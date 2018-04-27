@@ -25,6 +25,7 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.utils.LiteralLanguageUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
@@ -38,10 +39,10 @@ public class RyaTypeWritable implements WritableComparable<RyaTypeWritable>{
      * @return The next individual field, as a byte array.
      * @throws IOException if reading from the stream fails.
      */
-    protected byte[] read(DataInput dataInput) throws IOException {
+    protected byte[] read(final DataInput dataInput) throws IOException {
         if (dataInput.readBoolean()) {
-            int len = dataInput.readInt();
-            byte[] bytes = new byte[len];
+            final int len = dataInput.readInt();
+            final byte[] bytes = new byte[len];
             dataInput.readFully(bytes);
             return bytes;
         }else {
@@ -50,19 +51,24 @@ public class RyaTypeWritable implements WritableComparable<RyaTypeWritable>{
     }
 
     @Override
-    public void readFields(DataInput dataInput) throws IOException {
-        SimpleValueFactory vfi = SimpleValueFactory.getInstance();
-        String data = dataInput.readLine();
-        String dataTypeString = dataInput.readLine();
-        IRI dataType = vfi.createIRI(dataTypeString);
+    public void readFields(final DataInput dataInput) throws IOException {
+        final SimpleValueFactory vfi = SimpleValueFactory.getInstance();
+        final String data = dataInput.readLine();
+        final String dataTypeString = dataInput.readLine();
+        final String language = dataInput.readLine();
+        final IRI dataType = vfi.createIRI(dataTypeString);
+        final String validatedLanguage = LiteralLanguageUtils.validateLanguage(language, dataType);
         ryatype.setData(data);
         ryatype.setDataType(dataType);
+        ryatype.setLanguage(validatedLanguage);
+
     }
 
     @Override
-    public void write(DataOutput dataOutput) throws IOException {
+    public void write(final DataOutput dataOutput) throws IOException {
         dataOutput.writeChars(ryatype.getData());
         dataOutput.writeChars(ryatype.getDataType().toString());
+        dataOutput.writeChars(ryatype.getLanguage());
     }
 
     /**
@@ -77,12 +83,12 @@ public class RyaTypeWritable implements WritableComparable<RyaTypeWritable>{
      * @param   ryaStatement    The statement to be represented by this
      *                          RyaStatementWritable.
      */
-    public void setRyaType(RyaType ryatype) {
+    public void setRyaType(final RyaType ryatype) {
         this.ryatype = ryatype;
     }
 
     @Override
-    public int compareTo(RyaTypeWritable o) {
+    public int compareTo(final RyaTypeWritable o) {
         return ryatype.compareTo(o.ryatype);
     }
 
@@ -93,15 +99,15 @@ public class RyaTypeWritable implements WritableComparable<RyaTypeWritable>{
      *          RyaTypes.
      */
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (o == this) {
             return true;
         }
         if (o == null || !(o instanceof RyaTypeWritable)) {
             return false;
         }
-        RyaType rtThis = ryatype;
-        RyaType rtOther = ((RyaTypeWritable) o).ryatype;
+        final RyaType rtThis = ryatype;
+        final RyaType rtOther = ((RyaTypeWritable) o).ryatype;
         if (rtThis == null) {
             return rtOther == null;
         }

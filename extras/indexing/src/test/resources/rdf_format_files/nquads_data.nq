@@ -1,0 +1,2 @@
+<http://rya.apache.org/ns/Bob> <http://rya.apache.org/ns/hasJob> <http://rya.apache.org/ns/Programmer> <http://rya.apache.org/ns/graph1> .
+<http://rya.apache.org/ns/Susan> <http://rya.apache.org/ns/hasJob> <http://rya.apache.org/ns/Manager> <http://rya.apache.org/ns/graph2> .

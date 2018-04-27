@@ -18,6 +18,9 @@
  */
 package org.apache.rya.api.domain;
 
+import java.util.Objects;
+
+import org.apache.commons.lang.builder.CompareToBuilder;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
@@ -27,23 +30,47 @@ import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
  * Date: 7/16/12
  * Time: 11:45 AM
  */
-public class RyaType implements Comparable {
+public class RyaType implements Comparable<RyaType> {
 
     private IRI dataType;
     private String data;
+    private String language;
 
+    /**
+     * Creates a new instance of {@link RyaType}.
+     */
     public RyaType() {
-        setDataType(XMLSchema.STRING);
+        this(null);
     }
 
+    /**
+     * Creates a new instance of {@link RyaType} of type
+     * {@link XMLSchema#STRING} and with no language.
+     * @param data the data string.
+     */
     public RyaType(final String data) {
         this(XMLSchema.STRING, data);
     }
 
-
+    /**
+     * Creates a new instance of {@link RyaType} with no language.
+     * @param dataType the {@link IRI} data type.
+     * @param data the data string.
+     */
     public RyaType(final IRI dataType, final String data) {
-        setDataType(dataType);
-        setData(data);
+        this(dataType, data, null);
+    }
+
+    /**
+     * Creates a new instance of {@link RyaType}.
+     * @param dataType the {@link IRI} data type.
+     * @param data the data string.
+     * @param language the language code.
+     */
+    public RyaType(final IRI dataType, final String data, final String language) {
+        this.dataType = dataType;
+        this.data = data;
+        this.language = language;
     }
 
     /**
@@ -67,20 +94,40 @@ public class RyaType implements Comparable {
         this.data = data;
     }
 
+    /**
+     * @return the language code.
+     */
+    public String getLanguage() {
+        return language;
+    }
+
+    /**
+     * Sets the language code.
+     * @param language the language code.
+     */
+    public void setLanguage(final String language) {
+        this.language = language;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append("RyaType");
         sb.append("{dataType=").append(dataType);
         sb.append(", data='").append(data).append('\'');
+        if (language != null) {
+            sb.append(", language='").append(language).append('\'');
+        }
         sb.append('}');
         return sb.toString();
     }
 
     /**
-     * Determine equality based on string representations of data and datatype.
+     * Determine equality based on string representations of data, datatype, and
+     * language.
      * @param o The object to compare with
-     * @return true if the other object is also a RyaType and both data and datatype match.
+     * @return {@code true} if the other object is also a RyaType and the data,
+     * datatype, and language all match.
      */
     @Override
     public boolean equals(final Object o) {
@@ -93,53 +140,40 @@ public class RyaType implements Comparable {
         final RyaType other = (RyaType) o;
         final EqualsBuilder builder = new EqualsBuilder()
                 .append(getData(), other.getData())
-                .append(getDataType(), other.getDataType());
+                .append(getDataType(), other.getDataType())
+                .append(getLanguage(), other.getLanguage());
         return builder.isEquals();
     }
 
     /**
-     * Generate a hash based on the string representations of both data and datatype.
+     * Generate a hash based on the string representations of data, datatype,
+     * and language.
      * @return A hash consistent with equals.
      */
     @Override
     public int hashCode() {
-        int result = dataType != null ? dataType.hashCode() : 0;
-        result = 31 * result + (data != null ? data.hashCode() : 0);
-        return result;
+        return Objects.hash(dataType, data, language);
     }
 
     /**
-     * Define a natural ordering based on data and datatype.
+     * Define a natural ordering based on data, datatype, and language.
      * @param o The object to compare with
-     * @return 0 if both the data string and the datatype string representation match between the objects,
-     *          where matching is defined by string comparison or both being null;
-     *          Otherwise, an integer whose sign yields a consistent ordering.
+     * @return 0 if the data string, the datatype string, and the language
+     * string representation match between the objects, where matching is
+     * defined by string comparison or all being null;
+     * Otherwise, an integer whose sign yields a consistent ordering.
      */
     @Override
-    public int compareTo(final Object o) {
-        int result = -1;
-        if (o != null && o instanceof RyaType) {
-            result = 0;
-            final RyaType other = (RyaType) o;
-            if (this.data != other.data) {
-                if (this.data == null) {
-                    return 1;
-                }
-                if (other.data == null) {
-                    return -1;
-                }
-                result = this.data.compareTo(other.data);
-            }
-            if (result == 0 && this.dataType != other.dataType) {
-                if (this.dataType == null) {
-                    return 1;
-                }
-                if (other.dataType == null) {
-                    return -1;
-                }
-                result = this.dataType.toString().compareTo(other.dataType.toString());
-            }
+    public int compareTo(final RyaType o) {
+        if (o == null) {
+            return 1;
         }
-        return result;
+        final String dataTypeStr = getDataType() != null ? getDataType().stringValue() : null;
+        final String otherDataTypeStr = o.getDataType() != null ? o.getDataType().stringValue() : null;
+        final CompareToBuilder builder = new CompareToBuilder()
+                .append(getData(), o.getData())
+                .append(dataTypeStr, otherDataTypeStr)
+                .append(getLanguage(), o.getLanguage());
+        return builder.toComparison();
     }
 }

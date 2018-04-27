@@ -22,6 +22,7 @@ import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.CONTEXT;
 import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.DOCUMENT_VISIBILITY;
 import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.OBJECT;
 import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.OBJECT_HASH;
+import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.OBJECT_LANGUAGE;
 import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.OBJECT_TYPE;
 import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.PREDICATE;
 import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.PREDICATE_HASH;
@@ -42,9 +43,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Function;
 
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.mongodb.MongoDbRdfConstants;
@@ -127,7 +128,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
     private static final Bson DEFAULT_METADATA = new Document("$literal",
             StatementMetadata.EMPTY_METADATA.toString());
 
-    private static boolean isValidFieldName(String name) {
+    private static boolean isValidFieldName(final String name) {
         return !(name == null || name.contains(".") || name.contains("$")
                 || name.equals("_id"));
     }
@@ -144,13 +145,13 @@ public class AggregationPipelineQueryNode extends ExternalSet {
         private final Map<String, String> varToTripleType = new HashMap<>();
         private final BiMap<String, String> varToOriginalName;
 
-        String valueField(String varName) {
+        String valueField(final String varName) {
             return varToTripleValue.get(varName);
         }
-        String hashField(String varName) {
+        String hashField(final String varName) {
             return varToTripleHash.get(varName);
         }
-        String typeField(String varName) {
+        String typeField(final String varName) {
             return varToTripleType.get(varName);
         }
 
@@ -158,18 +159,18 @@ public class AggregationPipelineQueryNode extends ExternalSet {
             return varToTripleValue.keySet();
         }
 
-        private String replace(String original) {
+        private String replace(final String original) {
             if (varToOriginalName.containsValue(original)) {
                 return varToOriginalName.inverse().get(original);
             }
             else {
-                String replacement = "field-" + UUID.randomUUID();
+                final String replacement = "field-" + UUID.randomUUID();
                 varToOriginalName.put(replacement, original);
                 return replacement;
             }
         }
 
-        private String sanitize(String name) {
+        private String sanitize(final String name) {
             if (varToOriginalName.containsValue(name)) {
                 return varToOriginalName.inverse().get(name);
             }
@@ -179,26 +180,27 @@ public class AggregationPipelineQueryNode extends ExternalSet {
             return name;
         }
 
-        StatementVarMapping(StatementPattern sp, BiMap<String, String> varToOriginalName) {
+        StatementVarMapping(final StatementPattern sp, final BiMap<String, String> varToOriginalName) {
             this.varToOriginalName = varToOriginalName;
             if (sp.getSubjectVar() != null && !sp.getSubjectVar().hasValue()) {
-                String name = sanitize(sp.getSubjectVar().getName());
+                final String name = sanitize(sp.getSubjectVar().getName());
                 varToTripleValue.put(name, SUBJECT);
                 varToTripleHash.put(name, SUBJECT_HASH);
             }
             if (sp.getPredicateVar() != null && !sp.getPredicateVar().hasValue()) {
-                String name = sanitize(sp.getPredicateVar().getName());
+                final String name = sanitize(sp.getPredicateVar().getName());
                 varToTripleValue.put(name, PREDICATE);
                 varToTripleHash.put(name, PREDICATE_HASH);
             }
             if (sp.getObjectVar() != null && !sp.getObjectVar().hasValue()) {
-                String name = sanitize(sp.getObjectVar().getName());
+                final String name = sanitize(sp.getObjectVar().getName());
                 varToTripleValue.put(name, OBJECT);
                 varToTripleHash.put(name, OBJECT_HASH);
                 varToTripleType.put(name, OBJECT_TYPE);
+                varToTripleType.put(name, OBJECT_LANGUAGE);
             }
             if (sp.getContextVar() != null && !sp.getContextVar().hasValue()) {
-                String name = sanitize(sp.getContextVar().getName());
+                final String name = sanitize(sp.getContextVar().getName());
                 varToTripleValue.put(name, CONTEXT);
             }
         }
@@ -207,12 +209,12 @@ public class AggregationPipelineQueryNode extends ExternalSet {
             return getProjectExpression(new LinkedList<>(), str -> "$" + str);
         }
 
-        Bson getProjectExpression(Iterable<String> alsoInclude,
-                Function<String, String> getFieldExpr) {
-            Document values = new Document();
-            Document hashes = new Document();
-            Document types = new Document();
-            for (String varName : varNames()) {
+        Bson getProjectExpression(final Iterable<String> alsoInclude,
+                final Function<String, String> getFieldExpr) {
+            final Document values = new Document();
+            final Document hashes = new Document();
+            final Document types = new Document();
+            for (final String varName : varNames()) {
                 values.append(varName, getFieldExpr.apply(valueField(varName)));
                 if (varToTripleHash.containsKey(varName)) {
                     hashes.append(varName, getFieldExpr.apply(hashField(varName)));
@@ -221,12 +223,12 @@ public class AggregationPipelineQueryNode extends ExternalSet {
                     types.append(varName, getFieldExpr.apply(typeField(varName)));
                 }
             }
-            for (String varName : alsoInclude) {
+            for (final String varName : alsoInclude) {
                 values.append(varName, 1);
                 hashes.append(varName, 1);
                 types.append(varName, 1);
             }
-            List<Bson> fields = new LinkedList<>();
+            final List<Bson> fields = new LinkedList<>();
             fields.add(Projections.excludeId());
             fields.add(Projections.computed(VALUES, values));
             fields.add(Projections.computed(HASHES, hashes));
@@ -251,7 +253,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
      *  "x" followed by "y".
      * @return The argument of a "$match" query
      */
-    private static BasicDBObject getMatchExpression(StatementPattern sp, String ... path) {
+    private static BasicDBObject getMatchExpression(final StatementPattern sp, final String ... path) {
         final Var subjVar = sp.getSubjectVar();
         final Var predVar = sp.getPredicateVar();
         final Var objVar = sp.getObjectVar();
@@ -272,34 +274,34 @@ public class AggregationPipelineQueryNode extends ExternalSet {
         if (contextVar != null && contextVar.getValue() instanceof IRI) {
             c = RdfToRyaConversions.convertIRI((IRI) contextVar.getValue());
         }
-        RyaStatement rs = new RyaStatement(s, p, o, c);
-        DBObject obj = strategy.getQuery(rs);
+        final RyaStatement rs = new RyaStatement(s, p, o, c);
+        final DBObject obj = strategy.getQuery(rs);
         // Add path prefix, if given
         if (path.length > 0) {
-            StringBuilder sb = new StringBuilder();
-            for (String str : path) {
+            final StringBuilder sb = new StringBuilder();
+            for (final String str : path) {
                 sb.append(str).append(".");
             }
-            String prefix = sb.toString();
-            Set<String> originalKeys = new HashSet<>(obj.keySet());
+            final String prefix = sb.toString();
+            final Set<String> originalKeys = new HashSet<>(obj.keySet());
             originalKeys.forEach(key -> {
-                Object value = obj.removeField(key);
+                final Object value = obj.removeField(key);
                 obj.put(prefix + key, value);
             });
         }
         return (BasicDBObject) obj;
     }
 
-    private static String valueFieldExpr(String varName) {
+    private static String valueFieldExpr(final String varName) {
         return "$" + VALUES + "." + varName;
     }
-    private static String hashFieldExpr(String varName) {
+    private static String hashFieldExpr(final String varName) {
         return "$" + HASHES + "." + varName;
     }
-    private static String typeFieldExpr(String varName) {
+    private static String typeFieldExpr(final String varName) {
         return "$" + TYPES + "." + varName;
     }
-    private static String joinFieldExpr(String triplePart) {
+    private static String joinFieldExpr(final String triplePart) {
         return "$" + JOINED_TRIPLE + "." + triplePart;
     }
 
@@ -307,7 +309,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
      * Get an object representing the value field of some value expression, or
      * return null if the expression isn't supported.
      */
-    private Object valueFieldExpr(ValueExpr expr) {
+    private Object valueFieldExpr(final ValueExpr expr) {
         if (expr instanceof Var) {
             return valueFieldExpr(((Var) expr).getName());
         }
@@ -325,12 +327,12 @@ public class AggregationPipelineQueryNode extends ExternalSet {
     private final Set<String> bindingNames;
     private final BiMap<String, String> varToOriginalName;
 
-    private String replace(String original) {
+    private String replace(final String original) {
         if (varToOriginalName.containsValue(original)) {
             return varToOriginalName.inverse().get(original);
         }
         else {
-            String replacement = "field-" + UUID.randomUUID();
+            final String replacement = "field-" + UUID.randomUUID();
             varToOriginalName.put(replacement, original);
             return replacement;
         }
@@ -341,11 +343,11 @@ public class AggregationPipelineQueryNode extends ExternalSet {
      * @param collection The collection of triples to query.
      * @param baseSP The leaf node in the query tree.
      */
-    public AggregationPipelineQueryNode(MongoCollection<Document> collection, StatementPattern baseSP) {
+    public AggregationPipelineQueryNode(final MongoCollection<Document> collection, final StatementPattern baseSP) {
         this.collection = Preconditions.checkNotNull(collection);
         Preconditions.checkNotNull(baseSP);
         this.varToOriginalName = HashBiMap.create();
-        StatementVarMapping mapping = new StatementVarMapping(baseSP, varToOriginalName);
+        final StatementVarMapping mapping = new StatementVarMapping(baseSP, varToOriginalName);
         this.assuredBindingNames = new HashSet<>(mapping.varNames());
         this.bindingNames = new HashSet<>(mapping.varNames());
         this.pipeline = new LinkedList<>();
@@ -353,9 +355,9 @@ public class AggregationPipelineQueryNode extends ExternalSet {
         this.pipeline.add(Aggregates.project(mapping.getProjectExpression()));
     }
 
-    AggregationPipelineQueryNode(MongoCollection<Document> collection,
-            List<Bson> pipeline, Set<String> assuredBindingNames,
-            Set<String> bindingNames, BiMap<String, String> varToOriginalName) {
+    AggregationPipelineQueryNode(final MongoCollection<Document> collection,
+            final List<Bson> pipeline, final Set<String> assuredBindingNames,
+            final Set<String> bindingNames, final BiMap<String, String> varToOriginalName) {
         this.collection = Preconditions.checkNotNull(collection);
         this.pipeline = Preconditions.checkNotNull(pipeline);
         this.assuredBindingNames = Preconditions.checkNotNull(assuredBindingNames);
@@ -364,12 +366,12 @@ public class AggregationPipelineQueryNode extends ExternalSet {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
         if (o instanceof AggregationPipelineQueryNode) {
-            AggregationPipelineQueryNode other = (AggregationPipelineQueryNode) o;
+            final AggregationPipelineQueryNode other = (AggregationPipelineQueryNode) o;
             if (this.collection.equals(other.collection)
                     && this.assuredBindingNames.equals(other.assuredBindingNames)
                     && this.bindingNames.equals(other.bindingNames)
@@ -379,8 +381,8 @@ public class AggregationPipelineQueryNode extends ExternalSet {
                 // have well-behaved equals methods, so check for equivalent
                 // string representations.
                 for (int i = 0; i < this.pipeline.size(); i++) {
-                    Bson doc1 = this.pipeline.get(i);
-                    Bson doc2 = other.pipeline.get(i);
+                    final Bson doc1 = this.pipeline.get(i);
+                    final Bson doc2 = other.pipeline.get(i);
                     if (!doc1.toString().equals(doc2.toString())) {
                         return false;
                     }
@@ -398,15 +400,15 @@ public class AggregationPipelineQueryNode extends ExternalSet {
     }
 
     @Override
-    public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(BindingSet bindings)
+    public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(final BindingSet bindings)
             throws QueryEvaluationException {
         return new PipelineResultIteration(collection.aggregate(pipeline), varToOriginalName, bindings);
     }
 
     @Override
     public Set<String> getAssuredBindingNames() {
-        Set<String> names = new HashSet<>();
-        for (String name : assuredBindingNames) {
+        final Set<String> names = new HashSet<>();
+        for (final String name : assuredBindingNames) {
             names.add(varToOriginalName.getOrDefault(name, name));
         }
         return names;
@@ -414,8 +416,8 @@ public class AggregationPipelineQueryNode extends ExternalSet {
 
     @Override
     public Set<String> getBindingNames() {
-        Set<String> names = new HashSet<>();
-        for (String name : bindingNames) {
+        final Set<String> names = new HashSet<>();
+        for (final String name : bindingNames) {
             names.add(varToOriginalName.getOrDefault(name, name));
         }
         return names;
@@ -433,19 +435,19 @@ public class AggregationPipelineQueryNode extends ExternalSet {
     @Override
     public String getSignature() {
         super.getSignature();
-        Set<String> assured = getAssuredBindingNames();
-        Set<String> any = getBindingNames();
-        StringBuilder sb = new StringBuilder("AggregationPipelineQueryNode (binds: ");
+        final Set<String> assured = getAssuredBindingNames();
+        final Set<String> any = getBindingNames();
+        final StringBuilder sb = new StringBuilder("AggregationPipelineQueryNode (binds: ");
         sb.append(String.join(", ", assured));
         if (any.size() > assured.size()) {
-            Set<String> optionalBindingNames = any;
+            final Set<String> optionalBindingNames = any;
             optionalBindingNames.removeAll(assured);
             sb.append(" [")
                 .append(String.join(", ", optionalBindingNames))
                 .append("]");
         }
         sb.append(")\n");
-        for (Bson doc : pipeline) {
+        for (final Bson doc : pipeline) {
             sb.append(doc.toString()).append("\n");
         }
         return sb.toString();
@@ -468,15 +470,15 @@ public class AggregationPipelineQueryNode extends ExternalSet {
      * @param sp The statement pattern to join with
      * @return true if the join was successfully added to the pipeline.
      */
-    public boolean joinWith(StatementPattern sp) {
+    public boolean joinWith(final StatementPattern sp) {
         Preconditions.checkNotNull(sp);
         // 1. Determine shared variables and new variables
-        StatementVarMapping spMap = new StatementVarMapping(sp, varToOriginalName);
-        NavigableSet<String> sharedVars = new ConcurrentSkipListSet<>(spMap.varNames());
+        final StatementVarMapping spMap = new StatementVarMapping(sp, varToOriginalName);
+        final NavigableSet<String> sharedVars = new ConcurrentSkipListSet<>(spMap.varNames());
         sharedVars.retainAll(assuredBindingNames);
         // 2. Join on one shared variable
-        String joinKey =  sharedVars.pollFirst();
-        String collectionName = collection.getNamespace().getCollectionName();
+        final String joinKey =  sharedVars.pollFirst();
+        final String collectionName = collection.getNamespace().getCollectionName();
         Bson join;
         if (joinKey == null) {
             return false;
@@ -494,16 +496,16 @@ public class AggregationPipelineQueryNode extends ExternalSet {
         // 4. (Optional) If there are any shared variables that weren't used as
         //   the join key, project all existing fields plus a new field that
         //   tests the equality of those shared variables.
-        BasicDBObject matchOpts = getMatchExpression(sp, JOINED_TRIPLE);
+        final BasicDBObject matchOpts = getMatchExpression(sp, JOINED_TRIPLE);
         if (!sharedVars.isEmpty()) {
-            List<Bson> eqTests = new LinkedList<>();
-            for (String varName : sharedVars) {
-                String oldField = valueFieldExpr(varName);
-                String newField = joinFieldExpr(spMap.valueField(varName));
-                Bson eqTest = new Document("$eq", Arrays.asList(oldField, newField));
+            final List<Bson> eqTests = new LinkedList<>();
+            for (final String varName : sharedVars) {
+                final String oldField = valueFieldExpr(varName);
+                final String newField = joinFieldExpr(spMap.valueField(varName));
+                final Bson eqTest = new Document("$eq", Arrays.asList(oldField, newField));
                 eqTests.add(eqTest);
             }
-            Bson eqProjectOpts = Projections.fields(
+            final Bson eqProjectOpts = Projections.fields(
                     Projections.computed(FIELDS_MATCH, Filters.and(eqTests)),
                     Projections.include(JOINED_TRIPLE, VALUES, HASHES, TYPES, LEVEL, TIMESTAMP));
             pipeline.add(Aggregates.project(eqProjectOpts));
@@ -516,7 +518,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
         // 6. Project the results to include variables from the new SP (with
         // appropriate renaming) and variables referenced only in the base
         // pipeline (with previous names).
-        Bson finalProjectOpts = new StatementVarMapping(sp, varToOriginalName)
+        final Bson finalProjectOpts = new StatementVarMapping(sp, varToOriginalName)
                 .getProjectExpression(assuredBindingNames,
                         str -> joinFieldExpr(str));
         assuredBindingNames.addAll(spMap.varNames());
@@ -537,23 +539,23 @@ public class AggregationPipelineQueryNode extends ExternalSet {
      *  at this stage of the query into a set of variables.
      * @return true if the projection(s) were added to the pipeline.
      */
-    public boolean project(Iterable<ProjectionElemList> projections) {
+    public boolean project(final Iterable<ProjectionElemList> projections) {
         if (projections == null || !projections.iterator().hasNext()) {
             return false;
         }
-        List<Bson> projectOpts = new LinkedList<>();
-        Set<String> bindingNamesUnion = new HashSet<>();
+        final List<Bson> projectOpts = new LinkedList<>();
+        final Set<String> bindingNamesUnion = new HashSet<>();
         Set<String> bindingNamesIntersection = null;
-        for (ProjectionElemList projection : projections) {
+        for (final ProjectionElemList projection : projections) {
             if (projection.getElements().isEmpty()) {
                 // Empty projections are unsupported -- fail when seen
                 return false;
             }
-            Document valueDoc = new Document();
-            Document hashDoc = new Document();
-            Document typeDoc = new Document();
-            Set<String> projectionBindingNames = new HashSet<>();
-            for (ProjectionElem elem : projection.getElements()) {
+            final Document valueDoc = new Document();
+            final Document hashDoc = new Document();
+            final Document typeDoc = new Document();
+            final Set<String> projectionBindingNames = new HashSet<>();
+            for (final ProjectionElem elem : projection.getElements()) {
                 String to = elem.getTargetName();
                 // If the 'to' name is invalid, replace it internally
                 if (!isValidFieldName(to)) {
@@ -594,8 +596,8 @@ public class AggregationPipelineQueryNode extends ExternalSet {
             pipeline.add(Aggregates.project(projectOpts.get(0)));
         }
         else {
-            String listKey = "PROJECTIONS";
-            Bson projectIndividual = Projections.fields(
+            final String listKey = "PROJECTIONS";
+            final Bson projectIndividual = Projections.fields(
                     Projections.computed(VALUES, "$" + listKey + "." + VALUES),
                     Projections.computed(HASHES, "$" + listKey + "." + HASHES),
                     Projections.computed(TYPES, "$" + listKey + "." + TYPES),
@@ -625,17 +627,17 @@ public class AggregationPipelineQueryNode extends ExternalSet {
      * @return True if the extension was successfully converted into a pipeline
      *  step, false otherwise.
      */
-    public boolean extend(Iterable<ExtensionElem> extensionElements) {
-        List<Bson> valueFields = new LinkedList<>();
-        List<Bson> hashFields = new LinkedList<>();
-        List<Bson> typeFields = new LinkedList<>();
-        for (String varName : bindingNames) {
+    public boolean extend(final Iterable<ExtensionElem> extensionElements) {
+        final List<Bson> valueFields = new LinkedList<>();
+        final List<Bson> hashFields = new LinkedList<>();
+        final List<Bson> typeFields = new LinkedList<>();
+        for (final String varName : bindingNames) {
             valueFields.add(Projections.include(varName));
             hashFields.add(Projections.include(varName));
             typeFields.add(Projections.include(varName));
         }
-        Set<String> newVarNames = new HashSet<>();
-        for (ExtensionElem elem : extensionElements) {
+        final Set<String> newVarNames = new HashSet<>();
+        for (final ExtensionElem elem : extensionElements) {
             String name = elem.getName();
             if (!isValidFieldName(name)) {
                 // If the field name is invalid, replace it internally
@@ -643,18 +645,18 @@ public class AggregationPipelineQueryNode extends ExternalSet {
             }
             // We can only handle certain kinds of value expressions; return
             // failure for any others.
-            ValueExpr expr = elem.getExpr();
+            final ValueExpr expr = elem.getExpr();
             final Object valueField;
             final Object hashField;
             final Object typeField;
             if (expr instanceof Var) {
-                String varName = ((Var) expr).getName();
+                final String varName = ((Var) expr).getName();
                 valueField = "$" + varName;
                 hashField = "$" + varName;
                 typeField = "$" + varName;
             }
             else if (expr instanceof ValueConstant) {
-                Value val = ((ValueConstant) expr).getValue();
+                final Value val = ((ValueConstant) expr).getValue();
                 valueField = new Document("$literal", val.stringValue());
                 hashField = new Document("$literal", SimpleMongoDBStorageStrategy.hash(val.stringValue()));
                 if (val instanceof Literal) {
@@ -677,7 +679,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
         }
         assuredBindingNames.addAll(newVarNames);
         bindingNames.addAll(newVarNames);
-        Bson projectOpts = Projections.fields(
+        final Bson projectOpts = Projections.fields(
                 Projections.computed(VALUES, Projections.fields(valueFields)),
                 Projections.computed(HASHES, Projections.fields(hashFields)),
                 Projections.computed(TYPES, Projections.fields(typeFields)),
@@ -698,12 +700,12 @@ public class AggregationPipelineQueryNode extends ExternalSet {
      * @return True if the filter was successfully converted into a pipeline
      *  step, false otherwise.
      */
-    public boolean filter(ValueExpr condition) {
+    public boolean filter(final ValueExpr condition) {
         if (condition instanceof Compare) {
-            Compare compare = (Compare) condition;
-            Compare.CompareOp operator = compare.getOperator();
-            Object leftArg = valueFieldExpr(compare.getLeftArg());
-            Object rightArg = valueFieldExpr(compare.getRightArg());
+            final Compare compare = (Compare) condition;
+            final Compare.CompareOp operator = compare.getOperator();
+            final Object leftArg = valueFieldExpr(compare.getLeftArg());
+            final Object rightArg = valueFieldExpr(compare.getRightArg());
             if (leftArg == null || rightArg == null) {
                 // unsupported value expression, can't convert filter
                 return false;
@@ -732,7 +734,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
                 // unrecognized comparison operator, can't convert filter
                 return false;
             }
-            Document compareDoc = new Document(opFunc, Arrays.asList(leftArg, rightArg));
+            final Document compareDoc = new Document(opFunc, Arrays.asList(leftArg, rightArg));
             pipeline.add(Aggregates.project(Projections.fields(
                     Projections.computed("FILTER", compareDoc),
                     Projections.include(VALUES, HASHES, TYPES, LEVEL, TIMESTAMP))));
@@ -749,12 +751,12 @@ public class AggregationPipelineQueryNode extends ExternalSet {
      * @return True if the distinct operation was successfully appended.
      */
     public boolean distinct() {
-        List<String> key = new LinkedList<>();
-        for (String varName : bindingNames) {
+        final List<String> key = new LinkedList<>();
+        for (final String varName : bindingNames) {
             key.add(hashFieldExpr(varName));
         }
-        List<BsonField> reduceOps = new LinkedList<>();
-        for (String field : FIELDS) {
+        final List<BsonField> reduceOps = new LinkedList<>();
+        for (final String field : FIELDS) {
             reduceOps.add(new BsonField(field, new Document("$first", "$" + field)));
         }
         pipeline.add(Aggregates.group(new Document("$concat", key), reduceOps));
@@ -774,7 +776,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
      *  query if all of the triples involved in producing that solution have a
      *  lower derivation depth than this. If zero, does nothing.
      */
-    public void requireSourceDerivationDepth(int requiredLevel) {
+    public void requireSourceDerivationDepth(final int requiredLevel) {
         if (requiredLevel > 0) {
             pipeline.add(Aggregates.match(new Document(LEVEL,
                     new Document("$gte", requiredLevel))));
@@ -791,7 +793,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
      *  all of the triples involved in producing that solution have an earlier
      *  timestamp than this.
      */
-    public void requireSourceTimestamp(long t) {
+    public void requireSourceTimestamp(final long t) {
         pipeline.add(Aggregates.match(new Document(TIMESTAMP,
                 new Document("$gte", t))));
     }
@@ -810,7 +812,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
      *  pipeline do not have variable names allowing them to be interpreted as
      *  triples (i.e. "subject", "predicate", and "object").
      */
-    public List<Bson> getTriplePipeline(long timestamp, boolean requireNew) {
+    public List<Bson> getTriplePipeline(final long timestamp, final boolean requireNew) {
         if (!assuredBindingNames.contains(SUBJECT)
                 || !assuredBindingNames.contains(PREDICATE)
                 || !assuredBindingNames.contains(OBJECT)) {
@@ -820,8 +822,8 @@ public class AggregationPipelineQueryNode extends ExternalSet {
                     + ", " + OBJECT + ">\nCurrent variable names: "
                     + assuredBindingNames);
         }
-        List<Bson> triplePipeline = new LinkedList<>(pipeline);
-        List<Bson> fields = new LinkedList<>();
+        final List<Bson> triplePipeline = new LinkedList<>(pipeline);
+        final List<Bson> fields = new LinkedList<>();
         fields.add(Projections.computed(SUBJECT, valueFieldExpr(SUBJECT)));
         fields.add(Projections.computed(SUBJECT_HASH, hashFieldExpr(SUBJECT)));
         fields.add(Projections.computed(PREDICATE, valueFieldExpr(PREDICATE)));
@@ -830,6 +832,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
         fields.add(Projections.computed(OBJECT_HASH, hashFieldExpr(OBJECT)));
         fields.add(Projections.computed(OBJECT_TYPE,
                 ConditionalOperators.ifNull(typeFieldExpr(OBJECT), DEFAULT_TYPE)));
+        fields.add(Projections.computed(OBJECT_LANGUAGE, hashFieldExpr(OBJECT)));
         fields.add(Projections.computed(CONTEXT, DEFAULT_CONTEXT));
         fields.add(Projections.computed(STATEMENT_METADATA, DEFAULT_METADATA));
         fields.add(DEFAULT_DV);
@@ -838,19 +841,19 @@ public class AggregationPipelineQueryNode extends ExternalSet {
         triplePipeline.add(Aggregates.project(Projections.fields(fields)));
         if (requireNew) {
             // Prune any triples that already exist in the data store
-            String collectionName = collection.getNamespace().getCollectionName();
-            Bson includeAll = Projections.include(SUBJECT, SUBJECT_HASH,
+            final String collectionName = collection.getNamespace().getCollectionName();
+            final Bson includeAll = Projections.include(SUBJECT, SUBJECT_HASH,
                     PREDICATE, PREDICATE_HASH, OBJECT, OBJECT_HASH,
-                    OBJECT_TYPE, CONTEXT, STATEMENT_METADATA,
+                    OBJECT_TYPE, OBJECT_LANGUAGE, CONTEXT, STATEMENT_METADATA,
                     DOCUMENT_VISIBILITY, TIMESTAMP, LEVEL);
-            List<Bson> eqTests = new LinkedList<>();
+            final List<Bson> eqTests = new LinkedList<>();
             eqTests.add(new Document("$eq", Arrays.asList("$$this." + PREDICATE_HASH, "$" + PREDICATE_HASH)));
             eqTests.add(new Document("$eq", Arrays.asList("$$this." + OBJECT_HASH, "$" + OBJECT_HASH)));
-            Bson redundantFilter = new Document("$filter", new Document("input", "$" + JOINED_TRIPLE)
+            final Bson redundantFilter = new Document("$filter", new Document("input", "$" + JOINED_TRIPLE)
                     .append("as", "this").append("cond", new Document("$and", eqTests)));
             triplePipeline.add(Aggregates.lookup(collectionName, SUBJECT_HASH,
                     SUBJECT_HASH, JOINED_TRIPLE));
-            String numRedundant = "REDUNDANT";
+            final String numRedundant = "REDUNDANT";
             triplePipeline.add(Aggregates.project(Projections.fields(includeAll,
                     Projections.computed(numRedundant, new Document("$size", redundantFilter)))));
             triplePipeline.add(Aggregates.match(Filters.eq(numRedundant, 0)));

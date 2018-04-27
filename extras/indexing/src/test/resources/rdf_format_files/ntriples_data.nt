@@ -1,0 +1,3 @@
+<http://rya.apache.org/ns/Bobs_Book> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rya.apache.org/ns/Book> .
+<http://rya.apache.org/ns/Bobs_Book> <http://www.w3.org/2000/01/rdf-schema#label> "The Book of Smitch" .
+<http://rya.apache.org/ns/Bobs_Book> <http://rya.apache.org/ns/publishedBy> <http://rya.apache.org/ns/DillonPublishing> .

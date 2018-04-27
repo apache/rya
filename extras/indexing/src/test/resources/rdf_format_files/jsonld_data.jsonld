@@ -1,0 +1,17 @@
+{
+  "@context":
+  {
+    "name": "http://rya.apache.org/ns/name", 
+    "image": {
+      "@id": "http://rya.apache.org/ns/image", 
+      "@type": "@id" 
+    },
+    "homepage": {
+      "@id": "http://rya.apache.org/ns/url", 
+      "@type": "@id" 
+    }
+  },
+  "name": "Bob Smitch",
+  "homepage": "http://rya.apache.org/bobs_homepage",
+  "image": "http://rya.apache.org/bobs_homepage/images/bobs_party.jpg"
+}

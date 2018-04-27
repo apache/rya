@@ -28,11 +28,12 @@ import java.util.Map;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Logger;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.query.RyaQuery;
+import org.apache.rya.api.utils.LiteralLanguageUtils;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibility;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibilityAdapter;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibilityAdapter.MalformedDocumentVisibilityException;
@@ -57,6 +58,7 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
     public static final String PREDICATE_HASH = "predicate_hash";
     public static final String OBJECT = "object";
     public static final String OBJECT_HASH = "object_hash";
+    public static final String OBJECT_LANGUAGE = "object_language";
     public static final String SUBJECT = "subject";
     public static final String SUBJECT_HASH = "subject_hash";
     public static final String TIMESTAMP = "insertTimestamp";
@@ -68,7 +70,7 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
      * @param value  A value to be stored or accessed (e.g. a IRI or literal).
      * @return the hash associated with that value in MongoDB.
      */
-    public static String hash(String value) {
+    public static String hash(final String value) {
         return DigestUtils.sha256Hex(value);
     }
 
@@ -81,13 +83,16 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         doc.put(PREDICATE_HASH, 1);
         doc.put(OBJECT_HASH, 1);
         doc.put(OBJECT_TYPE, 1);
+        doc.put(OBJECT_LANGUAGE, 1);
         coll.createIndex(doc);
         doc = new BasicDBObject(PREDICATE_HASH, 1);
         doc.put(OBJECT_HASH, 1);
         doc.put(OBJECT_TYPE, 1);
+        doc.put(OBJECT_LANGUAGE, 1);
         coll.createIndex(doc);
         doc = new BasicDBObject(OBJECT_HASH, 1);
         doc.put(OBJECT_TYPE, 1);
+        doc.put(OBJECT_LANGUAGE, 1);
         doc.put(SUBJECT_HASH, 1);
         coll.createIndex(doc);
     }
@@ -105,6 +110,7 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         if (object != null){
             query.append(OBJECT_HASH, hash(object.getData()));
             query.append(OBJECT_TYPE, object.getDataType().toString());
+            query.append(OBJECT_LANGUAGE, object.getLanguage());
         }
         if (predicate != null){
             query.append(PREDICATE_HASH, hash(predicate.getData()));
@@ -121,6 +127,7 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         final String subject = (String) result.get(SUBJECT);
         final String object = (String) result.get(OBJECT);
         final String objectType = (String) result.get(OBJECT_TYPE);
+        final String objectLanguage = (String) result.get(OBJECT_LANGUAGE);
         final String predicate = (String) result.get(PREDICATE);
         final String context = (String) result.get(CONTEXT);
         DocumentVisibility documentVisibility = null;
@@ -132,10 +139,12 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         final Long timestamp = (Long) result.get(TIMESTAMP);
         final String statementMetadata = (String) result.get(STATEMENT_METADATA);
         RyaType objectRya = null;
+        final String validatedLanguage = LiteralLanguageUtils.validateLanguage(objectLanguage, factory.createIRI(objectType));
         if (objectType.equalsIgnoreCase(ANYURI.stringValue())){
             objectRya = new RyaIRI(object);
-        }
-        else {
+        } else if (validatedLanguage != null) {
+            objectRya = new RyaType(factory.createIRI(objectType), object, validatedLanguage);
+        } else {
             objectRya = new RyaType(factory.createIRI(objectType), object);
         }
 
@@ -173,8 +182,9 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         if (statement.getContext() != null){
             context = statement.getContext().getData();
         }
+        final String validatedLanguage = LiteralLanguageUtils.validateLanguage(statement.getObject().getLanguage(), statement.getObject().getDataType());
         final String id = statement.getSubject().getData() + " " +
-                statement.getPredicate().getData() + " " +  statement.getObject().getData() + " " + context;
+                statement.getPredicate().getData() + " " +  statement.getObject().getData() + (validatedLanguage != null ? " " + validatedLanguage : "") + " " + context;
         byte[] bytes = id.getBytes(StandardCharsets.UTF_8);
         try {
             final MessageDigest digest = MessageDigest.getInstance("SHA-1");
@@ -194,6 +204,7 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         .append(OBJECT, statement.getObject().getData())
         .append(OBJECT_HASH, hash(statement.getObject().getData()))
         .append(OBJECT_TYPE, statement.getObject().getDataType().toString())
+        .append(OBJECT_LANGUAGE, statement.getObject().getLanguage())
         .append(CONTEXT, context)
         .append(STATEMENT_METADATA, statement.getMetadata().toString())
         .append(DOCUMENT_VISIBILITY, dvObject.get(DOCUMENT_VISIBILITY))

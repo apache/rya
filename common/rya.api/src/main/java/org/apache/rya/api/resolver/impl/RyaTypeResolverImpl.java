@@ -27,9 +27,12 @@ import org.apache.rya.api.domain.RyaRange;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.RyaTypeResolver;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.api.utils.LiteralLanguageUtils;
 import org.calrissian.mango.types.LexiTypeEncoders;
 import org.calrissian.mango.types.TypeEncoder;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.util.Literals;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 import com.google.common.primitives.Bytes;
@@ -79,7 +82,14 @@ public class RyaTypeResolverImpl implements RyaTypeResolver {
 
     @Override
     public byte[][] serializeType(final RyaType ryaType) throws RyaTypeResolverException {
-        final byte[] bytes = serializeData(ryaType.getData()).getBytes(StandardCharsets.UTF_8);
+        final StringBuilder dataBuilder = new StringBuilder();
+        dataBuilder.append(ryaType.getData());
+        final String validatedLanguage = LiteralLanguageUtils.validateLanguage(ryaType.getLanguage(), dataType);
+        if (validatedLanguage != null) {
+            dataBuilder.append(LiteralLanguageUtils.LANGUAGE_DELIMITER);
+            dataBuilder.append(validatedLanguage);
+        }
+        final byte[] bytes = serializeData(dataBuilder.toString()).getBytes(StandardCharsets.UTF_8);
         return new byte[][]{bytes, Bytes.concat(TYPE_DELIM_BYTES, markerBytes)};
     }
 
@@ -113,7 +123,18 @@ public class RyaTypeResolverImpl implements RyaTypeResolver {
         }
         final RyaType rt = newInstance();
         rt.setDataType(getRyaDataType());
-        final String data = new String(bytes, 0, bytes.length - 2, StandardCharsets.UTF_8);
+        String data = new String(bytes, 0, bytes.length - 2, StandardCharsets.UTF_8);
+        if (RDF.LANGSTRING.equals(rt.getDataType())) {
+            final int langDelimiterPos = data.lastIndexOf(LiteralLanguageUtils.LANGUAGE_DELIMITER);
+            final String parsedData = data.substring(0, langDelimiterPos);
+            final String language = data.substring(langDelimiterPos + 1, data.length());
+            if (language != null && Literals.isValidLanguageTag(language)) {
+                rt.setLanguage(language);
+            } else {
+                rt.setLanguage(LiteralLanguageUtils.UNDETERMINED_LANGUAGE);
+            }
+            data = parsedData;
+        }
         rt.setData(deserializeData(data));
         return rt;
     }

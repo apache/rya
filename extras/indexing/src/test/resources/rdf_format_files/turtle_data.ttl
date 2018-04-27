@@ -1,0 +1,11 @@
+@prefix contacts: <http://rya.apache.org/ns/contacts#> .
+
+contacts:bob contacts:homePhone       "(555) 555-1234" .
+contacts:bob contacts:emailAddress    "bobsmitch00@hotmail.com" .
+
+contacts:susan contacts:homePhone     "(555) 555-4321" .
+contacts:susan contacts:emailAddress  "susandillon@gmail.com" .
+
+contacts:ron contacts:homePhone       "(555) 555-9876" .
+contacts:ron contacts:emailAddress    "ronniejones@yahoo.com" .
+contacts:ron contacts:emailAddress    "ron.jones@hotmail.com" .

@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.mongodb;
+package org.apache.rya.test.mongo;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -88,7 +88,6 @@ public class EmbeddedMongoFactory {
 
     /**
      * @return The process configuration.
-     *
      */
     public IMongodConfig getMongoServerDetails() {
         return mongodProcess.getConfig();

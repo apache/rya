@@ -20,8 +20,8 @@ package org.apache.rya.indexing.mongo;
 
 import java.util.List;
 
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.indexing.entity.EntityIndexOptimizer;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
@@ -29,7 +29,7 @@ import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.query.EntityQueryNode;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.eclipse.rdf4j.query.algebra.QueryModelNode;
@@ -44,7 +44,7 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
 
-public class MongoEntityIndex2IT extends MongoITBase {
+public class MongoEntityIndex2IT extends MongoRyaITBase {
     private static final Type PERSON_TYPE =
             new Type(new RyaIRI("urn:person"),
                 ImmutableSet.<RyaIRI>builder()

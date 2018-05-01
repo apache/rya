@@ -30,7 +30,7 @@ import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
@@ -52,7 +52,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.io.WKTWriter;
 
-public class MongoIndexerDeleteIT extends MongoITBase {
+public class MongoIndexerDeleteIT extends MongoRyaITBase {
     @Override
     public void updateConfiguration(final MongoDBRdfConfiguration conf) {
         conf.setStrings(ConfigUtils.FREETEXT_PREDICATES_LIST, new String[] {RDFS.LABEL.stringValue()});

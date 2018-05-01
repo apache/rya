@@ -27,7 +27,6 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.admin.TableOperations;
-import org.apache.rya.accumulo.AccumuloITBase;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.client.GetInstanceDetails;
 import org.apache.rya.api.client.Install;
@@ -42,6 +41,7 @@ import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
+import org.apache.rya.test.accumulo.AccumuloITBase;
 import org.junit.Test;
 
 import com.google.common.base.Optional;

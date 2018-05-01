@@ -31,7 +31,7 @@ import org.apache.rya.indexing.geotemporal.model.Event;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage.EventAlreadyExistsException;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage.EventStorageException;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.test.mongo.MongoITBase;
 import org.joda.time.DateTime;
 import org.junit.Test;
 

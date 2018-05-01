@@ -39,6 +39,10 @@
         </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
+            <artifactId>rya.test.mongo</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
             <artifactId>mongodb.rya</artifactId>
         </dependency>
         <dependency>

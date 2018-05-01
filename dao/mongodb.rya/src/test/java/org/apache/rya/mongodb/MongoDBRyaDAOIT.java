@@ -27,9 +27,9 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
-import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.RyaQuery;
 import org.apache.rya.mongodb.document.util.AuthorizationsUtil;
@@ -42,7 +42,7 @@ import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
-public class MongoDBRyaDAOIT extends MongoITBase {
+public class MongoDBRyaDAOIT extends MongoRyaITBase {
 
     @Override
     protected void updateConfiguration(final MongoDBRdfConfiguration conf) {

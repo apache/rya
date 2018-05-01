@@ -52,13 +52,8 @@ under the License.
             <groupId>org.apache.fluo</groupId>
             <artifactId>fluo-api</artifactId>
         </dependency>
-
+        
         <!-- Testing dependencies.  (should be compile scope for this project) -->
-        <dependency>
-            <groupId>org.apache.rya</groupId>
-            <artifactId>accumulo.rya</artifactId>
-            <type>test-jar</type>
-        </dependency>
         <dependency>
             <groupId>org.apache.fluo</groupId>
             <artifactId>fluo-mini</artifactId>
@@ -103,6 +98,11 @@ under the License.
         <dependency>
              <groupId>org.apache.fluo</groupId>
             <artifactId>fluo-recipes-test</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.test.accumulo</artifactId>
             <scope>compile</scope>
         </dependency>
     </dependencies>

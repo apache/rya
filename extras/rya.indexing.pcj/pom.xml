@@ -79,25 +79,24 @@ under the License.
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-minicluster</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.sail</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
-            <artifactId>accumulo.rya</artifactId>
+            <artifactId>mongodb.rya</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
-            <artifactId>mongodb.rya</artifactId>
-            <type>test-jar</type>
+            <artifactId>rya.test.mongo</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.test.accumulo</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

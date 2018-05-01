@@ -31,7 +31,7 @@ import org.apache.rya.api.client.mongo.MongoConnectionDetails;
 import org.apache.rya.api.client.mongo.MongoRyaClientFactory;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -46,7 +46,7 @@ import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.sail.Sail;
 import org.junit.Test;
 
-public class MongoPCJIndexIT extends MongoITBase {
+public class MongoPCJIndexIT extends MongoRyaITBase {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Override
@@ -75,13 +75,13 @@ public class MongoPCJIndexIT extends MongoITBase {
 
         //purge contents of rya triples collection
         getMongoClient().getDatabase(conf.getRyaInstanceName()).getCollection(conf.getTriplesCollectionName()).drop();
-        
+
         //run the query.  since the triples collection is gone, if the results match, they came from the PCJ index.
         conf.setBoolean(ConfigUtils.USE_PCJ, true);
         conf.setBoolean(ConfigUtils.USE_OPTIMAL_PCJ, true);
         conf.setBoolean(ConfigUtils.DISPLAY_QUERY_PLAN, true);
         final Sail sail = RyaSailFactory.getInstance(conf);
-        SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+        final SailRepositoryConnection conn = new SailRepository(sail).getConnection();
         conn.begin();
         final TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, pcjQuery);
         tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERYPLAN_FLAG, RdfCloudTripleStoreConstants.VALUE_FACTORY.createLiteral(true));
@@ -91,7 +91,7 @@ public class MongoPCJIndexIT extends MongoITBase {
             final BindingSet bs = rez.next();
             results.add(bs);
         }
-        
+
      // Verify the correct results were loaded into the PCJ table.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
@@ -122,7 +122,7 @@ public class MongoPCJIndexIT extends MongoITBase {
         assertEquals(6, results.size());
         assertEquals(expectedResults, results);
     }
-    
+
     @Test
     public void sparqlQuery_Test_complex() throws Exception {
         // Setup a Rya Client.
@@ -132,8 +132,8 @@ public class MongoPCJIndexIT extends MongoITBase {
         		+ " ?name <urn:likes> <urn:icecream> ."
         		+ " ?name <urn:hasEyeColor> <urn:blue> ."
         		+ " }";
-        
-        final String testQuery = 
+
+        final String testQuery =
         		  "SELECT ?name WHERE {"
         		+ " ?name <urn:hasHairColor> <urn:brown> ."
         		+ " ?name <urn:likes> <urn:icecream> ."
@@ -153,10 +153,10 @@ public class MongoPCJIndexIT extends MongoITBase {
 
         System.out.println("Triples: " + getMongoClient().getDatabase(conf.getRyaInstanceName()).getCollection(conf.getTriplesCollectionName()).count());
         System.out.println("PCJS: " + getMongoClient().getDatabase(conf.getRyaInstanceName()).getCollection("pcjs").count());
-        
+
         //run the query.  since the triples collection is gone, if the results match, they came from the PCJ index.
         final Sail sail = RyaSailFactory.getInstance(conf);
-        SailRepositoryConnection conn = new SailRepository(sail).getConnection();
+        final SailRepositoryConnection conn = new SailRepository(sail).getConnection();
         conn.begin();
         final TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, testQuery);
         tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERYPLAN_FLAG, RdfCloudTripleStoreConstants.VALUE_FACTORY.createLiteral(true));
@@ -167,7 +167,7 @@ public class MongoPCJIndexIT extends MongoITBase {
             final BindingSet bs = rez.next();
             results.add(bs);
         }
-        
+
      // Verify the correct results were loaded into the PCJ table.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
@@ -187,7 +187,7 @@ public class MongoPCJIndexIT extends MongoITBase {
         assertEquals(3, results.size());
         assertEquals(expectedResults, results);
     }
-    
+
     private MongoConnectionDetails getConnectionDetails() {
         final java.util.Optional<char[]> password = conf.getMongoPassword() != null ?
                 java.util.Optional.of(conf.getMongoPassword().toCharArray()) :
@@ -210,7 +210,7 @@ public class MongoPCJIndexIT extends MongoITBase {
         statements.add(VF.createStatement(VF.createIRI("urn:Frank"), VF.createIRI("urn:likes"), VF.createIRI("urn:icecream")));
         statements.add(VF.createStatement(VF.createIRI("urn:George"), VF.createIRI("urn:likes"), VF.createIRI("urn:icecream")));
         statements.add(VF.createStatement(VF.createIRI("urn:Hillary"), VF.createIRI("urn:likes"), VF.createIRI("urn:icecream")));
-        
+
         statements.add(VF.createStatement(VF.createIRI("urn:Alice"), VF.createIRI("urn:hasEyeColor"), VF.createIRI("urn:blue")));
         statements.add(VF.createStatement(VF.createIRI("urn:Bob"), VF.createIRI("urn:hasEyeColor"), VF.createIRI("urn:blue")));
         statements.add(VF.createStatement(VF.createIRI("urn:Charlie"), VF.createIRI("urn:hasEyeColor"), VF.createIRI("urn:blue")));
@@ -219,7 +219,7 @@ public class MongoPCJIndexIT extends MongoITBase {
         statements.add(VF.createStatement(VF.createIRI("urn:Frank"), VF.createIRI("urn:hasEyeColor"), VF.createIRI("urn:blue")));
         statements.add(VF.createStatement(VF.createIRI("urn:George"), VF.createIRI("urn:hasEyeColor"), VF.createIRI("urn:green")));
         statements.add(VF.createStatement(VF.createIRI("urn:Hillary"), VF.createIRI("urn:hasEyeColor"), VF.createIRI("urn:brown")));
-        
+
         statements.add(VF.createStatement(VF.createIRI("urn:Alice"), VF.createIRI("urn:hasHairColor"), VF.createIRI("urn:blue")));
         statements.add(VF.createStatement(VF.createIRI("urn:Bob"), VF.createIRI("urn:hasHairColor"), VF.createIRI("urn:blue")));
         statements.add(VF.createStatement(VF.createIRI("urn:Charlie"), VF.createIRI("urn:hasHairColor"), VF.createIRI("urn:blue")));

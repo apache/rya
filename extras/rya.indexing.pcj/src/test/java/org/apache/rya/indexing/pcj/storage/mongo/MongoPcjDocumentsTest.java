@@ -26,7 +26,7 @@ import java.util.List;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.bson.Document;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -36,7 +36,7 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-public class MongoPcjDocumentsTest extends MongoITBase {
+public class MongoPcjDocumentsTest extends MongoRyaITBase {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test

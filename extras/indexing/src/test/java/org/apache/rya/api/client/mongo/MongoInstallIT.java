@@ -33,13 +33,13 @@ import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.InstanceExists;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
-import org.apache.rya.mongodb.MongoITBase;
+import org.apache.rya.mongodb.MongoRyaITBase;
 import org.junit.Test;
 
 /**
  * Integration tests the methods of {@link MongoInstall}.
  */
-public class MongoInstallIT extends MongoITBase {
+public class MongoInstallIT extends MongoRyaITBase {
 
     @Test
     public void install() throws DuplicateInstanceNameException, RyaClientException {

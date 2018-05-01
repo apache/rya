@@ -25,9 +25,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
-import org.apache.rya.api.domain.RyaIRI;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -40,7 +40,7 @@ import com.google.common.collect.Lists;
 /**
  * Integration tests the methods of {@link MongoDBQueryEngine}.
  */
-public class MongoDBQueryEngineIT extends MongoITBase {
+public class MongoDBQueryEngineIT extends MongoRyaITBase {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private RyaStatement getStatement(final String s, final String p, final String o) {

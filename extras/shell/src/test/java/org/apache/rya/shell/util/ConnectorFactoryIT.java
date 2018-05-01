@@ -22,9 +22,8 @@ import java.nio.CharBuffer;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.rya.test.accumulo.AccumuloITBase;
 import org.junit.Test;
-
-import org.apache.rya.accumulo.AccumuloITBase;
 
 /**
  * Tests the methods of {@link ConnectorFactory}.

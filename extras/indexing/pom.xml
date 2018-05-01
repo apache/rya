@@ -102,19 +102,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-minicluster</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.fluo</groupId>
             <artifactId>fluo-mini</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.rya</groupId>
-            <artifactId>accumulo.rya</artifactId>
-            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -123,7 +112,11 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-        
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.test.accumulo</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <pluginManagement>

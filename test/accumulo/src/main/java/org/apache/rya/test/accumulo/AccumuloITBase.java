@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.accumulo;
+package org.apache.rya.test.accumulo;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -39,7 +39,7 @@ public class AccumuloITBase {
     private static MiniAccumuloClusterInstance cluster = MiniAccumuloSingleton.getInstance();
 
     @Rule
-    public RyaTestInstanceRule testInstance = new RyaTestInstanceRule(false);
+    public RyaTestInstanceRule testInstance = new RyaTestInstanceRule();
 
 
     @BeforeClass
@@ -94,5 +94,4 @@ public class AccumuloITBase {
     public String getRyaInstanceName() {
         return testInstance.getRyaInstanceName();
     }
-
 }

@@ -1,0 +1,7 @@
+{
+  "http://rya.apache.org/ns/" : {
+      "http://rya.apache.org/ns/title/" : [ { "value" : "Bob's Homepage", 
+                                             "type" : "literal", 
+                                             "lang" : "en" } ] 
+  }
+}

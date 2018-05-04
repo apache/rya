@@ -1,0 +1,14 @@
+@prefix : <http://rya.apache.org/ns/sports#> .
+
+:Bob :plays :Football .
+:Susan :coaches :Football .
+:Bob :givenName "Robert" .
+:Bob :aka "Bob"@en-US .
+:Bob :aka "Robert"@en-GB .
+:Bob :aka "Roberto"@es .
+:Bob :aka "Roberto"@es-MEX .
+:Bob :aka "Roberto"@spa .
+:Bob :aka "Roberto"@spa-ESP .
+:Bob :aka "Robert"@de .
+:Bob :aka "Rupert"@de-DE .
+:Bob :aka "#!$*(&^"@und .

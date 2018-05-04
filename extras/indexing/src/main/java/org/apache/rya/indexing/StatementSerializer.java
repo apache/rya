@@ -8,9 +8,9 @@ package org.apache.rya.indexing;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.rya.api.utils.LiteralLanguageUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Resource;
@@ -42,34 +43,34 @@ public class StatementSerializer {
 
     /**
      * Read a {@link Statement} from a {@link String}
-     * 
+     *
      * @param in
      *            the {@link String} to parse
      * @return a {@link Statement}
      */
-    public static Statement readStatement(String in) throws IOException {
-        String[] parts = in.split(SEP);
-        
+    public static Statement readStatement(final String in) throws IOException {
+        final String[] parts = in.split(SEP);
+
         if (parts.length != 4) {
             throw new IOException("Not a valid statement: " + in);
         }
-        
-        String contextString = parts[0];
-        String subjectString = parts[1];
-        String predicateString = parts[2];
-        String objectString = parts[3];
+
+        final String contextString = parts[0];
+        final String subjectString = parts[1];
+        final String predicateString = parts[2];
+        final String objectString = parts[3];
         return readStatement(subjectString, predicateString, objectString, contextString);
     }
 
-    public static Statement readStatement(String subjectString, String predicateString, String objectString) {
+    public static Statement readStatement(final String subjectString, final String predicateString, final String objectString) {
         return readStatement(subjectString, predicateString, objectString, "");
     }
 
-    public static Statement readStatement(String subjectString, String predicateString, String objectString, String contextString) {
-        Resource subject = createResource(subjectString);
-        IRI predicate = VF.createIRI(predicateString);
+    public static Statement readStatement(final String subjectString, final String predicateString, final String objectString, final String contextString) {
+        final Resource subject = createResource(subjectString);
+        final IRI predicate = VF.createIRI(predicateString);
 
-        boolean isObjectLiteral = objectString.startsWith("\"");
+        final boolean isObjectLiteral = objectString.startsWith("\"");
 
         Value object = null;
         if (isObjectLiteral) {
@@ -81,12 +82,12 @@ public class StatementSerializer {
         if (contextString == null || contextString.isEmpty()) {
             return VF.createStatement(subject, predicate, object);
         } else {
-            Resource context = VF.createIRI(contextString);
+            final Resource context = VF.createIRI(contextString);
             return VF.createStatement(subject, predicate, object, context);
         }
     }
 
-    private static Resource createResource(String str) {
+    private static Resource createResource(final String str) {
         if (str.startsWith("_")) {
             return VF.createBNode(str.substring(2));
         }
@@ -94,30 +95,30 @@ public class StatementSerializer {
 
     }
 
-    private static Literal parseLiteral(String fullLiteralString) {
+    private static Literal parseLiteral(final String fullLiteralString) {
         Validate.notNull(fullLiteralString);
         Validate.isTrue(fullLiteralString.length() > 1);
 
         if (fullLiteralString.endsWith("\"")) {
-            String fullLiteralWithoutQuotes = fullLiteralString.substring(1, fullLiteralString.length() - 1);
+            final String fullLiteralWithoutQuotes = fullLiteralString.substring(1, fullLiteralString.length() - 1);
             return VF.createLiteral(fullLiteralWithoutQuotes);
         } else {
 
             // find the closing quote
-            int labelEnd = fullLiteralString.lastIndexOf("\"");
+            final int labelEnd = fullLiteralString.lastIndexOf("\"");
 
-            String label = fullLiteralString.substring(1, labelEnd);
+            final String label = fullLiteralString.substring(1, labelEnd);
 
-            String data = fullLiteralString.substring(labelEnd + 1);
+            final String data = fullLiteralString.substring(labelEnd + 1);
 
-            if (data.startsWith("@")) {
+            if (data.startsWith(LiteralLanguageUtils.LANGUAGE_DELIMITER)) {
                 // the data is "language"
-                String lang = data.substring(1);
+                final String lang = data.substring(1);
                 return VF.createLiteral(label, lang);
             } else if (data.startsWith("^^<")) {
                 // the data is a "datatype"
-                String datatype = data.substring(3, data.length() - 1);
-                IRI datatypeUri = VF.createIRI(datatype);
+                final String datatype = data.substring(3, data.length() - 1);
+                final IRI datatypeUri = VF.createIRI(datatype);
                 return VF.createLiteral(label, datatypeUri);
             }
         }
@@ -125,26 +126,26 @@ public class StatementSerializer {
 
     }
 
-    public static String writeSubject(Statement statement) {
+    public static String writeSubject(final Statement statement) {
         return statement.getSubject().toString();
     }
 
-    public static String writeObject(Statement statement) {
+    public static String writeObject(final Statement statement) {
         return statement.getObject().toString();
     }
 
-    public static String writePredicate(Statement statement) {
+    public static String writePredicate(final Statement statement) {
         return statement.getPredicate().toString();
     }
 
-    public static String writeSubjectPredicate(Statement statement) {
+    public static String writeSubjectPredicate(final Statement statement) {
         Validate.notNull(statement);
         Validate.notNull(statement.getSubject());
         Validate.notNull(statement.getPredicate());
         return statement.getSubject().toString() + SEP + statement.getPredicate().toString();
     }
 
-    public static String writeContext(Statement statement) {
+    public static String writeContext(final Statement statement) {
         if (statement.getContext() == null) {
             return "";
         }
@@ -153,16 +154,16 @@ public class StatementSerializer {
 
     /**
      * Write a {@link Statement} to a {@link String}
-     * 
+     *
      * @param statement
      *            the {@link Statement} to write
      * @return a {@link String} representation of the statement
      */
-    public static String writeStatement(Statement statement) {
-        Resource subject = statement.getSubject();
-        Resource context = statement.getContext();
-        IRI predicate = statement.getPredicate();
-        Value object = statement.getObject();
+    public static String writeStatement(final Statement statement) {
+        final Resource subject = statement.getSubject();
+        final Resource context = statement.getContext();
+        final IRI predicate = statement.getPredicate();
+        final Value object = statement.getObject();
 
         Validate.notNull(subject);
         Validate.notNull(predicate);
@@ -180,7 +181,7 @@ public class StatementSerializer {
     /**
      * Creates a Regular Expression to match serialized statements meeting these constraints. A <code>null</code> or empty parameters imply
      * no constraint. A <code>null</code> return value implies no constraints.
-     * 
+     *
      * @param context
      *            context constraint
      * @param subject
@@ -190,22 +191,22 @@ public class StatementSerializer {
      * @return a regular expression that can be used to match serialized statements. A <code>null</code> return value implies no
      *         constraints.
      */
-    public static String createStatementRegex(StatementConstraints contraints) {
-        Resource context = contraints.getContext();
-        Resource subject = contraints.getSubject();
-        Set<IRI> predicates = contraints.getPredicates();
+    public static String createStatementRegex(final StatementConstraints contraints) {
+        final Resource context = contraints.getContext();
+        final Resource subject = contraints.getSubject();
+        final Set<IRI> predicates = contraints.getPredicates();
         if (context == null && subject == null && (predicates == null || predicates.isEmpty())) {
             return null;
         }
 
         // match on anything but a separator
-        String anyReg = "[^" + SEP + "]*";
+        final String anyReg = "[^" + SEP + "]*";
 
         // if context is empty, match on any context
-        String contextReg = (context == null) ? anyReg : context.stringValue();
+        final String contextReg = (context == null) ? anyReg : context.stringValue();
 
         // if subject is empty, match on any subject
-        String subjectReg = (subject == null) ? anyReg : subject.stringValue();
+        final String subjectReg = (subject == null) ? anyReg : subject.stringValue();
 
         // if the predicates are empty, match on any predicate. Otherwise, "or" the predicates.
         String predicateReg = "";

@@ -31,7 +31,7 @@ The Rya Example Box VM requires Vagrant to install, configure, and run the VM.  
 
 The Rya Example Box was developed using Vagrant 1.7.4 and Oracle Virtual Box 5.0.6. 
 
-If a user would rather not use Vagrant, expert users should be able to read through the [Rya-Example-Box Vagrantfile][pathToVF] and understand the operations that the Vagrantfile is performing to configure the VM for Rya.  These operations should be applicable to other Linux machines and VMs.
+If a user would rather not use Vagrant, expert users should be able to read through the [Rya-Example-Box Vagrantfile] and understand the operations that the Vagrantfile is performing to configure the VM for Rya.  These operations should be applicable to other Linux machines and VMs.
 
 ### Starting up the VM	
 
@@ -39,7 +39,7 @@ Once Vagrant is installed, starting up the Rya-Example-Box is fairly straightfor
 
 1. Create a custom directory for the Rya Example Box (e.g., for windows users `c:\users\<user>\ryavagrant` or for Mac/Linux users `/home/<user>/ryavagrant`)
 
-1. Download the [Rya-Example-Box Vagrantfile][pathToVF] to the custom directory.  Note that it must be named `Vagrantfile` with no extension.
+1. Download the [Rya-Example-Box Vagrantfile] to the custom directory.  Note that it must be named `Vagrantfile` with no extension.
 
 1. Open a DOS prompt (Windows) or Terminal (Mac/Linux), change to the custom directory, and issue the command `vagrant up`.  Note that it may take up to 30 minutes to download, install, and configure Rya and all of the components.
 
@@ -187,7 +187,7 @@ From within the VM, run:
 
 The first step to using Rya via the RDF4J Workbench is to create a repository using the Rya Accumulo Store connector.
 
-1. Open your browser to the [RDF4j Workbench](http://rya-example-box:8080/rdf4j-workbench)
+1. Open your browser to the [RDF4J Workbench](http://rya-example-box:8080/rdf4j-workbench)
 2. Click on `New Repository`
 3. Choose "Type" of `Rya Accumulo Store`, a Repository "ID" (e.g., `RyaAccumulo`), and a Repository "Title" (e.g., `Rya Accumulo`).  Click on `Next` when complete.
 4. Enter the Rya Accumulo Store connection parameters.  The default parameters will connect to the Rya Example Box Acccumulo deployment (i.e., Accumulo User: `root`, Accumulo Password: `root`, Accumulo Instance: `dev`, Zookeepers: `localhost`, is Mock?: `false`).  Click on `Create` when complete.
@@ -222,7 +222,7 @@ Once we've created a Rya repository and uploaded data, we can query Rya via the 
 
 ### Using the RDF4J REST Service
 
-More information about the RDF4J REST HTTP Protocol is availible in the [RDF4J 2.3.1 Docs] 
+More information about the RDF4J REST HTTP Protocol is availible in the [RDF4J 2.3.1 Docs]
 (http://docs.rdf4j.org/rest-api/)
 
 ### Using Rya Java Client
@@ -253,6 +253,6 @@ TODO
 TODO
 
 ### Resizing the VMs Disk space
-Instructions for resizing a Vagrant/VirtualBox image can be found [here] (http://www.midwesternmac.com/blogs/jeff-geerling/resizing-virtualbox-disk-image)
+Instructions for resizing a Vagrant/VirtualBox image can be found [here](http://www.midwesternmac.com/blogs/jeff-geerling/resizing-virtualbox-disk-image)
 
-[pathToVF]: Vagrantfile
+[Rya-Example-Box Vagrantfile]: Vagrantfile

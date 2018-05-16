@@ -185,7 +185,7 @@ public class RyaCommands implements CommandMarker {
             if(rezIter.hasNext()) {
                 consolePrinter.println("Query Results:");
                 final BindingSet bs = rezIter.next();
-                for(final String name : rezIter.next().getBindingNames()) {
+                for(final String name : bs.getBindingNames()) {
                     bindings.add(name);
                 }
                 consolePrinter.println(Strings.join(bindings, ","));

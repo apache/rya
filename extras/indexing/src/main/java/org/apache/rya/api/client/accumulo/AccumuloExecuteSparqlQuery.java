@@ -93,7 +93,7 @@ public class AccumuloExecuteSparqlQuery extends AccumuloCommand implements Execu
             sailRepo = new SailRepository(sail);
             sailRepoConn = sailRepo.getConnection();
 
-         // Execute the query.
+            // Execute the query.
             final TupleQuery tupleQuery = sailRepoConn.prepareTupleQuery(QueryLanguage.SPARQL, sparqlQuery);
             return tupleQuery.evaluate();
         } catch (final SailException | AccumuloException | AccumuloSecurityException | RyaDAOException | InferenceEngineException  e) {

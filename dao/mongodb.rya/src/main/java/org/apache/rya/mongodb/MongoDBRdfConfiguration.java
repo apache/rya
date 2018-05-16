@@ -274,17 +274,17 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * on their child subtrees.
      * @param value whether to use aggregation pipeline optimization.
      */
-    public void setUseAggregationPipeline(boolean value) {
+    public void setUseAggregationPipeline(final boolean value) {
         setBoolean(USE_AGGREGATION_PIPELINE, value);
     }
 
     @Override
     public List<Class<QueryOptimizer>> getOptimizers() {
-        List<Class<QueryOptimizer>> optimizers = super.getOptimizers();
+        final List<Class<QueryOptimizer>> optimizers = super.getOptimizers();
         if (getUseAggregationPipeline()) {
-            Class<?> cl = AggregationPipelineQueryOptimizer.class;
+            final Class<?> cl = AggregationPipelineQueryOptimizer.class;
             @SuppressWarnings("unchecked")
-            Class<QueryOptimizer> optCl = (Class<QueryOptimizer>) cl;
+            final Class<QueryOptimizer> optCl = (Class<QueryOptimizer>) cl;
             optimizers.add(optCl);
         }
         return optimizers;

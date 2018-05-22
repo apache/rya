@@ -101,6 +101,7 @@ public class AccumuloRyaSinkTask extends RyaSinkTask {
         ryaConfig.setAccumuloInstance( config.getClusterName() );
         ryaConfig.setAccumuloUser( config.getUsername() );
         ryaConfig.setAccumuloPassword( config.getPassword() );
+        ryaConfig.setFlush(false);
 
         // Create the Sail object.
         try {

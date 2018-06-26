@@ -21,9 +21,7 @@ package org.apache.rya.export.mongo;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.TIMESTAMP;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Optional;
 
 import org.apache.rya.api.domain.RyaStatement;
@@ -54,7 +52,7 @@ import com.mongodb.MongoClient;
 public class MongoRyaStatementStore implements RyaStatementStore {
     private static final Logger logger = LoggerFactory.getLogger(MongoRyaStatementStore.class);
 
-    public static final String TRIPLES_COLLECTION = "rya__triples";
+    public static final String TRIPLES_COLLECTION = "rya_triples";
     public static final String METADATA_COLLECTION = "parent_metadata";
     protected final SimpleMongoDBStorageStrategy adapter;
     protected final DB db;
@@ -77,17 +75,28 @@ public class MongoRyaStatementStore implements RyaStatementStore {
         db = this.client.getDB(ryaInstanceName);
         adapter = new SimpleMongoDBStorageStrategy();
         parentMetadataRepo = new MongoParentMetadataRepository(client, ryaInstance);
+        db.getCollection(TRIPLES_COLLECTION).createIndex(new BasicDBObject(TIMESTAMP, 1));
     }
 
     @Override
     public Iterator<RyaStatement> fetchStatements() {
         final Cursor cur = db.getCollection(TRIPLES_COLLECTION).find().sort(new BasicDBObject(TIMESTAMP, 1));
-        final List<RyaStatement> statements = new ArrayList<>();
-        while(cur.hasNext()) {
-            final RyaStatement statement = adapter.deserializeDBObject(cur.next());
-            statements.add(statement);
-        }
-        return statements.iterator();
+        return new Iterator<RyaStatement>() {
+            @Override
+            public boolean hasNext() {
+                return cur.hasNext();
+            }
+
+            @Override
+            public RyaStatement next() {
+                return adapter.deserializeDBObject(cur.next());
+            }
+        };
+    }
+
+    @Override
+    public long count() {
+        return (int) db.getCollection(TRIPLES_COLLECTION).count();
     }
 
     @Override
@@ -96,6 +105,16 @@ public class MongoRyaStatementStore implements RyaStatementStore {
             dao.add(statement);
         } catch (final RyaDAOException e) {
             throw new AddStatementException("Unable to add statement: '" + statement.toString() + "'", e);
+        }
+    }
+
+    @Override
+    public void addStatements(final Iterator<RyaStatement> statements) throws AddStatementException {
+        try {
+            dao.add(statements);
+            dao.flush();
+        } catch (final RyaDAOException e) {
+            throw new AddStatementException("Unable to add statements.", e);
         }
     }
 
@@ -145,5 +164,10 @@ public class MongoRyaStatementStore implements RyaStatementStore {
     @Override
     public void setParentMetadata(final MergeParentMetadata metadata) throws ParentMetadataExistsException {
         parentMetadataRepo.set(metadata);
+    }
+
+    @Override
+    public String getRyaInstanceName() {
+        return ryaInstanceName;
     }
 }

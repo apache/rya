@@ -54,6 +54,11 @@ public abstract class RyaStatementStorePolicy implements RyaStatementStore {
     }
 
     @Override
+    public void addStatements(final Iterator<RyaStatement> statements) throws AddStatementException {
+        store.addStatements(statements);
+    }
+
+    @Override
     public void removeStatement(final RyaStatement statement) throws RemoveStatementException {
         store.removeStatement(statement);
     }
@@ -76,5 +81,15 @@ public abstract class RyaStatementStorePolicy implements RyaStatementStore {
     @Override
     public void setParentMetadata(final MergeParentMetadata metadata) throws ParentMetadataExistsException {
         store.setParentMetadata(metadata);
+    }
+
+    @Override
+    public String getRyaInstanceName() {
+        return store.getRyaInstanceName();
+    }
+
+    @Override
+    public long count() {
+        return store.count();
     }
 }

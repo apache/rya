@@ -57,7 +57,7 @@ public class ParentMetadataRepositoryAdapter {
     public MergeParentMetadata deserialize(final DBObject dbo) {
         final Date timestamp = (Date) dbo.get(TIMESTAMP_KEY);
         final String ryaInstance = (String) dbo.get(RYANAME_KEY);
-        final Date filterTimestamp = (Date) dbo.get(FILTER_TIMESTAMP_KEY);
+        final long filterTimestamp = (long) dbo.get(FILTER_TIMESTAMP_KEY);
         final Long offset = (Long) dbo.get(PARENT_TIME_OFFSET_KEY);
         return new MergeParentMetadata.Builder()
             .setRyaInstanceName(ryaInstance)

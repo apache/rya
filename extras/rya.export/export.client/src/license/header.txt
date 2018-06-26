@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,22 +14,3 @@ software distributed under the License is distributed on an
 KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
--->
-<schema xmlns="http://www.w3.org/2001/XMLSchema"
-    xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:mc="http://mergeconfig"
-    targetNamespace="http://mergeconfig"
-    elementFormDefault="qualified">
-
-    <xs:include schemaLocation="./MergeConfiguration.xsd"/>
-
-    <xs:complexType name="TimestampMergePolicyConfiguration">
-        <xs:complexContent>
-            <xs:extension base="mc:MergeToolConfiguration">
-                <xs:sequence>
-                    <xs:element name="toolStartTime" type="xs:string" minOccurs="0"/>
-                </xs:sequence>
-            </xs:extension>
-        </xs:complexContent>
-    </xs:complexType>
-</schema>

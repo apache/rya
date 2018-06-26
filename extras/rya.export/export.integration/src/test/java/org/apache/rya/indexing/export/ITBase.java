@@ -31,11 +31,10 @@ import java.util.Map;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.log4j.Logger;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -252,21 +251,14 @@ public abstract class ITBase {
         conf.setBoolean(ConfigUtils.USE_MONGO, true);
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, false);
 
-        conf.setTablePrefix(RYA_TABLE_PREFIX);
-
         conf.setDisplayQueryPlan(true);
 
         conf.set(ConfigUtils.CLOUDBASE_USER, USER);
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, PASSWORD);
 
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
-        conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
-
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
-
         conf.setMongoPort(""+port);
         conf.setMongoHostname(hostname);
-        conf.setMongoDBName(ryaInstanceName);
+        conf.setRyaInstanceName(ryaInstanceName);
         return conf;
     }
 

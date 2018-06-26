@@ -35,44 +35,23 @@ under the License.
 
     <xsd:complexType name="MergeToolConfiguration">
         <xsd:sequence>
-            <xsd:element name="parentHostname" type="xsd:string"/>
-            <xsd:element name="parentUsername" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="parentPassword" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="parentRyaInstanceName" type="xsd:string"/>
-            <xsd:element name="parentTablePrefix" type="xsd:string"/>
-            <xsd:element name="parentTomcatUrl" type="xsd:string"/>
-            <xsd:element name="parentDBType" type="mc:DBType"/>
-            <xsd:element name="parentPort" type="mc:Port"/>
+            <xsd:element name="parent" type="mc:Connection" maxOccurs="1"/>
+            <xsd:element name="child" type="mc:Connection" maxOccurs="1"/>
 
-            <xsd:element name="childHostname" type="xsd:string"/>
-            <xsd:element name="childUsername" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="childPassword" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="childRyaInstanceName" type="xsd:string"/>
-            <xsd:element name="childTablePrefix" type="xsd:string"/>
-            <xsd:element name="childTomcatUrl" type="xsd:string"/>
-            <xsd:element name="childDBType" type="mc:DBType"/>
-            <xsd:element name="childPort" type="mc:Port"/>
-
-            <xsd:element name="mergePolicy" type="mc:MergePolicy"/>
-
+            <xsd:element name="tomcatUrl" type="xsd:string"/>
+            <xsd:element name="startTime" type="xsd:long"/>
             <xsd:element name="useNtpServer" type="xsd:boolean"/>
             <xsd:element name="ntpServerHost" type="xsd:string" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
-
-    <xsd:simpleType name="MergePolicy">
-      <xsd:restriction base="xsd:string">
-        <xsd:enumeration value="timestamp"/>
-        <xsd:enumeration value="query"/>
-      </xsd:restriction>
-    </xsd:simpleType>
     
-    <xsd:simpleType name="DBType">
-      <xsd:restriction base="xsd:string">
-        <xsd:enumeration value="accumulo"/>
-        <xsd:enumeration value="mongo"/>
-      </xsd:restriction>
-    </xsd:simpleType>
+    <xsd:complexType name="Connection">
+        <xsd:sequence>
+            <xsd:element name="ryaInstanceName" type="xsd:string"/>
+            <xsd:element name="mongo" type="mc:Mongo" minOccurs="0"/>
+            <xsd:element name="accumulo" type="mc:Accumulo" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:simpleType name="Port">
       <xsd:annotation>
@@ -84,6 +63,39 @@ under the License.
       <xsd:restriction base="xsd:unsignedShort">
         <xsd:minInclusive value="1"/>
         <xsd:maxInclusive value="65535"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- Mongo configurations -->
+    <xsd:complexType name="Mongo">
+        <xsd:sequence>
+            <xsd:element name="hostname" type="xsd:string"/>
+            <xsd:element name="username" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="password" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="tablePrefix" type="xsd:string"/>
+            <xsd:element name="port" type="mc:Port"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Accumulo configurations -->
+    <xsd:complexType name="Accumulo">
+        <xsd:sequence>
+            <xsd:element name="hostname" type="xsd:string"/>
+            <xsd:element name="username" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="password" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="tablePrefix" type="xsd:string"/>
+            <xsd:element name="port" type="mc:Port"/>
+            <xsd:element name="zookeepers" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="auths" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="instanceType" type="mc:InstanceType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="InstanceType">
+      <xsd:restriction base="xsd:string">
+        <xsd:enumeration value="mock"/>
+        <xsd:enumeration value="mini"/>
+        <xsd:enumeration value="distribution"/>
       </xsd:restriction>
     </xsd:simpleType>
 </xsd:schema>

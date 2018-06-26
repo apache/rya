@@ -80,19 +80,25 @@ public class RyaSailFactory {
 
         final String user;
         final String pswd;
-        // XXX Should(?) be MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX inside the if below. RYA-135
-        final String ryaInstance = config.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
-        Objects.requireNonNull(ryaInstance, "RyaInstance or table prefix is missing from configuration."+RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
+        final String ryaInstance;
 
         if(ConfigUtils.getUseMongo(config)) {
             // Get a reference to a Mongo DB configuration object.
-            final MongoDBRdfConfiguration mongoConfig = (config instanceof MongoDBRdfConfiguration) ?
+            final MongoDBRdfConfiguration mongoConfig = config instanceof MongoDBRdfConfiguration ?
                     (MongoDBRdfConfiguration)config : new MongoDBRdfConfiguration(config);
+
+            ryaInstance = mongoConfig.getRyaInstanceName();
+
+            requireNonNull(ryaInstance, "RyaInstance is missing from configuration." + MongoDBRdfConfiguration.RYA_INSTANCE_NAME);
+
             // Instantiate a Mongo client and Mongo DAO.
             dao = getMongoDAO(mongoConfig);
             // Then use the DAO's newly-created stateful conf in place of the original
             rdfConfig = dao.getConf();
         } else {
+            ryaInstance = config.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
+            Objects.requireNonNull(ryaInstance, "RyaInstance or table prefix is missing from configuration."+RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
+
             rdfConfig = new AccumuloRdfConfiguration(config);
             user = rdfConfig.get(ConfigUtils.CLOUDBASE_USER);
             pswd = rdfConfig.get(ConfigUtils.CLOUDBASE_PASSWORD);
@@ -221,7 +227,7 @@ public class RyaSailFactory {
      * @return - MongoDBRyaDAO with Indexers configured according to user's specification
      * @throws RyaDAOException if the DAO can't be initialized
      */
-    public static MongoDBRyaDAO getMongoDAO(MongoDBRdfConfiguration mongoConfig) throws RyaDAOException {
+    public static MongoDBRyaDAO getMongoDAO(final MongoDBRdfConfiguration mongoConfig) throws RyaDAOException {
             // Create the MongoClient that will be used by the Sail object's components.
             final MongoClient client = createMongoClient(mongoConfig);
 

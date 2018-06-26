@@ -1,0 +1,63 @@
+@base <https://urldefense.proofpoint.com/v2/url?u=http-3A__ceilld.com_&d=BQIGAg&c=Nwf-pp4xtYRe0sCRVM8_LWH54joYF7EKmrYIdfxIq10&r=cGA4kkC4GBP11U2TTR4edPyuS8T_UiRYOeF5sghmMI0&m=U7c6TJhQQlnzAWk4hHNMBtQMBYKu8h0q3AhqVGbOmgU&s=OOX_W8Qvl3Vj5ifkq0AcNhUcdWbCH4UVOQeS5Ofu2vo&e=> .
+
+# Namespace Definitions
+@prefix owl:       <https://urldefense.proofpoint.com/v2/url?u=http-3A__www.w3.org_2002_07_owl-23&d=BQIGAg&c=Nwf-pp4xtYRe0sCRVM8_LWH54joYF7EKmrYIdfxIq10&r=cGA4kkC4GBP11U2TTR4edPyuS8T_UiRYOeF5sghmMI0&m=U7c6TJhQQlnzAWk4hHNMBtQMBYKu8h0q3AhqVGbOmgU&s=pgon5FfNLa35iAGl1dpXhtwfg58ryceOaeaOxDLhrcc&e=> .
+@prefix dc:        <https://urldefense.proofpoint.com/v2/url?u=http-3A__purl.org_dc_elements_1.1_&d=BQIGAg&c=Nwf-pp4xtYRe0sCRVM8_LWH54joYF7EKmrYIdfxIq10&r=cGA4kkC4GBP11U2TTR4edPyuS8T_UiRYOeF5sghmMI0&m=U7c6TJhQQlnzAWk4hHNMBtQMBYKu8h0q3AhqVGbOmgU&s=0D7OvKyp-Dk0oWVkbwd44QQUGrXk9QNs5o-syKu6O6E&e=> .
+@prefix foaf:      <https://urldefense.proofpoint.com/v2/url?u=http-3A__xmlns.com_foaf_spec_&d=BQIGAg&c=Nwf-pp4xtYRe0sCRVM8_LWH54joYF7EKmrYIdfxIq10&r=cGA4kkC4GBP11U2TTR4edPyuS8T_UiRYOeF5sghmMI0&m=U7c6TJhQQlnzAWk4hHNMBtQMBYKu8h0q3AhqVGbOmgU&s=sB_NbJsXan4E_gI9AqK1NWESDSygZVadp2FXuvRBIP0&e=> .
+@prefix rdf:       <https://urldefense.proofpoint.com/v2/url?u=http-3A__www.w3.org_1999_02_22-2Drdf-2Dsyntax-2Dns-23&d=BQIGAg&c=Nwf-pp4xtYRe0sCRVM8_LWH54joYF7EKmrYIdfxIq10&r=cGA4kkC4GBP11U2TTR4edPyuS8T_UiRYOeF5sghmMI0&m=U7c6TJhQQlnzAWk4hHNMBtQMBYKu8h0q3AhqVGbOmgU&s=p_5v5HpGwUE-3wy0TwR-b8dz2dAS6hTSMGb84teIWR0&e=> .
+@prefix rdfs:      <https://urldefense.proofpoint.com/v2/url?u=http-3A__www.w3.org_2000_01_rdf-2Dschema-23&d=BQIGAg&c=Nwf-pp4xtYRe0sCRVM8_LWH54joYF7EKmrYIdfxIq10&r=cGA4kkC4GBP11U2TTR4edPyuS8T_UiRYOeF5sghmMI0&m=U7c6TJhQQlnzAWk4hHNMBtQMBYKu8h0q3AhqVGbOmgU&s=qVZz_K5hs602pLCvC7vukZbr5lwsHKidT-YdXfsghiU&e=> .
+@prefix xsd:       <https://urldefense.proofpoint.com/v2/url?u=http-3A__www.w3.org_2001_XMLSchema-23&d=BQIGAg&c=Nwf-pp4xtYRe0sCRVM8_LWH54joYF7EKmrYIdfxIq10&r=cGA4kkC4GBP11U2TTR4edPyuS8T_UiRYOeF5sghmMI0&m=U7c6TJhQQlnzAWk4hHNMBtQMBYKu8h0q3AhqVGbOmgU&s=PCFvLFRPSiMwgtl7n8S3Y2656GxDDamO9tYGkz2Idlw&e=> .
+@prefix skos:      <https://urldefense.proofpoint.com/v2/url?u=http-3A__www.w3.org_2004_02_skos_core-23&d=BQIGAg&c=Nwf-pp4xtYRe0sCRVM8_LWH54joYF7EKmrYIdfxIq10&r=cGA4kkC4GBP11U2TTR4edPyuS8T_UiRYOeF5sghmMI0&m=U7c6TJhQQlnzAWk4hHNMBtQMBYKu8h0q3AhqVGbOmgU&s=vqemQGa5YN6CH3XurSGiB7J8HfPnVuLEgSd2c2qO_N8&e=> .
+@prefix geo:       <https://urldefense.proofpoint.com/v2/url?u=http-3A__www.w3.org_2003_01_geo_wgs84-5Fpos-23&d=BQIGAg&c=Nwf-pp4xtYRe0sCRVM8_LWH54joYF7EKmrYIdfxIq10&r=cGA4kkC4GBP11U2TTR4edPyuS8T_UiRYOeF5sghmMI0&m=U7c6TJhQQlnzAWk4hHNMBtQMBYKu8h0q3AhqVGbOmgU&s=H9IJPBkHc7CB3YVz2fu-w_7Oqa-GBdW4_8qh4CIKFjA&e=> .
+@prefix ceilm: <https://urldefense.proofpoint.com/v2/url?u=http-3A__ceil.baesystems.com_meta_&d=BQIGAg&c=Nwf-pp4xtYRe0sCRVM8_LWH54joYF7EKmrYIdfxIq10&r=cGA4kkC4GBP11U2TTR4edPyuS8T_UiRYOeF5sghmMI0&m=U7c6TJhQQlnzAWk4hHNMBtQMBYKu8h0q3AhqVGbOmgU&s=0MB_kKpY2yM-DCZGmHtuQYvxxLiY05SlDF-dEdAl3kU&e=> .
+@prefix schema:    <https://urldefense.proofpoint.com/v2/url?u=http-3A__schema.org&d=BQIGAg&c=Nwf-pp4xtYRe0sCRVM8_LWH54joYF7EKmrYIdfxIq10&r=cGA4kkC4GBP11U2TTR4edPyuS8T_UiRYOeF5sghmMI0&m=U7c6TJhQQlnzAWk4hHNMBtQMBYKu8h0q3AhqVGbOmgU&s=rlw5LQSWExzKkZ8-5L2RTKyZfypFcy3DCZOlbIcLTFQ&e=> .
+@prefix mkg:    <vocab/mft#> .
+@prefix nD: <https://urldefense.proofpoint.com/v2/url?u=http-3A__franz.com_ns_allegrograph_5.0_geo_nd-23-5Flat-5Fla-5F-2D9.-2B1-5F-2B9.-2B1-5F-2B1.-2D8-5F-2B1.-2B0-5Flon-5Flo-5F-2D1.8-2B2-5F-2B1.8-2B2-5F-2B1.-2D8-5F-2B1.-2B0-5Ftim-5Fti-5F-2B3.6291-2B9-5F-2B3.6369-2B9-5F-2B1.-2D1&d=BQIGAg&c=Nwf-pp4xtYRe0sCRVM8_LWH54joYF7EKmrYIdfxIq10&r=cGA4kkC4GBP11U2TTR4edPyuS8T_UiRYOeF5sghmMI0&m=U7c6TJhQQlnzAWk4hHNMBtQMBYKu8h0q3AhqVGbOmgU&s=CgxmIxPIqhVuLo3FTjs0KzQLczfXUVSjrKl_MF6yfLo&e=> .
+
+<stmt/ab1d4ac4-6c60-4f70-9a47-2f0f58fcab3b> { <observed/obs-ab8123dc-0a9b-45d0-902b-e6a3df9f64bc> a mkg:Observation }
+<stmt/31776c4e-764b-47d4-bc67-df8df29edb84> { <observed/obs-ab8123dc-0a9b-45d0-902b-e6a3df9f64bc> mkg:vesselName "BUNGA MAS ENAM" }
+<stmt/ec81a86d-2c32-40d8-bb4a-f64e7f376e30> { <observed/obs-ab8123dc-0a9b-45d0-902b-e6a3df9f64bc> mkg:mmsi "533168000" }
+<stmt/659062d9-5ce4-48c4-ac00-217b2efa9500> { <observed/obs-ab8123dc-0a9b-45d0-902b-e6a3df9f64bc> mkg:source "AIS" }
+<stmt/851c596c-7252-4eb0-b653-2de68f74db50> { <observed/obs-ab8123dc-0a9b-45d0-902b-e6a3df9f64bc> mkg:observedAt "+02.355305+101.973575^nan--T::Z"^^nD: }
+<stmt/dd3e9455-d7df-4482-9780-aae9433c37f1> { <observed/obs-ab8123dc-0a9b-45d0-902b-e6a3df9f64bc> mkg:navigationStatus "At Anchor" }
+<stmt/7b38187f-08c9-43ef-86a1-3179919e17f9> { <observed/obs-ab8123dc-0a9b-45d0-902b-e6a3df9f64bc> mkg:destination " " }
+<stmt/b9bd8c5d-661d-44e3-a1e8-09a143270266> { <observed/obs-ab8123dc-0a9b-45d0-902b-e6a3df9f64bc> mkg:latitude "2.355305" }
+<stmt/1fb8c608-e3fa-40f1-a838-bfd2c70502ea> { <observed/obs-ab8123dc-0a9b-45d0-902b-e6a3df9f64bc> mkg:longitude "101.973575" }
+<stmt/5135e6db-8440-46d1-a642-6b5c40b34a8b> { <observed/obs-ab8123dc-0a9b-45d0-902b-e6a3df9f64bc> mkg:dtg "nan" }
+<stmt/11e27349-f640-4082-bcec-65a24be2b772> { <observed/obs-ab8123dc-0a9b-45d0-902b-e6a3df9f64bc> mkg:cargoType "nan" }
+
+<stmt/7eeb2ebc-c132-4f5a-867d-f98d713178b4> { <observed/obs-b07d5af7-dccd-4d73-ad52-eb2c7308a044> a mkg:Observation }
+<stmt/9565db24-fd77-461e-9420-369502a3a71a> { <observed/obs-b07d5af7-dccd-4d73-ad52-eb2c7308a044> mkg:vesselName "RSS ENDURANCE" }
+<stmt/64ec8dee-8e76-40b1-bc91-454f7a33cb66> { <observed/obs-b07d5af7-dccd-4d73-ad52-eb2c7308a044> mkg:mmsi "564999000" }
+<stmt/c43d03f2-306f-466a-af13-2bde21c4f585> { <observed/obs-b07d5af7-dccd-4d73-ad52-eb2c7308a044> mkg:source "AIS" }
+<stmt/54ab0c07-58a2-4b06-86d2-f30036004f12> { <observed/obs-b07d5af7-dccd-4d73-ad52-eb2c7308a044> mkg:observedAt "+01.31369666667+104.023178333^nan--T::Z"^^nD: }
+<stmt/8d9552f5-f0c2-43d1-9b4e-c597184172f1> { <observed/obs-b07d5af7-dccd-4d73-ad52-eb2c7308a044> mkg:navigationStatus "Under Way Using Engine" }
+<stmt/591d22af-9a64-4047-add0-716b5042cdad> { <observed/obs-b07d5af7-dccd-4d73-ad52-eb2c7308a044> mkg:destination " " }
+<stmt/3ff8a01e-6b18-4319-ad00-d7c317bbee27> { <observed/obs-b07d5af7-dccd-4d73-ad52-eb2c7308a044> mkg:latitude "1.31369666667" }
+<stmt/d831721d-ea85-451a-af08-7df3e0f280f8> { <observed/obs-b07d5af7-dccd-4d73-ad52-eb2c7308a044> mkg:longitude "104.023178333" }
+<stmt/32affd80-99c3-4081-87c8-45cb2c0f9fd9> { <observed/obs-b07d5af7-dccd-4d73-ad52-eb2c7308a044> mkg:dtg "nan" }
+<stmt/963f21e7-0909-4d7e-a03c-a71235ead274> { <observed/obs-b07d5af7-dccd-4d73-ad52-eb2c7308a044> mkg:cargoType "nan" }
+
+<stmt/7d911633-89a5-440e-b3b1-e98956b8fb35> { <observed/obs-8d18debe-93b5-4e06-a011-a6ab2b7e349c> a mkg:Observation }
+<stmt/abd668f8-b0de-4954-af86-90040044da2f> { <observed/obs-8d18debe-93b5-4e06-a011-a6ab2b7e349c> mkg:vesselName "RSS VICTORY" }
+<stmt/54253a23-428d-4ce2-84df-641aaefbe496> { <observed/obs-8d18debe-93b5-4e06-a011-a6ab2b7e349c> mkg:mmsi "563699000" }
+<stmt/924ea28f-24c0-42ff-a5ad-89cdf9fc6a3f> { <observed/obs-8d18debe-93b5-4e06-a011-a6ab2b7e349c> mkg:source "AIS" }
+<stmt/a2bfd4bf-6a99-4343-8350-3e443140ef3b> { <observed/obs-8d18debe-93b5-4e06-a011-a6ab2b7e349c> mkg:observedAt "+01.28276+103.658208333^nan--T::Z"^^nD: }
+<stmt/4c242d82-0a7b-425b-883a-49d0e10d62fb> { <observed/obs-8d18debe-93b5-4e06-a011-a6ab2b7e349c> mkg:navigationStatus "Under Way Using Engine" }
+<stmt/f4636555-83fe-4d07-9b4c-ec941b92ce2f> { <observed/obs-8d18debe-93b5-4e06-a011-a6ab2b7e349c> mkg:destination " " }
+<stmt/46da91e3-701c-442f-8229-92220111825b> { <observed/obs-8d18debe-93b5-4e06-a011-a6ab2b7e349c> mkg:latitude "1.28276" }
+<stmt/9ae8da75-6477-4b45-b7ed-f2f107ada208> { <observed/obs-8d18debe-93b5-4e06-a011-a6ab2b7e349c> mkg:longitude "103.658208333" }
+<stmt/0a23fd3f-7a38-479e-973b-ae57b0f74b70> { <observed/obs-8d18debe-93b5-4e06-a011-a6ab2b7e349c> mkg:dtg "nan" }
+<stmt/ffdc2f7e-41d1-4d76-af49-ad3b12714dd2> { <observed/obs-8d18debe-93b5-4e06-a011-a6ab2b7e349c> mkg:cargoType "nan" }
+
+<stmt/cbd53ef6-aee8-43eb-b4c1-66a7d79041fd> { <observed/obs-81bbd58b-7556-4062-a24e-cc56f222b7db> a mkg:Observation }
+<stmt/a4518ccc-ef84-41fe-a6c8-2aa191a889bf> { <observed/obs-81bbd58b-7556-4062-a24e-cc56f222b7db> mkg:vesselName "CARL BRASHEAR       " }
+<stmt/220e6a32-cea2-4a5c-a357-9f4dc97b25a8> { <observed/obs-81bbd58b-7556-4062-a24e-cc56f222b7db> mkg:mmsi "368709000" }
+<stmt/37c9cc66-428c-49cb-bed6-34cc6e95cbf0> { <observed/obs-81bbd58b-7556-4062-a24e-cc56f222b7db> mkg:source "AIS" }
+<stmt/4960245a-c097-4bc4-a8b8-162b8737b2db> { <observed/obs-81bbd58b-7556-4062-a24e-cc56f222b7db> mkg:observedAt "+14.8098783333+120.27895^2015-02-11T00:46:34Z"^^nD: }
+<stmt/b9f9c497-89cf-4547-9c88-821f87071124> { <observed/obs-81bbd58b-7556-4062-a24e-cc56f222b7db> mkg:navigationStatus "Under Way Using Engine" }
+<stmt/9b6c546c-22fc-4971-82df-b7a73d686fc6> { <observed/obs-81bbd58b-7556-4062-a24e-cc56f222b7db> mkg:destination "SUBIC BAY" }
+<stmt/2e85ba9e-17ae-4be1-9090-402c65b494e6> { <observed/obs-81bbd58b-7556-4062-a24e-cc56f222b7db> mkg:latitude "14.8098783333" }
+<stmt/84695f6b-03be-490e-879e-47d81dbc3f08> { <observed/obs-81bbd58b-7556-4062-a24e-cc56f222b7db> mkg:longitude "120.27895" }
+<stmt/6ae527ef-2f29-4659-a78b-1bab228ffbf3> { <observed/obs-81bbd58b-7556-4062-a24e-cc56f222b7db> mkg:dtg "20150211004634" }
+<stmt/135545a7-2656-47b4-be0f-466b26ff6cc4> { <observed/obs-81bbd58b-7556-4062-a24e-cc56f222b7db> mkg:cargoType "nan" }

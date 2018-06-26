@@ -23,12 +23,11 @@ import static org.apache.rya.export.mongo.MongoRyaStatementStore.TRIPLES_COLLECT
 import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.TIMESTAMP;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.export.api.conf.policy.TimestampPolicyStatementStore;
+import org.apache.rya.export.api.policy.TimestampPolicyStatementStore;
 import org.apache.rya.export.api.store.FetchStatementException;
 import org.apache.rya.export.api.store.RyaStatementStore;
 import org.apache.rya.export.mongo.MongoRyaStatementStore;
@@ -54,10 +53,10 @@ public class TimestampPolicyMongoRyaStatementStore extends TimestampPolicyStatem
      * @param timestamp - The Date to filter statements on.
      * @param ryaInstanceName - The rya instance to merge statements to/from.
      */
-    public TimestampPolicyMongoRyaStatementStore(final MongoRyaStatementStore store, final Date timestamp, final String ryaInstanceName) {
+    public TimestampPolicyMongoRyaStatementStore(final MongoRyaStatementStore store, final long timestamp) {
         super(store, timestamp);
         adapter = new SimpleMongoDBStorageStrategy();
-        db = store.getClient().getDB(ryaInstanceName);
+        db = store.getClient().getDB(store.getRyaInstanceName());
     }
 
     @Override
@@ -65,7 +64,7 @@ public class TimestampPolicyMongoRyaStatementStore extends TimestampPolicyStatem
         final DBObject timeObj = new BasicDBObjectBuilder()
             .add(SimpleMongoDBStorageStrategy.TIMESTAMP,
                 new BasicDBObjectBuilder()
-                    .add("$gte", timestamp.getTime()).get())
+                    .add("$gte", timestamp).get())
             .get();
         final Cursor cur = db.getCollection(TRIPLES_COLLECTION).find(timeObj).sort(new BasicDBObject(TIMESTAMP, 1));
         final List<RyaStatement> statements = new ArrayList<>();
@@ -74,5 +73,10 @@ public class TimestampPolicyMongoRyaStatementStore extends TimestampPolicyStatem
             statements.add(statement);
         }
         return statements.iterator();
+    }
+
+    @Override
+    public String getRyaInstanceName() {
+        return store.getRyaInstanceName();
     }
 }

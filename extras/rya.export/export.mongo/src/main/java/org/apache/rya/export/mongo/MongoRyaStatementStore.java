@@ -54,7 +54,7 @@ import com.mongodb.MongoClient;
 public class MongoRyaStatementStore implements RyaStatementStore {
     private static final Logger logger = LoggerFactory.getLogger(MongoRyaStatementStore.class);
 
-    public static final String TRIPLES_COLLECTION = "rya__triples";
+    public static final String TRIPLES_COLLECTION = "rya_triples";
     public static final String METADATA_COLLECTION = "parent_metadata";
     protected final SimpleMongoDBStorageStrategy adapter;
     protected final DB db;
@@ -77,6 +77,7 @@ public class MongoRyaStatementStore implements RyaStatementStore {
         db = this.client.getDB(ryaInstanceName);
         adapter = new SimpleMongoDBStorageStrategy();
         parentMetadataRepo = new MongoParentMetadataRepository(client, ryaInstance);
+        db.getCollection(TRIPLES_COLLECTION).createIndex(new BasicDBObject(TIMESTAMP, 1));
     }
 
     @Override
@@ -96,6 +97,16 @@ public class MongoRyaStatementStore implements RyaStatementStore {
             dao.add(statement);
         } catch (final RyaDAOException e) {
             throw new AddStatementException("Unable to add statement: '" + statement.toString() + "'", e);
+        }
+    }
+
+    @Override
+    public void addStatements(final Iterator<RyaStatement> statements) throws AddStatementException {
+        try {
+            dao.add(statements);
+            dao.flush();
+        } catch (final RyaDAOException e) {
+            throw new AddStatementException("Unable to add statements.", e);
         }
     }
 
@@ -145,5 +156,10 @@ public class MongoRyaStatementStore implements RyaStatementStore {
     @Override
     public void setParentMetadata(final MergeParentMetadata metadata) throws ParentMetadataExistsException {
         parentMetadataRepo.set(metadata);
+    }
+
+    @Override
+    public String getRyaInstanceName() {
+        return ryaInstanceName;
     }
 }

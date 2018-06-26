@@ -50,7 +50,6 @@ import org.apache.rya.export.api.store.RyaStatementStore;
 import org.apache.rya.export.api.store.UpdateStatementException;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 
 /**
@@ -74,6 +73,7 @@ public class AccumuloRyaStatementStore implements RyaStatementStore {
     private final Set<IteratorSetting> iteratorSettings = new HashSet<>();
     private final AccumuloParentMetadataRepository metadataRepo;
 
+    private final String ryaInstanceName;
     /**
      * Creates a new instance of {@link AccumuloRyaStatementStore}.
      * @param dao the {@AccumuloRyaDAO}.
@@ -87,6 +87,7 @@ public class AccumuloRyaStatementStore implements RyaStatementStore {
         }
         accumuloRyaDao = dao;
         metadataRepo = new AccumuloParentMetadataRepository(dao);
+        ryaInstanceName = ryaInstance;
     }
 
     @Override
@@ -105,9 +106,7 @@ public class AccumuloRyaStatementStore implements RyaStatementStore {
             }
             // Convert Entry iterator to RyaStatement iterator
             final Iterator<Entry<Key, Value>> entryIter = scanner.iterator();
-            final Iterator<RyaStatement> ryaStatementIter = Iterators.transform(entryIter, new Function<Entry<Key, Value>, RyaStatement>() {
-               @Override
-               public RyaStatement apply(final Entry<Key, Value> entry) {
+            final Iterator<RyaStatement> ryaStatementIter = Iterators.transform(entryIter, entry -> {
                    final Key key = entry.getKey();
                    final Value value = entry.getValue();
                    RyaStatement ryaStatement = null;
@@ -117,8 +116,7 @@ public class AccumuloRyaStatementStore implements RyaStatementStore {
                        log.error("Unable to convert the key/value pair into a Rya Statement", e);
                    }
                    return ryaStatement;
-               }
-            });
+               });
             return ryaStatementIter;
         } catch (final Exception e) {
             throw new FetchStatementException("Failed to fetch statements.", e);
@@ -137,6 +135,16 @@ public class AccumuloRyaStatementStore implements RyaStatementStore {
                 accumuloRyaDao.add(statement);
             }
         } catch (final RyaDAOException | ContainsStatementException e) {
+            throw new AddStatementException("Unable to add the Rya Statement", e);
+        }
+    }
+
+    @Override
+    public void addStatements(final Iterator<RyaStatement> statements) throws AddStatementException {
+        try {
+            accumuloRyaDao.add(statements);
+            accumuloRyaDao.flush();
+        } catch (final RyaDAOException e) {
             throw new AddStatementException("Unable to add the Rya Statement", e);
         }
     }
@@ -215,5 +223,10 @@ public class AccumuloRyaStatementStore implements RyaStatementStore {
     public void addIterator(final IteratorSetting iteratorSetting) {
         checkNotNull(iteratorSetting);
         iteratorSettings.add(iteratorSetting);
+    }
+
+    @Override
+    public String getRyaInstanceName() {
+        return ryaInstanceName;
     }
 }

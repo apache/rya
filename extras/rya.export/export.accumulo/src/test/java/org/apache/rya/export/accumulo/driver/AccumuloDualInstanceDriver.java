@@ -39,7 +39,7 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.export.InstanceType;
+import org.apache.rya.export.accumulo.conf.InstanceType;
 import org.apache.rya.export.accumulo.util.AccumuloInstanceDriver;
 
 /**

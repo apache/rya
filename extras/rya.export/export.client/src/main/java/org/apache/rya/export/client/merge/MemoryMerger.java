@@ -43,32 +43,30 @@ import org.apache.rya.export.api.store.RyaStatementStore;
  * {@link StatementMerger} will merge the statements and produce the desired
  * {@link RyaStatement}.
  */
-public class MemoryTimeMerger implements Merger {
-    private static final Logger LOG = Logger.getLogger(MemoryTimeMerger.class);
+public class MemoryMerger implements Merger {
+    private static final Logger LOG = Logger.getLogger(MemoryMerger.class);
 
     private final RyaStatementStore parentStore;
     private final RyaStatementStore childStore;
     private final StatementMerger statementMerger;
-    private final Date timestamp;
     private final String ryaInstanceName;
     private final Long timeOffset;
 
     /**
-     * Creates a new {@link MemoryTimeMerger} to merge the statements from the parent to a child.
-     * @param parentStore
-     * @param childStore
-     * @param childMetadata
-     * @param parentMetadata
-     * @param statementMerger
-     * @param timestamp - The timestamp from which all parent statements will be merged into the child.
+     * Creates a new {@link MemoryMerger} to merge the statements from the parent to a child.
+     *
+     * @param parentStore - The source store, where the statements are coming from. (not null)
+     * @param childStore - The destination store, where the statements are going. (not null)
+     * @param statementMerger - The {@link Merger} to use when performing the merge. (not null)
+     * @param ryaInstanceName - The Rya instance to merge. (not null)
+     * @param timeOffset - The offset from a potential NTP server. (not null)
      */
-    public MemoryTimeMerger(final RyaStatementStore parentStore, final RyaStatementStore childStore,
-            final StatementMerger statementMerger, final Date timestamp, final String ryaInstanceName,
+    public MemoryMerger(final RyaStatementStore parentStore, final RyaStatementStore childStore,
+            final StatementMerger statementMerger, final String ryaInstanceName,
             final Long timeOffset) {
         this.parentStore = checkNotNull(parentStore);
         this.childStore = checkNotNull(childStore);
         this.statementMerger = checkNotNull(statementMerger);
-        this.timestamp = checkNotNull(timestamp);
         this.ryaInstanceName = checkNotNull(ryaInstanceName);
         this.timeOffset = checkNotNull(timeOffset);
     }
@@ -110,7 +108,6 @@ public class MemoryTimeMerger implements Merger {
             .setRyaInstanceName(ryaInstanceName)
             .setTimestamp(new Date())
             .setParentTimeOffset(timeOffset)
-            .setFilterTimestmap(timestamp)
             .build();
         childStore.setParentMetadata(metadata);
 
@@ -147,11 +144,9 @@ public class MemoryTimeMerger implements Merger {
             }
         }
 
-        long curTime = -1L;
         //Add all of the child statements that are not in the parent
         while(parentStatements.hasNext()) {
             final RyaStatement statement = parentStatements.next();
-            curTime = statement.getTimestamp();
             if(!childStore.containsStatement(statement)) {
                 statement.setTimestamp(statement.getTimestamp() - timeOffset);
                 childStore.addStatement(statement);

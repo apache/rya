@@ -28,9 +28,9 @@ import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 public class MergeConfigHadoopAdapter {
     public static MongoDBRdfConfiguration getMongoConfiguration(final MergeConfiguration config) {
         final MongoDBRdfConfiguration configuration = new MongoDBRdfConfiguration();
-        configuration.setMongoHostname(config.getChildHostname());
-        configuration.set(MongoDBRdfConfiguration.MONGO_PORT, config.getChildPort() + "");
-        configuration.set(MongoDBRdfConfiguration.MONGO_DB_NAME, config.getChildRyaInstanceName());
+        configuration.setMongoHostname(config.getHostname());
+        configuration.set(MongoDBRdfConfiguration.MONGO_PORT, config.getPort() + "");
+        configuration.set(MongoDBRdfConfiguration.RYA_INSTANCE_NAME, ryaInstanceName);
         return configuration;
     }
 }

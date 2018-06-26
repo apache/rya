@@ -84,46 +84,4 @@ under the License.
             <artifactId>libthrift</artifactId>
         </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>jaxb2-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>xjc</id>
-                        <goals>
-                            <goal>xjc</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <packageName>org.apache.rya.export</packageName>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>com.mycila</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <configuration>
-                    <header>${project.basedir}/src/license/header.txt</header>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>update-generated-source-headers</id>
-                        <configuration>
-                            <basedir>${project.build.directory}/generated-sources</basedir>
-                            <mapping>
-                                <sun-jaxb.episode>XML_STYLE</sun-jaxb.episode>
-                            </mapping>
-                        </configuration>
-                        <phase>process-sources</phase>
-                        <goals>
-                            <goal>format</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>

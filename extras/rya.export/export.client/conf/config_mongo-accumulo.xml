@@ -18,7 +18,7 @@ under the License. -->
 <MergeToolConfiguration xmlns="http://mergeconfig">
     <parent>
         <mongo>
-            <ryaInstanceName>TEST_LUBM</ryaInstanceName>
+            <ryaInstanceName>merge_parent</ryaInstanceName>
             <hostname>127.0.0.1</hostname>
             <port>27017</port>
             <tablePrefix>rya</tablePrefix>
@@ -28,7 +28,7 @@ under the License. -->
         <accumulo>
             <ryaInstanceName>merge_child</ryaInstanceName>
             <hostname>127.0.0.1</hostname>
-            <port>27017</port>
+            <port>1111</port>
             <tablePrefix>rya_</tablePrefix>
             <zookeepers></zookeepers>
             <username>root</username>
@@ -37,7 +37,7 @@ under the License. -->
             <instanceType>mock</instanceType>
         </accumulo>
     </child>
-    <childTomcatUrl>http://127.0.0.1:8080</childTomcatUrl>
+    <tomcatUrl>http://127.0.0.1:8080</tomcatUrl>
     <useNtpServer>false</useNtpServer>
     <startTime>123456</startTime>
 </MergeToolConfiguration>

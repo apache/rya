@@ -141,7 +141,7 @@ public class AccumuloParentMetadataRepository implements ParentMetadataRepositor
             // Fetch the metadata from the entries.
             String ryaInstanceName = null;
             Date timestamp = null;
-            Date filterTimestamp = null;
+            long filterTimestamp = -1L;
             Long parentTimeOffset = null;
 
             while (entries.hasNext()) {
@@ -154,7 +154,7 @@ public class AccumuloParentMetadataRepository implements ParentMetadataRepositor
                 } else if (columnQualifier.equals(MERGE_PARENT_METADATA_TIMESTAMP)) {
                     timestamp = DATE_LEXICODER.decode(value);
                 } else if (columnQualifier.equals(MERGE_PARENT_METADATA_FILTER_TIMESTAMP)) {
-                    filterTimestamp = DATE_LEXICODER.decode(value);
+                    filterTimestamp = LONG_LEXICODER.decode(value);
                 } else if (columnQualifier.equals(MERGE_PARENT_METADATA_PARENT_TIME_OFFSET)) {
                     parentTimeOffset = LONG_LEXICODER.decode(value);
                 }
@@ -220,8 +220,8 @@ public class AccumuloParentMetadataRepository implements ParentMetadataRepositor
         mutations.add(timestampMutation);
 
         // Filter Timestamp
-        if (metadata.getFilterTimestamp() != null) {
-            final Mutation filterTimestampMutation = makeFieldMutation(metadata.getFilterTimestamp(), DATE_LEXICODER, MERGE_PARENT_METADATA_FILTER_TIMESTAMP);
+        if (metadata.getFilterTimestamp() != -1L) {
+            final Mutation filterTimestampMutation = makeFieldMutation(metadata.getFilterTimestamp(), LONG_LEXICODER, MERGE_PARENT_METADATA_FILTER_TIMESTAMP);
             mutations.add(filterTimestampMutation);
         }
 

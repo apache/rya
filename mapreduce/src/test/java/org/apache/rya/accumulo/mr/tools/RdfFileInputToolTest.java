@@ -19,7 +19,6 @@ package org.apache.rya.accumulo.mr.tools;
  * under the License.
  */
 
-import junit.framework.TestCase;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.mock.MockInstance;
@@ -29,10 +28,12 @@ import org.apache.accumulo.core.security.TablePermission;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.mr.TestUtils;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
 import org.eclipse.rdf4j.rio.RDFFormat;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -41,7 +42,7 @@ import org.junit.Test;
  * Time: 10:51 AM
  * To change this template use File | Settings | File Templates.
  */
-public class RdfFileInputToolTest extends TestCase {
+public class RdfFileInputToolTest {
 
     private String user = "user";
     private String pwd = "pwd";
@@ -50,9 +51,8 @@ public class RdfFileInputToolTest extends TestCase {
     private Authorizations auths = new Authorizations("test_auths");
     private Connector connector;
 
-    @Override
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
         connector = new MockInstance(instance).getConnector(user, new PasswordToken(pwd));
         connector.tableOperations().create(tablePrefix + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX);
         connector.tableOperations().create(tablePrefix + RdfCloudTripleStoreConstants.TBL_PO_SUFFIX);
@@ -70,9 +70,8 @@ public class RdfFileInputToolTest extends TestCase {
         secOps.grantTablePermission(user, tablePrefix + RdfCloudTripleStoreConstants.TBL_EVAL_SUFFIX, TablePermission.WRITE);
     }
 
-    @Override
+    @After
     public void tearDown() throws Exception {
-        super.tearDown();
         connector.tableOperations().delete(tablePrefix + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX);
         connector.tableOperations().delete(tablePrefix + RdfCloudTripleStoreConstants.TBL_PO_SUFFIX);
         connector.tableOperations().delete(tablePrefix + RdfCloudTripleStoreConstants.TBL_OSP_SUFFIX);
@@ -101,6 +100,33 @@ public class RdfFileInputToolTest extends TestCase {
         conf.setTablePrefix(tablePrefix);
         conf.setAuths(auths.toString());
         TestUtils.verify(connector, conf, rs);
+    }
+
+    @Test
+    public void testMultipleNTriplesInputs() throws Exception {
+        RdfFileInputTool.main(new String[]{
+                "-Dac.mock=true",
+                "-Dac.instance=" + instance,
+                "-Dac.username=" + user,
+                "-Dac.pwd=" + pwd,
+                "-Dac.auth=" + auths.toString(),
+                "-Dac.cv=" + auths.toString(),
+                "-Drdf.tablePrefix=" + tablePrefix,
+                "-Drdf.format=" + RDFFormat.NTRIPLES.getName(),
+                "src/test/resources/test.ntriples,src/test/resources/test2.ntriples",
+        });
+        RyaStatement rs1 = new RyaStatement(new RyaIRI("urn:lubm:rdfts#GraduateStudent01"),
+                new RyaIRI("urn:lubm:rdfts#hasFriend"),
+                new RyaIRI("urn:lubm:rdfts#GraduateStudent02"));
+        RyaStatement rs2 = new RyaStatement(new RyaIRI("urn:lubm:rdfts#GraduateStudent05"),
+                new RyaIRI("urn:lubm:rdfts#hasFriend"),
+                new RyaIRI("urn:lubm:rdfts#GraduateStudent07"));
+        rs1.setColumnVisibility(auths.toString().getBytes());
+        rs2.setColumnVisibility(auths.toString().getBytes());
+        AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
+        conf.setTablePrefix(tablePrefix);
+        conf.setAuths(auths.toString());
+        TestUtils.verify(connector, conf, rs1, rs2);
     }
 
     @Test

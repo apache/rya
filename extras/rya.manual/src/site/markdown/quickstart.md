@@ -56,7 +56,7 @@ Start the Tomcat server. `./bin/startup.sh`
 
 ## Usage
 
-First, we need to load data. See the [Load Data Section] (loaddata.md)
+First, we need to load data. See the [Load Data](loaddata.md) section.
 
-Second, we need to query that data. See the [Query Data Section](querydata.md)
+Second, we need to query that data. See the [Query Data](querydata.md) section.
 

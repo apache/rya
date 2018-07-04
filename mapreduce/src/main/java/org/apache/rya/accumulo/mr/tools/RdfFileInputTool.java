@@ -65,7 +65,7 @@ public class RdfFileInputTool extends AbstractAccumuloMRTool implements Tool {
         job.setJarByClass(RdfFileInputTool.class);
 
         String inputPath = conf.get(MRUtils.INPUT_PATH, args[0]);
-        setupFileInput(job, inputPath, RDFFormat.RDFXML);
+        setupFileInputs(job, inputPath, RDFFormat.RDFXML);
         setupRyaOutput(job);
         job.setNumReduceTasks(0);
 

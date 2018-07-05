@@ -48,7 +48,7 @@ instance.name=accumulo  #Accumulo instance name
 instance.zk=localhost:2181  #Accumulo Zookeepers
 instance.username=root  #Accumulo username
 instance.password=secret  #Accumulo pwd
-rya.tableprefix=triplestore_  #Rya Table Prefix
+rya.tableprefix=rya_  #Rya Table Prefix
 rya.displayqueryplan=true  #To display the query plan
 ```
 

@@ -104,7 +104,7 @@ Here are the steps to prepare and run the job:
   * Run the following sample command:
 
 ```
-hadoop hdfs://volume/rya.mapreduce-<version>-shaded.jar org.apache.rya.accumulo.mr.tools.RdfFileInputTool -Dac.zk=localhost:2181 -Dac.instance=accumulo -Dac.username=root -Dac.pwd=secret -Drdf.tablePrefix=triplestore_ -Drdf.format=N-Triples hdfs://volume/dir1,hdfs://volume/dir2,hdfs://volume/file1.nt
+hadoop hdfs://volume/rya.mapreduce-<version>-shaded.jar org.apache.rya.accumulo.mr.tools.RdfFileInputTool -Dac.zk=localhost:2181 -Dac.instance=accumulo -Dac.username=root -Dac.pwd=secret -Drdf.tablePrefix=rya_ -Drdf.format=N-Triples hdfs://volume/dir1,hdfs://volume/dir2,hdfs://volume/file1.nt
 ```
 
 Options:
@@ -124,10 +124,11 @@ They need to be loaded into HDFS before running. If loading a directory,
 all files should have the same RDF format.
 
 Once the data is loaded, it is actually a good practice to compact your tables.
-You can do this by opening the accumulo shell shell and running the compact
+You can do this by opening the accumulo shell and running the compact
 command on the generated tables. Remember the generated tables will be
-prefixed by the rdf.tablePrefix property you assigned above.
-The default tablePrefix is `rts`.
+prefixed by the `rdf.tablePrefix` property you assigned above.
+The default tablePrefix is `rya_`.
+
 Here is a sample Accumulo Shell command:
 
 ```

@@ -99,7 +99,7 @@ Bulk loading data is done through Map Reduce jobs.
 This Map Reduce job will read files into memory and parse them into statements. The statements are saved into the triplestore. 
 Here are the steps to prepare and run the job:
 
-  * Load the RDF data to HDFS. It can be single of multiple volumes and directories in them.
+  * Load the RDF data to HDFS. It can be single of multiple volumes and can have directories in them.
   * Also load the `mapreduce/target/rya.mapreduce-<version>-shaded.jar` executable jar file to HDFS.
   * Run the following sample command:
 

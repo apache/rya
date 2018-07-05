@@ -38,7 +38,7 @@ This project contains documentation about Apache Rya, a scalable RDF triple stor
 - [Kafka Connect Integration](kafka-connect-integration.md)
 
 # Samples
-- [Typical First Steps](sm-firststeps.md)
+
 - [Simple Add/Query/Remove Statements](sm-simpleaqr.md)
 - [Sparql query](sm-sparqlquery.md)
 - [Adding Authentication](sm-addauth.md)
@@ -48,4 +48,5 @@ This project contains documentation about Apache Rya, a scalable RDF triple stor
 - [Alx](alx.md)
 
 # Development
+
 - [Building From Source](build-source.md)

@@ -1,0 +1,3 @@
+<urn:lubm:rdfts#GraduateStudent05> <urn:lubm:rdfts#hasFriend> <urn:lubm:rdfts#GraduateStudent07> .
+<urn:lubm:rdfts#GraduateStudent06> <urn:lubm:rdfts#hasFriend> <urn:lubm:rdfts#GraduateStudent06> .
+<urn:lubm:rdfts#GraduateStudent07> <urn:lubm:rdfts#hasFriend> <urn:lubm:rdfts#GraduateStudent05> .

@@ -209,18 +209,18 @@ public abstract class AbstractAccumuloMRTool implements Tool {
      * ({@link org.apache.hadoop.io.LongWritable}, {@link RyaStatementWritable})
      * pairs from RDF file(s) found at the specified path.
      * @param   job   Job to configure
-     * @param   inputPath     File or directory name
+     * @param   commaSeparatedPaths a comma separated list of files or directories
      * @param   defaultFormat  Default RDF serialization format, can be
      *                         overridden by {@link MRUtils#FORMAT_PROP}
      * @throws  IOException if there's an error interacting with the
      *          {@link org.apache.hadoop.fs.FileSystem}.
      */
-    protected void setupFileInput(Job job, String inputPath, RDFFormat defaultFormat) throws IOException {
+    protected void setupFileInputs(Job job, String commaSeparatedPaths, RDFFormat defaultFormat) throws IOException {
         RDFFormat format = MRUtils.getRDFFormat(conf);
         if (format == null) {
             format = defaultFormat;
         }
-        RdfFileInputFormat.addInputPath(job, new Path(inputPath));
+        RdfFileInputFormat.addInputPaths(job, commaSeparatedPaths);
         RdfFileInputFormat.setRDFFormat(job, format);
         job.setInputFormatClass(RdfFileInputFormat.class);
     }

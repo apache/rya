@@ -21,7 +21,7 @@
 -->
 # Load Data
 
-There are a few mechanisms to load data
+There are a few mechanisms to load data.
 
 ## Web REST endpoint
 
@@ -92,29 +92,56 @@ The default "format" is RDF/XML, but these formats are supported : RDFXML, NTRIP
 
 ## Bulk Loading data
 
-Bulk loading data is done through Map Reduce jobs
+Bulk loading data is done through Map Reduce jobs.
 
 ### Bulk Load RDF data
 
-This Map Reduce job will read files into memory and parse them into statements. The statements are saved into the store. Here is an example for storing in Accumulo:
+This Map Reduce job will read files into memory and parse them into statements. The statements are saved into the triplestore. 
+Here are the steps to prepare and run the job:
+
+  * Load the RDF data to HDFS. It can be single of multiple volumes and can have directories in them.
+  * Also load the `mapreduce/target/rya.mapreduce-<version>-shaded.jar` executable jar file to HDFS.
+  * Run the following sample command:
 
 ```
-hadoop jar target/rya.mapreduce-3.2.10-SNAPSHOT-shaded.jar org.apache.rya.accumulo.mr.RdfFileInputTool -Dac.zk=localhost:2181 -Dac.instance=accumulo -Dac.username=root -Dac.pwd=secret -Drdf.tablePrefix=triplestore_ -Drdf.format=N-Triples /tmp/temp.ntrips
+hadoop hdfs://volume/rya.mapreduce-<version>-shaded.jar org.apache.rya.accumulo.mr.tools.RdfFileInputTool -Dac.zk=localhost:2181 -Dac.instance=accumulo -Dac.username=root -Dac.pwd=secret -Drdf.tablePrefix=rya_ -Drdf.format=N-Triples hdfs://volume/dir1,hdfs://volume/dir2,hdfs://volume/file1.nt
 ```
 
 Options:
 
-- rdf.tablePrefix : The tables (spo, po, osp) are prefixed with this qualifier. The tables become: (rdf.tablePrefix)spo,(rdf.tablePrefix)po,(rdf.tablePrefix)osp
-- ac.* : Accumulo connection parameters
-- rdf.format : See RDFFormat from RDF4J, samples include (Trig, N-Triples, RDF/XML)
-- sc.use_freetext, sc.use_geo, sc.use_temporal, sc.use_entity : If any of these are set to true, statements will also be
+- **rdf.tablePrefix** - The tables (spo, po, osp) are prefixed with this qualifier.
+    The tables become: (rdf.tablePrefix)spo,(rdf.tablePrefix)po,(rdf.tablePrefix)osp
+- **ac.*** - Accumulo connection parameters
+- **rdf.format** - See RDFFormat from RDF4J, samples include (Trig, N-Triples, RDF/XML)
+- **sc.use_freetext, sc.use_geo, sc.use_temporal, sc.use_entity** - If any of these are set to true, statements will also be
     added to the enabled secondary indices.
-- sc.freetext.predicates, sc.geo.predicates, sc.temporal.predicates: If the associated indexer is enabled, these options specify
+- **sc.freetext.predicates, sc.geo.predicates, sc.temporal.predicates** - If the associated indexer is enabled, these options specify
     which statements should be sent to that indexer (based on the predicate). If not given, all indexers will attempt to index
     all statements.
 
-The argument is the directory/file to load. This file needs to be loaded into HDFS before running. If loading a directory, all files should have the same RDF
-format.
+The positional argument is a comma separated list of directories/files to load.
+They need to be loaded into HDFS before running. If loading a directory,
+all files should have the same RDF format.
+
+Once the data is loaded, it is actually a good practice to compact your tables.
+You can do this by opening the accumulo shell and running the compact
+command on the generated tables. Remember the generated tables will be
+prefixed by the `rdf.tablePrefix` property you assigned above.
+The default tablePrefix is `rya_`.
+
+Here is a sample Accumulo Shell command:
+
+```
+compact -p triplestore_(.*)
+```
+
+### Generate Prospects table
+
+For the best query performance, it is recommended to run the job that
+creates the Prospects table. This job will read through your data and
+gather statistics on the distribution of the dataset. This table is then
+queried before query execution to reorder queries based on the data
+distribution. See the [Prospects Table](eval.md) section on how to do this.
 
 ## Direct RDF4J API
 

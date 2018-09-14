@@ -105,7 +105,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * @param useMock - {@code true} to use an embedded Mongo DB instance; {@code false} to connect to a real server.
      */
     public void setUseMock(final boolean useMock) {
-        this.setBoolean(USE_MOCK_MONGO, useMock);
+        setBoolean(USE_MOCK_MONGO, useMock);
     }
 
     /**
@@ -197,7 +197,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * @return The name of the Rya instance to connect to. (default: rya)
      */
     public String getRyaInstanceName() {
-        return get(MONGO_COLLECTION_PREFIX, "rya");
+        return get(MONGO_DB_NAME, "rya");
     }
 
     /**
@@ -205,14 +205,14 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      */
     public void setRyaInstanceName(final String name) {
         requireNonNull(name);
-        set(MONGO_COLLECTION_PREFIX, name);
+        set(MONGO_DB_NAME, name);
     }
 
     /**
-     * @return The name of the MongoDB Collection that contains Rya statements. (default: rya_triples)
+     * @return The name of the MongoDB Collection that contains Rya statements. (rya_triples)
      */
     public String getTriplesCollectionName() {
-        return getRyaInstanceName() + "_triples";
+        return "rya_triples";
     }
 
     /**
@@ -274,16 +274,17 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * on their child subtrees.
      * @param value whether to use aggregation pipeline optimization.
      */
-    public void setUseAggregationPipeline(boolean value) {
+    public void setUseAggregationPipeline(final boolean value) {
         setBoolean(USE_AGGREGATION_PIPELINE, value);
     }
 
     @Override
     public List<Class<QueryOptimizer>> getOptimizers() {
-        List<Class<QueryOptimizer>> optimizers = super.getOptimizers();
+        final List<Class<QueryOptimizer>> optimizers = super.getOptimizers();
         if (getUseAggregationPipeline()) {
-            Class<?> cl = AggregationPipelineQueryOptimizer.class;
+            final Class<?> cl = AggregationPipelineQueryOptimizer.class;
             @SuppressWarnings("unchecked")
+            final
             Class<QueryOptimizer> optCl = (Class<QueryOptimizer>) cl;
             optimizers.add(optCl);
         }

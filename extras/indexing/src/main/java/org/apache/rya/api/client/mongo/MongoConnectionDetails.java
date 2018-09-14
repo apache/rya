@@ -102,7 +102,6 @@ public class MongoConnectionDetails {
         conf.setBoolean(ConfigUtils.USE_MONGO, true);
         conf.setMongoHostname(hostname);
         conf.setMongoPort("" + port);
-        conf.setMongoDBName(ryaInstanceName);
         conf.setRyaInstanceName(ryaInstanceName);
         if(username.isPresent()) {
             conf.setMongoUser(username.get());

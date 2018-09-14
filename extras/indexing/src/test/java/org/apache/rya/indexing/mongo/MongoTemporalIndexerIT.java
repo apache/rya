@@ -232,7 +232,7 @@ public final class MongoTemporalIndexerIT extends MongoITBase {
             tIndexer.storeStatement(convertStatement(s1));
             tIndexer.storeStatement(convertStatement(s2));
 
-            final String dbName = conf.getMongoDBName();
+            final String dbName = conf.getRyaInstanceName();
             final DB db = super.getMongoClient().getDB(dbName);
             final DBCollection collection = db.getCollection(tIndexer.getCollectionName());
 

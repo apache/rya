@@ -43,7 +43,6 @@ public class MongoITBase {
         final MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration( new Configuration() );
         conf.setBoolean("sc.useMongo", true);
         conf.setTablePrefix("test_");
-        conf.setMongoDBName(conf.getRyaInstanceName());
         conf.setMongoHostname(EmbeddedMongoSingleton.getMongodConfig().net().getServerAddress().getHostAddress());
         conf.setMongoPort(Integer.toString(EmbeddedMongoSingleton.getMongodConfig().net().getPort()));
 
@@ -82,13 +81,13 @@ public class MongoITBase {
      * @return The Rya triples {@link MongoCollection}.
      */
     public MongoCollection<Document> getRyaCollection() {
-        return mongoClient.getDatabase(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName());
+        return mongoClient.getDatabase(conf.getRyaInstanceName()).getCollection(conf.getTriplesCollectionName());
     }
 
     /**
      * @return The Rya triples {@link DBCollection}.
      */
     public DBCollection getRyaDbCollection() {
-        return mongoClient.getDB(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName());
+        return mongoClient.getDB(conf.getRyaInstanceName()).getCollection(conf.getTriplesCollectionName());
     }
 }

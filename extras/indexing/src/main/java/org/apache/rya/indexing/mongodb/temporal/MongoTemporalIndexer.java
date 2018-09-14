@@ -47,7 +47,6 @@ public class MongoTemporalIndexer extends AbstractMongoIndexer<TemporalMongoDBSt
 
     @Override
     public void init() {
-        collectionName = COLLECTION_NAME;
         initCore();
         predicates = ConfigUtils.getTemporalPredicates(conf);
         if(predicates.size() == 0) {
@@ -144,7 +143,7 @@ public class MongoTemporalIndexer extends AbstractMongoIndexer<TemporalMongoDBSt
 
     @Override
     public String getCollectionName() {
-        return ConfigUtils.getTablePrefix(conf)  + COLLECTION_NAME;
+        return COLLECTION_NAME;
     }
 
     @VisibleForTesting

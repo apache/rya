@@ -152,7 +152,7 @@ public class GeoRyaSailFactory {
         requireNonNull(mongoConf);
         requireNonNull(mongoConf.getMongoHostname());
         requireNonNull(mongoConf.getMongoPort());
-        requireNonNull(mongoConf.getMongoDBName());
+        requireNonNull(mongoConf.getRyaInstanceName());
 
         // Connect to a running MongoDB server.
         final int port;
@@ -166,7 +166,7 @@ public class GeoRyaSailFactory {
 
         // Connect to a specific MongoDB Database if that information is provided.
         final String username = mongoConf.getMongoUser();
-        final String database = mongoConf.getMongoDBName();
+        final String database = mongoConf.getRyaInstanceName();
         final String password = mongoConf.getMongoPassword();
         if(username != null && password != null) {
             final MongoCredential cred = MongoCredential.createCredential(username, database, password.toCharArray());

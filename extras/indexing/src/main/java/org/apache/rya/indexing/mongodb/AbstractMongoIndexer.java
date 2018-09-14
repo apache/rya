@@ -72,13 +72,12 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     protected T storageStrategy;
 
     private MongoDbBatchWriter<DBObject> mongoDbBatchWriter;
-    protected String collectionName;
 
     protected void initCore() {
-        dbName = conf.getMongoDBName();
+        dbName = conf.getRyaInstanceName();
         this.mongoClient = conf.getMongoClient();
         db = this.mongoClient.getDB(dbName);
-        collection = db.getCollection(collectionName);
+        collection = db.getCollection(getCollectionName());
 
         flushEachUpdate = ((MongoDBRdfConfiguration)conf).flushEachUpdate();
 
@@ -217,10 +216,5 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
         };
     }
 
-    /**
-     * @return The name of the {@link DBCollection} to use with the storage strategy.
-     */
-    public String getCollectionName() {
-        return collectionName;
-    }
+    public abstract String getCollectionName();
 }

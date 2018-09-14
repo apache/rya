@@ -100,7 +100,7 @@ public class MongoPcjIntegrationTest extends MongoITBase {
                     + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
                     + "}";//
 
-            PcjIntegrationTestingUtil.createAndPopulatePcj(conn, getMongoClient(), conf.getMongoDBName() + 1, conf.getRyaInstanceName(), indexSparqlString);
+            PcjIntegrationTestingUtil.createAndPopulatePcj(conn, getMongoClient(), conf.getRyaInstanceName() + 1, conf.getRyaInstanceName(), indexSparqlString);
 
             final String queryString = ""//
                     + "SELECT ?e ?c ?l ?o " //
@@ -153,7 +153,7 @@ public class MongoPcjIntegrationTest extends MongoITBase {
             final CountingResultHandler crh1 = new CountingResultHandler();
             final CountingResultHandler crh2 = new CountingResultHandler();
 
-            PcjIntegrationTestingUtil.createAndPopulatePcj(conn, getMongoClient(), conf.getMongoDBName() + 1, conf.getRyaInstanceName(), indexSparqlString);
+            PcjIntegrationTestingUtil.createAndPopulatePcj(conn, getMongoClient(), conf.getRyaInstanceName() + 1, conf.getRyaInstanceName(), indexSparqlString);
 
             conn.prepareTupleQuery(QueryLanguage.SPARQL, indexSparqlString).evaluate(crh1);
             PcjIntegrationTestingUtil.deleteCoreRyaTables(getMongoClient(), conf.getRyaInstanceName(), conf.getTriplesCollectionName());
@@ -211,11 +211,11 @@ public class MongoPcjIntegrationTest extends MongoITBase {
                     + "  ?c a ?f . " //
                     + "}";//
 
-            PcjIntegrationTestingUtil.createAndPopulatePcj(conn, getMongoClient(), conf.getMongoDBName() + 1, conf.getRyaInstanceName(), indexSparqlString);
-            final MongoPcjQueryNode ais1 = new MongoPcjQueryNode(conf, conf.getMongoDBName() + 1);
+            PcjIntegrationTestingUtil.createAndPopulatePcj(conn, getMongoClient(), conf.getRyaInstanceName() + 1, conf.getRyaInstanceName(), indexSparqlString);
+            final MongoPcjQueryNode ais1 = new MongoPcjQueryNode(conf, conf.getRyaInstanceName() + 1);
 
-            PcjIntegrationTestingUtil.createAndPopulatePcj(conn, getMongoClient(), conf.getMongoDBName() + 2, conf.getRyaInstanceName(), indexSparqlString2);
-            final MongoPcjQueryNode ais2 = new MongoPcjQueryNode(conf, conf.getMongoDBName() + 2);
+            PcjIntegrationTestingUtil.createAndPopulatePcj(conn, getMongoClient(), conf.getRyaInstanceName() + 2, conf.getRyaInstanceName(), indexSparqlString2);
+            final MongoPcjQueryNode ais2 = new MongoPcjQueryNode(conf, conf.getRyaInstanceName() + 2);
 
             final List<ExternalTupleSet> index = new ArrayList<>();
             index.add(ais1);
@@ -300,14 +300,14 @@ public class MongoPcjIntegrationTest extends MongoITBase {
                     + "  ?f <uri:subType> ?o. "//
                     + "}";//
 
-            PcjIntegrationTestingUtil.createAndPopulatePcj(conn, getMongoClient(), conf.getMongoDBName() + 1, conf.getRyaInstanceName(), indexSparqlString);
-            final MongoPcjQueryNode ais1 = new MongoPcjQueryNode(conf, conf.getMongoDBName() + 1);
+            PcjIntegrationTestingUtil.createAndPopulatePcj(conn, getMongoClient(), conf.getRyaInstanceName() + 1, conf.getRyaInstanceName(), indexSparqlString);
+            final MongoPcjQueryNode ais1 = new MongoPcjQueryNode(conf, conf.getRyaInstanceName() + 1);
 
-            PcjIntegrationTestingUtil.createAndPopulatePcj(conn, getMongoClient(), conf.getMongoDBName() + 2, conf.getRyaInstanceName(), indexSparqlString2);
-            final MongoPcjQueryNode ais2 = new MongoPcjQueryNode(conf, conf.getMongoDBName() + 2);
+            PcjIntegrationTestingUtil.createAndPopulatePcj(conn, getMongoClient(), conf.getRyaInstanceName() + 2, conf.getRyaInstanceName(), indexSparqlString2);
+            final MongoPcjQueryNode ais2 = new MongoPcjQueryNode(conf, conf.getRyaInstanceName() + 2);
 
-            PcjIntegrationTestingUtil.createAndPopulatePcj(conn, getMongoClient(), conf.getMongoDBName() + 3, conf.getRyaInstanceName(), indexSparqlString3);
-            final MongoPcjQueryNode ais3 = new MongoPcjQueryNode(conf, conf.getMongoDBName() + 3);
+            PcjIntegrationTestingUtil.createAndPopulatePcj(conn, getMongoClient(), conf.getRyaInstanceName() + 3, conf.getRyaInstanceName(), indexSparqlString3);
+            final MongoPcjQueryNode ais3 = new MongoPcjQueryNode(conf, conf.getRyaInstanceName() + 3);
 
             final List<ExternalTupleSet> index = new ArrayList<>();
             index.add(ais1);

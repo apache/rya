@@ -166,7 +166,6 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
         if (pass != null) {
             conf.setMongoPassword(pass);
         }
-        conf.setMongoDBName(mongoDBName);
         conf.setRyaInstanceName(mongoDBName);
         conf.setMongoHostname(host);
         conf.setMongoPort(port);

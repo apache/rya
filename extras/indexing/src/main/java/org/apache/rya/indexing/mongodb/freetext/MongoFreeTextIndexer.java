@@ -38,7 +38,6 @@ public class MongoFreeTextIndexer extends AbstractMongoIndexer<TextMongoDBStorag
 
     @Override
     public void init() {
-        collectionName = COLLECTION_NAME;
         initCore();
         predicates = ConfigUtils.getFreeTextPredicates(conf);
         if(predicates.size() == 0) {
@@ -53,5 +52,10 @@ public class MongoFreeTextIndexer extends AbstractMongoIndexer<TextMongoDBStorag
             final String query, final StatementConstraints constraints) throws IOException {
         final QueryBuilder qb = QueryBuilder.start().text(query);
         return withConstraints(constraints, qb.get());
+    }
+
+    @Override
+    public String getCollectionName() {
+    	return COLLECTION_NAME;
     }
 }

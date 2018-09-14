@@ -60,7 +60,6 @@ import info.aduna.iteration.CloseableIteration;
 public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrategy> implements MongoSecondaryIndex {
     private static final Logger LOG = Logger.getLogger(AbstractMongoIndexer.class);
 
-    private boolean isInit = false;
     private boolean flushEachUpdate = true;
     protected StatefulMongoDBRdfConfiguration conf;
     protected MongoDBRyaDAO dao;
@@ -73,12 +72,12 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     protected T storageStrategy;
 
     private MongoDbBatchWriter<DBObject> mongoDbBatchWriter;
+    protected String collectionName;
 
     protected void initCore() {
         dbName = conf.getMongoDBName();
         this.mongoClient = conf.getMongoClient();
         db = this.mongoClient.getDB(dbName);
-        final String collectionName = conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + getCollectionName();
         collection = db.getCollection(collectionName);
 
         flushEachUpdate = ((MongoDBRdfConfiguration)conf).flushEachUpdate();
@@ -171,7 +170,7 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
         try {
             final Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
             final boolean isValidPredicate = predicates.isEmpty() || predicates.contains(statement.getPredicate());
-            if (isValidPredicate && (statement.getObject() instanceof Literal)) {
+            if (isValidPredicate && statement.getObject() instanceof Literal) {
                 final DBObject obj = storageStrategy.serialize(ryaStatement);
                 return obj;
             }
@@ -221,5 +220,7 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     /**
      * @return The name of the {@link DBCollection} to use with the storage strategy.
      */
-    public abstract String getCollectionName();
+    public String getCollectionName() {
+        return collectionName;
+    }
 }

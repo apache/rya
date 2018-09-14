@@ -162,7 +162,6 @@ public class InferenceExamples {
 	        }
 
 	        return builder.setMongoDBName(MONGO_DB)
-	               .setMongoCollectionPrefix(MONGO_COLL_PREFIX)
 	               .setUseMongoFreetextIndex(true)
 	               .setMongoFreeTextPredicates(RDFS.LABEL.stringValue()).build();
 

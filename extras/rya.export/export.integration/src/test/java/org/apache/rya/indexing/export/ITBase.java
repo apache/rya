@@ -260,8 +260,6 @@ public abstract class ITBase {
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, PASSWORD);
 
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
-        conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
-
         conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
 
         conf.setMongoPort(""+port);

@@ -35,6 +35,7 @@ import edu.umd.cs.findbugs.annotations.Nullable;
  * A {@link RdfCloudTripleStoreConfiguration} that configures how Rya connects to a MongoDB Rya triple store.
  */
 public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
+    public static final String RYA_TRIPLES_COLLECTION = "rya_triples";
 
     // MongoDB Server connection values.
     public static final String MONGO_HOSTNAME = "mongo.db.instance";
@@ -44,9 +45,6 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     public static final String MONGO_DB_NAME = "mongo.db.name";
     public static final String MONGO_USER = "mongo.db.user";
     public static final String MONGO_USER_PASSWORD = "mongo.db.userpassword";
-
-    // Rya Instance values.
-    public static final String MONGO_COLLECTION_PREFIX = "mongo.db.collectionprefix";
 
     // Rya Sail configuration values.
     public static final String USE_MOCK_MONGO = ".useMockInstance";
@@ -212,7 +210,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * @return The name of the MongoDB Collection that contains Rya statements. (rya_triples)
      */
     public String getTriplesCollectionName() {
-        return "rya_triples";
+        return RYA_TRIPLES_COLLECTION;
     }
 
     /**
@@ -284,8 +282,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
         if (getUseAggregationPipeline()) {
             final Class<?> cl = AggregationPipelineQueryOptimizer.class;
             @SuppressWarnings("unchecked")
-            final
-            Class<QueryOptimizer> optCl = (Class<QueryOptimizer>) cl;
+            final Class<QueryOptimizer> optCl = (Class<QueryOptimizer>) cl;
             optimizers.add(optCl);
         }
         return optimizers;

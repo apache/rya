@@ -41,14 +41,12 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
     private String host = "localhost";
     private String port = DEFAULT_MONGO_PORT;
     public static final String DEFAULT_MONGO_PORT = "27017";
-    private String mongoCollectionPrefix = "rya_";
     private String mongoDBName = "rya";
     private boolean usePipeline = false;
 
     public static final String MONGO_USER = "mongo.user";
     public static final String MONGO_PASSWORD = "mongo.password";
     public static final String MONGO_DB_NAME = "mongo.db.name";
-    public static final String MONGO_COLLECTION_PREFIX = "mongo.collection.prefix";
     public static final String MONGO_HOST = "mongo.host";
     public static final String MONGO_PORT = "mongo.port";
     public static final String MONGO_AUTHS = "mongo.auths";
@@ -64,7 +62,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * @param user - user name used to connect to Mongo
      * @return specified builder for chaining method invocations
      */
-    public B setMongoUser(String user) {
+    public B setMongoUser(final String user) {
         this.user = user;
         return confBuilder();
     }
@@ -76,7 +74,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * @param password - password used to connect to Mongo
      * @return specified builder for chaining method invocations
      */
-    public B setMongoPassword(String password) {
+    public B setMongoPassword(final String password) {
         this.pass = password;
         return confBuilder();
     }
@@ -88,7 +86,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * @param port - port used to connect Mongo
      * @return specified builder for chaining method invocations
      */
-    public B setMongoPort(String port) {
+    public B setMongoPort(final String port) {
         this.port = port;
         return confBuilder();
     }
@@ -100,7 +98,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * @param host - host used to connect to Mongo
      * @return specified builder for chaining method invocations
      */
-    public B setMongoHost(String host) {
+    public B setMongoHost(final String host) {
         this.host = host;
         return confBuilder();
     }
@@ -112,21 +110,8 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * @param name - name of MongoDB to connect to
      * @return specified builder for chaining method invocations
      */
-    public B setMongoDBName(String name) {
+    public B setMongoDBName(final String name) {
         this.mongoDBName = name;
-        return confBuilder();
-    }
-
-    /**
-     * Sets MongoDB Collection prefix. This parameter must be set to connect to
-     * an instance of MongoDB and will default to "rya_" is no value is
-     * specified.
-     *
-     * @param prefix - name of Collection to connect to
-     * @return specified builder for chaining method invocations
-     */
-    public B setMongoCollectionPrefix(String prefix) {
-        this.mongoCollectionPrefix = prefix;
         return confBuilder();
     }
 
@@ -137,7 +122,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * @param useMock - indicates whether to use embedded Mongo as Rya backing
      * @return specified builder for chaining method invocations
      */
-    public B setUseMockMongo(boolean useMock) {
+    public B setUseMockMongo(final boolean useMock) {
         this.useMock = useMock;
         return confBuilder();
     }
@@ -151,7 +136,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * optimization is attempted on their child subtrees.
      * @param usePipeline whether to use aggregation pipeline optimization.
      */
-    public B setUseAggregationPipeline(boolean usePipeline) {
+    public B setUseAggregationPipeline(final boolean usePipeline) {
         this.usePipeline = usePipeline;
         return confBuilder();
     }
@@ -170,7 +155,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
      * @param conf - Configuration object
      * @return - Configuration object with parameters set
      */
-    private C getConf(C conf) {
+    private C getConf(final C conf) {
 
         conf.setUseMock(useMock);
         conf.set("sc.useMongo", "true");
@@ -182,8 +167,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
             conf.setMongoPassword(pass);
         }
         conf.setMongoDBName(mongoDBName);
-        conf.setRyaInstanceName(mongoCollectionPrefix);
-        conf.setTablePrefix(mongoCollectionPrefix);
+        conf.setRyaInstanceName(mongoDBName);
         conf.setMongoHostname(host);
         conf.setMongoPort(port);
         conf.setUseAggregationPipeline(usePipeline);

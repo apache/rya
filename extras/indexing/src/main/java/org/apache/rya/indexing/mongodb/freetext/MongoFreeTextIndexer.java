@@ -33,11 +33,12 @@ import com.mongodb.QueryBuilder;
 import info.aduna.iteration.CloseableIteration;
 
 public class MongoFreeTextIndexer extends AbstractMongoIndexer<TextMongoDBStorageStrategy> implements FreeTextIndexer {
-    private static final String COLLECTION_SUFFIX = "freetext";
+    private static final String COLLECTION_NAME = "freetext";
     private static final Logger logger = Logger.getLogger(MongoFreeTextIndexer.class);
-    
+
     @Override
     public void init() {
+        collectionName = COLLECTION_NAME;
         initCore();
         predicates = ConfigUtils.getFreeTextPredicates(conf);
         if(predicates.size() == 0) {
@@ -52,10 +53,5 @@ public class MongoFreeTextIndexer extends AbstractMongoIndexer<TextMongoDBStorag
             final String query, final StatementConstraints constraints) throws IOException {
         final QueryBuilder qb = QueryBuilder.start().text(query);
         return withConstraints(constraints, qb.get());
-    }
-
-    @Override
-    public String getCollectionName() {
-    	return ConfigUtils.getTablePrefix(conf)  + COLLECTION_SUFFIX;
     }
 }

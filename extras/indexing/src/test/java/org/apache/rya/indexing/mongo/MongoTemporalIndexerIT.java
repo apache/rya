@@ -234,7 +234,7 @@ public final class MongoTemporalIndexerIT extends MongoITBase {
 
             final String dbName = conf.getMongoDBName();
             final DB db = super.getMongoClient().getDB(dbName);
-            DBCollection collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + tIndexer.getCollectionName());
+            final DBCollection collection = db.getCollection(tIndexer.getCollectionName());
 
             printTables(tIndexer, "junit testing: Temporal entities stored in testDelete before delete");
             assertEquals("Number of rows stored.", 2, collection.count()); // 4 index entries per statement
@@ -709,7 +709,7 @@ public final class MongoTemporalIndexerIT extends MongoITBase {
      * @return Count of entries in the index table.
      * @throws IOException
      */
-    public void printTables(MongoTemporalIndexer tIndexer, final String description) throws IOException {
+    public void printTables(final MongoTemporalIndexer tIndexer, final String description) throws IOException {
         System.out.println("-- start printTables() -- " + description);
         System.out.println("Reading : " + tIndexer.getCollection().getFullName());
         final DBCursor cursor = tIndexer.getCollection().find();

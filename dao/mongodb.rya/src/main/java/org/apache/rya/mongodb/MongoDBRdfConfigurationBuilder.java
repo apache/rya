@@ -35,7 +35,7 @@ public class MongoDBRdfConfigurationBuilder
      * Creates a MongoRdfConfiguration object from a Properties file. This
      * method assumes that all values in the Properties file are Strings and
      * that the Properties file uses the keys below.
-     * 
+     *
      * <br>
      * <ul>
      * <li>"mongo.auths" - String of Mongo authorizations. Empty auths used by
@@ -59,16 +59,16 @@ public class MongoDBRdfConfigurationBuilder
      * by default.
      * </ul>
      * <br>
-     * 
+     *
      * @param props
      *            - Properties file containing Mongo specific configuration
      *            parameters
      * @return MongoRdfConfiguration with properties set
      */
-    public static MongoDBRdfConfiguration fromProperties(Properties props) {
+    public static MongoDBRdfConfiguration fromProperties(final Properties props) {
         try {
 
-            MongoDBRdfConfigurationBuilder builder = new MongoDBRdfConfigurationBuilder() //
+            final MongoDBRdfConfigurationBuilder builder = new MongoDBRdfConfigurationBuilder() //
                     .setAuths(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_AUTHS, "")) //
                     .setRyaPrefix(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_RYA_PREFIX, "rya_"))//
                     .setVisibilities(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_VISIBILITIES, ""))
@@ -78,8 +78,6 @@ public class MongoDBRdfConfigurationBuilder
                             props.getProperty(AbstractMongoDBRdfConfigurationBuilder.USE_DISPLAY_QUERY_PLAN, "true")))//
                     .setMongoUser(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_USER)) //
                     .setMongoPassword(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_PASSWORD))//
-                    .setMongoCollectionPrefix(
-                            props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_COLLECTION_PREFIX, "rya_"))//
                     .setMongoDBName(
                             props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_DB_NAME, "rya_triples"))//
                     .setMongoHost(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_HOST, "localhost"))//
@@ -89,7 +87,7 @@ public class MongoDBRdfConfigurationBuilder
                             props.getProperty(AbstractMongoDBRdfConfigurationBuilder.USE_MOCK_MONGO, "false")));
 
             return builder.build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RuntimeException(e);
         }
     }

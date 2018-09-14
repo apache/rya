@@ -31,7 +31,6 @@ import java.util.Map;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.log4j.Logger;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import org.apache.rya.api.domain.RyaType;
@@ -259,14 +258,9 @@ public abstract class ITBase {
         conf.set(ConfigUtils.CLOUDBASE_USER, USER);
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, PASSWORD);
 
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
-        conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
-
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
-
+        conf.setRyaInstanceName(ryaInstanceName);
         conf.setMongoPort(""+port);
         conf.setMongoHostname(hostname);
-        conf.setMongoDBName(ryaInstanceName);
         return conf;
     }
 

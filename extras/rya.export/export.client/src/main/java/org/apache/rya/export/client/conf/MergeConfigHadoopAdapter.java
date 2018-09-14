@@ -30,7 +30,7 @@ public class MergeConfigHadoopAdapter {
         final MongoDBRdfConfiguration configuration = new MongoDBRdfConfiguration();
         configuration.setMongoHostname(config.getChildHostname());
         configuration.set(MongoDBRdfConfiguration.MONGO_PORT, config.getChildPort() + "");
-        configuration.set(MongoDBRdfConfiguration.MONGO_DB_NAME, config.getChildRyaInstanceName());
+        configuration.set(MongoDBRdfConfiguration.RYA_INSTANCE_NAME, config.getChildRyaInstanceName());
         return configuration;
     }
 }

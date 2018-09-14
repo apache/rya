@@ -44,7 +44,7 @@ public class MongoInstallIT extends MongoRyaITBase {
     @Test
     public void install() throws DuplicateInstanceNameException, RyaClientException {
         // Install an instance of Rya.
-        final String ryaInstance = conf.getMongoDBName();
+        final String ryaInstance = conf.getRyaInstanceName();
 
         // Setup the connection details that were used for the embedded Mongo DB instance we are testing with.
         final MongoConnectionDetails connectionDetails = getConnectionDetails();
@@ -71,7 +71,7 @@ public class MongoInstallIT extends MongoRyaITBase {
         final List<String> expected = Arrays.asList(INSTANCE_DETAILS_COLLECTION_NAME, "rya_triples");
         int count = 0;
         final List<String> found = new ArrayList<>();
-        for (final String collection : getMongoClient().getDatabase(conf.getMongoDBName()).listCollectionNames()) {
+        for (final String collection : getMongoClient().getDatabase(conf.getRyaInstanceName()).listCollectionNames()) {
             count += expected.contains(collection) ? 1 : 0;
             found.add( collection );
         }
@@ -82,7 +82,7 @@ public class MongoInstallIT extends MongoRyaITBase {
     @Test
     public void install_withAllIndexers() throws DuplicateInstanceNameException, RyaClientException {
         // Install an instance of Rya.
-        final String ryaInstance = conf.getMongoDBName();
+        final String ryaInstance = conf.getRyaInstanceName();
 
         // Setup the connection details that were used for the embedded Mongo DB instance we are testing with.
         final MongoConnectionDetails connectionDetails = getConnectionDetails();
@@ -112,7 +112,7 @@ public class MongoInstallIT extends MongoRyaITBase {
         final List<String> expected = Arrays.asList(INSTANCE_DETAILS_COLLECTION_NAME, "rya_triples");
         int count = 0;
         final List<String> found = new ArrayList<>();
-        for (final String collection : getMongoClient().getDatabase(conf.getMongoDBName()).listCollectionNames()) {
+        for (final String collection : getMongoClient().getDatabase(conf.getRyaInstanceName()).listCollectionNames()) {
             count += expected.contains(collection) ? 1 : 0;
             found.add( collection );
         }

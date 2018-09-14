@@ -85,7 +85,7 @@ public class MongoPipelineStrategy extends AbstractRuleExecutionStrategy {
      */
     public MongoPipelineStrategy(MongoDBRdfConfiguration mongoConf) throws ForwardChainException {
         Preconditions.checkNotNull(mongoConf);
-        final String mongoDBName = mongoConf.getMongoDBName();
+        final String mongoDBName = mongoConf.getRyaInstanceName();
         final String collectionName = mongoConf.getTriplesCollectionName();
         mongoConf.setFlush(false);
         final StatefulMongoDBRdfConfiguration statefulConf;

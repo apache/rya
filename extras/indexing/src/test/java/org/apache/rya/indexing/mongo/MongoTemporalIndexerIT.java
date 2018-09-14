@@ -230,9 +230,9 @@ public final class MongoTemporalIndexerIT extends MongoRyaITBase {
             tIndexer.storeStatement(convertStatement(s1));
             tIndexer.storeStatement(convertStatement(s2));
 
-            final String dbName = conf.getMongoDBName();
+            final String dbName = conf.getRyaInstanceName();
             final DB db = super.getMongoClient().getDB(dbName);
-            final DBCollection collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + tIndexer.getCollectionName());
+            final DBCollection collection = db.getCollection(tIndexer.getCollectionName());
 
             printTables(tIndexer, "junit testing: Temporal entities stored in testDelete before delete");
             assertEquals("Number of rows stored.", 2, collection.count()); // 4 index entries per statement

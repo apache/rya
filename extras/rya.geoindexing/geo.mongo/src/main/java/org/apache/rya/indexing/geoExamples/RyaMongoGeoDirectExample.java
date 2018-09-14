@@ -7,9 +7,9 @@ package org.apache.rya.indexing.geoExamples;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -61,21 +61,21 @@ public class RyaMongoGeoDirectExample {
     private static final String MONGO_INSTANCE_URL = "localhost";
     private static final String MONGO_INSTANCE_PORT = "27017";
 
-    public static void main(String[] args) throws Exception {
-        Configuration conf = getConf();
+    public static void main(final String[] args) throws Exception {
+        final Configuration conf = getConf();
         conf.setBoolean(ConfigUtils.DISPLAY_QUERY_PLAN, PRINT_QUERIES);
 		conf.setBoolean(OptionalConfigUtils.USE_GEO, true);  // Note also the use of "GeoRyaSailFactory" below.
 		conf.setStrings(OptionalConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");  // Note also the use of "GeoRyaSailFactory" below.
-  
+
         SailRepository repository = null;
         SailRepositoryConnection conn = null;
         try {
             log.info("Connecting to Indexing Sail Repository.");
-            Sail sail = GeoRyaSailFactory.getInstance(conf);
+            final Sail sail = GeoRyaSailFactory.getInstance(conf);
             repository = new SailRepository(sail);
             conn = repository.getConnection();
 
-            long start = System.currentTimeMillis();
+            final long start = System.currentTimeMillis();
             testAddPointAndWithinSearch(conn);  // uses geospatial features
 
             log.info("TIME: " + (System.currentTimeMillis() - start) / 1000.);
@@ -92,9 +92,9 @@ public class RyaMongoGeoDirectExample {
  * Try out some geospatial data and queries
  * @param repository
  */
-    private static void testAddPointAndWithinSearch(SailRepositoryConnection conn) throws Exception {
+    private static void testAddPointAndWithinSearch(final SailRepositoryConnection conn) throws Exception {
 
-        String update = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
+        final String update = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
                 + "INSERT DATA { " //
                 + "  <urn:feature> a geo:Feature ; " //
                 + "    geo:hasGeometry [ " //
@@ -103,7 +103,7 @@ public class RyaMongoGeoDirectExample {
                 + "    ] . " //
                 + "}";
 
-        Update u = conn.prepareUpdate(QueryLanguage.SPARQL, update);
+        final Update u = conn.prepareUpdate(QueryLanguage.SPARQL, update);
         u.execute();
 
         String queryString;
@@ -147,21 +147,21 @@ public class RyaMongoGeoDirectExample {
         Validate.isTrue(tupleHandler.getCount() == 0);
     }
 
-    private static void closeQuietly(SailRepository repository) {
+    private static void closeQuietly(final SailRepository repository) {
         if (repository != null) {
             try {
                 repository.shutDown();
-            } catch (RepositoryException e) {
+            } catch (final RepositoryException e) {
                 // quietly absorb this exception
             }
         }
     }
 
-    private static void closeQuietly(SailRepositoryConnection conn) {
+    private static void closeQuietly(final SailRepositoryConnection conn) {
         if (conn != null) {
             try {
                 conn.close();
-            } catch (RepositoryException e) {
+            } catch (final RepositoryException e) {
                 // quietly absorb this exception
             }
         }
@@ -175,10 +175,10 @@ public class RyaMongoGeoDirectExample {
 
         if (USE_MOCK) {
             mock = EmbeddedMongoFactory.newFactory();
-            MongoClient c = mock.newMongoClient();
-            ServerAddress address = c.getAddress();
-            String url = address.getHost();
-            String port = Integer.toString(address.getPort());
+            final MongoClient c = mock.newMongoClient();
+            final ServerAddress address = c.getAddress();
+            final String url = address.getHost();
+            final String port = Integer.toString(address.getPort());
             c.close();
             builder.setMongoHost(url).setMongoPort(port);
         } else {
@@ -188,12 +188,11 @@ public class RyaMongoGeoDirectExample {
         					 .setMongoHost(MONGO_INSTANCE_URL)
         					 .setMongoPort(MONGO_INSTANCE_PORT);
         }
-        
+
         return builder.setMongoDBName(MONGO_DB)
-               .setMongoCollectionPrefix(MONGO_COLL_PREFIX)
                .setUseMongoFreetextIndex(true)
                .setMongoFreeTextPredicates(RDFS.LABEL.stringValue()).build();
-        
+
     }
 
 
@@ -205,11 +204,11 @@ public class RyaMongoGeoDirectExample {
         }
 
         @Override
-        public void startQueryResult(List<String> arg0) throws TupleQueryResultHandlerException {
+        public void startQueryResult(final List<String> arg0) throws TupleQueryResultHandlerException {
         }
 
         @Override
-        public void handleSolution(BindingSet arg0) throws TupleQueryResultHandlerException {
+        public void handleSolution(final BindingSet arg0) throws TupleQueryResultHandlerException {
             count++;
             System.out.println(arg0);
         }
@@ -219,15 +218,15 @@ public class RyaMongoGeoDirectExample {
         }
 
         @Override
-        public void handleBoolean(boolean arg0) throws QueryResultHandlerException {
+        public void handleBoolean(final boolean arg0) throws QueryResultHandlerException {
           // TODO Auto-generated method stub
-          
+
         }
 
         @Override
-        public void handleLinks(List<String> arg0) throws QueryResultHandlerException {
+        public void handleLinks(final List<String> arg0) throws QueryResultHandlerException {
           // TODO Auto-generated method stub
-          
+
         }
     }
 }

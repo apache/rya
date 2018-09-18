@@ -22,9 +22,7 @@ package org.apache.rya.export.mongo.policy;
 import static org.apache.rya.export.mongo.MongoRyaStatementStore.TRIPLES_COLLECTION;
 import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.TIMESTAMP;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.export.api.policy.TimestampPolicyStatementStore;
@@ -36,7 +34,7 @@ import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.Cursor;
-import com.mongodb.DB;
+import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 
 /**
@@ -45,7 +43,7 @@ import com.mongodb.DBObject;
  */
 public class TimestampPolicyMongoRyaStatementStore extends TimestampPolicyStatementStore {
     private final SimpleMongoDBStorageStrategy adapter;
-    private final DB db;
+    private final DBCollection coll;
 
     /**
      * Creates a new {@link TimestampPolicyMongoRyaStatementStore}
@@ -56,23 +54,37 @@ public class TimestampPolicyMongoRyaStatementStore extends TimestampPolicyStatem
     public TimestampPolicyMongoRyaStatementStore(final MongoRyaStatementStore store, final long timestamp) {
         super(store, timestamp);
         adapter = new SimpleMongoDBStorageStrategy();
-        db = store.getClient().getDB(store.getRyaInstanceName());
+        coll = store.getClient().getDB(store.getRyaInstanceName()).getCollection(TRIPLES_COLLECTION);
     }
 
     @Override
     public Iterator<RyaStatement> fetchStatements() throws FetchStatementException {
-        final DBObject timeObj = new BasicDBObjectBuilder()
+        final DBObject timeObj = getQuery();
+        final Cursor cur = coll.find(timeObj).sort(new BasicDBObject(TIMESTAMP, 1));
+        return new Iterator<RyaStatement>() {
+            @Override
+            public boolean hasNext() {
+                return cur.hasNext();
+            }
+
+            @Override
+            public RyaStatement next() {
+                return adapter.deserializeDBObject(cur.next());
+            }
+        };
+    }
+
+    @Override
+    public long count() {
+        return coll.count(getQuery());
+    }
+
+    private DBObject getQuery() {
+        return new BasicDBObjectBuilder()
             .add(SimpleMongoDBStorageStrategy.TIMESTAMP,
                 new BasicDBObjectBuilder()
-                    .add("$gte", timestamp).get())
+                .add("$gte", timestamp).get())
             .get();
-        final Cursor cur = db.getCollection(TRIPLES_COLLECTION).find(timeObj).sort(new BasicDBObject(TIMESTAMP, 1));
-        final List<RyaStatement> statements = new ArrayList<>();
-        while(cur.hasNext()) {
-            final RyaStatement statement = adapter.deserializeDBObject(cur.next());
-            statements.add(statement);
-        }
-        return statements.iterator();
     }
 
     @Override

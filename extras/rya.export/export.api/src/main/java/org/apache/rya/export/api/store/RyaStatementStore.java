@@ -97,4 +97,9 @@ public interface RyaStatementStore {
      * @throws ParentMetadataExistsException
      */
     public void setParentMetadata(MergeParentMetadata metadata) throws ParentMetadataExistsException;
+
+    /**
+     * @return - The number of statements this store is expected to return during a merge.
+     */
+    public long count();
 }

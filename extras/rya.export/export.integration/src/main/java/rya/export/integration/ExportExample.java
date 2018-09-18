@@ -31,7 +31,6 @@ import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.export.api.store.FetchStatementException;
 import org.apache.rya.export.api.store.RyaStatementStore;
 import org.apache.rya.export.client.merge.MemoryMerger;
-import org.apache.rya.export.client.merge.VisibilityStatementMerger;
 import org.apache.rya.export.mongo.MongoRyaStatementStore;
 import org.apache.rya.export.mongo.policy.TimestampPolicyMongoRyaStatementStore;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -40,10 +39,10 @@ import org.apache.rya.mongodb.MongoDBRyaDAO;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.bson.Document;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.Sail;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.Sail;
 
 import com.mongodb.MongoClient;
 
@@ -106,10 +105,7 @@ public class ExportExample {
 
             System.out.println("Creating Exporter");
             // export only half-ish
-            final MemoryMerger exporter = new MemoryMerger(
-                    hostStore, baseChildStore, new VisibilityStatementMerger(),
-                    hostConf.getRyaInstanceName(),
-                    0L);
+            final MemoryMerger exporter = new MemoryMerger(hostStore, baseChildStore, hostConf.getRyaInstanceName(), 0L);
             s.nextLine();
 
             System.out.println("Exporting all data after " + DATE_FORMAT.format(new Date(TIMESTAMP)) + ".");
@@ -145,9 +141,7 @@ public class ExportExample {
 
             s.nextLine();
             System.out.println("Merging data from child database.");
-            final MemoryMerger merger = new MemoryMerger(
-                    baseChildStore, hostStore, new VisibilityStatementMerger(),
-                    hostConf.getRyaInstanceName(), 0L);
+            final MemoryMerger merger = new MemoryMerger(baseChildStore, hostStore, hostConf.getRyaInstanceName(), 0L);
             merger.runJob();
             s.nextLine();
 

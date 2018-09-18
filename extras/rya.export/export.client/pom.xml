@@ -72,6 +72,12 @@ under the License.
             <artifactId>rdf4j-rio-turtle</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.toedter</groupId>
+            <artifactId>jcalendar</artifactId>
+            <version>1.4</version>
+        </dependency>
+
         <!-- Testing dependencies. -->
         <dependency>
             <groupId>junit</groupId>

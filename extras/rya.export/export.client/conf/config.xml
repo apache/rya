@@ -17,27 +17,19 @@ specific language governing permissions and limitations
 under the License. -->
 <MergeToolConfiguration xmlns="http://mergeconfig">
     <parent>
+        <ryaInstanceName>sia-2-query</ryaInstanceName>
         <mongo>
-            <ryaInstanceName>TEST_LUBM</ryaInstanceName>
             <hostname>127.0.0.1</hostname>
             <port>27017</port>
-            <tablePrefix>rya</tablePrefix>
         </mongo>
     </parent>
     <child>
-        <accumulo>
-            <ryaInstanceName>merge_child</ryaInstanceName>
+        <ryaInstanceName>dest</ryaInstanceName>
+        <mongo>
             <hostname>127.0.0.1</hostname>
             <port>27017</port>
-            <tablePrefix>rya_</tablePrefix>
-            <zookeepers></zookeepers>
-            <username>root</username>
-            <password></password>
-            <auths>U</auths>
-            <instanceType>mock</instanceType>
-        </accumulo>
+        </mongo>
     </child>
     <childTomcatUrl>http://127.0.0.1:8080</childTomcatUrl>
     <useNtpServer>false</useNtpServer>
-    <startTime>123456</startTime>
 </MergeToolConfiguration>

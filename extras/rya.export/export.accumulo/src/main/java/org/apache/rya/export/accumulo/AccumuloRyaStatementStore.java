@@ -124,6 +124,12 @@ public class AccumuloRyaStatementStore implements RyaStatementStore {
     }
 
     @Override
+    public long count() {
+        //accumulo cannot count.
+        return -1;
+    }
+
+    @Override
     public void addStatement(final RyaStatement statement) throws AddStatementException {
         try {
             accumuloRyaDao.add(statement);

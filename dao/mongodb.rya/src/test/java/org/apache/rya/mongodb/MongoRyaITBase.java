@@ -41,10 +41,9 @@ public class MongoRyaITBase extends MongoITBase {
         // Setup the configuration that will be used within the test.
         final MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration( new Configuration() );
         conf.setBoolean("sc.useMongo", true);
-        conf.setTablePrefix("test_");
-        conf.setMongoDBName(conf.getRyaInstanceName());
-        conf.setMongoHostname( super.getMongoHostname() );
-        conf.setMongoPort("" + super.getMongoPort());
+        conf.setRyaInstanceName("mongo_test");
+        conf.setMongoHostname(getMongoHostname());
+        conf.setMongoPort(getMongoPort() + "");
 
         // Let tests update the configuration.
         updateConfiguration(conf);

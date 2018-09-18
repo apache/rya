@@ -87,4 +87,9 @@ public abstract class RyaStatementStorePolicy implements RyaStatementStore {
     public String getRyaInstanceName() {
         return store.getRyaInstanceName();
     }
+
+    @Override
+    public long count() {
+        return store.count();
+    }
 }

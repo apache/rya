@@ -20,6 +20,7 @@ package org.apache.rya.indexing.export;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,20 +29,23 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.export.InstanceType;
+import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.export.accumulo.AccumuloRyaStatementStore;
+import org.apache.rya.export.accumulo.conf.InstanceType;
 import org.apache.rya.export.accumulo.policy.TimestampPolicyAccumuloRyaStatementStore;
 import org.apache.rya.export.accumulo.util.AccumuloInstanceDriver;
 import org.apache.rya.export.api.metadata.ParentMetadataDoesNotExistException;
 import org.apache.rya.export.api.store.AddStatementException;
 import org.apache.rya.export.api.store.FetchStatementException;
 import org.apache.rya.export.api.store.RyaStatementStore;
-import org.apache.rya.export.client.merge.MemoryTimeMerger;
-import org.apache.rya.export.client.merge.VisibilityStatementMerger;
+import org.apache.rya.export.client.merge.MemoryMerger;
 import org.apache.rya.export.mongo.MongoRyaStatementStore;
 import org.apache.rya.export.mongo.policy.TimestampPolicyMongoRyaStatementStore;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -53,6 +57,9 @@ import com.mongodb.MongoClient;
 
 @RunWith(Parameterized.class)
 public class StoreToStoreIT extends ITBase {
+    private static final ValueFactory VF = ValueFactoryImpl.getInstance();
+
+    private static final IRI ANY = VF.createIRI("http://www.w3.org/2001/XMLSchema#anyURI");
     private static final String RYA_INSTANCE = "ryaInstance";
     private static final InstanceType type = InstanceType.MOCK;
     private static final String tablePrefix = "accumuloTest";
@@ -62,30 +69,32 @@ public class StoreToStoreIT extends ITBase {
     private final RyaStatementStore childStore;
     private final static List<MongoClient> clients = new ArrayList<>();
     private final static List<AccumuloInstanceDriver> drivers = new ArrayList<>();
-    private static Date currentDate;
+    private static long currentDate;
 
-    private static TimestampPolicyMongoRyaStatementStore getParentMongo() throws Exception {
+    private static RyaStatementStore getParentMongo() throws Exception {
         final MongoClient mongo = getNewMongoResources(RYA_INSTANCE);
         final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         dao.setConf(new StatefulMongoDBRdfConfiguration(ITBase.getConf(mongo), mongo));
         dao.init();
+
         final MongoRyaStatementStore store = new MongoRyaStatementStore(mongo, RYA_INSTANCE, dao);
-        final TimestampPolicyMongoRyaStatementStore timeStore = new TimestampPolicyMongoRyaStatementStore(store, currentDate, RYA_INSTANCE);
+        final TimestampPolicyMongoRyaStatementStore timeStore = new TimestampPolicyMongoRyaStatementStore(store, currentDate);
         clients.add(mongo);
         return timeStore;
     }
 
-    private static MongoRyaStatementStore getChildMongo() throws Exception {
+    private static RyaStatementStore getChildMongo() throws Exception {
         final MongoClient mongo = getNewMongoResources(RYA_INSTANCE);
         final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         dao.setConf(new StatefulMongoDBRdfConfiguration(ITBase.getConf(mongo), mongo));
         dao.init();
+
         final MongoRyaStatementStore store = new MongoRyaStatementStore(mongo, RYA_INSTANCE, dao);
         clients.add(mongo);
         return store;
     }
 
-    private static TimestampPolicyAccumuloRyaStatementStore getParentAccumulo() throws Exception {
+    private static RyaStatementStore getParentAccumulo() throws Exception {
         final AccumuloInstanceDriver driver = new AccumuloInstanceDriver(RYA_INSTANCE, type, true, false, true, "TEST1", PASSWORD, RYA_INSTANCE, tablePrefix, auths, "");
         driver.setUp();
         final AccumuloRyaStatementStore store = new AccumuloRyaStatementStore(driver.getDao(), tablePrefix, RYA_INSTANCE);
@@ -93,7 +102,7 @@ public class StoreToStoreIT extends ITBase {
         return new TimestampPolicyAccumuloRyaStatementStore(store, currentDate);
     }
 
-    private static AccumuloRyaStatementStore getChildAccumulo() throws Exception {
+    private static RyaStatementStore getChildAccumulo() throws Exception {
         final AccumuloInstanceDriver driver = new AccumuloInstanceDriver(RYA_INSTANCE, type, true, false, false, "TEST2", PASSWORD, RYA_INSTANCE+"_child", tablePrefix, auths, "");
         driver.setUp();
         drivers.add(driver);
@@ -115,6 +124,7 @@ public class StoreToStoreIT extends ITBase {
         for(final AccumuloInstanceDriver driver : drivers) {
             driver.tearDown();
         }
+
         for(final MongoClient client : clients) {
             client.dropDatabase(RYA_INSTANCE);
         }
@@ -125,6 +135,7 @@ public class StoreToStoreIT extends ITBase {
         for(final AccumuloInstanceDriver driver : drivers) {
             driver.tearDown();
         }
+
         for(final MongoClient client : clients) {
             client.close();
         }
@@ -132,7 +143,7 @@ public class StoreToStoreIT extends ITBase {
 
     @Parameterized.Parameters
     public static Collection<Object[]> instancesToTest() throws Exception {
-        currentDate = new Date();
+        currentDate = new Date().getTime();
         final Collection<Object[]> stores = new ArrayList<>();
         stores.add(new Object[]{getParentMongo(), getChildMongo()});
         stores.add(new Object[]{getParentMongo(), getChildAccumulo()});
@@ -141,18 +152,16 @@ public class StoreToStoreIT extends ITBase {
         return stores;
     }
 
-    public StoreToStoreIT(final RyaStatementStore parentStore,
-            final RyaStatementStore childStore) {
+    public StoreToStoreIT(final RyaStatementStore parentStore, final RyaStatementStore childStore) {
         this.parentStore = parentStore;
         this.childStore = childStore;
     }
 
     @Test
     public void cloneTest() throws AddStatementException, FetchStatementException, ParentMetadataDoesNotExistException {
-        loadMockStatements(parentStore, 50, new Date(currentDate.getTime() + 10000L));
+        loadMockStatements(parentStore, 50, new Date(currentDate + 10000L));
 
-        final MemoryTimeMerger merger = new MemoryTimeMerger(parentStore, childStore,
-            new VisibilityStatementMerger(), currentDate, RYA_INSTANCE, 0L);
+        final MemoryMerger merger = new MemoryMerger(parentStore, childStore, RYA_INSTANCE, 0L);
         merger.runJob();
         assertEquals(50, count(childStore));
     }
@@ -162,19 +171,17 @@ public class StoreToStoreIT extends ITBase {
         loadMockStatements(parentStore, 50, new Date(0L));
 
         assertEquals(0, count(childStore));
-        final MemoryTimeMerger merger = new MemoryTimeMerger(parentStore, childStore,
-                new VisibilityStatementMerger(), currentDate, RYA_INSTANCE, 0L);
+        final MemoryMerger merger = new MemoryMerger(parentStore, childStore, RYA_INSTANCE, 0L);
         merger.runJob();
         assertEquals(0, count(childStore));
     }
 
     @Test
     public void childToParent_ChildAddTest() throws AddStatementException, FetchStatementException {
-        loadMockStatements(parentStore, 50, new Date(currentDate.getTime() + 100L));
+        loadMockStatements(parentStore, 50, new Date(currentDate + 100L));
 
         //setup child
-        final MemoryTimeMerger merger = new MemoryTimeMerger(parentStore, childStore,
-            new VisibilityStatementMerger(), currentDate, RYA_INSTANCE, 0L);
+        final MemoryMerger merger = new MemoryMerger(parentStore, childStore, RYA_INSTANCE, 0L);
         merger.runJob();
 
         //add a few statements to child
@@ -183,19 +190,17 @@ public class StoreToStoreIT extends ITBase {
         childStore.addStatement(stmnt1);
         childStore.addStatement(stmnt2);
 
-        final MemoryTimeMerger otherMerger = new MemoryTimeMerger(childStore, parentStore,
-             new VisibilityStatementMerger(), currentDate, RYA_INSTANCE, 0L);
+        final MemoryMerger otherMerger = new MemoryMerger(childStore, parentStore, RYA_INSTANCE, 0L);
         otherMerger.runJob();
         assertEquals(52, count(parentStore));
     }
 
     @Test
     public void childToParent_ChildReAddsDeletedStatementTest() throws Exception {
-        loadMockStatements(parentStore, 50, new Date(currentDate.getTime() + 10000L));
+        loadMockStatements(parentStore, 50, new Date(currentDate + 10000L));
 
         //setup child
-        final MemoryTimeMerger merger = new MemoryTimeMerger(parentStore, childStore,
-            new VisibilityStatementMerger(), currentDate, RYA_INSTANCE, 0L);
+        final MemoryMerger merger = new MemoryMerger(parentStore, childStore, RYA_INSTANCE, 0L);
         merger.runJob();
 
         //remove a statement from the parent
@@ -205,8 +210,7 @@ public class StoreToStoreIT extends ITBase {
 
         assertFalse(parentStore.containsStatement(stmnt1));
 
-        final MemoryTimeMerger otherMerger = new MemoryTimeMerger(childStore, parentStore,
-            new VisibilityStatementMerger(), currentDate, RYA_INSTANCE, 0L);
+        final MemoryMerger otherMerger = new MemoryMerger(childStore, parentStore, RYA_INSTANCE, 0L);
         otherMerger.runJob();
 
         //merging will have added the statement back
@@ -215,11 +219,10 @@ public class StoreToStoreIT extends ITBase {
 
     @Test
     public void childToParent_BothAddTest() throws Exception {
-        loadMockStatements(parentStore, 50, new Date(currentDate.getTime() + 10000L));
+        loadMockStatements(parentStore, 50, new Date(currentDate + 10000L));
 
         assertEquals(0, count(childStore));
-        final MemoryTimeMerger merger = new MemoryTimeMerger(parentStore, childStore,
-            new VisibilityStatementMerger(), currentDate, RYA_INSTANCE, 0L);
+        final MemoryMerger merger = new MemoryMerger(parentStore, childStore, RYA_INSTANCE, 0L);
         merger.runJob();
 
 
@@ -230,15 +233,135 @@ public class StoreToStoreIT extends ITBase {
         final RyaStatement stmnt1 = makeRyaStatement("http://subject", "http://predicate", "http://add");
         final RyaStatement stmnt2 = makeRyaStatement("http://subject", "http://predicate", "http://add2");
         stmnt1.setTimestamp(new Date().getTime() + 10L);
-        stmnt2.setTimestamp(currentDate.getTime() + 1000L);
+        stmnt2.setTimestamp(currentDate + 1000L);
         parentStore.addStatement(stmnt1);
         childStore.addStatement(stmnt2);
 
-        final MemoryTimeMerger otherMerger = new MemoryTimeMerger(childStore, parentStore,
-                new VisibilityStatementMerger(), currentDate, RYA_INSTANCE, 0L);
+        final MemoryMerger otherMerger = new MemoryMerger(childStore, parentStore, RYA_INSTANCE, 0L);
         otherMerger.runJob();
         //both should still be there
         assertEquals(52, count(parentStore));
+    }
+
+    @Test
+    public void parentToChildSynch_childDeleted() throws Exception {
+        loadMockStatements(parentStore, 50, new Date(currentDate + 10000L));
+
+        // fill child store
+        MemoryMerger merger = new MemoryMerger(parentStore, childStore, RYA_INSTANCE, 0L);
+        merger.runJob();
+
+        // delete statement from child
+        final RyaStatement statement = makeRyaStatement("http://subject", "http://predicate", "http://25");
+        childStore.removeStatement(statement);
+
+        // re-synch child from parent
+        merger = new MemoryMerger(parentStore, childStore, RYA_INSTANCE, 0L);
+        merger.runJob();
+
+        // deleted statement should be back in child
+        final List<RyaStatement> stmnts = new ArrayList<>();
+        boolean found = false;
+        final Iterator<RyaStatement> stmntsIter = childStore.fetchStatements();
+
+        while(stmntsIter.hasNext()) {
+            final RyaStatement stmnt = stmntsIter.next();
+            if(stmnt.getObject().equals(new RyaType(ANY, "http://25"))) {
+                //since the timestamp changed, can't assert over contains
+                found = true;
+            }
+            stmnts.add(stmnt);
+        };
+
+        assertEquals(50, stmnts.size());
+        assertTrue(found);
+    }
+
+    @Test
+    public void parentToChildSynch_parentDeleted() throws Exception {
+        loadMockStatements(parentStore, 50, new Date(currentDate + 10000L));
+
+        // fill child store
+        MemoryMerger merger = new MemoryMerger(parentStore, childStore, RYA_INSTANCE, 0L);
+        merger.runJob();
+
+        // delete statement from parent
+        final RyaStatement statement = makeRyaStatement("http://subject", "http://predicate", "http://25");
+        parentStore.removeStatement(statement);
+
+        // re-synch child from parent
+        merger = new MemoryMerger(parentStore, childStore, RYA_INSTANCE, 0L);
+        merger.runJob();
+
+        // deleted statement should be gone from child
+        final List<RyaStatement> stmnts = new ArrayList<>();
+        childStore.fetchStatements().forEachRemaining(stmnt -> {
+            stmnts.add(stmnt);
+        });
+
+        assertFalse(stmnts.contains(statement));
+        assertEquals(49, stmnts.size());
+    }
+
+    @Test
+    public void parentToChildSynch_childAdded() throws Exception {
+        loadMockStatements(parentStore, 50, new Date(currentDate + 10000L));
+
+        // fill child store
+        MemoryMerger merger = new MemoryMerger(parentStore, childStore, RYA_INSTANCE, 0L);
+        merger.runJob();
+
+        // add statement to child
+        final RyaStatement statement = makeRyaStatement("http://subject", "http://predicate", "http://100");
+        childStore.addStatement(statement);
+
+        // re-synch child from parent
+        merger = new MemoryMerger(parentStore, childStore, RYA_INSTANCE, 0L);
+        merger.runJob();
+
+        // added statement should be gone from child
+        final List<RyaStatement> stmnts = new ArrayList<>();
+        childStore.fetchStatements().forEachRemaining(stmnt -> {
+            stmnts.add(stmnt);
+        });
+
+        assertFalse(stmnts.contains(statement));
+        assertEquals(50, stmnts.size());
+    }
+
+    @Test
+    public void parentToChildSynch_parentAdded() throws Exception {
+        loadMockStatements(parentStore, 50, new Date(currentDate + 10000L));
+
+        // fill child store
+        MemoryMerger merger = new MemoryMerger(parentStore, childStore, RYA_INSTANCE, 0L);
+        merger.runJob();
+
+        // add statement to parent
+        final RyaStatement statement = makeRyaStatement("http://subject", "http://predicate", "http://100");
+        statement.setTimestamp(currentDate + 20000L);
+        parentStore.addStatement(statement);
+
+        // re-synch child from parent
+        merger = new MemoryMerger(parentStore, childStore, RYA_INSTANCE, 0L);
+        merger.runJob();
+
+        // added statement should be in child
+        final List<RyaStatement> stmnts = new ArrayList<>();
+        boolean found = false;
+        final Iterator<RyaStatement> stmntsIter = childStore.fetchStatements();
+
+        while(stmntsIter.hasNext()) {
+            final RyaStatement stmnt = stmntsIter.next();
+            if(stmnt.getObject().equals(new RyaType(ANY, "http://100"))) {
+                //since the timestamp changed, can't assert over contains
+                found = true;
+            }
+            stmnts.add(stmnt);
+        };
+
+        assertEquals(51, stmnts.size());
+        assertTrue(found);
     }
 
     private void loadMockStatements(final RyaStatementStore store, final int count, final Date timestamp) throws AddStatementException {

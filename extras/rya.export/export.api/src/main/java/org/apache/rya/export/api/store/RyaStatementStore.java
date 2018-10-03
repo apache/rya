@@ -38,6 +38,10 @@ import org.apache.rya.export.api.metadata.ParentMetadataExistsException;
  * some storage system that is used when merging in data or exporting data.
  */
 public interface RyaStatementStore {
+    /**
+     * @return - The name of the Rya Instance this store connects to.
+     */
+    public String getRyaInstanceName();
 
     /**
      * @return an {@link Iterator} containing all {@link RyaStatement}s found
@@ -52,6 +56,12 @@ public interface RyaStatementStore {
      * @throws AddStatementException Thrown when adding a statement fails.
      */
     public void addStatement(final RyaStatement statement) throws AddStatementException;
+
+    /**
+     * @param statements - The {@link RyaStatement}s to add to this {@link RyaStatementStore}.
+     * @throws AddStatementException Thrown when adding a statement fails.
+     */
+    public void addStatements(final Iterator<RyaStatement> statements) throws AddStatementException;
 
     /**
      * @param statement - The {@link RyaStatement} to remove from this {@link RyaStatementStore}.
@@ -87,4 +97,9 @@ public interface RyaStatementStore {
      * @throws ParentMetadataExistsException
      */
     public void setParentMetadata(MergeParentMetadata metadata) throws ParentMetadataExistsException;
+
+    /**
+     * @return - The number of statements this store is expected to return during a merge.
+     */
+    public long count();
 }

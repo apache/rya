@@ -16,20 +16,20 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License. -->
 <MergeToolConfiguration xmlns="http://mergeconfig">
-    <parentHostname>10.10.10.100</parentHostname>
-    <parentUsername>accumuloUsername</parentUsername>
-    <parentPassword>accumuloPassword</parentPassword>
-    <parentRyaInstanceName>accumuloInstance</parentRyaInstanceName>
-    <parentTablePrefix>rya_demo_export_</parentTablePrefix>
-    <parentTomcatUrl>http://10.10.10.100:8080</parentTomcatUrl>
-    <parentDBType>accumulo</parentDBType>
-    <parentPort>1111</parentPort>
-    <childHostname>10.10.10.101</childHostname>
-    <childRyaInstanceName>rya_demo_child</childRyaInstanceName>
-    <childTablePrefix>rya_demo_export_</childTablePrefix>
-    <childTomcatUrl>http://10.10.10.101:8080</childTomcatUrl>
-    <childDBType>mongo</childDBType>
-    <childPort>27017</childPort>
-    <mergePolicy>timestamp</mergePolicy>
+    <parent>
+        <ryaInstanceName>sia-2-query</ryaInstanceName>
+        <mongo>
+            <hostname>127.0.0.1</hostname>
+            <port>27017</port>
+        </mongo>
+    </parent>
+    <child>
+        <ryaInstanceName>dest</ryaInstanceName>
+        <mongo>
+            <hostname>127.0.0.1</hostname>
+            <port>27017</port>
+        </mongo>
+    </child>
+    <childTomcatUrl>http://127.0.0.1:8080</childTomcatUrl>
     <useNtpServer>false</useNtpServer>
 </MergeToolConfiguration>

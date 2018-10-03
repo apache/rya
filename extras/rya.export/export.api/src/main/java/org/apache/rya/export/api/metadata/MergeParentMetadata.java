@@ -32,7 +32,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 public class MergeParentMetadata {
     private final String ryaInstanceName;
     private final Date timestamp;
-    private final Date filterTimestamp;
+    private final long filterTimestamp;
     private final Long parentTimeOffset;
 
     /**
@@ -44,7 +44,7 @@ public class MergeParentMetadata {
      * @param parentTimeOffset - The parent time offset metadata key for the
      * table.
      */
-    public MergeParentMetadata(final String ryaInstanceName, final Date timestamp, final Date filterTimestamp, final Long parentTimeOffset) {
+    public MergeParentMetadata(final String ryaInstanceName, final Date timestamp, final long filterTimestamp, final Long parentTimeOffset) {
         this.ryaInstanceName = checkNotNull(ryaInstanceName);
         this.timestamp = checkNotNull(timestamp);
         this.filterTimestamp = filterTimestamp;
@@ -69,7 +69,7 @@ public class MergeParentMetadata {
      * @return - The timestamp used by the copy tool to filter which data was
      * included when copying.
      */
-    public Date getFilterTimestamp() {
+    public long getFilterTimestamp() {
         return filterTimestamp;
     }
 
@@ -107,7 +107,7 @@ public class MergeParentMetadata {
     public static class Builder {
         private String name;
         private Date timestamp;
-        private Date filterTimestamp;
+        private long filterTimestamp;
         private Long parentTimeOffset;
 
         public Builder setRyaInstanceName(final String name) {
@@ -120,7 +120,7 @@ public class MergeParentMetadata {
             return this;
         }
 
-        public Builder setFilterTimestmap(final Date filterTimestamp) {
+        public Builder setFilterTimestmap(final long filterTimestamp) {
             this.filterTimestamp = checkNotNull(filterTimestamp);
             return this;
         }

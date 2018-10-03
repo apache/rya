@@ -113,6 +113,8 @@ public final class DocumentVisibilityAdapter {
                 documentVisibilityArray = (Object[]) documentVisibilityObject;
             } else if (documentVisibilityObject instanceof BasicDBList) {
                 documentVisibilityArray = DocumentVisibilityUtil.convertBasicDBListToObjectArray((BasicDBList) documentVisibilityObject);
+            } else {
+                documentVisibilityArray = new String[] {""};
             }
 
             final String documentVisibilityString = DocumentVisibilityUtil.multidimensionalArrayToBooleanString(documentVisibilityArray);

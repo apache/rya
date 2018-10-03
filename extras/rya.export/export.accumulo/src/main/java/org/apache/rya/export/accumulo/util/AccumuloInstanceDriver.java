@@ -49,8 +49,8 @@ import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.path.PathUtils;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.export.InstanceType;
 import org.apache.rya.export.accumulo.conf.AccumuloExportConstants;
+import org.apache.rya.export.accumulo.conf.InstanceType;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -118,7 +118,7 @@ public class AccumuloInstanceDriver {
 
     /**
      * Creates a new instance of {@link AccumuloInstanceDriver}.
-     * 
+     *
      * @param driverName
      *            the name used to identify this driver in the logs. (not {@code null})
      * @param instanceType

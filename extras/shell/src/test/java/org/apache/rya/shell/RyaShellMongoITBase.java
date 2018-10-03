@@ -68,4 +68,10 @@ public class RyaShellMongoITBase extends MongoITBase {
     public JLineShellComponent getTestShell() {
         return shell;
     }
+
+    @Override
+    public String getMongoHostname() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

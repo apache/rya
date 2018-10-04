@@ -147,7 +147,7 @@ public class MongoDBQueryEngine implements RyaQueryEngine<StatefulMongoDBRdfConf
     }
 
     private MongoCollection<Document> getCollection(final StatefulMongoDBRdfConfiguration conf) {
-        final MongoDatabase db = conf.getMongoClient().getDatabase(conf.getMongoDBName());
+        final MongoDatabase db = conf.getMongoClient().getDatabase(conf.getRyaInstanceName());
         return db.getCollection(conf.getTriplesCollectionName());
     }
 

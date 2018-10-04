@@ -70,7 +70,7 @@ public class MongoDBRyaDAO2IT extends MongoRyaITBase {
             builder.setSubject(new RyaIRI("http://subject.com"));
             builder.setObject(new RyaIRI("http://object.com"));
 
-            final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+            final MongoDatabase db = conf.getMongoClient().getDatabase(conf.getRyaInstanceName());
             final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
 
             dao.add(builder.build());
@@ -94,7 +94,7 @@ public class MongoDBRyaDAO2IT extends MongoRyaITBase {
             builder.setObject(new RyaIRI("http://object.com"));
             final RyaStatement statement = builder.build();
 
-            final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+            final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.RYA_INSTANCE_NAME));
             final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
 
             dao.add(statement);
@@ -121,7 +121,7 @@ public class MongoDBRyaDAO2IT extends MongoRyaITBase {
             builder.setContext(new RyaIRI("http://context.com"));
             final RyaStatement statement = builder.build();
 
-            final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+            final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.RYA_INSTANCE_NAME));
             final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
 
             dao.add(statement);
@@ -153,7 +153,7 @@ public class MongoDBRyaDAO2IT extends MongoRyaITBase {
             builder.setObject(new RyaIRI("http://object.com"));
             builder.setColumnVisibility(new DocumentVisibility("B").flatten());
 
-            final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+            final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.RYA_INSTANCE_NAME));
             final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
 
             dao.add(builder.build());
@@ -186,7 +186,7 @@ public class MongoDBRyaDAO2IT extends MongoRyaITBase {
             builder.setObject(new RyaIRI("http://object.com"));
             builder.setColumnVisibility(new DocumentVisibility("B").flatten());
 
-            final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+            final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.RYA_INSTANCE_NAME));
             final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
 
             dao.add(builder.build());

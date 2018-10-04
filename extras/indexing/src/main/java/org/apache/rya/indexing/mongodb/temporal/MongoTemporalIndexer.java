@@ -41,7 +41,7 @@ import com.mongodb.QueryBuilder;
  * Indexes MongoDB based on time instants or intervals.
  */
 public class MongoTemporalIndexer extends AbstractMongoIndexer<TemporalMongoDBStorageStrategy> implements TemporalIndexer {
-    private static final String COLLECTION_SUFFIX = "temporal";
+    protected final String COLLECTION_NAME = "temporal";
     private static final Logger LOG = Logger.getLogger(MongoTemporalIndexer.class);
 
     @Override
@@ -142,7 +142,7 @@ public class MongoTemporalIndexer extends AbstractMongoIndexer<TemporalMongoDBSt
 
     @Override
     public String getCollectionName() {
-        return ConfigUtils.getTablePrefix(conf)  + COLLECTION_SUFFIX;
+        return COLLECTION_NAME;
     }
 
     @VisibleForTesting

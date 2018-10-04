@@ -41,8 +41,7 @@ public class MongoRyaITBase extends MongoITBase {
         // Setup the configuration that will be used within the test.
         final MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration( new Configuration() );
         conf.setBoolean("sc.useMongo", true);
-        conf.setTablePrefix("test_");
-        conf.setMongoDBName(conf.getRyaInstanceName());
+        conf.setRyaInstanceName("test");
         conf.setMongoHostname( super.getMongoHostname() );
         conf.setMongoPort("" + super.getMongoPort());
 
@@ -68,13 +67,13 @@ public class MongoRyaITBase extends MongoITBase {
      * @return The Rya triples {@link MongoCollection}.
      */
     public MongoCollection<Document> getRyaCollection() {
-        return getMongoClient().getDatabase(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName());
+        return getMongoClient().getDatabase(conf.getRyaInstanceName()).getCollection(conf.getTriplesCollectionName());
     }
 
     /**
      * @return The Rya triples {@link DBCollection}.
      */
     public DBCollection getRyaDbCollection() {
-        return getMongoClient().getDB(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName());
+        return getMongoClient().getDB(conf.getRyaInstanceName()).getCollection(conf.getTriplesCollectionName());
     }
 }

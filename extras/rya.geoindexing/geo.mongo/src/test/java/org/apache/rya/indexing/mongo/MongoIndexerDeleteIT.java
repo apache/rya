@@ -72,10 +72,10 @@ public class MongoIndexerDeleteIT extends MongoRyaITBase {
             final MongoClient client = conf.getMongoClient();
 
             //The extra 1 is from the person type defined in freetext
-            assertEquals(8, client.getDatabase(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName()).count());
-            assertEquals(4, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_geo").count());
-            assertEquals(1, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_temporal").count());
-            assertEquals(2, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_freetext").count());
+            assertEquals(8, client.getDatabase(conf.getRyaInstanceName()).getCollection(conf.getTriplesCollectionName()).count());
+            assertEquals(4, client.getDatabase(conf.getRyaInstanceName()).getCollection("ryatest_geo").count());
+            assertEquals(1, client.getDatabase(conf.getRyaInstanceName()).getCollection("ryatest_temporal").count());
+            assertEquals(2, client.getDatabase(conf.getRyaInstanceName()).getCollection("ryatest_freetext").count());
 
             //free text -- remove one from many
             String delete = "DELETE DATA \n" //
@@ -110,10 +110,10 @@ public class MongoIndexerDeleteIT extends MongoRyaITBase {
             update = conn.prepareUpdate(QueryLanguage.SPARQL, delete);
             update.execute();
 
-            assertEquals(2, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_geo").count());
-            assertEquals(0, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_temporal").count());
-            assertEquals(1, client.getDatabase(conf.getMongoDBName()).getCollection("ryatest_freetext").count());
-            assertEquals(4, client.getDatabase(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName()).count());
+            assertEquals(2, client.getDatabase(conf.getRyaInstanceName()).getCollection("ryatest_geo").count());
+            assertEquals(0, client.getDatabase(conf.getRyaInstanceName()).getCollection("ryatest_temporal").count());
+            assertEquals(1, client.getDatabase(conf.getRyaInstanceName()).getCollection("ryatest_freetext").count());
+            assertEquals(4, client.getDatabase(conf.getRyaInstanceName()).getCollection(conf.getTriplesCollectionName()).count());
         } finally {
             conn.close();
             sail.shutDown();

@@ -81,18 +81,22 @@ public class RyaSailFactory {
         final String user;
         final String pswd;
         // XXX Should(?) be MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX inside the if below. RYA-135
-        final String ryaInstance = config.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
-        Objects.requireNonNull(ryaInstance, "RyaInstance or table prefix is missing from configuration."+RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
+        final String ryaInstance;
 
         if(ConfigUtils.getUseMongo(config)) {
             // Get a reference to a Mongo DB configuration object.
-            final MongoDBRdfConfiguration mongoConfig = (config instanceof MongoDBRdfConfiguration) ?
+            final MongoDBRdfConfiguration mongoConfig = config instanceof MongoDBRdfConfiguration ?
                     (MongoDBRdfConfiguration)config : new MongoDBRdfConfiguration(config);
+            ryaInstance = mongoConfig.getRyaInstanceName();
+            Objects.requireNonNull(ryaInstance, "RyaInstance is missing from configuration." + MongoDBRdfConfiguration.RYA_INSTANCE_NAME);
             // Instantiate a Mongo client and Mongo DAO.
             dao = getMongoDAO(mongoConfig);
             // Then use the DAO's newly-created stateful conf in place of the original
             rdfConfig = dao.getConf();
         } else {
+            ryaInstance = config.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
+            Objects.requireNonNull(ryaInstance, "RyaInstance or table prefix is missing from configuration."+RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
+
             rdfConfig = new AccumuloRdfConfiguration(config);
             user = rdfConfig.get(ConfigUtils.CLOUDBASE_USER);
             pswd = rdfConfig.get(ConfigUtils.CLOUDBASE_PASSWORD);
@@ -129,7 +133,7 @@ public class RyaSailFactory {
         requireNonNull(mongoConf);
         requireNonNull(mongoConf.getMongoHostname());
         requireNonNull(mongoConf.getMongoPort());
-        requireNonNull(mongoConf.getMongoDBName());
+        requireNonNull(mongoConf.getRyaInstanceName());
 
         // Connect to a running MongoDB server.
         final int port;
@@ -143,7 +147,7 @@ public class RyaSailFactory {
 
         // Connect to a specific MongoDB Database if that information is provided.
         final String username = mongoConf.getMongoUser();
-        final String database = mongoConf.getMongoDBName();
+        final String database = mongoConf.getRyaInstanceName();
         final String password = mongoConf.getMongoPassword();
         if(username != null && password != null) {
             final MongoCredential cred = MongoCredential.createCredential(username, database, password.toCharArray());
@@ -221,7 +225,7 @@ public class RyaSailFactory {
      * @return - MongoDBRyaDAO with Indexers configured according to user's specification
      * @throws RyaDAOException if the DAO can't be initialized
      */
-    public static MongoDBRyaDAO getMongoDAO(MongoDBRdfConfiguration mongoConfig) throws RyaDAOException {
+    public static MongoDBRyaDAO getMongoDAO(final MongoDBRdfConfiguration mongoConfig) throws RyaDAOException {
             // Create the MongoClient that will be used by the Sail object's components.
             final MongoClient client = createMongoClient(mongoConfig);
 

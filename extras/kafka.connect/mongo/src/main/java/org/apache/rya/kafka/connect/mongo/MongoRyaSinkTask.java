@@ -103,8 +103,7 @@ public class MongoRyaSinkTask extends RyaSinkTask {
         // Move the configuration into a Rya Configuration object.
         final MongoDBRdfConfiguration ryaConfig = new MongoDBRdfConfiguration();
         ConfigUtils.setUseMongo(ryaConfig, true);
-        ryaConfig.setMongoDBName( config.getRyaInstanceName() );
-        ryaConfig.setTablePrefix( config.getRyaInstanceName() );
+        ryaConfig.setRyaInstanceName( config.getRyaInstanceName() );
         ryaConfig.setMongoHostname( config.getHostname() );
         ryaConfig.setMongoPort( "" + config.getPort() );
 

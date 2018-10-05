@@ -19,18 +19,18 @@
 package org.apache.rya.export.client.conf;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.export.api.conf.MergeConfiguration;
+import org.apache.rya.export.Mongo;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 
 /**
  * Adapts the {@link MergeConfiguration} to the hadoop {@link Configuration}.
  */
 public class MergeConfigHadoopAdapter {
-    public static MongoDBRdfConfiguration getMongoConfiguration(final MergeConfiguration config) {
+    public static MongoDBRdfConfiguration getMongoConfiguration(final Mongo mongo, final String ryaInstanceName) {
         final MongoDBRdfConfiguration configuration = new MongoDBRdfConfiguration();
-        configuration.setMongoHostname(config.getChildHostname());
-        configuration.set(MongoDBRdfConfiguration.MONGO_PORT, config.getChildPort() + "");
-        configuration.set(MongoDBRdfConfiguration.MONGO_DB_NAME, config.getChildRyaInstanceName());
+        configuration.setMongoHostname(mongo.getHostname());
+        configuration.set(MongoDBRdfConfiguration.MONGO_PORT, mongo.getPort() + "");
+        configuration.set(MongoDBRdfConfiguration.RYA_INSTANCE_NAME, ryaInstanceName);
         return configuration;
     }
 }

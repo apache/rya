@@ -21,8 +21,6 @@ package org.apache.rya.export.accumulo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.Iterator;
@@ -31,11 +29,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.export.InstanceType;
-import org.apache.rya.export.MergePolicy;
+import org.apache.rya.export.accumulo.conf.InstanceType;
 import org.apache.rya.export.accumulo.util.AccumuloInstanceDriver;
 import org.apache.rya.export.api.MergerException;
-import org.apache.rya.export.api.conf.AccumuloMergeConfiguration;
 import org.apache.rya.export.api.store.AddStatementException;
 import org.apache.rya.export.api.store.FetchStatementException;
 import org.apache.rya.export.api.store.RemoveStatementException;
@@ -393,31 +389,7 @@ public class AccumuloRyaStatementStoreTest {
         return accumuloInstanceDriver;
     }
 
-    private static AccumuloMergeConfiguration createAccumuloMergeConfiguration() {
-        final AccumuloMergeConfiguration accumuloMergeConfiguration = mock(AccumuloMergeConfiguration.class);
-
-        when(accumuloMergeConfiguration.getParentRyaInstanceName()).thenReturn(INSTANCE_NAME);
-        when(accumuloMergeConfiguration.getParentUsername()).thenReturn(USER_NAME);
-        when(accumuloMergeConfiguration.getParentPassword()).thenReturn(PASSWORD);
-        when(accumuloMergeConfiguration.getParentInstanceType()).thenReturn(INSTANCE_TYPE);
-        when(accumuloMergeConfiguration.getParentTablePrefix()).thenReturn(RYA_TABLE_PREFIX);
-        when(accumuloMergeConfiguration.getParentAuths()).thenReturn(AUTHS);
-
-        // Other
-        when(accumuloMergeConfiguration.getMergePolicy()).thenReturn(MergePolicy.TIMESTAMP);
-
-        return accumuloMergeConfiguration;
-    }
-
     private static AccumuloRyaStatementStore createAccumuloRyaStatementStore() throws MergerException {
-        final AccumuloMergeConfiguration accumuloMergeConfiguration = createAccumuloMergeConfiguration();
-        return createAccumuloRyaStatementStore(accumuloMergeConfiguration);
-    }
-
-    private static AccumuloRyaStatementStore createAccumuloRyaStatementStore(final AccumuloMergeConfiguration accumuloMergeConfiguration) throws MergerException {
-        final String instance = accumuloMergeConfiguration.getParentRyaInstanceName();
-        final String tablePrefix = accumuloMergeConfiguration.getParentTablePrefix();
-
-        return new AccumuloRyaStatementStore(accumuloInstanceDriver.getDao(), tablePrefix, instance);
+        return new AccumuloRyaStatementStore(accumuloInstanceDriver.getDao(), RYA_TABLE_PREFIX, INSTANCE_NAME);
     }
 }

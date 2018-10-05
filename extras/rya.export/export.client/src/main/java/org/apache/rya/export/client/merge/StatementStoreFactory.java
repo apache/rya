@@ -20,21 +20,19 @@ package org.apache.rya.export.client.merge;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.Date;
-
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.export.DBType;
-import org.apache.rya.export.InstanceType;
-import org.apache.rya.export.MergePolicy;
+import org.apache.rya.export.Accumulo;
+import org.apache.rya.export.Connection;
+import org.apache.rya.export.MergeToolConfiguration;
+import org.apache.rya.export.Mongo;
 import org.apache.rya.export.accumulo.AccumuloRyaStatementStore;
+import org.apache.rya.export.accumulo.conf.InstanceType;
 import org.apache.rya.export.accumulo.policy.TimestampPolicyAccumuloRyaStatementStore;
 import org.apache.rya.export.accumulo.util.AccumuloInstanceDriver;
-import org.apache.rya.export.api.conf.AccumuloMergeConfiguration;
-import org.apache.rya.export.api.conf.MergeConfiguration;
-import org.apache.rya.export.api.conf.policy.TimestampPolicyMergeConfiguration;
 import org.apache.rya.export.api.store.RyaStatementStore;
 import org.apache.rya.export.client.conf.MergeConfigHadoopAdapter;
+import org.apache.rya.export.client.conf.MergeConfigurationException;
 import org.apache.rya.export.mongo.MongoRyaStatementStore;
 import org.apache.rya.export.mongo.policy.TimestampPolicyMongoRyaStatementStore;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
@@ -46,9 +44,9 @@ import com.mongodb.MongoClient;
  * Factory for creating {@link RyaStatementStore}s based on the {@link MergeConfiguration}.
  */
 public class StatementStoreFactory {
-    private final MergeConfiguration configuration;
+    private final MergeToolConfiguration configuration;
 
-    public StatementStoreFactory(final MergeConfiguration configuration) {
+    public StatementStoreFactory(final MergeToolConfiguration configuration) {
         this.configuration = requireNonNull(configuration);
     }
 
@@ -57,85 +55,44 @@ public class StatementStoreFactory {
      * @return The created {@link RyaStatementStore} that connects to the Parent rya.
      * @throws Exception - Something went wrong creating the {@link RyaStatementStore}.
      */
-    public RyaStatementStore getParentStatementStore() throws Exception {
-        final DBType dbType = configuration.getParentDBType();
-        final String ryaInstanceName = configuration.getParentRyaInstanceName();
-        RyaStatementStore store = getBaseStatementStore(dbType,
-                configuration.getParentHostname(),
-                configuration.getParentPort(),
-                ryaInstanceName,
-                configuration.getParentTablePrefix(),
-                configuration, true);
-        store = getMergePolicyStatementStore(store,
-                configuration.getMergePolicy(),
-                ryaInstanceName,
-                dbType);
-        return store;
-    }
+    public RyaStatementStore getStatementStore(final Connection connection) throws Exception {
+        final long timestamp = configuration.getStartTime();
+        final String ryaInstanceName = connection.getRyaInstanceName();
 
-    public RyaStatementStore getChildStatementStore() throws Exception {
-        final RyaStatementStore store = getBaseStatementStore(configuration.getChildDBType(),
-                configuration.getChildHostname(),
-                configuration.getChildPort(),
-                configuration.getChildRyaInstanceName(),
-                configuration.getChildTablePrefix(),
-                configuration, false);
-        return store;
-    }
-
-    /**
-     * @param isParent
-     * @param config
-     *          These parameters are hacks until the Accumulo DAO only accepts a connector.
-     *          Once that happens this will be much, much cleaner, and make the {@link AccumuloInstanceDriver}
-     *          obsolete.
-     * @throws Exception
-     */
-    private RyaStatementStore getBaseStatementStore(final DBType dbType,
-            final String hostname, final int port, final String ryaInstancename,
-            final String tablePrefix, final MergeConfiguration config, final boolean isParent) throws Exception {
-        RyaStatementStore store;
-        if(dbType == DBType.MONGO) {
-            store = getBaseMongoStore(hostname, port, ryaInstancename);
+        if(connection.getAccumulo() != null) {
+            final Accumulo accumulo = connection.getAccumulo();
+            final AccumuloRyaStatementStore store = getAccumuloStore(accumulo, ryaInstanceName);
+            return new TimestampPolicyAccumuloRyaStatementStore(store, timestamp);
+        } else if(connection.getMongo() != null) {
+            final Mongo mongo = connection.getMongo();
+            final MongoRyaStatementStore store = getMongoStore(mongo, connection.getRyaInstanceName());
+            return new TimestampPolicyMongoRyaStatementStore(store, timestamp);
         } else {
-            final AccumuloMergeConfiguration aConfig = (AccumuloMergeConfiguration) config;
-            final InstanceType type = isParent ? aConfig.getParentInstanceType() : aConfig.getChildInstanceType();
-            store = getBaseAccumuloStore(ryaInstancename, type, isParent, ryaInstancename, tablePrefix, tablePrefix, tablePrefix, tablePrefix);
+            throw new MergeConfigurationException("No parent database was specified.");
         }
-        return store;
     }
 
-    private RyaStatementStore getMergePolicyStatementStore(final RyaStatementStore store, final MergePolicy policy, final String ryaInstanceName, final DBType dbType) {
-        RyaStatementStore policyStore = null;
-        if(policy == MergePolicy.TIMESTAMP) {
-            final TimestampPolicyMergeConfiguration timeConfig = (TimestampPolicyMergeConfiguration) configuration;
-            final Date timestamp = timeConfig.getToolStartTime();
-            if(dbType == DBType.MONGO) {
-                policyStore = new TimestampPolicyMongoRyaStatementStore((MongoRyaStatementStore) store, timestamp, ryaInstanceName);
-            } else {
-                policyStore = new TimestampPolicyAccumuloRyaStatementStore((AccumuloRyaStatementStore) store, timestamp);
-            }
-        }
-        return policyStore == null ? store : policyStore;
-    }
-
-    private MongoRyaStatementStore getBaseMongoStore(final String hostname, final int port, final String ryaInstanceName) throws RyaDAOException {
-        final MongoClient client = new MongoClient(hostname, port);
+    private MongoRyaStatementStore getMongoStore(final Mongo mongo, final String ryaInstanceName) throws RyaDAOException {
+        final MongoClient client = new MongoClient(mongo.getHostname(), mongo.getPort());
         final MongoDBRyaDAO dao = new MongoDBRyaDAO();
-        dao.setConf(new StatefulMongoDBRdfConfiguration(MergeConfigHadoopAdapter.getMongoConfiguration(configuration), client));
+        dao.setConf(new StatefulMongoDBRdfConfiguration(MergeConfigHadoopAdapter.getMongoConfiguration(mongo, ryaInstanceName), client));
         dao.init();
         return new MongoRyaStatementStore(client, ryaInstanceName, dao);
     }
 
-    private AccumuloRyaStatementStore getBaseAccumuloStore(final String ryaInstanceName,
-            final InstanceType type, final boolean isParent,
-            final String username, final String password, final String tablePrefix,
-            final String auths, final String zookeepers) throws Exception {
+    private AccumuloRyaStatementStore getAccumuloStore(final Accumulo accumulo, final String ryaInstanceName) throws Exception {
         final AccumuloInstanceDriver aInstance = new AccumuloInstanceDriver(
-            ryaInstanceName+"_driver", type, true, false, isParent, username,
-            password, ryaInstanceName, tablePrefix, auths, zookeepers);
+                ryaInstanceName+"_driver",
+                InstanceType.valueOf(accumulo.getInstanceType().toString()),
+                true, false, accumulo.equals(configuration.getParent().getAccumulo()),
+                accumulo.getUsername(),
+                accumulo.getPassword(),
+                ryaInstanceName,
+                accumulo.getTablePrefix(),
+                accumulo.getAuths(),
+                accumulo.getZookeepers());
         aInstance.setUp();
         final AccumuloRyaDAO dao = aInstance.getDao();
-        return new AccumuloRyaStatementStore(dao, tablePrefix, ryaInstanceName);
+        return new AccumuloRyaStatementStore(dao, accumulo.getTablePrefix(), ryaInstanceName);
     }
 }

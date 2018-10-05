@@ -190,29 +190,4 @@ public class MongoRyaShellIT extends RyaShellMongoITBase {
         final CommandResult disconnectResult = shell.executeCommand( RyaConnectionCommands.DISCONNECT_COMMAND_NAME_CMD );
         assertTrue( disconnectResult.isSuccess() );
     }
-
-    // TODO the rest of them?
-
-    private static final ConsolePrinter systemPrinter = new ConsolePrinter() {
-
-        @Override
-        public void print(final CharSequence cs) throws IOException {
-            System.out.print(cs);
-        }
-
-        @Override
-        public void println(final CharSequence cs) throws IOException {
-            System.out.println(cs);
-        }
-
-        @Override
-        public void println() throws IOException {
-            System.out.println();
-        }
-
-        @Override
-        public void flush() throws IOException {
-            System.out.flush();
-        }
-    };
 }

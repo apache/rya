@@ -35,7 +35,7 @@ import com.mongodb.DBObject;
 public class ParentMetadataRepositoryAdapterTest {
     private final static String TEST_INSTANCE = "test_instance";
     private final static Date TEST_TIMESTAMP = new Date(8675309L);
-    private final static Date TEST_FILTER_TIMESTAMP = new Date(1234567L);
+    private final static long TEST_FILTER_TIMESTAMP = 1234567L;
     private final static long TEST_TIME_OFFSET = 123L;
     private final ParentMetadataRepositoryAdapter adapter = new ParentMetadataRepositoryAdapter();
 

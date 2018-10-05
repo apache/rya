@@ -17,19 +17,22 @@ specific language governing permissions and limitations
 under the License. -->
 <MergeToolConfiguration xmlns="http://mergeconfig">
     <parent>
-        <ryaInstanceName>sia-2-query</ryaInstanceName>
         <mongo>
+            <ryaInstanceName>merge_parent</ryaInstanceName>
             <hostname>127.0.0.1</hostname>
             <port>27017</port>
+            <tablePrefix>rya</tablePrefix>
         </mongo>
     </parent>
     <child>
-        <ryaInstanceName>dest</ryaInstanceName>
         <mongo>
+            <ryaInstanceName>merge_child</ryaInstanceName>
             <hostname>127.0.0.1</hostname>
             <port>27017</port>
+            <tablePrefix>rya</tablePrefix>
         </mongo>
     </child>
-    <childTomcatUrl>http://127.0.0.1:8080</childTomcatUrl>
+    <tomcatUrl>http://127.0.0.1:8080</tomcatUrl>
     <useNtpServer>false</useNtpServer>
+    <startTime>123456</startTime>
 </MergeToolConfiguration>

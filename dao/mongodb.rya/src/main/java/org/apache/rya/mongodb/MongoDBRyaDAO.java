@@ -82,8 +82,7 @@ public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfigurati
         auths = conf.getAuthorizations();
         flushEachUpdate.set(conf.flushEachUpdate());
     }
-  
-    
+
     public void setDB(final DB db) {
         this.db = db;
     }
@@ -107,7 +106,7 @@ public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfigurati
             index.setConf(conf);
         }
 
-        db = mongoClient.getDB(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+        db = mongoClient.getDB(conf.getRyaInstanceName());
         coll = db.getCollection(conf.getTriplesCollectionName());
         nameSpaceManager = new SimpleMongoDBNamespaceManager(db.getCollection(conf.getNameSpacesCollectionName()));
         queryEngine = new MongoDBQueryEngine();

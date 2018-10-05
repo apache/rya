@@ -18,9 +18,6 @@
  */
 package org.apache.rya.export.client;
 
-import static org.apache.rya.export.DBType.ACCUMULO;
-import static org.apache.rya.export.MergePolicy.TIMESTAMP;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -33,17 +30,15 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.apache.rya.api.path.PathUtils;
-import org.apache.rya.export.accumulo.AccumuloRyaStatementStore;
+import org.apache.rya.export.MergeToolConfiguration;
 import org.apache.rya.export.api.MergerException;
-import org.apache.rya.export.api.conf.MergeConfiguration;
-import org.apache.rya.export.api.conf.MergeConfigurationException;
-import org.apache.rya.export.api.conf.policy.TimestampPolicyMergeConfiguration;
+import org.apache.rya.export.api.policy.TimestampPolicyStatementStore;
 import org.apache.rya.export.api.store.RyaStatementStore;
 import org.apache.rya.export.client.conf.MergeConfigurationCLI;
+import org.apache.rya.export.client.conf.MergeConfigurationException;
 import org.apache.rya.export.client.conf.TimeUtils;
-import org.apache.rya.export.client.merge.MemoryTimeMerger;
+import org.apache.rya.export.client.merge.MemoryMerger;
 import org.apache.rya.export.client.merge.StatementStoreFactory;
-import org.apache.rya.export.client.merge.VisibilityStatementMerger;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.eclipse.rdf4j.query.UpdateExecutionException;
@@ -55,9 +50,9 @@ import com.google.common.base.Optional;
 /**
  * Drives the MergeTool.
  */
-public class MergeDriverClient {
-    private static final Logger LOG = Logger.getLogger(MergeDriverClient.class);
-    private static MergeConfiguration configuration;
+public class MergeDriverCLI {
+    private static final Logger LOG = Logger.getLogger(MergeDriverCLI.class);
+    private static MergeToolConfiguration configuration;
 
     public static void main(final String [] args) throws ParseException,
         MergeConfigurationException, UnknownHostException, MergerException,
@@ -83,10 +78,10 @@ public class MergeDriverClient {
             LOG.error("Configuration failed.", e);
         }
 
-        final boolean useTimeSync = configuration.getUseNtpServer();
+        final boolean useTimeSync = configuration.isUseNtpServer();
         Optional<Long> offset = Optional.absent();
         if (useTimeSync) {
-            final String tomcat = configuration.getChildTomcatUrl();
+            final String tomcat = configuration.getTomcatUrl();
             final String ntpHost = configuration.getNtpServerHost();
             try {
                 offset = Optional.fromNullable(TimeUtils.getNtpServerAndMachineTimeDifference(ntpHost, tomcat));
@@ -97,41 +92,27 @@ public class MergeDriverClient {
 
         final StatementStoreFactory storeFactory = new StatementStoreFactory(configuration);
         try {
-            final RyaStatementStore parentStore = storeFactory.getParentStatementStore();
-            final RyaStatementStore childStore = storeFactory.getChildStatementStore();
+            final RyaStatementStore parentStore = storeFactory.getStatementStore(configuration.getParent());
+            final RyaStatementStore childStore = storeFactory.getStatementStore(configuration.getChild());
 
             LOG.info("Starting Merge Tool");
-            if(configuration.getParentDBType() == ACCUMULO && configuration.getChildDBType() == ACCUMULO) {
-                final AccumuloRyaStatementStore childAStore = (AccumuloRyaStatementStore) childStore;
-                final AccumuloRyaStatementStore parentAStore = (AccumuloRyaStatementStore) parentStore;
 
-                //do map reduce merging.
-                //TODO: Run Merger
+            final TimestampPolicyStatementStore parentTimestampStore = new TimestampPolicyStatementStore(parentStore, configuration.getStartTime());
+
+            final Long timeOffset;
+            if (offset.isPresent()) {
+                timeOffset = offset.get();
             } else {
-                if(configuration.getMergePolicy() == TIMESTAMP) {
-                    final TimestampPolicyMergeConfiguration timeConfig = (TimestampPolicyMergeConfiguration) configuration;
-                    final Long timeOffset;
-                    if (offset.isPresent()) {
-                        timeOffset = offset.get();
-                    } else {
-                        timeOffset = 0L;
-                    }
-                    final MemoryTimeMerger merger = new MemoryTimeMerger(parentStore, childStore,
-                            new VisibilityStatementMerger(), timeConfig.getToolStartTime(),
-                            configuration.getParentRyaInstanceName(), timeOffset);
-                    merger.runJob();
-                }
+                timeOffset = 0L;
             }
+            final MemoryMerger merger = new MemoryMerger(parentTimestampStore, childStore,
+                    configuration.getParent().getRyaInstanceName(), timeOffset);
+            merger.runJob();
         } catch (final Exception e) {
             LOG.error("Something went wrong creating a Rya Statement Store connection.", e);
         }
 
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(final Thread thread, final Throwable throwable) {
-                LOG.error("Uncaught exception in " + thread.getName(), throwable);
-            }
-        });
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> LOG.error("Uncaught exception in " + thread.getName(), throwable));
 
         LOG.info("Finished running Merge Tool");
         System.exit(1);

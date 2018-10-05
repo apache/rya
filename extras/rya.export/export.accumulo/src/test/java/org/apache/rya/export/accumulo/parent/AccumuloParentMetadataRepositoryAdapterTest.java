@@ -22,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Date;
 
-import org.apache.rya.export.InstanceType;
+import org.apache.rya.export.accumulo.conf.InstanceType;
 import org.apache.rya.export.accumulo.util.AccumuloInstanceDriver;
 import org.apache.rya.export.api.metadata.MergeParentMetadata;
 import org.apache.rya.export.api.metadata.ParentMetadataDoesNotExistException;
@@ -38,7 +38,7 @@ import org.junit.Test;
 public class AccumuloParentMetadataRepositoryAdapterTest {
     private final static String TEST_INSTANCE = "test_instance";
     private final static Date TEST_TIMESTAMP = new Date(8675309L);
-    private final static Date TEST_FILTER_TIMESTAMP = new Date(1234567L);
+    private final static long TEST_FILTER_TIMESTAMP = 1234567L;
     private final static long TEST_TIME_OFFSET = 123L;
 
     private static final InstanceType INSTANCE_TYPE = InstanceType.MOCK;

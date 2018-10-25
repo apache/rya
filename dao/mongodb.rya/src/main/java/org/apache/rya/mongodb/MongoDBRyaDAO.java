@@ -53,6 +53,7 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.DuplicateKeyException;
 import com.mongodb.MongoClient;
+import com.mongodb.BulkWriteOperation;
 
 /**
  * Default DAO for mongo backed RYA allowing for CRUD operations.
@@ -240,6 +241,15 @@ public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfigurati
     public void dropGraph(final StatefulMongoDBRdfConfiguration conf, final RyaIRI... graphs)
             throws RyaDAOException {
 
+        RyaStatement statement = new RyaStatement();
+        BulkWriteOperation bulkDelete = coll.initializeUnorderedBulkOperation();
+
+        for (final RyaIRI graph : graphs){
+            statement.setContext(graph);
+            bulkDelete.find(storageStrategy.getQuery(statement)).remove();
+        }
+
+        bulkDelete.execute();
     }
 
     @Override

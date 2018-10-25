@@ -120,6 +120,49 @@ public class MongoDBRyaDAOIT extends MongoRyaITBase {
     }
 
     @Test
+    public void testDrop() throws RyaDAOException, MongoException, IOException {
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO();
+        try {
+            final MongoDatabase db = conf.getMongoClient().getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+            final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
+
+            dao.setConf(conf);
+            dao.init();
+
+            RyaIRI contexts[] = new RyaIRI[3];
+            contexts[0] = new RyaIRI("http://context1.com");
+            contexts[1] = new RyaIRI("http://context2.com");
+            contexts[2] = new RyaIRI("http://context3.com");
+
+            RyaIRI subjects[] = new RyaIRI[2];
+            subjects[0] = new RyaIRI("http://subject1.com");
+            subjects[1] = new RyaIRI("http://subject2.com");
+
+            final RyaStatementBuilder builder = new RyaStatementBuilder();
+
+            for(RyaIRI context : contexts)
+            {
+                for(RyaIRI subject : subjects)
+                {
+                    builder.setPredicate(new RyaIRI("http://temp.com"));
+                    builder.setSubject(subject);
+                    builder.setObject(new RyaIRI("http://object.com"));
+                    builder.setContext(context);
+                    builder.setColumnVisibility(new DocumentVisibility("C").flatten());
+                    dao.add(builder.build());
+                }
+            }
+
+            assertEquals(6, coll.count());
+
+            dao.dropGraph(conf, contexts[0], contexts[1]);
+            assertEquals(2, coll.count());
+        } finally {
+            dao.destroy();
+        }
+    }
+
+    @Test
     public void testDeleteWildcardSubjectWithContext() throws RyaDAOException, MongoException, IOException {
         final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         try {

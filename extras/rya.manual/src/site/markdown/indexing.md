@@ -485,17 +485,13 @@ The following two classes should be substituted when using a Geo indexe:
 
 #### Geo Enable and Options
 
-Geo indexing is enabled in the installer configuration builder by setting
-method `setUse TODO Index()` to true.  For example:
+Geo indexing available in configuration builder.
 
-```java
-AccumuloIndexingConfiguration.builder().setUse TODO Index(true);
-```
-
-When using Rya with the shell command: install-with-parameters, or in legacy (not recommended) set the configuration key:
+When using Rya with the shell command: install-with-parameters, or in legacy mode, set the configuration key true:
 
 ```java
 OptionalConfigUtils.USE_GEO = "sc.use_geo"
+conf.setBoolean(OptionalConfigUtils.USE_GEO, true);
 ```
 For Mongo backed Rya, the above ```USE_GEO``` is enough.  If you intend to use the Accumulo backed Rya there are two geo implementations: GeoMesa and GeoWave.  GeoMesa is the default, so no further configuraton is needed. If you intend to use Accumulo with GeoWave, or you have a custom Geo implementation, set the `geo_indexer_type`:
 
@@ -511,6 +507,7 @@ GEO_MESA("org.apache.rya.indexing.accumulo.geo.GeoMesaGeoIndexer"),
 GEO_WAVE("org.apache.rya.indexing.accumulo.geo.GeoWaveGeoIndexer"),
 MONGO_DB("org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer"),
 ```
+##### Geo Option: GEO_PREDICATES_LIST
 
 To Limit the indexing of inserted statements with particular predicates, set the following configuration key to a list of predicate URI's.
 
@@ -518,10 +515,7 @@ To Limit the indexing of inserted statements with particular predicates, set the
 OptionalConfigUtils.GEO_PREDICATES_LIST = "sc.geo.predicates"
 ```
 
-
-##### Geo Option: ???
-
-#### Geo Usage
+#### Geo indexing Usage
 ##### Query Language Accumulo GeoMesa
 GeoMesa is an Open Source Spatio-Temporal Indexing layer by CCRI.
 It uses the GeoTools API, and an Accumulo storage Model.  the model stores RDF “Feature Type” with Subject, Predicate, Object, Context as “Attributes”
@@ -535,11 +529,17 @@ Point, Linestring, Polygon 
 The SPARQL Integration uses GeoSPARQL for storage and query.
 
 ##### GeoMesa Data Model
-OpenGIS spatial features model
-Features: points, lines, polygons
+GeoMesa use the OpenGIS spatial features model.
+Geo Features:
+  - points
+  - lines
+  - polygons
+
 For example: Fire hydrant, river, political boundaries.
 
-Features may have Attributes: Strings, numbers, and others.  For example: color, river flow rate, political state name.  GeoTools provides the DataStore interfaces and tools.
+Features may have Attributes: Strings, numbers, and others.  For example: color, river flow rate, political state name.  
+
+GeoTools provides the DataStore interfaces and tools.
 
 Submit Queries using GeoTools Filters (API: Filter Factory) translated from SPARQL filters. This is expressed using *Extended Common Query Language (ECQL)*
 
@@ -549,10 +549,20 @@ Server side iterators
 Space Filling curve index
 Geohashed spatial components
 
-#### Geo Architecture
-Space Filling Curve and GeoHashing
+##### Query Language Accumulo GeoWave
+TODO
 
-Interleave bits from Latitude and Longitude into Geohash string.  
+##### Query Language Mongo Geo
+
+TODO
+
+### Geo index Architecture
+
+#### GeoMesa Architecture
+
+Internally, the geo index uses a #Space Filling Curve# and #GeoHashing#.
+
+Interleave bits from Latitude and Longitude into a Geohash string.  
 
 ![hash the lat long](../images/GeoHash1.png "From Lat,Long to geohash string")
 ![hash the lat long](../images/GeoHash2.png "Lat,Long to 6 bit geohash string")
@@ -568,6 +578,12 @@ Points nearby on surface are likely to be nearby on the curve.
 Bounded areas can be decomposed into a list of geohash ranges, searched as Accumulo range scans.
 
 ![bounded areas range of geohashes](../images/GeoAreasDecomposed.png "bounded areas described by a list geohash ranges")
+
+#### GeoWave Architecture
+TODO
+
+#### GeoMongo Architecture
+TODO
 
 =============template==============
 ### Index: ????

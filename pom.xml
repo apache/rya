@@ -81,8 +81,8 @@ under the License.
         <lucene.version>5.2.1</lucene.version> <!-- Newest: 5.3.1 -->
         <joda-time.version>2.1</joda-time.version> <!-- Newest: 2.9.1 -->
 
-        <mongodb.version>3.3.0</mongodb.version>
-        <embed.mongo.version>1.50.5</embed.mongo.version>
+        <mongodb.version>3.10.2</mongodb.version>
+        <embed.mongo.version>2.2.0</embed.mongo.version>
 
         <tinkerpop.version>3.2.2</tinkerpop.version> <!-- Newest: Apache 3.2.2 -->
 

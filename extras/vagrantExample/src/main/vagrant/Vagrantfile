@@ -46,7 +46,6 @@ Vagrant.configure(2) do |config|
   config.vm.hostname = "rya-example-box"
 
   config.vm.provision "shell", inline: <<-SHELL
-
     ###set -x  ## turn on command echo with expanded variables
     # List of dependency versions
     export ACCUMULO_VERSION=1.6.5
@@ -56,47 +55,29 @@ Vagrant.configure(2) do |config|
     # TODO: Eventually this version of the Rya distribution will be on maven...and then we can use the following instead
     #export RYA_EXAMPLE_VERSION=4.0.0-incubating
     export RDF4J_VERSION=2.3.1
-    export ZOOKEEPER_VERSION=3.4.5-cdh4.5.0
-
+    export ZOOKEEPER_VERSION=3.4.5-cdh5.16.1
     mavenRepoUrl=http://repo1.maven.org/maven2/
-
     echo "Updating host file with permanent ip"
     sudo sed -i 's/127.0.1.1/192.168.33.10/' /etc/hosts
     cat >> /etc/hosts <<EOF
 192.168.33.10 zoo1 zoo2 zoo3
 EOF
-
     sudo -E apt-get -qq update
-
     echo "Installing Java installer..."
-    sudo -E add-apt-repository ppa:webupd8team/java || exit $?
-    sudo -E apt-get -qq update || exit $?
-    echo debconf shared/accepted-oracle-license-v1-1 select true | \
-      sudo -E /usr/bin/debconf-set-selections
-    echo debconf shared/accepted-oracle-license-v1-1 seen true | \
-      sudo -E /usr/bin/debconf-set-selections
-    sudo mkdir --parents /var/cache/oracle-jdk8-installer || exit $?
-    echo verbose=off >> /var/cache/oracle-jdk8-installer/wgetrc || exit $?
-
-    echo "Installing Java..."
-    sudo -E apt-get -qq install -y oracle-java8-installer || exit $?
-    sudo ln --force -s /usr/lib/jvm/java-8-oracle/ /usr/lib/jvm/default-java
-
+    sudo -E apt-get install openjdk-8-jre
+    
     echo "Installing Tomcat..."
     sudo -E apt-get install -y tomcat7  || exit $?
-
     echo "Installing Unzip..."
     apt-get install unzip || exit $?
-
     echo "Setting up environment..."
-    export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+    export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
     export HADOOP_HOME=/home/vagrant/hadoop-${HADOOP_VERSION}
     export ZOOKEEPER_HOME=/home/vagrant/zookeeper-${ZOOKEEPER_VERSION}
     export ZOO_LOG_DIR=${ZOOKEEPER_HOME}/logs/
     export ACCUMULO_HOME=/home/vagrant/accumulo-${ACCUMULO_VERSION}
     export PATHADD=$JAVA_HOME/bin:$ZOOKEEPER_HOME/bin:$ACCUMULO_HOME/bin:$HADOOP_HOME/bin
     export PATH=$PATH:$PATHADD
-
     export HADOOP_PREFIX="$HADOOP_HOME"
     export HADOOP_CONF_DIR="$HADOOP_PREFIX/etc/hadoop"
     export ACCUMULO_LOG_DIR=$ACCUMULO_HOME/logs
@@ -110,14 +91,12 @@ EOF
     # Shell environment includes Accumulo resources.
     ACCUMULO_RC=/home/vagrant/.accumulo_rc.sh
     cat > ${ACCUMULO_RC}  <<EOF
-
         export JAVA_HOME=\'$JAVA_HOME\'
         export HADOOP_HOME=\'$HADOOP_HOME\'
         export ZOOKEEPER_HOME=\'$ZOOKEEPER_HOME\'
         export ZOO_LOG_DIR=\'$ZOO_LOG_DIR\'
         export ACCUMULO_HOME=\'$ACCUMULO_HOME\'
         export PATH=\\$PATH:$PATHADD
-
         export HADOOP_PREFIX=\'$HADOOP_PREFIX\'
         export HADOOP_CONF_DIR=\'$HADOOP_CONF_DIR\'
         export ACCUMULO_LOG_DIR=\'$ACCUMULO_LOG_DIR\'
@@ -133,9 +112,7 @@ EOF
         function ryaps() { ps -ef | grep java | tr ' ' '\\n' | egrep '^org\\.apache|^tracer|^master|^monitor|^tserver|^gc' | sed '/\\.Main/ N ; s/\\n/ /' ; }
 EOF
     source ${ACCUMULO_RC} || exit 151
-
     # include it at the beginning of both shell configuration files.
-
     for BASHRC in /home/vagrant/.bashrc /home/vagrant/.bash_profile ;
     do touch ${BASHRC} ;
         cat - ${BASHRC} > ${BASHRC}.new <<EOF  && mv ${BASHRC}.new ${BASHRC} || exit 152
@@ -145,7 +122,6 @@ EOF
     echo "Acquiring and Extracting ..."
     
     function echoerr() { printf "%s\n" "$*" >&2; }
-
     function download {
       ### curl --fail treat http status >= 400 as an error. --location follow redirects status>=300
       curl --silent --show-error --fail --location "$@"
@@ -174,7 +150,6 @@ EOF
             fi
         done
     }
-
     echo "- Hadoop"
     hadoopUrl=https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz
     if [[ ! -d ${HADOOP_HOME} ]] ; then 
@@ -182,15 +157,13 @@ EOF
         download $hadoopUrl \
         | tar -zxC /home/vagrant || exit 101
     fi
-
     echo "- Zookeeper"
-    zookeeperUrl=http://archive-primary.cloudera.com/cdh4/cdh/4/zookeeper-${ZOOKEEPER_VERSION}.tar.gz
+    zookeeperUrl=http://archive.cloudera.com/cdh5/cdh/5/zookeeper-${ZOOKEEPER_VERSION}.tar.gz
     if [[ ! -d ${ZOOKEEPER_HOME} ]] ; then
         echo "Downloading $zookeeperUrl"
         download $zookeeperUrl \
         | tar -zxC /home/vagrant || exit 102
     fi
-
     echo "- Accumulo"
     accumuloUrl=https://archive.apache.org/dist/accumulo/${ACCUMULO_VERSION}/accumulo-${ACCUMULO_VERSION}-bin.tar.gz
     if [[ ! -d ${ACCUMULO_HOME} ]] ; then
@@ -198,7 +171,6 @@ EOF
         download $accumuloUrl \
         | tar -zxC /home/vagrant || exit 103
     fi
-
     echo "Configuring Zookeeper..."
     sudo mkdir --parents /var/zookeeper
     sudo chown vagrant:vagrant /var/zookeeper
@@ -208,15 +180,12 @@ EOF
     # Conflicts with Accumulo and maybe Zookeeper
     sudo rm --force ${HADOOP_HOME}/share/hadoop/common/lib/slf4j-api-1.7.10.jar
     sudo rm --force ${HADOOP_HOME}/share/hadoop/common/lib/slf4j-log4j12-1.7.10.jar
-
     # Assure logs are creatable and writeable
     sudo mkdir --parents ${ZOO_LOG_DIR}
     sudo touch "${ZOO_LOG_DIR}/zookeeper.out"
     sudo chmod -R a+wX  ${ZOO_LOG_DIR}
-
     echo "Running Zookeeper..."
     sudo -E ${ZOOKEEPER_HOME}/bin/zkServer.sh start
-
     echo "Configuring Accumulo..."
     cp ${ACCUMULO_HOME}/conf/examples/1GB/standalone/* ${ACCUMULO_HOME}/conf/
     rm --force ${ACCUMULO_HOME}/conf/accumulo-site.xml
@@ -271,7 +240,6 @@ EOF
     cat > ${ACCUMULO_HOME}/conf/masters <<EOF
 rya-example-box
 EOF
-
     cat > ${ACCUMULO_HOME}/conf/slaves <<EOF
 rya-example-box
 EOF
@@ -280,18 +248,14 @@ EOF
     mkdir --parents /data/accumulo/lib/ext
     
     sudo chmod -R a+rwX ${ACCUMULO_HOME}/logs/
-
     echo "Starting Accumulo..."
     echo "Init will fail during a re-provision, but you can ignore it:  'FATAL: It appears the directories [...] were previously initialized.'"
     echo "Also, you may see an indefinitely repeating: 'Waiting for accumulo to be initialized' which means Accumulo won't start."
     echo "Either issue can be resolved by removing the directory: 'sudo rm -r /data/accumulo' then re-provision. Warning: this will erase all Rya/Accumulo data."
     ${ACCUMULO_HOME}/bin/accumulo init --instance-name dev --password root
     ${ACCUMULO_HOME}/bin/start-all.sh  || exit 107
-
     sudo chmod -R a+rwX ${ACCUMULO_HOME}/logs/
-
     echo 'Done!'
-
     echo "Installing RDF4J Server"
     # creating log dir rdf4j-http-server-${RDF4J_VERSION}
     sudo mkdir --parents /usr/share/tomcat7/.RDF4J
@@ -303,7 +267,6 @@ EOF
         download --output $rdf4jwar ${mavenRepoUrl}org/eclipse/rdf4j/rdf4j-http-server/${RDF4J_VERSION}/rdf4j-http-server-${RDF4J_VERSION}.war || exit 110
     fi
     echo "RDF4J http server deployed at http://rya-example-box:8080/rdf4j-server"
-
     echo "Installing RDF4J Workbench"
     workbench=/var/lib/tomcat7/webapps/rdf4j-workbench.war
     if [[ ! -s $workbench ]] ; then
@@ -311,7 +274,6 @@ EOF
         download --output $workbench ${mavenRepoUrl}org/eclipse/rdf4j/rdf4j-http-workbench/${RDF4J_VERSION}/rdf4j-http-workbench-${RDF4J_VERSION}.war || exit 111
     fi
     echo "RDF4J workbench deployed at http://rya-example-box:8080/rdf4j-workbench"
-
     echo "Installing Rya"
     ryaIndexing=rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution
     if [[ ! -s ${ryaIndexing}.zip ]] ; then
@@ -322,24 +284,19 @@ EOF
     fi
     sudo mkdir --parents ${ryaIndexing}
     sudo unzip -q -o ${ryaIndexing}.zip -d ${ryaIndexing}
-
     # before continuing, wait for tomcat to deploy wars:
     waitForDeploy /var/lib/tomcat7/webapps/rdf4j-workbench/WEB-INF/lib/
     waitForDeploy /var/lib/tomcat7/webapps/rdf4j-server/WEB-INF/lib/
-
     # soft linking the files doesn't seem to work in tomcat, so we copy them instead :(
     sudo cp ${ryaIndexing}/dist/lib/* /var/lib/tomcat7/webapps/rdf4j-workbench/WEB-INF/lib/ || exit 113
     sudo cp ${ryaIndexing}/dist/lib/* /var/lib/tomcat7/webapps/rdf4j-server/WEB-INF/lib/    || exit 114
-
     # These are older libs that breaks tomcat 7
     sudo rm --force /var/lib/tomcat7/webapps/rdf4j-workbench/WEB-INF/lib/servlet-api-2.5.jar
     sudo rm --force /var/lib/tomcat7/webapps/rdf4j-workbench/WEB-INF/lib/jsp-api-2.1.jar
     sudo rm --force /var/lib/tomcat7/webapps/rdf4j-server/WEB-INF/lib/servlet-api-2.5.jar
     sudo rm --force /var/lib/tomcat7/webapps/rdf4j-server/WEB-INF/lib/jsp-api-2.1.jar
-
     sudo chown -R tomcat7:tomcat7 /var/lib/tomcat7/webapps/rdf4j-workbench/WEB-INF/lib/
     sudo chown -R tomcat7:tomcat7 /var/lib/tomcat7/webapps/rdf4j-server/WEB-INF/lib/
-
     echo "Downloading and installing new templates for RDF4J WorkBench"
     ryaVagrant=rya.vagrant.example-${RYA_EXAMPLE_VERSION}
     if [[ ! -s ${ryaVagrant}.jar ]] ; then
@@ -352,7 +309,6 @@ EOF
     sudo unzip -q -o ${ryaVagrant}.jar -d ${ryaVagrant}
     sudo cp ${ryaVagrant}/*.xsl /var/lib/tomcat7/webapps/rdf4j-workbench/transformations/
     sudo chown tomcat7:tomcat7 /var/lib/tomcat7/webapps/rdf4j-workbench/transformations/*
-
     echo "Deploying Rya Web"
     ryaWar=web.rya-${RYA_EXAMPLE_VERSION}.war
     if [[ ! -s ${ryaWar} ]] ; then
@@ -364,11 +320,9 @@ EOF
     sudo cp ${ryaWar} /var/lib/tomcat7/webapps/web.rya.war
     # Wait for the war to deploy
     waitForDeploy /var/lib/tomcat7/webapps/web.rya/WEB-INF/classes/
-
     # These are older libs that breaks tomcat 7
     sudo rm --force /var/lib/tomcat7/webapps/web.rya/WEB-INF/lib/servlet-api-2.5*.jar
     sudo rm --force /var/lib/tomcat7/webapps/web.rya/WEB-INF/lib/jsp-api-2.1.jar
-
     echo "Modify Rya Web Config"
     cat > /var/lib/tomcat7/webapps/web.rya/WEB-INF/classes/environment.properties <<EOF
 instance.name=dev
@@ -378,14 +332,10 @@ instance.password=root
 rya.tableprefix=rya_
 rya.displayqueryplan=true
 EOF
-
     echo "Rya web deployed at http://rya-example-box:8080/web.rya/sparqlQuery.jsp"
-
     # restart tomcat
     sudo -E service tomcat7 restart
-
     echo "Finished and ready to use!"
     echo "You can re-apply these settings without losing data by running the command 'vagrant provision'"
   SHELL
-
 end

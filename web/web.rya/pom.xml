@@ -194,7 +194,7 @@ under the License.
             </properties>
         </profile>
         <profile>
-            <id>geoindexing</id>
+            <id>mongodb-geo</id>
             <properties>
                 <db.specified>true</db.specified>
                 <database.implementation>mongodb-geo</database.implementation>

@@ -29,7 +29,6 @@ import com.mongodb.MongoClient;
  * JUnit framework.
  */
 public class MongoITBase {
-
     private MongoClient mongoClient = null;
 
     @Before
@@ -38,7 +37,9 @@ public class MongoITBase {
 
         // Remove any DBs that were created by previous tests.
         for(final String dbName : mongoClient.listDatabaseNames()) {
-            mongoClient.dropDatabase(dbName);
+            if (!MongoUtils.ADMIN_DATABASE_NAME.equals(dbName)) {
+                mongoClient.dropDatabase(dbName);
+            }
         }
 
         // Let subclasses do more setup.

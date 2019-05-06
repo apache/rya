@@ -41,10 +41,6 @@ under the License.
             <artifactId>findbugs-annotations</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
         </dependency>
@@ -52,7 +48,7 @@ under the License.
             <groupId>de.flapdoodle.embed</groupId>
             <artifactId>de.flapdoodle.embed.mongo</artifactId>
         </dependency>
-    
+
         <!-- Testing dependencies. -->
         <dependency>
             <groupId>junit</groupId>

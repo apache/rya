@@ -8,9 +8,9 @@ package org.apache.rya.indexing.statement.metadata.matching;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -37,9 +37,9 @@ import java.util.Set;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
@@ -81,7 +81,7 @@ import com.google.common.base.Preconditions;
  * expensive from a storage perspective. It is also expensive from a query
  * perspective in that three joins are required to evaluate a query that is
  * reduced to a single scan in non-reified form.
- * 
+ *
  * This class provides Rya with the ability to issue reified queries even though
  * statements are not reified. Each {@link RyaStatement} contains a
  * {@link StatementMetadata} field that allows users to store additional
@@ -112,18 +112,18 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
 
     private StatementPattern statement;
     private Map<RyaIRI, Var> properties;
-    private Collection<StatementPattern> patterns;
-    private List<RyaIRI> uriList = Arrays.asList(TYPE_ID_URI, SUBJ_ID_URI, PRED_ID_URI, OBJ_ID_URI);
-    private C conf;
+    private final Collection<StatementPattern> patterns;
+    private final List<RyaIRI> uriList = Arrays.asList(TYPE_ID_URI, SUBJ_ID_URI, PRED_ID_URI, OBJ_ID_URI);
+    private final C conf;
     private Set<String> bindingNames;
     private RyaQueryEngine<C> queryEngine;
 
-    public StatementMetadataNode(final Collection<StatementPattern> patterns, C conf) {
+    public StatementMetadataNode(final Collection<StatementPattern> patterns, final C conf) {
         this.conf = conf;
         this.patterns = patterns;
         verifySameSubjects(patterns);
         verifyAllPredicatesAreConstants(patterns);
-        boolean correctForm = verifyHasCorrectTypePattern(patterns);
+        final boolean correctForm = verifyHasCorrectTypePattern(patterns);
         if (!correctForm) {
             throw new IllegalArgumentException("Invalid reified StatementPatterns.");
         }
@@ -132,7 +132,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
 
     /**
      * Get {@link StatementPattern}s representing the underlying reified query.
-     * 
+     *
      * @return Collection of StatementPatterns
      */
     public Collection<StatementPattern> getReifiedStatementPatterns() {
@@ -148,7 +148,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
      * @throws IllegalStateException
      *             If all of the Subjects are not the same.
      */
-    private static void verifySameSubjects(Collection<StatementPattern> patterns) throws IllegalStateException {
+    private static void verifySameSubjects(final Collection<StatementPattern> patterns) throws IllegalStateException {
         requireNonNull(patterns);
 
         final Iterator<StatementPattern> it = patterns.iterator();
@@ -204,7 +204,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
         boolean valid = true;
         boolean contextSet = false;
         Var context = null;
-        
+
         for (final StatementPattern pattern : patterns) {
             final RyaIRI predicate = new RyaIRI(pattern.getPredicateVar().getValue().toString());
 
@@ -216,15 +216,20 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
                     return false;
                 }
             }
-            
+
             if (predicate.equals(TYPE_ID_URI)) {
-                final RyaIRI statementID = new RyaIRI(pattern.getObjectVar().getValue().stringValue());
-                if (statementID.equals(STATEMENT_ID_URI)) {
-                    statementFound = true;
+                final Value objectValue = pattern.getObjectVar().getValue();
+                if (objectValue != null) {
+                    final RyaIRI statementID = new RyaIRI(objectValue.stringValue());
+                    if (statementID.equals(STATEMENT_ID_URI)) {
+                        statementFound = true;
+                    } else {
+                        // contains more than one Statement containing TYPE_ID_URI
+                        // as Predicate
+                        // and STATEMENT_ID_URI as Object
+                        valid = false;
+                    }
                 } else {
-                    // contains more than one Statement containing TYPE_ID_URI
-                    // as Predicate
-                    // and STATEMENT_ID_URI as Object
                     valid = false;
                 }
             }
@@ -274,20 +279,20 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
      * the user specified metadata properties and is used for comparison with
      * the metadata properties extracted from RyaStatements passed back by the
      * {@link RyaQueryEngine}.
-     * 
+     *
      * @param patterns
      *            - collection of patterns representing a reified query
      */
-    private void setStatementPatternAndProperties(Collection<StatementPattern> patterns) {
+    private void setStatementPatternAndProperties(final Collection<StatementPattern> patterns) {
 
-        StatementPattern sp = new StatementPattern();
-        Map<RyaIRI, Var> properties = new HashMap<>();
+        final StatementPattern sp = new StatementPattern();
+        final Map<RyaIRI, Var> properties = new HashMap<>();
 
         for (final StatementPattern pattern : patterns) {
             final RyaIRI predicate = new RyaIRI(pattern.getPredicateVar().getValue().toString());
 
             if (!uriList.contains(predicate)) {
-                Var objVar = pattern.getObjectVar();
+                final Var objVar = pattern.getObjectVar();
                 properties.put(predicate, objVar);
                 continue;
             }
@@ -315,17 +320,17 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
      * {@link RyaQueryEngine}.
      */
     @Override
-    public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(Collection<BindingSet> bindingset)
+    public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(final Collection<BindingSet> bindingset)
             throws QueryEvaluationException {
         if (bindingset.size() == 0) {
             return new EmptyIteration<>();
         }
 
         queryEngine = RyaQueryEngineFactory.getQueryEngine(conf);
-        Set<Map.Entry<RyaStatement, BindingSet>> statements = new HashSet<>();
-        Iterator<BindingSet> iter = bindingset.iterator();
+        final Set<Map.Entry<RyaStatement, BindingSet>> statements = new HashSet<>();
+        final Iterator<BindingSet> iter = bindingset.iterator();
         while (iter.hasNext()) {
-            BindingSet bs = iter.next();
+            final BindingSet bs = iter.next();
             statements.add(new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(
                     getRyaStatementFromBindings(bs), bs));
         }
@@ -333,7 +338,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
         final CloseableIteration<? extends Entry<RyaStatement, BindingSet>, RyaDAOException> iteration;
         try {
             iteration = queryEngine.queryWithBindingSet(statements, conf);
-        } catch (RyaDAOException e) {
+        } catch (final RyaDAOException e) {
             throw new RuntimeException(e);
         }
 
@@ -344,17 +349,17 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
      * Uses StatementPattern constraints to form a RyaStatement, and fills in
      * any null values with {@link BindingSet} values corresponding to the
      * variable for that position.
-     * 
+     *
      * @param bs
      * @return RyaStatement whose values are determined by StatementPattern and
      *         BindingSet constraints
      */
-    private RyaStatement getRyaStatementFromBindings(BindingSet bs) {
+    private RyaStatement getRyaStatementFromBindings(final BindingSet bs) {
 
-        Value subjValue = getVarValue(statement.getSubjectVar(), bs);
-        Value predValue = getVarValue(statement.getPredicateVar(), bs);
-        Value objValue = getVarValue(statement.getObjectVar(), bs);
-        Value contextValue = getVarValue(statement.getContextVar(), bs);
+        final Value subjValue = getVarValue(statement.getSubjectVar(), bs);
+        final Value predValue = getVarValue(statement.getPredicateVar(), bs);
+        final Value objValue = getVarValue(statement.getObjectVar(), bs);
+        final Value contextValue = getVarValue(statement.getContextVar(), bs);
         RyaIRI subj = null;
         RyaIRI pred = null;
         RyaType obj = null;
@@ -373,7 +378,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
         if (objValue != null) {
             obj = RdfToRyaConversions.convertValue(objValue);
         }
-        
+
         if(contextValue != null) {
             context = RdfToRyaConversions.convertIRI((IRI) contextValue);
         }
@@ -386,12 +391,12 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
      * otherwise returns the BindingSet Value corresponding to
      * {@link Var#getName()}. If no such Binding exits, this method returns
      * null.
-     * 
+     *
      * @param var
      * @param bindings
      * @return Value
      */
-    private Value getVarValue(Var var, BindingSet bindings) {
+    private Value getVarValue(final Var var, final BindingSet bindings) {
         if (var == null) {
             return null;
         } else if (var.hasValue()) {
@@ -402,20 +407,20 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
     }
 
     @Override
-    public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(BindingSet bindings)
+    public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(final BindingSet bindings)
             throws QueryEvaluationException {
         return evaluate(Collections.singleton(bindings));
     }
 
     @Override
-    public boolean equals(Object other) {
+    public boolean equals(final Object other) {
 
         if (this == other) {
             return true;
         }
 
         if (other instanceof StatementMetadataNode) {
-            StatementMetadataNode<?> meta = (StatementMetadataNode<?>) other;
+            final StatementMetadataNode<?> meta = (StatementMetadataNode<?>) other;
             if (meta.patterns.size() != this.patterns.size()) {
                 return false;
             }
@@ -424,8 +429,8 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
                 return false;
             }
 
-            Set<StatementPattern> thisSet = new HashSet<>(patterns);
-            Set<StatementPattern> thatSet = new HashSet<>(meta.patterns);
+            final Set<StatementPattern> thisSet = new HashSet<>(patterns);
+            final Set<StatementPattern> thatSet = new HashSet<>(meta.patterns);
             return thisSet.equals(thatSet);
         } else {
             return false;
@@ -435,7 +440,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
     @Override
     public int hashCode() {
         int hashcode = 0;
-        for (StatementPattern sp : patterns) {
+        for (final StatementPattern sp : patterns) {
             hashcode += sp.hashCode();
         }
         return hashcode;
@@ -465,9 +470,9 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
     }
 
     private Set<String> getVariableNames() {
-        Set<String> vars = new HashSet<>();
-        for (StatementPattern pattern : patterns) {
-            for (Var var : pattern.getVarList()) {
+        final Set<String> vars = new HashSet<>();
+        for (final StatementPattern pattern : patterns) {
+            for (final Var var : pattern.getVarList()) {
                 if (var.getValue() == null) {
                     vars.add(var.getName());
                 }
@@ -495,16 +500,16 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
      */
     class PropertyFilterAndBindingSetJoinIteration implements CloseableIteration<BindingSet, QueryEvaluationException> {
 
-        private CloseableIteration<? extends Entry<RyaStatement, BindingSet>, RyaDAOException> statements;
-        private Map<RyaIRI, Var> properties;
-        private StatementPattern sp;
+        private final CloseableIteration<? extends Entry<RyaStatement, BindingSet>, RyaDAOException> statements;
+        private final Map<RyaIRI, Var> properties;
+        private final StatementPattern sp;
         private BindingSet next;
         private boolean hasNextCalled = false;
         private boolean hasNext = false;
 
         public PropertyFilterAndBindingSetJoinIteration(
-                CloseableIteration<? extends Entry<RyaStatement, BindingSet>, RyaDAOException> statements,
-                Map<RyaIRI, Var> properties, StatementPattern sp) {
+                final CloseableIteration<? extends Entry<RyaStatement, BindingSet>, RyaDAOException> statements,
+                final Map<RyaIRI, Var> properties, final StatementPattern sp) {
             this.statements = statements;
             this.properties = properties;
             this.sp = sp;
@@ -562,7 +567,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
         public void close() throws QueryEvaluationException {
             try {
                 statements.close();
-            } catch (RyaDAOException e) {
+            } catch (final RyaDAOException e) {
                 throw new QueryEvaluationException(e);
             }
         }
@@ -570,14 +575,14 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
         /**
          * Fast-forwards Iteration to next valid Entry and builds the
          * BindingSet.
-         * 
+         *
          * @return BindingSet
          * @throws RyaDAOException
          */
         private Optional<BindingSet> getNext() throws RyaDAOException {
             Optional<BindingSet> optionalBs = Optional.empty();
             while (statements.hasNext() && !optionalBs.isPresent()) {
-                Map.Entry<RyaStatement, BindingSet> next = statements.next();
+                final Map.Entry<RyaStatement, BindingSet> next = statements.next();
                 optionalBs = buildBindingSet(next.getKey(), next.getValue());
             }
             return optionalBs;
@@ -590,7 +595,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
          * {@link StatementMetadata} properties for the specified RyaStatement
          * and if the BindingSet built form the StatementMetadata properties can
          * be joined with specified BindingSet.
-         * 
+         *
          * @param statement
          *            - RyaStatement
          * @param bindingSet
@@ -598,15 +603,15 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
          * @return - Optional containing BindingSet is a valid BindingSet could
          *         be built
          */
-        private Optional<BindingSet> buildBindingSet(RyaStatement statement, BindingSet bindingSet) {
+        private Optional<BindingSet> buildBindingSet(final RyaStatement statement, final BindingSet bindingSet) {
 
-            QueryBindingSet bs = new QueryBindingSet();
-            Optional<BindingSet> optPropBs = buildPropertyBindingSet(statement);
+            final QueryBindingSet bs = new QueryBindingSet();
+            final Optional<BindingSet> optPropBs = buildPropertyBindingSet(statement);
             if (!optPropBs.isPresent()) {
                 return Optional.empty();
             }
-            BindingSet propBs = optPropBs.get();
-            BindingSet spBs = buildBindingSetFromStatementPattern(statement);
+            final BindingSet propBs = optPropBs.get();
+            final BindingSet spBs = buildBindingSetFromStatementPattern(statement);
             if (!canJoinBindingSets(spBs, propBs)) {
                 return Optional.empty();
             }
@@ -625,24 +630,24 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
          * StatementMetadata properties for specified RyaStatement. If
          * consistent, this method builds the associated BindingSet otherwise an
          * empty Optional is returned.
-         * 
+         *
          * @param statement
          * @return
          */
-        private Optional<BindingSet> buildPropertyBindingSet(RyaStatement statement) {
-            StatementMetadata metadata = statement.getMetadata();
-            Map<RyaIRI, RyaType> statementProps = metadata.getMetadata();
+        private Optional<BindingSet> buildPropertyBindingSet(final RyaStatement statement) {
+            final StatementMetadata metadata = statement.getMetadata();
+            final Map<RyaIRI, RyaType> statementProps = metadata.getMetadata();
             if (statementProps.size() < properties.size()) {
                 return Optional.empty();
             }
-            QueryBindingSet bs = new QueryBindingSet();
-            for (Map.Entry<RyaIRI, Var> entry : properties.entrySet()) {
-                RyaIRI key = entry.getKey();
-                Var var = entry.getValue();
+            final QueryBindingSet bs = new QueryBindingSet();
+            for (final Map.Entry<RyaIRI, Var> entry : properties.entrySet()) {
+                final RyaIRI key = entry.getKey();
+                final Var var = entry.getValue();
                 if (!statementProps.containsKey(key)) {
                     return Optional.empty();
                 } else {
-                    Value val = RyaToRdfConversions.convertValue(statementProps.get(key));
+                    final Value val = RyaToRdfConversions.convertValue(statementProps.get(key));
                     if (var.getValue() == null) {
                         bs.addBinding(var.getName(), val);
                     } else if (!var.getValue().equals(val)) {
@@ -661,16 +666,16 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
          * If it doesn't have a Value, a Binding is created from the
          * RyaStatement using the {@link RyaType} for the corresponding position
          * (Subject, Predicate, Object).
-         * 
+         *
          * @param statement
          * @return BindingSet
          */
-        private BindingSet buildBindingSetFromStatementPattern(RyaStatement statement) {
-            Var subjVar = sp.getSubjectVar();
-            Var predVar = sp.getPredicateVar();
-            Var objVar = sp.getObjectVar();
-            Var contextVar = sp.getContextVar();
-            QueryBindingSet bs = new QueryBindingSet();
+        private BindingSet buildBindingSetFromStatementPattern(final RyaStatement statement) {
+            final Var subjVar = sp.getSubjectVar();
+            final Var predVar = sp.getPredicateVar();
+            final Var objVar = sp.getObjectVar();
+            final Var contextVar = sp.getContextVar();
+            final QueryBindingSet bs = new QueryBindingSet();
 
             if (subjVar.getValue() == null) {
                 bs.addBinding(subjVar.getName(), RyaToRdfConversions.convertValue(statement.getSubject()));
@@ -683,7 +688,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
             if (objVar.getValue() == null) {
                 bs.addBinding(objVar.getName(), RyaToRdfConversions.convertValue(statement.getObject()));
             }
-            
+
             if (contextVar != null && contextVar.getValue() == null) {
                 bs.addBinding(contextVar.getName(), RyaToRdfConversions.convertValue(statement.getContext()));
             }
@@ -691,10 +696,10 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
             return bs;
         }
 
-        private boolean canJoinBindingSets(BindingSet bs1, BindingSet bs2) {
-            for (Binding b : bs1) {
-                String name = b.getName();
-                Value val = b.getValue();
+        private boolean canJoinBindingSets(final BindingSet bs1, final BindingSet bs2) {
+            for (final Binding b : bs1) {
+                final String name = b.getName();
+                final Value val = b.getValue();
                 if (bs2.hasBinding(name) && (!bs2.getValue(name).equals(val))) {
                     return false;
                 }

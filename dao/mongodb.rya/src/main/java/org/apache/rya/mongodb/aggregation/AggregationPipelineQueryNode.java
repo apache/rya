@@ -95,6 +95,8 @@ import com.mongodb.client.model.Projections;
  * false.
  */
 public class AggregationPipelineQueryNode extends ExternalSet {
+    private static final long serialVersionUID = 1L;
+
     /**
      * An aggregation result corresponding to a solution should map this key
      * to an object which itself maps variable names to variable values.
@@ -230,8 +232,12 @@ public class AggregationPipelineQueryNode extends ExternalSet {
             }
             final List<Bson> fields = new LinkedList<>();
             fields.add(Projections.excludeId());
-            fields.add(Projections.computed(VALUES, values));
-            fields.add(Projections.computed(HASHES, hashes));
+            if (!values.isEmpty()) {
+                fields.add(Projections.computed(VALUES, values));
+            }
+            if (!hashes.isEmpty()) {
+                fields.add(Projections.computed(HASHES, hashes));
+            }
             if (!types.isEmpty()) {
                 fields.add(Projections.computed(TYPES, types));
             }
@@ -778,8 +784,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
      */
     public void requireSourceDerivationDepth(final int requiredLevel) {
         if (requiredLevel > 0) {
-            pipeline.add(Aggregates.match(new Document(LEVEL,
-                    new Document("$gte", requiredLevel))));
+            pipeline.add(Aggregates.match(Filters.gte(LEVEL, requiredLevel)));
         }
     }
 
@@ -794,8 +799,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
      *  timestamp than this.
      */
     public void requireSourceTimestamp(final long t) {
-        pipeline.add(Aggregates.match(new Document(TIMESTAMP,
-                new Document("$gte", t))));
+        pipeline.add(Aggregates.match(Filters.gte(TIMESTAMP, t)));
     }
 
     /**

@@ -34,16 +34,19 @@ import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.mongodb.dao.MongoDBStorageStrategy;
 import org.apache.rya.mongodb.document.operators.aggregation.AggregationUtil;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.query.BindingSet;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Multimap;
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.util.JSON;
+import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Filters;
 
 public class RyaStatementBindingSetCursorIterator implements CloseableIteration<Entry<RyaStatement, BindingSet>, RyaDAOException> {
     private static final Logger log = Logger.getLogger(RyaStatementBindingSetCursorIterator.class);
@@ -102,7 +105,7 @@ public class RyaStatementBindingSetCursorIterator implements CloseableIteration<
         if (currentBatchQueryResultCursorIsValid()) {
             // convert to Rya Statement
             final Document queryResult = batchQueryResultsIterator.next();
-            final DBObject dbo = (DBObject) JSON.parse(queryResult.toJson());
+            final DBObject dbo = BasicDBObject.parse(queryResult.toJson());
             currentResultStatement = strategy.deserializeDBObject(dbo);
 
             // Find all of the queries in the executed RangeMap that this result matches
@@ -136,21 +139,23 @@ public class RyaStatementBindingSetCursorIterator implements CloseableIteration<
     private void submitBatchQuery() {
         int count = 0;
         executedRangeMap.clear();
-        final List<Document> pipeline = new ArrayList<>();
-        final List<DBObject> match = new ArrayList<>();
+        final List<Bson> pipeline = new ArrayList<>();
+        final List<Bson> matches = new ArrayList<>();
 
         while (queryIterator.hasNext() && count < QUERY_BATCH_SIZE){
             count++;
             final RyaStatement query = queryIterator.next();
             executedRangeMap.putAll(query, rangeMap.get(query));
             final DBObject currentQuery = strategy.getQuery(query);
-            match.add(currentQuery);
+            final Document doc = Document.parse(currentQuery.toString());
+            matches.add(doc);
         }
 
-        if (match.size() > 1) {
-            pipeline.add(new Document("$match", new Document("$or", match)));
-        } else if (match.size() == 1) {
-            pipeline.add(new Document("$match", match.get(0)));
+        final int numMatches = matches.size();
+        if (numMatches > 1) {
+            pipeline.add(Aggregates.match(Filters.or(matches)));
+        } else if (numMatches == 1) {
+            pipeline.add(Aggregates.match(matches.get(0)));
         } else {
             batchQueryResultsIterator = Iterators.emptyIterator();
             return;

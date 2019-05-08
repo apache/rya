@@ -50,12 +50,11 @@ import org.eclipse.rdf4j.query.algebra.QueryRoot;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
 import com.google.common.base.Preconditions;
-import com.mongodb.Block;
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.util.JSON;
 
 /**
  * A rule execution strategy for MongoDB Rya that converts a single rule into an
@@ -83,7 +82,7 @@ public class MongoPipelineStrategy extends AbstractRuleExecutionStrategy {
      *      passed a stateful configuration, uses the existing mongo client,
      *      otherwise creates one.
      */
-    public MongoPipelineStrategy(MongoDBRdfConfiguration mongoConf) throws ForwardChainException {
+    public MongoPipelineStrategy(final MongoDBRdfConfiguration mongoConf) throws ForwardChainException {
         Preconditions.checkNotNull(mongoConf);
         final String mongoDBName = mongoConf.getMongoDBName();
         final String collectionName = mongoConf.getTriplesCollectionName();
@@ -100,7 +99,7 @@ public class MongoPipelineStrategy extends AbstractRuleExecutionStrategy {
                 this.dao = RyaSailFactory.getMongoDAO(mongoConf);
                 statefulConf = this.dao.getConf();
             }
-        } catch (RyaDAOException e) {
+        } catch (final RyaDAOException e) {
             throw new ForwardChainException("Can't connect to Rya.", e);
         }
         final MongoClient mongoClient = statefulConf.getMongoClient();
@@ -130,11 +129,11 @@ public class MongoPipelineStrategy extends AbstractRuleExecutionStrategy {
      * @throws ForwardChainException if execution fails.
      */
     @Override
-    public long executeConstructRule(AbstractConstructRule rule,
-            StatementMetadata metadata) throws ForwardChainException {
+    public long executeConstructRule(final AbstractConstructRule rule,
+            final StatementMetadata metadata) throws ForwardChainException {
         Preconditions.checkNotNull(rule);
         logger.info("Applying inference rule " + rule + "...");
-        long timestamp = System.currentTimeMillis();
+        final long timestamp = System.currentTimeMillis();
         // Get a pipeline that turns individual matches into triples
         List<Bson> pipeline = null;
         try {
@@ -149,20 +148,20 @@ public class MongoPipelineStrategy extends AbstractRuleExecutionStrategy {
             }
             pipeline = toPipeline(rule, requireSourceLevel, timestamp);
         }
-        catch (ForwardChainException e) {
+        catch (final ForwardChainException e) {
             logger.error(e);
         }
         if (pipeline == null) {
             if (backup == null) {
                 logger.error("Couldn't convert " + rule + " to pipeline:");
-                for (String line : rule.getQuery().toString().split("\n")) {
+                for (final String line : rule.getQuery().toString().split("\n")) {
                     logger.error("\t" + line);
                 }
                 throw new UnsupportedOperationException("Couldn't convert query to pipeline.");
             }
             else {
                 logger.debug("Couldn't convert " + rule + " to pipeline:");
-                for (String line : rule.getQuery().toString().split("\n")) {
+                for (final String line : rule.getQuery().toString().split("\n")) {
                     logger.debug("\t" + line);
                 }
                 logger.debug("Using fallback strategy.");
@@ -171,32 +170,30 @@ public class MongoPipelineStrategy extends AbstractRuleExecutionStrategy {
             }
         }
         // Execute the pipeline
-        for (Bson step : pipeline) {
+        for (final Bson step : pipeline) {
             logger.debug("\t" + step.toString());
         }
-        LongAdder count = new LongAdder();
+        final LongAdder count = new LongAdder();
         baseCollection.aggregate(pipeline)
             .allowDiskUse(true)
             .batchSize(PIPELINE_BATCH_SIZE)
-            .forEach(new Block<Document>() {
-                @Override
-                public void apply(Document doc) {
-                    final DBObject dbo = (DBObject) JSON.parse(doc.toJson());
-                    RyaStatement rstmt = storageStrategy.deserializeDBObject(dbo);
-                    if (!statementExists(rstmt)) {
-                        count.increment();
-                        doc.replace(SimpleMongoDBStorageStrategy.STATEMENT_METADATA, metadata.toString());
-                        try {
-                            batchWriter.addObjectToQueue(doc);
-                        } catch (MongoDbBatchWriterException e) {
-                            logger.error("Couldn't insert " + rstmt, e);
-                        }
+            .forEach((final Document doc) -> {
+                final DBObject dbo = BasicDBObject.parse(doc.toJson());
+                final RyaStatement rstmt = storageStrategy.deserializeDBObject(dbo);
+                if (!statementExists(rstmt)) {
+                    count.increment();
+                    doc.replace(SimpleMongoDBStorageStrategy.STATEMENT_METADATA, metadata.toString());
+                    try {
+                        batchWriter.addObjectToQueue(doc);
+                    } catch (final MongoDbBatchWriterException e) {
+                        logger.error("Couldn't insert " + rstmt, e);
                     }
                 }
             });
+
         try {
             batchWriter.flush();
-        } catch (MongoDbBatchWriterException e) {
+        } catch (final MongoDbBatchWriterException e) {
             throw new ForwardChainException("Error writing to Mongo", e);
         }
         logger.info("Added " + count + " new statements.");
@@ -211,10 +208,10 @@ public class MongoPipelineStrategy extends AbstractRuleExecutionStrategy {
         return count.longValue();
     }
 
-    private boolean statementExists(RyaStatement rstmt) {
+    private boolean statementExists(final RyaStatement rstmt) {
         try {
             return engine.query(new RyaQuery(rstmt)).iterator().hasNext();
-        } catch (RyaDAOException e) {
+        } catch (final RyaDAOException e) {
             logger.error("Error querying for " + rstmt, e);
             return false;
         }
@@ -231,7 +228,7 @@ public class MongoPipelineStrategy extends AbstractRuleExecutionStrategy {
         backup.shutDown();
         try {
             batchWriter.shutdown();
-        } catch (MongoDbBatchWriterException e) {
+        } catch (final MongoDbBatchWriterException e) {
             throw new ForwardChainException("Error shutting down batch writer", e);
         }
     }
@@ -247,24 +244,24 @@ public class MongoPipelineStrategy extends AbstractRuleExecutionStrategy {
      * @return An aggregation pipeline.
      * @throws ForwardChainException if pipeline construction fails.
      */
-    private List<Bson> toPipeline(AbstractConstructRule rule, int sourceLevel,
-            long timestamp) throws ForwardChainException {
+    private List<Bson> toPipeline(final AbstractConstructRule rule, final int sourceLevel,
+            final long timestamp) throws ForwardChainException {
         TupleExpr tupleExpr = rule.getQuery().getTupleExpr();
         if (!(tupleExpr instanceof QueryRoot)) {
             tupleExpr = new QueryRoot(tupleExpr);
         }
         try {
             tupleExpr.visit(pipelineVisitor);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new ForwardChainException("Error converting construct rule to an aggregation pipeline", e);
         }
         if (tupleExpr instanceof QueryRoot) {
-            QueryRoot root = (QueryRoot) tupleExpr;
+            final QueryRoot root = (QueryRoot) tupleExpr;
             if (root.getArg() instanceof AggregationPipelineQueryNode) {
-                AggregationPipelineQueryNode pipelineNode = (AggregationPipelineQueryNode) root.getArg();
+                final AggregationPipelineQueryNode pipelineNode = (AggregationPipelineQueryNode) root.getArg();
                 pipelineNode.distinct(); // require distinct triples
                 pipelineNode.requireSourceDerivationDepth(sourceLevel);
-                long latestTime = executionTimes.getOrDefault(rule, 0L);
+                final long latestTime = executionTimes.getOrDefault(rule, 0L);
                 if (latestTime > 0) {
                     pipelineNode.requireSourceTimestamp(latestTime);
                 }

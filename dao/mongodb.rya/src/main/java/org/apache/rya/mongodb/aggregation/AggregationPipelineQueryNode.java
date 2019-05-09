@@ -22,7 +22,6 @@ import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.CONTEXT;
 import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.DOCUMENT_VISIBILITY;
 import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.OBJECT;
 import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.OBJECT_HASH;
-import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.OBJECT_LANGUAGE;
 import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.OBJECT_TYPE;
 import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.PREDICATE;
 import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.PREDICATE_HASH;
@@ -199,7 +198,6 @@ public class AggregationPipelineQueryNode extends ExternalSet {
                 varToTripleValue.put(name, OBJECT);
                 varToTripleHash.put(name, OBJECT_HASH);
                 varToTripleType.put(name, OBJECT_TYPE);
-                varToTripleType.put(name, OBJECT_LANGUAGE);
             }
             if (sp.getContextVar() != null && !sp.getContextVar().hasValue()) {
                 final String name = sanitize(sp.getContextVar().getName());
@@ -836,7 +834,6 @@ public class AggregationPipelineQueryNode extends ExternalSet {
         fields.add(Projections.computed(OBJECT_HASH, hashFieldExpr(OBJECT)));
         fields.add(Projections.computed(OBJECT_TYPE,
                 ConditionalOperators.ifNull(typeFieldExpr(OBJECT), DEFAULT_TYPE)));
-        fields.add(Projections.computed(OBJECT_LANGUAGE, hashFieldExpr(OBJECT)));
         fields.add(Projections.computed(CONTEXT, DEFAULT_CONTEXT));
         fields.add(Projections.computed(STATEMENT_METADATA, DEFAULT_METADATA));
         fields.add(DEFAULT_DV);
@@ -848,7 +845,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
             final String collectionName = collection.getNamespace().getCollectionName();
             final Bson includeAll = Projections.include(SUBJECT, SUBJECT_HASH,
                     PREDICATE, PREDICATE_HASH, OBJECT, OBJECT_HASH,
-                    OBJECT_TYPE, OBJECT_LANGUAGE, CONTEXT, STATEMENT_METADATA,
+                    OBJECT_TYPE, CONTEXT, STATEMENT_METADATA,
                     DOCUMENT_VISIBILITY, TIMESTAMP, LEVEL);
             final List<Bson> eqTests = new LinkedList<>();
             eqTests.add(new Document("$eq", Arrays.asList("$$this." + PREDICATE_HASH, "$" + PREDICATE_HASH)));

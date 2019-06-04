@@ -21,6 +21,7 @@ package org.apache.rya.forwardchain.strategy;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Consumer;
 
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
@@ -177,7 +178,7 @@ public class MongoPipelineStrategy extends AbstractRuleExecutionStrategy {
         baseCollection.aggregate(pipeline)
             .allowDiskUse(true)
             .batchSize(PIPELINE_BATCH_SIZE)
-            .forEach((final Document doc) -> {
+            .forEach((Consumer<Document>)(final Document doc) -> {
                 final DBObject dbo = BasicDBObject.parse(doc.toJson());
                 final RyaStatement rstmt = storageStrategy.deserializeDBObject(dbo);
                 if (!statementExists(rstmt)) {

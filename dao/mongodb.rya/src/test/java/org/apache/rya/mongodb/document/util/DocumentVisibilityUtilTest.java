@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
@@ -95,11 +96,11 @@ public class DocumentVisibilityUtilTest {
 
             // Convert to multidimensional array
             final DocumentVisibility dv = new DocumentVisibility(booleanExpression);
-            final Object[] multidimensionalArray = DocumentVisibilityUtil.toMultidimensionalArray(dv);
-            log.info("Array   : " + Arrays.deepToString(multidimensionalArray));
+            final List<Object> multidimensionalArray = DocumentVisibilityUtil.toMultidimensionalArray(dv);
+            log.info("Array   : " + Arrays.deepToString(multidimensionalArray.toArray()));
 
             // Convert multidimensional array back to string
-            final String booleanStringResult = DocumentVisibilityUtil.multidimensionalArrayToBooleanString(multidimensionalArray);
+            final String booleanStringResult = DocumentVisibilityUtil.multidimensionalArrayToBooleanString(multidimensionalArray.toArray());
             log.info("Result  : " + booleanStringResult);
 
             // Compare results
@@ -118,11 +119,11 @@ public class DocumentVisibilityUtilTest {
                 log.info("Original: " + booleanExpression);
                 // Convert to multidimensional array
                 final DocumentVisibility dv = new DocumentVisibility(booleanExpression);
-                final Object[] multidimensionalArray = DocumentVisibilityUtil.toMultidimensionalArray(dv);
-                log.info("Array   : " + Arrays.deepToString(multidimensionalArray));
+                final List<Object> multidimensionalArray = DocumentVisibilityUtil.toMultidimensionalArray(dv);
+                log.info("Array   : " + Arrays.deepToString(multidimensionalArray.toArray()));
 
                 // Convert multidimensional array back to string
-                final String booleanString = DocumentVisibilityUtil.multidimensionalArrayToBooleanString(multidimensionalArray);
+                final String booleanString = DocumentVisibilityUtil.multidimensionalArrayToBooleanString(multidimensionalArray.toArray());
                 log.info("Result  : " + booleanString);
 
                 // Compare results

@@ -34,19 +34,16 @@ import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpda
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
 import org.apache.rya.api.instance.RyaDetails.RyaStreamsDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
+import org.bson.Document;
 
 import com.google.common.base.Optional;
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Serializes configuration details for use in Mongo.
- * The {@link DBObject} will look like:
+ * The {@link Document} will look like:
  * <pre>
  * {
  *   "instanceName": &lt;string&gt;,
@@ -99,29 +96,29 @@ public class MongoDetailsAdapter {
     public static final String RYA_STREAMS_PORT_KEY = "port";
 
     /**
-     * Converts a {@link RyaDetails} object into its MongoDB {@link DBObject} equivalent.
+     * Converts a {@link RyaDetails} object into its MongoDB {@link Document} equivalent.
      *
      * @param details - The details to convert. (not null)
-     * @return The MongoDB {@link DBObject} equivalent.
+     * @return The MongoDB {@link Document} equivalent.
      */
-    public static BasicDBObject toDBObject(final RyaDetails details) {
+    public static Document toDocument(final RyaDetails details) {
         requireNonNull(details);
 
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start()
-                .add(INSTANCE_KEY, details.getRyaInstanceName())
-                .add(VERSION_KEY, details.getRyaVersion())
-                .add(ENTITY_DETAILS_KEY, details.getEntityCentricIndexDetails().isEnabled())
-                //RYA-215            .add(GEO_DETAILS_KEY, details.getGeoIndexDetails().isEnabled())
-                .add(PCJ_DETAILS_KEY, toDBObject(details.getPCJIndexDetails()))
-                .add(TEMPORAL_DETAILS_KEY, details.getTemporalIndexDetails().isEnabled())
-                .add(FREETEXT_DETAILS_KEY, details.getFreeTextIndexDetails().isEnabled());
+        final Document doc = new Document()
+                .append(INSTANCE_KEY, details.getRyaInstanceName())
+                .append(VERSION_KEY, details.getRyaVersion())
+                .append(ENTITY_DETAILS_KEY, details.getEntityCentricIndexDetails().isEnabled())
+                //RYA-215            .append(GEO_DETAILS_KEY, details.getGeoIndexDetails().isEnabled())
+                .append(PCJ_DETAILS_KEY, toDocument(details.getPCJIndexDetails()))
+                .append(TEMPORAL_DETAILS_KEY, details.getTemporalIndexDetails().isEnabled())
+                .append(FREETEXT_DETAILS_KEY, details.getFreeTextIndexDetails().isEnabled());
 
         if(details.getProspectorDetails().getLastUpdated().isPresent()) {
-            builder.add(PROSPECTOR_DETAILS_KEY, details.getProspectorDetails().getLastUpdated().get());
+            doc.append(PROSPECTOR_DETAILS_KEY, details.getProspectorDetails().getLastUpdated().get());
         }
 
         if(details.getJoinSelectivityDetails().getLastUpdated().isPresent()) {
-            builder.add(JOIN_SELECTIVITY_DETAILS_KEY, details.getJoinSelectivityDetails().getLastUpdated().get());
+            doc.append(JOIN_SELECTIVITY_DETAILS_KEY, details.getJoinSelectivityDetails().getLastUpdated().get());
         }
 
         // If the Rya Streams Details are present, then add them.
@@ -129,84 +126,82 @@ public class MongoDetailsAdapter {
             final RyaStreamsDetails ryaStreamsDetails = details.getRyaStreamsDetails().get();
 
             // The embedded object that holds onto the fields.
-            final DBObject ryaStreamsFields = BasicDBObjectBuilder.start()
-                    .add(RYA_STREAMS_HOSTNAME_KEY, ryaStreamsDetails.getHostname())
-                    .add(RYA_STREAMS_PORT_KEY, ryaStreamsDetails.getPort())
-                    .get();
+            final Document ryaStreamsFields = new Document()
+                    .append(RYA_STREAMS_HOSTNAME_KEY, ryaStreamsDetails.getHostname())
+                    .append(RYA_STREAMS_PORT_KEY, ryaStreamsDetails.getPort());
 
             // Add them to the main builder.
-            builder.add(RYA_STREAMS_DETAILS_KEY, ryaStreamsFields);
+            doc.append(RYA_STREAMS_DETAILS_KEY, ryaStreamsFields);
         }
 
-        return (BasicDBObject) builder.get();
+        return doc;
     }
 
-    private static DBObject toDBObject(final PCJIndexDetails pcjIndexDetails) {
+    private static Document toDocument(final PCJIndexDetails pcjIndexDetails) {
         requireNonNull(pcjIndexDetails);
 
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
+        final Document doc = new Document();
 
         // Is Enabled
-        builder.add(PCJ_ENABLED_KEY, pcjIndexDetails.isEnabled());
+        doc.append(PCJ_ENABLED_KEY, pcjIndexDetails.isEnabled());
 
         // Add the PCJDetail objects.
-        final List<DBObject> pcjDetailsList = new ArrayList<>();
+        final List<Document> pcjDetailsList = new ArrayList<>();
         for(final PCJDetails pcjDetails : pcjIndexDetails.getPCJDetails().values()) {
-            pcjDetailsList.add( toDBObject( pcjDetails ) );
+            pcjDetailsList.add( toDocument( pcjDetails ) );
         }
-        builder.add(PCJ_PCJS_KEY, pcjDetailsList.toArray());
+        doc.append(PCJ_PCJS_KEY, pcjDetailsList);
 
-        return builder.get();
+        return doc;
     }
 
-    static DBObject toDBObject(final PCJDetails pcjDetails) {
+    static Document toDocument(final PCJDetails pcjDetails) {
         requireNonNull(pcjDetails);
 
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
+        final Document doc = new Document();
 
         // PCJ ID
-        builder.add(PCJ_ID_KEY, pcjDetails.getId());
+        doc.append(PCJ_ID_KEY, pcjDetails.getId());
 
         // PCJ Update Strategy if present.
         if(pcjDetails.getUpdateStrategy().isPresent()) {
-            builder.add(PCJ_UPDATE_STRAT_KEY, pcjDetails.getUpdateStrategy().get().name());
+            doc.append(PCJ_UPDATE_STRAT_KEY, pcjDetails.getUpdateStrategy().get().name());
         }
 
         // Last Update Time if present.
         if(pcjDetails.getLastUpdateTime().isPresent()) {
-            builder.add(PCJ_LAST_UPDATE_KEY, pcjDetails.getLastUpdateTime().get());
+            doc.append(PCJ_LAST_UPDATE_KEY, pcjDetails.getLastUpdateTime().get());
         }
 
-        return builder.get();
+        return doc;
     }
 
     /**
-     * Converts a MongoDB {@link DBObject} into its {@link RyaDetails} equivalent.
+     * Converts a MongoDB {@link Document} into its {@link RyaDetails} equivalent.
      *
-     * @param mongoObj - The MongoDB object to convert. (not null)
+     * @param doc - The MongoDB document to convert. (not null)
      * @return The equivalent {@link RyaDetails} object.
      * @throws MalformedRyaDetailsException The MongoDB object could not be converted.
      */
-    public static RyaDetails toRyaDetails(final DBObject mongoObj) throws MalformedRyaDetailsException {
-        requireNonNull(mongoObj);
-        final BasicDBObject basicObj = (BasicDBObject) mongoObj;
+    public static RyaDetails toRyaDetails(final Document doc) throws MalformedRyaDetailsException {
+        requireNonNull(doc);
         try {
             final RyaDetails.Builder builder = RyaDetails.builder()
-                .setRyaInstanceName(basicObj.getString(INSTANCE_KEY))
-                .setRyaVersion(basicObj.getString(VERSION_KEY))
-                .setEntityCentricIndexDetails(new EntityCentricIndexDetails(basicObj.getBoolean(ENTITY_DETAILS_KEY)))
-                //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(basicObj.getBoolean(GEO_DETAILS_KEY)))
-                .setPCJIndexDetails(getPCJIndexDetails(basicObj))
-                .setTemporalIndexDetails(new TemporalIndexDetails(basicObj.getBoolean(TEMPORAL_DETAILS_KEY)))
-                .setFreeTextDetails(new FreeTextIndexDetails(basicObj.getBoolean(FREETEXT_DETAILS_KEY)))
-                .setProspectorDetails(new ProspectorDetails(Optional.<Date>fromNullable(basicObj.getDate(PROSPECTOR_DETAILS_KEY))))
-                .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>fromNullable(basicObj.getDate(JOIN_SELECTIVITY_DETAILS_KEY))));
+                .setRyaInstanceName(doc.getString(INSTANCE_KEY))
+                .setRyaVersion(doc.getString(VERSION_KEY))
+                .setEntityCentricIndexDetails(new EntityCentricIndexDetails(doc.getBoolean(ENTITY_DETAILS_KEY)))
+                //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(doc.getBoolean(GEO_DETAILS_KEY)))
+                .setPCJIndexDetails(getPCJIndexDetails(doc))
+                .setTemporalIndexDetails(new TemporalIndexDetails(doc.getBoolean(TEMPORAL_DETAILS_KEY)))
+                .setFreeTextDetails(new FreeTextIndexDetails(doc.getBoolean(FREETEXT_DETAILS_KEY)))
+                .setProspectorDetails(new ProspectorDetails(Optional.<Date>fromNullable(doc.getDate(PROSPECTOR_DETAILS_KEY))))
+                .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>fromNullable(doc.getDate(JOIN_SELECTIVITY_DETAILS_KEY))));
 
             // If the Rya Streams Details are present, then add them.
-            if(basicObj.containsField(RYA_STREAMS_DETAILS_KEY)) {
-                final BasicDBObject streamsObject = (BasicDBObject) basicObj.get(RYA_STREAMS_DETAILS_KEY);
+            if(doc.containsKey(RYA_STREAMS_DETAILS_KEY)) {
+                final Document streamsObject = doc.get(RYA_STREAMS_DETAILS_KEY, Document.class);
                 final String hostname = streamsObject.getString(RYA_STREAMS_HOSTNAME_KEY);
-                final int port = streamsObject.getInt(RYA_STREAMS_PORT_KEY);
+                final int port = streamsObject.getInteger(RYA_STREAMS_PORT_KEY);
                 builder.setRyaStreamsDetails(new RyaStreamsDetails(hostname, port));
             }
 
@@ -217,18 +212,17 @@ public class MongoDetailsAdapter {
         }
     }
 
-    private static PCJIndexDetails.Builder getPCJIndexDetails(final BasicDBObject basicObj) {
-        final BasicDBObject pcjIndexDBO = (BasicDBObject) basicObj.get(PCJ_DETAILS_KEY);
+    private static PCJIndexDetails.Builder getPCJIndexDetails(final Document document) {
+        final Document pcjIndexDoc = document.get(PCJ_DETAILS_KEY, Document.class);
 
         final PCJIndexDetails.Builder pcjBuilder = PCJIndexDetails.builder();
-        if (!pcjIndexDBO.getBoolean(PCJ_ENABLED_KEY)) {
+        if (!pcjIndexDoc.getBoolean(PCJ_ENABLED_KEY)) {
             pcjBuilder.setEnabled(false);
         } else {
             pcjBuilder.setEnabled(true);//no fluo details to set since mongo has no fluo support
-            final BasicDBList pcjs = (BasicDBList) pcjIndexDBO.get(PCJ_PCJS_KEY);
+            final List<Document> pcjs = pcjIndexDoc.getList(PCJ_PCJS_KEY, Document.class);
             if (pcjs != null) {
-                for (int ii = 0; ii < pcjs.size(); ii++) {
-                    final BasicDBObject pcj = (BasicDBObject) pcjs.get(ii);
+                for (final Document pcj : pcjs) {
                     pcjBuilder.addPCJDetails(toPCJDetails(pcj));
                 }
             }
@@ -236,28 +230,28 @@ public class MongoDetailsAdapter {
         return pcjBuilder;
     }
 
-    static PCJDetails.Builder toPCJDetails(final BasicDBObject dbo) {
-        requireNonNull(dbo);
+    static PCJDetails.Builder toPCJDetails(final Document doc) {
+        requireNonNull(doc);
 
         // PCJ ID.
         final PCJDetails.Builder builder = PCJDetails.builder()
-                .setId( dbo.getString(PCJ_ID_KEY) );
+                .setId( doc.getString(PCJ_ID_KEY) );
 
         // PCJ Update Strategy if present.
-        if(dbo.containsField(PCJ_UPDATE_STRAT_KEY)) {
-            builder.setUpdateStrategy( PCJUpdateStrategy.valueOf( dbo.getString(PCJ_UPDATE_STRAT_KEY) ) );
+        if(doc.containsKey(PCJ_UPDATE_STRAT_KEY)) {
+            builder.setUpdateStrategy( PCJUpdateStrategy.valueOf( doc.getString(PCJ_UPDATE_STRAT_KEY) ) );
         }
 
         // Last Update Time if present.
-        if(dbo.containsField(PCJ_LAST_UPDATE_KEY)) {
-            builder.setLastUpdateTime( dbo.getDate(PCJ_LAST_UPDATE_KEY) );
+        if(doc.containsKey(PCJ_LAST_UPDATE_KEY)) {
+            builder.setLastUpdateTime( doc.getDate(PCJ_LAST_UPDATE_KEY) );
         }
 
         return builder;
     }
 
     /**
-     * Indicates a MongoDB {@link DBObject} was malformed when attempting
+     * Indicates a MongoDB {@link Document} was malformed when attempting
      * to convert it into a {@link RyaDetails} object.
      */
     public static class MalformedRyaDetailsException extends Exception {

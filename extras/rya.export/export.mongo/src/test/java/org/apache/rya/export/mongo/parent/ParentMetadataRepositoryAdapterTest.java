@@ -27,10 +27,8 @@ import static org.junit.Assert.assertEquals;
 import java.util.Date;
 
 import org.apache.rya.export.api.metadata.MergeParentMetadata;
+import org.bson.Document;
 import org.junit.Test;
-
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
 
 public class ParentMetadataRepositoryAdapterTest {
     private final static String TEST_INSTANCE = "test_instance";
@@ -41,12 +39,11 @@ public class ParentMetadataRepositoryAdapterTest {
 
     @Test
     public void deserializeTest() {
-        final DBObject dbo = BasicDBObjectBuilder.start()
-            .add(RYANAME_KEY, TEST_INSTANCE)
-            .add(TIMESTAMP_KEY, TEST_TIMESTAMP)
-            .add(FILTER_TIMESTAMP_KEY, TEST_FILTER_TIMESTAMP)
-            .add(PARENT_TIME_OFFSET_KEY, TEST_TIME_OFFSET)
-            .get();
+        final Document doc = new Document()
+            .append(RYANAME_KEY, TEST_INSTANCE)
+            .append(TIMESTAMP_KEY, TEST_TIMESTAMP)
+            .append(FILTER_TIMESTAMP_KEY, TEST_FILTER_TIMESTAMP)
+            .append(PARENT_TIME_OFFSET_KEY, TEST_TIME_OFFSET);
 
         final MergeParentMetadata expected = new MergeParentMetadata.Builder()
             .setRyaInstanceName(TEST_INSTANCE)
@@ -54,24 +51,20 @@ public class ParentMetadataRepositoryAdapterTest {
             .setFilterTimestmap(TEST_FILTER_TIMESTAMP)
             .setParentTimeOffset(TEST_TIME_OFFSET)
             .build();
-        final MergeParentMetadata actual = adapter.deserialize(dbo);
+        final MergeParentMetadata actual = adapter.deserialize(doc);
         assertEquals(expected, actual);
     }
 
     @Test(expected=NullPointerException.class)
     public void deserializeTest_missingTime() {
-        final DBObject dbo = BasicDBObjectBuilder.start()
-            .add(RYANAME_KEY, TEST_INSTANCE)
-            .get();
-        adapter.deserialize(dbo);
+        final Document doc = new Document(RYANAME_KEY, TEST_INSTANCE);
+        adapter.deserialize(doc);
     }
 
     @Test(expected=NullPointerException.class)
     public void deserializeTest_missingName() {
-        final DBObject dbo = BasicDBObjectBuilder.start()
-            .add(TIMESTAMP_KEY, TEST_TIMESTAMP)
-            .get();
-        adapter.deserialize(dbo);
+        final Document doc = new Document(TIMESTAMP_KEY, TEST_TIMESTAMP);
+        adapter.deserialize(doc);
     }
 
     @Test
@@ -83,13 +76,12 @@ public class ParentMetadataRepositoryAdapterTest {
             .setParentTimeOffset(TEST_TIME_OFFSET)
             .build();
 
-        final DBObject expected = BasicDBObjectBuilder.start()
-            .add(RYANAME_KEY, TEST_INSTANCE)
-            .add(TIMESTAMP_KEY, TEST_TIMESTAMP)
-            .add(FILTER_TIMESTAMP_KEY, TEST_FILTER_TIMESTAMP)
-            .add(PARENT_TIME_OFFSET_KEY, TEST_TIME_OFFSET)
-            .get();
-        final DBObject actual = adapter.serialize(merge);
+        final Document expected = new Document()
+            .append(RYANAME_KEY, TEST_INSTANCE)
+            .append(TIMESTAMP_KEY, TEST_TIMESTAMP)
+            .append(FILTER_TIMESTAMP_KEY, TEST_FILTER_TIMESTAMP)
+            .append(PARENT_TIME_OFFSET_KEY, TEST_TIME_OFFSET);
+        final Document actual = adapter.serialize(merge);
         assertEquals(expected, actual);
     }
 }

@@ -40,6 +40,7 @@ import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoRyaITBase;
+import org.bson.Document;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
@@ -49,12 +50,11 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.junit.Test;
 
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 import com.mongodb.MongoSecurityException;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
 
 /**
  * JUnit tests for TemporalIndexer and it's implementation MongoTemporalIndexer
@@ -205,7 +205,7 @@ public final class MongoTemporalIndexerIT extends MongoRyaITBase {
             tIndexer.storeStatement(convertStatement(vf.createStatement(vf.createIRI("foo:subj5"), pred1_atTime, vf.createIRI("in:valid"))));
 
             printTables(tIndexer, "junit testing: Temporal entities stored in testStoreStatement");
-            assertEquals(2, tIndexer.getCollection().find().count());
+            assertEquals(2, tIndexer.getCollection().countDocuments());
         }
     }
 
@@ -231,17 +231,17 @@ public final class MongoTemporalIndexerIT extends MongoRyaITBase {
             tIndexer.storeStatement(convertStatement(s2));
 
             final String dbName = conf.getMongoDBName();
-            final DB db = super.getMongoClient().getDB(dbName);
-            final DBCollection collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + tIndexer.getCollectionName());
+            final MongoDatabase db = super.getMongoClient().getDatabase(dbName);
+            final MongoCollection<Document> collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + tIndexer.getCollectionName());
 
             printTables(tIndexer, "junit testing: Temporal entities stored in testDelete before delete");
-            assertEquals("Number of rows stored.", 2, collection.count()); // 4 index entries per statement
+            assertEquals("Number of rows stored.", 2, collection.countDocuments()); // 4 index entries per statement
 
             tIndexer.deleteStatement(convertStatement(s1));
             tIndexer.deleteStatement(convertStatement(s2));
 
             printTables(tIndexer, "junit testing: Temporal entities stored in testDelete after delete");
-            assertEquals("Number of rows stored after delete.", 0, collection.count());
+            assertEquals("Number of rows stored after delete.", 0, collection.countDocuments());
         }
     }
 
@@ -709,11 +709,12 @@ public final class MongoTemporalIndexerIT extends MongoRyaITBase {
      */
     public void printTables(final MongoTemporalIndexer tIndexer, final String description) throws IOException {
         System.out.println("-- start printTables() -- " + description);
-        System.out.println("Reading : " + tIndexer.getCollection().getFullName());
-        final DBCursor cursor = tIndexer.getCollection().find();
-        while(cursor.hasNext()) {
-            final DBObject dbo = cursor.next();
-            System.out.println(dbo.toString());
+        System.out.println("Reading : " + tIndexer.getCollection().getNamespace().getFullName());
+        try (final MongoCursor<Document> cursor = tIndexer.getCollection().find().iterator()) {
+            while(cursor.hasNext()) {
+                final Document doc = cursor.next();
+                System.out.println(doc.toString());
+            }
         }
         System.out.println();
     }

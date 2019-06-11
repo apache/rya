@@ -1,4 +1,3 @@
-package org.apache.rya.indexing.mongodb.temporal;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,6 +16,7 @@ package org.apache.rya.indexing.mongodb.temporal;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.mongodb.temporal;
 
 import static org.apache.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStrategy.INSTANT;
 import static org.apache.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStrategy.INTERVAL_END;
@@ -29,13 +29,14 @@ import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInterval;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
+import org.apache.rya.mongodb.document.operators.query.QueryBuilder;
+import org.bson.Document;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.DBCollection;
-import com.mongodb.QueryBuilder;
+import com.mongodb.client.MongoCollection;
 
 /**
  * Indexes MongoDB based on time instants or intervals.
@@ -146,7 +147,7 @@ public class MongoTemporalIndexer extends AbstractMongoIndexer<TemporalMongoDBSt
     }
 
     @VisibleForTesting
-    public DBCollection getCollection() {
+    public MongoCollection<Document> getCollection() {
         return collection;
     }
 }

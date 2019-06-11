@@ -33,11 +33,10 @@ import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 import org.apache.rya.mongodb.document.util.DocumentVisibilityConversionException;
 import org.apache.rya.mongodb.document.util.DocumentVisibilityUtil;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibility;
+import org.bson.Document;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.junit.Test;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 
 public class SimpleMongoDBStorageStrategyTest {
@@ -50,8 +49,8 @@ public class SimpleMongoDBStorageStrategyTest {
 
     private static final RyaStatement testStatement;
     private static final RyaStatement testStatement2;
-    private static final DBObject testDBO;
-    private static final DBObject testDBO2;
+    private static final Document TEST_DOC;
+    private static final Document TEST_DOC_2;
     private final SimpleMongoDBStorageStrategy storageStrategy = new SimpleMongoDBStorageStrategy();
 
     static {
@@ -64,24 +63,24 @@ public class SimpleMongoDBStorageStrategyTest {
         builder.setTimestamp(null);
         testStatement = builder.build();
 
-        testDBO = new BasicDBObject();
-        testDBO.put(SimpleMongoDBStorageStrategy.ID, "d5f8fea0e85300478da2c9b4e132c69502e21221");
-        testDBO.put(SimpleMongoDBStorageStrategy.SUBJECT, SUBJECT);
-        testDBO.put(SimpleMongoDBStorageStrategy.SUBJECT_HASH, DigestUtils.sha256Hex(SUBJECT));
-        testDBO.put(SimpleMongoDBStorageStrategy.PREDICATE, PREDICATE);
-        testDBO.put(SimpleMongoDBStorageStrategy.PREDICATE_HASH, DigestUtils.sha256Hex(PREDICATE));
-        testDBO.put(SimpleMongoDBStorageStrategy.OBJECT, OBJECT);
-        testDBO.put(SimpleMongoDBStorageStrategy.OBJECT_HASH, DigestUtils.sha256Hex(OBJECT));
-        testDBO.put(SimpleMongoDBStorageStrategy.OBJECT_TYPE, ANYURI.stringValue());
-        testDBO.put(SimpleMongoDBStorageStrategy.OBJECT_LANGUAGE, null);
-        testDBO.put(SimpleMongoDBStorageStrategy.CONTEXT, CONTEXT);
-        testDBO.put(SimpleMongoDBStorageStrategy.STATEMENT_METADATA, STATEMENT_METADATA);
+        TEST_DOC = new Document();
+        TEST_DOC.put(SimpleMongoDBStorageStrategy.ID, "d5f8fea0e85300478da2c9b4e132c69502e21221");
+        TEST_DOC.put(SimpleMongoDBStorageStrategy.SUBJECT, SUBJECT);
+        TEST_DOC.put(SimpleMongoDBStorageStrategy.SUBJECT_HASH, DigestUtils.sha256Hex(SUBJECT));
+        TEST_DOC.put(SimpleMongoDBStorageStrategy.PREDICATE, PREDICATE);
+        TEST_DOC.put(SimpleMongoDBStorageStrategy.PREDICATE_HASH, DigestUtils.sha256Hex(PREDICATE));
+        TEST_DOC.put(SimpleMongoDBStorageStrategy.OBJECT, OBJECT);
+        TEST_DOC.put(SimpleMongoDBStorageStrategy.OBJECT_HASH, DigestUtils.sha256Hex(OBJECT));
+        TEST_DOC.put(SimpleMongoDBStorageStrategy.OBJECT_TYPE, ANYURI.stringValue());
+        TEST_DOC.put(SimpleMongoDBStorageStrategy.OBJECT_LANGUAGE, null);
+        TEST_DOC.put(SimpleMongoDBStorageStrategy.CONTEXT, CONTEXT);
+        TEST_DOC.put(SimpleMongoDBStorageStrategy.STATEMENT_METADATA, STATEMENT_METADATA);
         try {
-            testDBO.put(SimpleMongoDBStorageStrategy.DOCUMENT_VISIBILITY, DocumentVisibilityUtil.toMultidimensionalArray(DOCUMENT_VISIBILITY));
+            TEST_DOC.put(SimpleMongoDBStorageStrategy.DOCUMENT_VISIBILITY, DocumentVisibilityUtil.toMultidimensionalArray(DOCUMENT_VISIBILITY));
         } catch (final DocumentVisibilityConversionException e) {
             e.printStackTrace();
         }
-        testDBO.put(SimpleMongoDBStorageStrategy.TIMESTAMP, null);
+        TEST_DOC.put(SimpleMongoDBStorageStrategy.TIMESTAMP, null);
 
 
         builder = new RyaStatementBuilder();
@@ -94,39 +93,39 @@ public class SimpleMongoDBStorageStrategyTest {
         testStatement2 = builder.build();
 
         // Check language support
-        testDBO2 = new BasicDBObject();
-        testDBO2.put(SimpleMongoDBStorageStrategy.ID, "580fb5d11f0b62fa735ac98b36bba1fc37ddc3fc");
-        testDBO2.put(SimpleMongoDBStorageStrategy.SUBJECT, SUBJECT);
-        testDBO2.put(SimpleMongoDBStorageStrategy.SUBJECT_HASH, DigestUtils.sha256Hex(SUBJECT));
-        testDBO2.put(SimpleMongoDBStorageStrategy.PREDICATE, PREDICATE);
-        testDBO2.put(SimpleMongoDBStorageStrategy.PREDICATE_HASH, DigestUtils.sha256Hex(PREDICATE));
-        testDBO2.put(SimpleMongoDBStorageStrategy.OBJECT, OBJECT);
-        testDBO2.put(SimpleMongoDBStorageStrategy.OBJECT_HASH, DigestUtils.sha256Hex(OBJECT));
-        testDBO2.put(SimpleMongoDBStorageStrategy.OBJECT_TYPE, RDF.LANGSTRING.stringValue());
-        testDBO2.put(SimpleMongoDBStorageStrategy.OBJECT_LANGUAGE, "en-US");
-        testDBO2.put(SimpleMongoDBStorageStrategy.CONTEXT, CONTEXT);
-        testDBO2.put(SimpleMongoDBStorageStrategy.STATEMENT_METADATA, STATEMENT_METADATA);
+        TEST_DOC_2 = new Document();
+        TEST_DOC_2.put(SimpleMongoDBStorageStrategy.ID, "580fb5d11f0b62fa735ac98b36bba1fc37ddc3fc");
+        TEST_DOC_2.put(SimpleMongoDBStorageStrategy.SUBJECT, SUBJECT);
+        TEST_DOC_2.put(SimpleMongoDBStorageStrategy.SUBJECT_HASH, DigestUtils.sha256Hex(SUBJECT));
+        TEST_DOC_2.put(SimpleMongoDBStorageStrategy.PREDICATE, PREDICATE);
+        TEST_DOC_2.put(SimpleMongoDBStorageStrategy.PREDICATE_HASH, DigestUtils.sha256Hex(PREDICATE));
+        TEST_DOC_2.put(SimpleMongoDBStorageStrategy.OBJECT, OBJECT);
+        TEST_DOC_2.put(SimpleMongoDBStorageStrategy.OBJECT_HASH, DigestUtils.sha256Hex(OBJECT));
+        TEST_DOC_2.put(SimpleMongoDBStorageStrategy.OBJECT_TYPE, RDF.LANGSTRING.stringValue());
+        TEST_DOC_2.put(SimpleMongoDBStorageStrategy.OBJECT_LANGUAGE, "en-US");
+        TEST_DOC_2.put(SimpleMongoDBStorageStrategy.CONTEXT, CONTEXT);
+        TEST_DOC_2.put(SimpleMongoDBStorageStrategy.STATEMENT_METADATA, STATEMENT_METADATA);
         try {
-            testDBO2.put(SimpleMongoDBStorageStrategy.DOCUMENT_VISIBILITY, DocumentVisibilityUtil.toMultidimensionalArray(DOCUMENT_VISIBILITY));
+            TEST_DOC_2.put(SimpleMongoDBStorageStrategy.DOCUMENT_VISIBILITY, DocumentVisibilityUtil.toMultidimensionalArray(DOCUMENT_VISIBILITY));
         } catch (final DocumentVisibilityConversionException e) {
             e.printStackTrace();
         }
-        testDBO2.put(SimpleMongoDBStorageStrategy.TIMESTAMP, null);
+        TEST_DOC_2.put(SimpleMongoDBStorageStrategy.TIMESTAMP, null);
     }
 
     @Test
-    public void testSerializeStatementToDBO() throws RyaDAOException, MongoException, IOException {
+    public void testSerializeStatementToDocument() throws RyaDAOException, MongoException, IOException {
 
-        DBObject dbo = storageStrategy.serialize(testStatement);
-        assertEquals(testDBO, dbo);
+        Document doc = storageStrategy.serialize(testStatement);
+        assertEquals(TEST_DOC, doc);
 
-        dbo = storageStrategy.serialize(testStatement2);
-        assertEquals(testDBO2, dbo);
+        doc = storageStrategy.serialize(testStatement2);
+        assertEquals(TEST_DOC_2, doc);
     }
 
     @Test
-    public void testDeSerializeStatementToDBO() throws RyaDAOException, MongoException, IOException {
-        RyaStatement statement = storageStrategy.deserializeDBObject(testDBO);
+    public void testDeSerializeStatementToDocument() throws RyaDAOException, MongoException, IOException {
+        RyaStatement statement = storageStrategy.deserializeDocument(TEST_DOC);
         /*
          * Since RyaStatement creates a timestamp using JVM time if the timestamp is null, we want to re-null it
          * for this test.  Timestamp is created at insert time by the Server, this test
@@ -135,7 +134,7 @@ public class SimpleMongoDBStorageStrategyTest {
         statement.setTimestamp(null);
         assertEquals(testStatement, statement);
 
-        statement = storageStrategy.deserializeDBObject(testDBO2);
+        statement = storageStrategy.deserializeDocument(TEST_DOC_2);
         /*
          * Since RyaStatement creates a timestamp using JVM time if the timestamp is null, we want to re-null it
          * for this test.  Timestamp is created at insert time by the Server, this test

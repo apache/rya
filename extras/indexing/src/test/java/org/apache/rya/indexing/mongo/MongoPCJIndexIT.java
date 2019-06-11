@@ -151,8 +151,8 @@ public class MongoPCJIndexIT extends MongoRyaITBase {
         final String pcjId = ryaClient.getCreatePCJ().createPCJ(conf.getRyaInstanceName(), pcjQuery);
         ryaClient.getBatchUpdatePCJ().batchUpdate(conf.getRyaInstanceName(), pcjId);
 
-        System.out.println("Triples: " + getMongoClient().getDatabase(conf.getRyaInstanceName()).getCollection(conf.getTriplesCollectionName()).count());
-        System.out.println("PCJS: " + getMongoClient().getDatabase(conf.getRyaInstanceName()).getCollection("pcjs").count());
+        System.out.println("Triples: " + getMongoClient().getDatabase(conf.getRyaInstanceName()).getCollection(conf.getTriplesCollectionName()).countDocuments());
+        System.out.println("PCJS: " + getMongoClient().getDatabase(conf.getRyaInstanceName()).getCollection("pcjs").countDocuments());
 
         //run the query.  since the triples collection is gone, if the results match, they came from the PCJ index.
         final Sail sail = RyaSailFactory.getInstance(conf);

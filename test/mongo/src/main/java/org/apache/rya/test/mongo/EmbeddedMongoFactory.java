@@ -19,6 +19,8 @@
 package org.apache.rya.test.mongo;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
 
@@ -42,6 +44,9 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 
 public class EmbeddedMongoFactory {
     private static Logger logger = LoggerFactory.getLogger(EmbeddedMongoFactory.class.getName());
+
+    private static final String DEFAULT_HOST = "localhost";
+    private static final int DEFAULT_PORT = 27017;
 
     public static EmbeddedMongoFactory newFactory() throws IOException {
         return EmbeddedMongoFactory.with(Version.Main.PRODUCTION);
@@ -67,12 +72,34 @@ public class EmbeddedMongoFactory {
     }
 
     private IMongodConfig newMongodConfig(final IFeatureAwareVersion version) throws UnknownHostException, IOException {
-        final Net net = new Net(findRandomOpenPortOnAllLocalInterfaces(), false);
+        final Net net = new Net(setPortToDefaultOrRandomOpen(), false);
         return new MongodConfigBuilder().version(version).net(net).build();
     }
 
-    private int findRandomOpenPortOnAllLocalInterfaces() throws IOException {
-        try (ServerSocket socket = new ServerSocket(0);) {
+    private static int setPortToDefaultOrRandomOpen() throws IOException {
+        return setPortToDefaultOrRandomOpen(DEFAULT_PORT);
+    }
+
+    private static int setPortToDefaultOrRandomOpen(final int defaultPort) throws IOException {
+        if (isPortAvailable(defaultPort)) {
+            return defaultPort;
+        } else {
+            return findRandomOpenPortOnAllLocalInterfaces();
+        }
+    }
+
+    private static boolean isPortAvailable(final int port) {
+        try (final ServerSocket serverSocket = new ServerSocket()) {
+            serverSocket.setReuseAddress(false);
+            serverSocket.bind(new InetSocketAddress(InetAddress.getByName(DEFAULT_HOST), port), 1);
+            return true;
+        } catch (final Exception e) {
+            return false;
+        }
+    }
+
+    private static int findRandomOpenPortOnAllLocalInterfaces() throws IOException {
+        try (final ServerSocket socket = new ServerSocket(0)) {
             return socket.getLocalPort();
         }
     }

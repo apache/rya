@@ -21,22 +21,23 @@ package org.apache.rya.mongodb.dao;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Map;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
+import org.bson.Document;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.Namespace;
 
-import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 
 public class SimpleMongoDBNamespaceManager implements MongoDBNamespaceManager {
 
     public class NamespaceImplementation implements Namespace {
+        private static final long serialVersionUID = 1L;
 
         private final String namespace;
         private final String prefix;
@@ -71,10 +72,10 @@ public class SimpleMongoDBNamespaceManager implements MongoDBNamespaceManager {
 
     public class MongoCursorIteration implements
     CloseableIteration<Namespace, RyaDAOException> {
-        private final DBCursor cursor;
+        private final MongoCursor<Document> cursor;
 
-        public MongoCursorIteration(final DBCursor cursor2) {
-            this.cursor = cursor2;
+        public MongoCursorIteration(final MongoCursor<Document> cursor) {
+            this.cursor = cursor;
         }
 
         @Override
@@ -84,10 +85,9 @@ public class SimpleMongoDBNamespaceManager implements MongoDBNamespaceManager {
 
         @Override
         public Namespace next() throws RyaDAOException {
-            final DBObject ns = cursor.next();
-            final Map values = ns.toMap();
-            final String namespace = (String) values.get(NAMESPACE);
-            final String prefix = (String) values.get(PREFIX);
+            final Document ns = cursor.next();
+            final String namespace = (String) ns.get(NAMESPACE);
+            final String prefix = (String) ns.get(PREFIX);
 
             final Namespace temp =  new NamespaceImplementation(namespace, prefix);
             return temp;
@@ -109,10 +109,10 @@ public class SimpleMongoDBNamespaceManager implements MongoDBNamespaceManager {
     private static final String PREFIX = "prefix";
     private static final String NAMESPACE = "namespace";
     private StatefulMongoDBRdfConfiguration conf;
-    private final DBCollection nsColl;
+    private final MongoCollection<Document> nsColl;
 
 
-    public SimpleMongoDBNamespaceManager(final DBCollection nameSpaceCollection) {
+    public SimpleMongoDBNamespaceManager(final MongoCollection<Document> nameSpaceCollection) {
         nsColl = nameSpaceCollection;
     }
 
@@ -143,36 +143,38 @@ public class SimpleMongoDBNamespaceManager implements MongoDBNamespaceManager {
         } catch (final NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        final BasicDBObject doc = new BasicDBObject(ID, new String(Hex.encodeHex(bytes)))
+        final Document doc = new Document(ID, new String(Hex.encodeHex(bytes)))
                 .append(PREFIX, prefix)
                 .append(NAMESPACE, namespace);
-        nsColl.insert(doc);
+        nsColl.insertOne(doc);
 
     }
 
     @Override
     public String getNamespace(final String prefix) throws RyaDAOException {
-        final DBObject query = new BasicDBObject().append(PREFIX, prefix);
-        final DBCursor cursor = nsColl.find(query);
+        final Document query = new Document().append(PREFIX, prefix);
+        final FindIterable<Document> iterable = nsColl.find(query);
         String nameSpace = prefix;
-        while (cursor.hasNext()){
-            final DBObject obj = cursor.next();
-            nameSpace = (String) obj.toMap().get(NAMESPACE);
+        try (final MongoCursor<Document> cursor = iterable.iterator()) {
+            while (cursor.hasNext()){
+                final Document obj = cursor.next();
+                nameSpace = (String) obj.get(NAMESPACE);
+            }
         }
         return nameSpace;
     }
 
     @Override
     public void removeNamespace(final String prefix) throws RyaDAOException {
-        final DBObject query = new BasicDBObject().append(PREFIX, prefix);
-        nsColl.remove(query);
+        final Document query = new Document().append(PREFIX, prefix);
+        nsColl.deleteMany(query);
     }
 
     @Override
     public CloseableIteration<? extends Namespace, RyaDAOException> iterateNamespace()
             throws RyaDAOException {
-        final DBObject query = new BasicDBObject();
-        final DBCursor cursor = nsColl.find(query);
+        final FindIterable<Document> iterable = nsColl.find();
+        final MongoCursor<Document> cursor = iterable.iterator();
         return new MongoCursorIteration(cursor);
     }
 

@@ -76,8 +76,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.BsonField;
@@ -125,7 +123,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
 
     private static final Bson DEFAULT_TYPE = new Document("$literal", XMLSchema.ANYURI.stringValue());
     private static final Bson DEFAULT_CONTEXT = new Document("$literal", "");
-    private static final Bson DEFAULT_DV = DocumentVisibilityAdapter.toDBObject(MongoDbRdfConstants.EMPTY_DV);
+    private static final Bson DEFAULT_DV = DocumentVisibilityAdapter.toDocument(MongoDbRdfConstants.EMPTY_DV);
     private static final Bson DEFAULT_METADATA = new Document("$literal",
             StatementMetadata.EMPTY_METADATA.toString());
 
@@ -257,7 +255,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
      *  "x" followed by "y".
      * @return The argument of a "$match" query
      */
-    private static BasicDBObject getMatchExpression(final StatementPattern sp, final String ... path) {
+    private static Document getMatchExpression(final StatementPattern sp, final String ... path) {
         final Var subjVar = sp.getSubjectVar();
         final Var predVar = sp.getPredicateVar();
         final Var objVar = sp.getObjectVar();
@@ -279,7 +277,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
             c = RdfToRyaConversions.convertIRI((IRI) contextVar.getValue());
         }
         final RyaStatement rs = new RyaStatement(s, p, o, c);
-        final DBObject obj = strategy.getQuery(rs);
+        final Document obj = strategy.getQuery(rs);
         // Add path prefix, if given
         if (path.length > 0) {
             final StringBuilder sb = new StringBuilder();
@@ -289,11 +287,11 @@ public class AggregationPipelineQueryNode extends ExternalSet {
             final String prefix = sb.toString();
             final Set<String> originalKeys = new HashSet<>(obj.keySet());
             originalKeys.forEach(key -> {
-                final Object value = obj.removeField(key);
+                final Object value = obj.remove(key);
                 obj.put(prefix + key, value);
             });
         }
-        return (BasicDBObject) obj;
+        return obj;
     }
 
     private static String valueFieldExpr(final String varName) {
@@ -500,7 +498,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
         // 4. (Optional) If there are any shared variables that weren't used as
         //   the join key, project all existing fields plus a new field that
         //   tests the equality of those shared variables.
-        final BasicDBObject matchOpts = getMatchExpression(sp, JOINED_TRIPLE);
+        final Document matchOpts = getMatchExpression(sp, JOINED_TRIPLE);
         if (!sharedVars.isEmpty()) {
             final List<Bson> eqTests = new LinkedList<>();
             for (final String varName : sharedVars) {

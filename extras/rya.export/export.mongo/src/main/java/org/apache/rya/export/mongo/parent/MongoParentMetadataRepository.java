@@ -24,10 +24,10 @@ import org.apache.rya.export.api.metadata.MergeParentMetadata;
 import org.apache.rya.export.api.metadata.ParentMetadataDoesNotExistException;
 import org.apache.rya.export.api.metadata.ParentMetadataExistsException;
 import org.apache.rya.export.api.metadata.ParentMetadataRepository;
+import org.bson.Document;
 
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
 
 /**
  * Repository for storing the {@link MergeParentMetadata}.
@@ -35,7 +35,7 @@ import com.mongodb.MongoClient;
 public class MongoParentMetadataRepository implements ParentMetadataRepository {
     private static final String COLLECTION_NAME = "parent_metadata";
     private final ParentMetadataRepositoryAdapter adapter;
-    private final DBCollection collection;
+    private final MongoCollection<Document> collection;
 
     /**
      * Creates a new {@link MongoParentMetadataRepository}
@@ -45,13 +45,13 @@ public class MongoParentMetadataRepository implements ParentMetadataRepository {
     public MongoParentMetadataRepository(final MongoClient client, final String dbName) {
         checkNotNull(client);
         checkNotNull(dbName);
-        collection = client.getDB(dbName).getCollection(COLLECTION_NAME);
+        collection = client.getDatabase(dbName).getCollection(COLLECTION_NAME);
         adapter = new ParentMetadataRepositoryAdapter();
     }
 
     @Override
     public MergeParentMetadata get() throws ParentMetadataDoesNotExistException {
-        final DBObject mongoMetadata = collection.findOne();
+        final Document mongoMetadata = collection.find().first();
         if(mongoMetadata == null) {
             throw new ParentMetadataDoesNotExistException("The parent metadata has not been set.");
         }
@@ -60,10 +60,10 @@ public class MongoParentMetadataRepository implements ParentMetadataRepository {
 
     @Override
     public void set(final MergeParentMetadata metadata) throws ParentMetadataExistsException {
-        if(collection.getCount() > 0) {
+        if(collection.countDocuments() > 0) {
             throw new ParentMetadataExistsException("The parent metadata has already been set.");
         }
-        final DBObject dbo = adapter.serialize(metadata);
-        collection.insert(dbo);
+        final Document doc = adapter.serialize(metadata);
+        collection.insertOne(doc);
     }
 }

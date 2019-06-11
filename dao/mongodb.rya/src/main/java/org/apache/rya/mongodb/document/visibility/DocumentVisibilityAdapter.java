@@ -18,16 +18,14 @@
  */
 package org.apache.rya.mongodb.document.visibility;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.apache.rya.mongodb.MongoDbRdfConstants;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 import org.apache.rya.mongodb.document.util.DocumentVisibilityConversionException;
 import org.apache.rya.mongodb.document.util.DocumentVisibilityUtil;
-
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
+import org.bson.Document;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -35,9 +33,8 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 /**
  * Serializes the document visibility field of a Rya Statement for use in
  * MongoDB.
- * The {@link DBObject} will look like:
+ * The {@link Document} will look like:
  * <pre>
- * {@code
  * {
  *   "documentVisibility": &lt;array&gt;,
  * }
@@ -57,62 +54,59 @@ public final class DocumentVisibilityAdapter {
 
     /**
      * Serializes a document visibility expression byte array to a MongoDB
-     * {@link DBObject}.
+     * {@link Document}.
      * @param expression the document visibility expression byte array to be
      * serialized.
-     * @return The MongoDB {@link DBObject}.
+     * @return The MongoDB {@link Document}.
      */
-    public static BasicDBObject toDBObject(final byte[] expression) {
+    public static Document toDocument(final byte[] expression) {
         DocumentVisibility dv;
         if (expression == null) {
             dv = MongoDbRdfConstants.EMPTY_DV;
         } else {
             dv = new DocumentVisibility(expression);
         }
-        return toDBObject(dv);
+        return toDocument(dv);
     }
 
     /**
-     * Serializes a {@link DocumentVisibility} to a MongoDB {@link DBObject}.
+     * Serializes a {@link DocumentVisibility} to a MongoDB {@link Document}.
      * @param documentVisibility the {@link DocumentVisibility} to be
      * serialized.
-     * @return The MongoDB {@link DBObject}.
+     * @return The MongoDB {@link Document}.
      */
-    public static BasicDBObject toDBObject(final DocumentVisibility documentVisibility) {
+    public static Document toDocument(final DocumentVisibility documentVisibility) {
         DocumentVisibility dv;
         if (documentVisibility == null) {
             dv = MongoDbRdfConstants.EMPTY_DV;
         } else {
             dv = documentVisibility;
         }
-        Object[] dvArray = null;
+        List<Object> dvList = null;
         try {
-            dvArray = DocumentVisibilityUtil.toMultidimensionalArray(dv);
+            dvList = DocumentVisibilityUtil.toMultidimensionalArray(dv);
         } catch (final DocumentVisibilityConversionException e) {
             log.error("Unable to convert document visibility");
         }
 
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add(DOCUMENT_VISIBILITY_KEY, dvArray);
-        return (BasicDBObject) builder.get();
+        final Document document = new Document(DOCUMENT_VISIBILITY_KEY, dvList);
+        return document;
     }
 
     /**
-     * Deserializes a MongoDB {@link DBObject} to a {@link DocumentVisibility}.
-     * @param mongoObj the {@link DBObject} to be deserialized.
+     * Deserializes a MongoDB {@link Document} to a {@link DocumentVisibility}.
+     * @param doc the {@link Document} to be deserialized.
      * @return the {@link DocumentVisibility} object.
      * @throws MalformedDocumentVisibilityException
      */
-    public static DocumentVisibility toDocumentVisibility(final DBObject mongoObj) throws MalformedDocumentVisibilityException {
+    public static DocumentVisibility toDocumentVisibility(final Document doc) throws MalformedDocumentVisibilityException {
         try {
-            final BasicDBObject basicObj = (BasicDBObject) mongoObj;
-
-            final Object documentVisibilityObject = basicObj.get(DOCUMENT_VISIBILITY_KEY);
+            final Object documentVisibilityObject = doc.get(DOCUMENT_VISIBILITY_KEY);
             Object[] documentVisibilityArray = null;
             if (documentVisibilityObject instanceof Object[]) {
                 documentVisibilityArray = (Object[]) documentVisibilityObject;
-            } else if (documentVisibilityObject instanceof BasicDBList) {
-                documentVisibilityArray = DocumentVisibilityUtil.convertBasicDBListToObjectArray((BasicDBList) documentVisibilityObject);
+            } else if (documentVisibilityObject instanceof List) {
+                documentVisibilityArray = ((List<?>) documentVisibilityObject).toArray();
             }
 
             final String documentVisibilityString = DocumentVisibilityUtil.multidimensionalArrayToBooleanString(documentVisibilityArray);
@@ -125,7 +119,7 @@ public final class DocumentVisibilityAdapter {
     }
 
     /**
-     * Exception thrown when a MongoDB {@link DBObject} is malformed when
+     * Exception thrown when a MongoDB {@link Document} is malformed when
      * attempting to adapt it into a {@link DocumentVisibility}.
      */
     public static class MalformedDocumentVisibilityException extends Exception {

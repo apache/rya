@@ -30,7 +30,6 @@ import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriter;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterConfig;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterUtils;
-import org.apache.rya.mongodb.batch.collection.DbCollectionType;
 import org.apache.rya.mongodb.batch.collection.MongoCollectionType;
 import org.apache.rya.mongodb.dao.MongoDBStorageStrategy;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
@@ -39,7 +38,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
-import com.mongodb.DBObject;
 
 /**
  * Integration tests for the {@link MongoDbBatchWriter}.
@@ -84,39 +82,10 @@ public class MongoDBRyaBatchWriterIT extends MongoRyaITBase {
             dao.add(statements.iterator());
             dao.flush();
 
-            assertEquals(6, getRyaCollection().count());
+            assertEquals(6, getRyaCollection().countDocuments());
         } finally {
             dao.destroy();
         }
-    }
-
-    @Test
-    public void testDbCollectionFlush() throws Exception {
-        final MongoDBStorageStrategy<RyaStatement> storageStrategy = new SimpleMongoDBStorageStrategy();
-
-        final List<DBObject> objects = Lists.newArrayList(
-                storageStrategy.serialize(statement(1)),
-                storageStrategy.serialize(statement(2)),
-                storageStrategy.serialize(statement(2)),
-                null,
-                storageStrategy.serialize(statement(3)),
-                storageStrategy.serialize(statement(3)),
-                storageStrategy.serialize(statement(4))
-            );
-
-        final DbCollectionType collectionType = new DbCollectionType(getRyaDbCollection());
-        final MongoDbBatchWriterConfig mongoDbBatchWriterConfig = MongoDbBatchWriterUtils.getMongoDbBatchWriterConfig(conf);
-        final MongoDbBatchWriter<DBObject> mongoDbBatchWriter = new MongoDbBatchWriter<>(collectionType, mongoDbBatchWriterConfig);
-
-        mongoDbBatchWriter.start();
-        mongoDbBatchWriter.addObjectsToQueue(objects);
-        mongoDbBatchWriter.flush();
-        Thread.sleep(1_000);
-        mongoDbBatchWriter.addObjectsToQueue(objects);
-        mongoDbBatchWriter.flush();
-        Thread.sleep(1_000);
-        mongoDbBatchWriter.shutdown();
-        assertEquals(4, getRyaDbCollection().count());
     }
 
     @Test
@@ -124,13 +93,13 @@ public class MongoDBRyaBatchWriterIT extends MongoRyaITBase {
         final MongoDBStorageStrategy<RyaStatement> storageStrategy = new SimpleMongoDBStorageStrategy();
 
         final List<Document> documents = Lists.newArrayList(
-                toDocument(storageStrategy.serialize(statement(1))),
-                toDocument(storageStrategy.serialize(statement(2))),
-                toDocument(storageStrategy.serialize(statement(2))),
+                storageStrategy.serialize(statement(1)),
+                storageStrategy.serialize(statement(2)),
+                storageStrategy.serialize(statement(2)),
                 null,
-                toDocument(storageStrategy.serialize(statement(3))),
-                toDocument(storageStrategy.serialize(statement(3))),
-                toDocument(storageStrategy.serialize(statement(4)))
+                storageStrategy.serialize(statement(3)),
+                storageStrategy.serialize(statement(3)),
+                storageStrategy.serialize(statement(4))
             );
 
         final MongoCollectionType mongoCollectionType = new MongoCollectionType(getRyaCollection());
@@ -145,15 +114,7 @@ public class MongoDBRyaBatchWriterIT extends MongoRyaITBase {
         mongoDbBatchWriter.flush();
         Thread.sleep(1_000);
         mongoDbBatchWriter.shutdown();
-        assertEquals(4, getRyaCollection().count());
-    }
-
-    private static Document toDocument(final DBObject dbObject) {
-        if (dbObject == null) {
-            return null;
-        }
-        final Document document = Document.parse(dbObject.toString());
-        return document;
+        assertEquals(4, getRyaCollection().countDocuments());
     }
 
     private static RyaIRI ryaIRI(final int v) {

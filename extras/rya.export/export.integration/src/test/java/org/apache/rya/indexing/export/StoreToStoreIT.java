@@ -116,7 +116,7 @@ public class StoreToStoreIT extends ITBase {
             driver.tearDown();
         }
         for(final MongoClient client : clients) {
-            client.dropDatabase(RYA_INSTANCE);
+            client.getDatabase(RYA_INSTANCE).drop();
         }
     }
 

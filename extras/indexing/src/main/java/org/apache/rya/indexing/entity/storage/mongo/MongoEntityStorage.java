@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
@@ -64,8 +63,6 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public class MongoEntityStorage implements EntityStorage {
-    private static final Logger log = Logger.getLogger(MongoEntityStorage.class);
-
     protected static final String COLLECTION_NAME = "entity-entities";
 
     private static final EntityDocumentConverter ENTITY_CONVERTER = new EntityDocumentConverter();

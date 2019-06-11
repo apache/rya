@@ -35,12 +35,10 @@ import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
 import org.apache.rya.api.instance.RyaDetails.RyaStreamsDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import org.apache.rya.mongodb.instance.MongoDetailsAdapter.MalformedRyaDetailsException;
+import org.bson.Document;
 import org.junit.Test;
 
 import com.google.common.base.Optional;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
 
 /**
  * Tests the methods of {@link MongoDetailsAdapter}.
@@ -76,10 +74,10 @@ public class MongoDetailsAdapterTest {
                 .setRyaStreamsDetails(new RyaStreamsDetails("localhost", 6))
                 .build();
 
-        final BasicDBObject actual = MongoDetailsAdapter.toDBObject(details);
+        final Document actual = MongoDetailsAdapter.toDocument(details);
 
         // Ensure it matches the expected object.
-        final DBObject expected = (DBObject) JSON.parse(
+        final Document expected = Document.parse(
                 "{ "
                         + "instanceName : \"test\","
                         + "version : \"1\","
@@ -113,7 +111,7 @@ public class MongoDetailsAdapterTest {
     @Test
     public void mongoToRyaDetailsTest() throws MalformedRyaDetailsException {
         // Convert the Mongo object into a RyaDetails.
-        final BasicDBObject mongo = (BasicDBObject) JSON.parse(
+        final Document mongo = Document.parse(
                 "{ "
                         + "instanceName : \"test\","
                         + "version : \"1\","
@@ -176,7 +174,7 @@ public class MongoDetailsAdapterTest {
     @Test
     public void absentOptionalToRyaDetailsTest() throws MalformedRyaDetailsException {
         // Convert the Mongo object into a RyaDetails.
-        final BasicDBObject mongo = (BasicDBObject) JSON.parse(
+        final Document mongo = Document.parse(
                 "{ "
                         + "instanceName : \"test\","
                         + "version : \"1\","
@@ -234,10 +232,10 @@ public class MongoDetailsAdapterTest {
                 .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>absent()))
                 .build();
 
-        final DBObject actual = MongoDetailsAdapter.toDBObject(details);
+        final Document actual = MongoDetailsAdapter.toDocument(details);
 
         // Ensure it matches the expected object.
-        final BasicDBObject expected = (BasicDBObject) JSON.parse(
+        final Document expected = Document.parse(
                 "{ "
                         + "instanceName : \"test\","
                         + "version : \"1\","
@@ -255,34 +253,34 @@ public class MongoDetailsAdapterTest {
     }
 
     @Test
-    public void toDBObject_pcjDetails() {
+    public void toDocument_pcjDetails() {
         final PCJDetails details = PCJDetails.builder()
                 .setId("pcjId")
                 .setLastUpdateTime( new Date() )
                 .setUpdateStrategy( PCJUpdateStrategy.INCREMENTAL )
                 .build();
 
-        // Convert it into a Mongo DB Object.
-        final BasicDBObject dbo = (BasicDBObject) MongoDetailsAdapter.toDBObject(details);
+        // Convert it into a Mongo DB Document.
+        final Document doc = MongoDetailsAdapter.toDocument(details);
 
-        // Convert the dbo back into the original object.
-        final PCJDetails restored = MongoDetailsAdapter.toPCJDetails(dbo).build();
+        // Convert the doc back into the original object.
+        final PCJDetails restored = MongoDetailsAdapter.toPCJDetails(doc).build();
 
         // Ensure the restored value matches the original.
         assertEquals(details, restored);
     }
 
     @Test
-    public void toDBObject_pcjDetails_missing_optionals() {
+    public void toDocument_pcjDetails_missing_optionals() {
         final PCJDetails details = PCJDetails.builder()
                 .setId("pcjId")
                 .build();
 
-        // Convert it into a Mongo DB Object.
-        final BasicDBObject dbo = (BasicDBObject) MongoDetailsAdapter.toDBObject(details);
+        // Convert it into a Mongo DB Document.
+        final Document doc = MongoDetailsAdapter.toDocument(details);
 
-        // Convert the dbo back into the original object.
-        final PCJDetails restored = MongoDetailsAdapter.toPCJDetails(dbo).build();
+        // Convert the doc back into the original object.
+        final PCJDetails restored = MongoDetailsAdapter.toPCJDetails(doc).build();
 
         // Ensure the restored value matches the original.
         assertEquals(details, restored);

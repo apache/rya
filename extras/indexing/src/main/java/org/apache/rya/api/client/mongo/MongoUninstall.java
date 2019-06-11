@@ -58,7 +58,7 @@ public class MongoUninstall implements Uninstall {
             if (!instanceExists.exists(ryaInstanceName)) {
                 throw new InstanceDoesNotExistException("The database '" + ryaInstanceName + "' does not exist.");
             }
-            adminClient.dropDatabase(ryaInstanceName);
+            adminClient.getDatabase(ryaInstanceName).drop();
         } catch (final MongoException e) {
             throw new RyaClientException("Failed to uninstall '" + ryaInstanceName + "' " + e.getLocalizedMessage(), e);
         }

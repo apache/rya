@@ -21,13 +21,11 @@ package org.apache.rya.export.mongo.parent;
 import java.util.Date;
 
 import org.apache.rya.export.api.metadata.MergeParentMetadata;
-
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
+import org.bson.Document;
 
 /**
  * Adapter for converting {@link MergeParentMetadata} to and from mongo
- * {@link DBObject}s.
+ * {@link Document}s.
  */
 public class ParentMetadataRepositoryAdapter {
     public static final String RYANAME_KEY = "ryaInstanceName";
@@ -36,29 +34,29 @@ public class ParentMetadataRepositoryAdapter {
     public static final String PARENT_TIME_OFFSET_KEY = "parentTimeOffset";
 
     /**
-     * Serializes the {@link MergeParentMetadata} into a mongoDB object.
+     * Serializes the {@link MergeParentMetadata} into a mongoDB document.
      * @param metadata - The {@link MergeParentMetadata} to serialize.
-     * @return The MongoDB object
+     * @return The MongoDB {@link Document}
      */
-    public DBObject serialize(final MergeParentMetadata metadata) {
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start()
-            .add(RYANAME_KEY, metadata.getRyaInstanceName())
-            .add(TIMESTAMP_KEY, metadata.getTimestamp())
-            .add(FILTER_TIMESTAMP_KEY, metadata.getFilterTimestamp())
-            .add(PARENT_TIME_OFFSET_KEY, metadata.getParentTimeOffset());
-        return builder.get();
+    public Document serialize(final MergeParentMetadata metadata) {
+        final Document doc = new Document()
+            .append(RYANAME_KEY, metadata.getRyaInstanceName())
+            .append(TIMESTAMP_KEY, metadata.getTimestamp())
+            .append(FILTER_TIMESTAMP_KEY, metadata.getFilterTimestamp())
+            .append(PARENT_TIME_OFFSET_KEY, metadata.getParentTimeOffset());
+        return doc;
     }
 
     /**
-     * Deserialize the mongoBD object into {@link MergeParentMetadata}.
-     * @param dbo - The mongo {@link DBObject} to deserialize.
+     * Deserialize the mongoBD document into {@link MergeParentMetadata}.
+     * @param doc - The mongo {@link Document} to deserialize.
      * @return The {@link MergeParentMetadata}
      */
-    public MergeParentMetadata deserialize(final DBObject dbo) {
-        final Date timestamp = (Date) dbo.get(TIMESTAMP_KEY);
-        final String ryaInstance = (String) dbo.get(RYANAME_KEY);
-        final Date filterTimestamp = (Date) dbo.get(FILTER_TIMESTAMP_KEY);
-        final Long offset = (Long) dbo.get(PARENT_TIME_OFFSET_KEY);
+    public MergeParentMetadata deserialize(final Document doc) {
+        final Date timestamp = (Date) doc.get(TIMESTAMP_KEY);
+        final String ryaInstance = (String) doc.get(RYANAME_KEY);
+        final Date filterTimestamp = (Date) doc.get(FILTER_TIMESTAMP_KEY);
+        final Long offset = (Long) doc.get(PARENT_TIME_OFFSET_KEY);
         return new MergeParentMetadata.Builder()
             .setRyaInstanceName(ryaInstance)
             .setTimestamp(timestamp)

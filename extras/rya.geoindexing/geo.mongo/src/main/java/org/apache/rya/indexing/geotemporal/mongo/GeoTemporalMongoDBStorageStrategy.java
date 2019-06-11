@@ -47,17 +47,15 @@ import org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy;
 import org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQuery;
 import org.apache.rya.indexing.mongodb.geo.GmlParser;
 import org.apache.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStrategy;
-import org.joda.time.DateTime;
+import org.apache.rya.mongodb.document.operators.query.QueryBuilder;
+import org.bson.Document;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.joda.time.DateTime;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import com.mongodb.QueryBuilder;
+import com.mongodb.client.MongoCollection;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
@@ -79,45 +77,43 @@ public class GeoTemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStr
     }
 
     @Override
-    public void createIndices(final DBCollection coll){
-        coll.createIndex(new BasicDBObject(GEO_KEY, "2dsphere"));
-        coll.createIndex(TIME_KEY);
+    public void createIndices(final MongoCollection<Document> coll){
+        coll.createIndex(new Document(GEO_KEY, "2dsphere"));
+        coll.createIndex(new Document(TIME_KEY, 1));
     }
 
-    public DBObject getFilterQuery(final Collection<IndexingExpr> geoFilters, final Collection<IndexingExpr> temporalFilters) throws GeoTemporalIndexException {
+    public Document getFilterQuery(final Collection<IndexingExpr> geoFilters, final Collection<IndexingExpr> temporalFilters) throws GeoTemporalIndexException {
         final QueryBuilder builder = QueryBuilder.start();
-
         if(!geoFilters.isEmpty()) {
-            final DBObject[] geo = getGeoObjs(geoFilters);
+            final Document[] geo = getGeoObjs(geoFilters);
             if(!temporalFilters.isEmpty()) {
-                final DBObject[] temporal = getTemporalObjs(temporalFilters);
+                final Document[] temporal = getTemporalObjs(temporalFilters);
                 builder.and(oneOrAnd(geo), oneOrAnd(temporal));
                 return builder.get();
             } else {
                 return oneOrAnd(geo);
             }
         } else if(!temporalFilters.isEmpty()) {
-            final DBObject[] temporal = getTemporalObjs(temporalFilters);
+            final Document[] temporal = getTemporalObjs(temporalFilters);
             return oneOrAnd(temporal);
         } else {
             return builder.get();
         }
     }
 
-    private DBObject oneOrAnd(final DBObject[] dbos) {
-        if(dbos.length == 1) {
-            return dbos[0];
+    private Document oneOrAnd(final Document[] docs) {
+        if(docs.length == 1) {
+            return docs[0];
         }
         return QueryBuilder.start()
-            .and(dbos)
+            .and(docs)
             .get();
     }
 
     @Override
-    public DBObject serialize(final RyaStatement ryaStatement) {
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start("_id", ryaStatement.getSubject().hashCode());
+    public Document serialize(final RyaStatement ryaStatement) {
+        final Document doc = new Document("_id", ryaStatement.getSubject().hashCode());
         final IRI obj = ryaStatement.getObject().getDataType();
-
 
         if(obj.equals(GeoConstants.GEO_AS_WKT) || obj.equals(GeoConstants.GEO_AS_GML) ||
            obj.equals(GeoConstants.XMLSCHEMA_OGC_GML) || obj.equals(GeoConstants.XMLSCHEMA_OGC_WKT)) {
@@ -125,22 +121,22 @@ public class GeoTemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStr
                 final Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
                 final Geometry geo = GeoParseUtils.getGeometry(statement, new GmlParser());
                 if (geo.getNumPoints() > 1) {
-                    builder.add(GEO_KEY, geoStrategy.getCorrespondingPoints(geo));
+                    doc.append(GEO_KEY, geoStrategy.getCorrespondingPoints(geo));
                 } else {
-                    builder.add(GEO_KEY, geoStrategy.getDBPoint(geo));
+                    doc.append(GEO_KEY, geoStrategy.getDBPoint(geo));
                 }
             } catch (final ParseException e) {
                 LOG.error("Could not create geometry for statement " + ryaStatement, e);
                 return null;
             }
         } else {
-            builder.add(TIME_KEY, temporalStrategy.getTimeValue(ryaStatement.getObject().getData()));
+            doc.append(TIME_KEY, temporalStrategy.getTimeValue(ryaStatement.getObject().getData()));
         }
-        return builder.get();
+        return doc;
     }
 
-    private DBObject[] getGeoObjs(final Collection<IndexingExpr> geoFilters) {
-        final List<DBObject> objs = new ArrayList<>();
+    private Document[] getGeoObjs(final Collection<IndexingExpr> geoFilters) {
+        final List<Document> objs = new ArrayList<>();
         geoFilters.forEach(filter -> {
             final GeoPolicy policy = GeoPolicy.fromURI(filter.getFunction());
             final WKTReader reader = new WKTReader();
@@ -153,11 +149,11 @@ public class GeoTemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStr
                 LOG.error("Unable to parse '" + geoStr + "'.", e);
             }
         });
-        return objs.toArray(new DBObject[]{});
+        return objs.toArray(new Document[]{});
     }
 
-    private DBObject[] getTemporalObjs(final Collection<IndexingExpr> temporalFilters) {
-        final List<DBObject> objs = new ArrayList<>();
+    private Document[] getTemporalObjs(final Collection<IndexingExpr> temporalFilters) {
+        final List<Document> objs = new ArrayList<>();
         temporalFilters.forEach(filter -> {
             final TemporalPolicy policy = TemporalPolicy.fromURI(filter.getFunction());
             final String timeStr = ((Value) filter.getArguments()[0]).stringValue();
@@ -182,10 +178,10 @@ public class GeoTemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStr
                 objs.add(getTemporalObject(instant, policy));
             }
         });
-        return objs.toArray(new DBObject[]{});
+        return objs.toArray(new Document[]{});
     }
 
-    private DBObject getGeoObject (final Geometry geo, final GeoPolicy policy) throws GeoTemporalIndexException {
+    private Document getGeoObject (final Geometry geo, final GeoPolicy policy) throws GeoTemporalIndexException {
         switch(policy) {
             case CONTAINS:
                 throw new UnsupportedOperationException("Contains queries are not supported in Mongo DB.");
@@ -216,12 +212,12 @@ public class GeoTemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStr
                     throw new GeoTemporalIndexException(e.getMessage(), e);
                 }
             default:
-                return new BasicDBObject();
+                return new Document();
         }
     }
 
-    private DBObject getTemporalObject(final TemporalInstant instant, final TemporalPolicy policy) {
-        final DBObject temporalObj;
+    private Document getTemporalObject(final TemporalInstant instant, final TemporalPolicy policy) {
+        Document temporalObj;
         switch(policy) {
             case INSTANT_AFTER_INSTANT:
                 temporalObj = QueryBuilder.start(INSTANT)
@@ -239,13 +235,13 @@ public class GeoTemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStr
                        .get();
                 break;
              default:
-                 temporalObj = new BasicDBObject();
+                 temporalObj = new Document();
         }
         return temporalObj;
     }
 
-    private DBObject getTemporalObject(final TemporalInterval interval, final TemporalPolicy policy) {
-        final DBObject temporalObj;
+    private Document getTemporalObject(final TemporalInterval interval, final TemporalPolicy policy) {
+        final Document temporalObj;
         switch(policy) {
             case INSTANT_AFTER_INTERVAL:
                 temporalObj = QueryBuilder.start(INSTANT)
@@ -291,7 +287,7 @@ public class GeoTemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStr
                        .get();
                 break;
              default:
-                 temporalObj = new BasicDBObject();
+                 temporalObj = new Document();
         }
         return temporalObj;
     }

@@ -58,7 +58,8 @@ import org.junit.Test;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
+
+import de.flapdoodle.embed.mongo.config.Net;
 
 public class MongoSpinIT {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
@@ -164,8 +165,8 @@ public class MongoSpinIT {
     private static MongoDBRdfConfiguration getConf() throws Exception {
         final MongoDBIndexingConfigBuilder builder = MongoIndexingConfiguration.builder().setUseMockMongo(true);
         final MongoClient c = EmbeddedMongoFactory.newFactory().newMongoClient();
-        final ServerAddress address = c.getAddress();
-        builder.setMongoHost(address.getHost());
+        final Net address = EmbeddedMongoFactory.newFactory().getMongoServerDetails().net();
+        builder.setMongoHost(address.getServerAddress().getHostAddress());
         builder.setMongoPort(Integer.toString(address.getPort()));
         builder.setUseInference(false);
         c.close();

@@ -22,140 +22,138 @@ import static org.junit.Assert.assertEquals;
 
 import org.apache.rya.mongodb.MongoDbRdfConstants;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibilityAdapter.MalformedDocumentVisibilityException;
+import org.bson.Document;
 import org.junit.Test;
-
-import com.mongodb.BasicDBObject;
-import com.mongodb.util.JSON;
 
 /**
  * Tests the methods of {@link DocumentVisibilityAdapter}.
  */
 public class DocumentVisibilityAdapterTest {
     @Test
-    public void testToDBObject() {
+    public void testToDocument() {
         final DocumentVisibility dv = new DocumentVisibility("A");
-        final BasicDBObject dbObject = DocumentVisibilityAdapter.toDBObject(dv);
-        final BasicDBObject expected = (BasicDBObject) JSON.parse(
+        final Document document = DocumentVisibilityAdapter.toDocument(dv);
+        final Document expected = Document.parse(
             "{" +
                 "documentVisibility : [[\"A\"]]" +
             "}"
         );
-        assertEquals(expected, dbObject);
+        assertEquals(expected, document);
     }
 
     @Test
-    public void testToDBObject_and() {
+    public void testToDocument_and() {
         final DocumentVisibility dv = new DocumentVisibility("A&B&C");
-        final BasicDBObject dbObject = DocumentVisibilityAdapter.toDBObject(dv);
-        final BasicDBObject expected = (BasicDBObject) JSON.parse(
+        final Document document = DocumentVisibilityAdapter.toDocument(dv);
+        final Document expected = Document.parse(
             "{" +
                 "documentVisibility : [[\"A\", \"B\", \"C\"]]" +
             "}"
         );
-        assertEquals(expected, dbObject);
+        assertEquals(expected, document);
     }
 
     @Test
-    public void testToDBObject_or() {
+    public void testToDocument_or() {
         final DocumentVisibility dv = new DocumentVisibility("A|B|C");
-        final BasicDBObject dbObject = DocumentVisibilityAdapter.toDBObject(dv);
-        final BasicDBObject expected = (BasicDBObject) JSON.parse(
+        final Document document = DocumentVisibilityAdapter.toDocument(dv);
+        final Document expected = Document.parse(
             "{" +
                 "documentVisibility : [[\"C\"], [\"B\"], [\"A\"]]" +
             "}"
         );
-        assertEquals(expected, dbObject);
+        assertEquals(expected, document);
     }
 
     @Test
-    public void testToDBObject_Expression() {
+    public void testToDocument_Expression() {
         final DocumentVisibility dv = new DocumentVisibility("A&B&C");
-        final BasicDBObject dbObject = DocumentVisibilityAdapter.toDBObject(dv.getExpression());
-        final BasicDBObject expected = (BasicDBObject) JSON.parse(
+        final Document document = DocumentVisibilityAdapter.toDocument(dv.getExpression());
+        final Document expected = Document.parse(
             "{" +
                 "documentVisibility : [[\"A\", \"B\", \"C\"]]" +
             "}"
         );
-        assertEquals(expected, dbObject);
+        assertEquals(expected, document);
     }
 
     @Test
-    public void testToDBObject_nullExpression() {
-        final BasicDBObject dbObject = DocumentVisibilityAdapter.toDBObject((byte[])null);
-        final BasicDBObject expected = (BasicDBObject) JSON.parse(
+    public void testToDocument_nullExpression() {
+        final Document document = DocumentVisibilityAdapter.toDocument((byte[])null);
+        final Document expected = Document.parse(
             "{" +
                 "documentVisibility : []" +
             "}"
         );
-        assertEquals(expected, dbObject);
+        assertEquals(expected, document);
     }
 
     @Test
-    public void testToDBObject_nullDocumentVisibility() {
-        final BasicDBObject dbObject = DocumentVisibilityAdapter.toDBObject((DocumentVisibility)null);
-        final BasicDBObject expected = (BasicDBObject) JSON.parse(
+    public void testToDocument_nullDocumentVisibility() {
+        final Document document = DocumentVisibilityAdapter.toDocument((DocumentVisibility)null);
+        final Document expected = Document.parse(
             "{" +
                 "documentVisibility : []" +
             "}"
         );
-        assertEquals(expected, dbObject);
+        assertEquals(expected, document);
     }
 
     @Test
-    public void testToDBObject_emptyDocumentVisibility() {
-        final BasicDBObject dbObject = DocumentVisibilityAdapter.toDBObject(MongoDbRdfConstants.EMPTY_DV);
-        final BasicDBObject expected = (BasicDBObject) JSON.parse(
+    public void testToDocument_emptyDocumentVisibility() {
+        final Document document = DocumentVisibilityAdapter.toDocument(MongoDbRdfConstants.EMPTY_DV);
+        final Document expected = Document.parse(
             "{" +
                 "documentVisibility : []" +
             "}"
         );
-        assertEquals(expected, dbObject);
+        assertEquals(expected, document);
     }
 
     @Test
     public void testToDocumentVisibility() throws MalformedDocumentVisibilityException {
-        final BasicDBObject dbObject = (BasicDBObject) JSON.parse(
+        final Document document = Document.parse(
             "{" +
                 "documentVisibility : [\"A\"]" +
             "}"
         );
-        final DocumentVisibility dv = DocumentVisibilityAdapter.toDocumentVisibility(dbObject);
+        final DocumentVisibility dv = DocumentVisibilityAdapter.toDocumentVisibility(document);
         final DocumentVisibility expected = new DocumentVisibility("A");
         assertEquals(expected, dv);
     }
 
     @Test
     public void testToDocumentVisibility_and() throws MalformedDocumentVisibilityException {
-        final BasicDBObject dbObject = (BasicDBObject) JSON.parse(
+        final Document document = Document.parse(
             "{" +
                 "documentVisibility : [\"A\", \"B\", \"C\"]" +
             "}"
         );
-        final DocumentVisibility dv = DocumentVisibilityAdapter.toDocumentVisibility(dbObject);
+        final DocumentVisibility dv = DocumentVisibilityAdapter.toDocumentVisibility(document);
         final DocumentVisibility expected = new DocumentVisibility("A&B&C");
         assertEquals(expected, dv);
     }
 
     @Test
     public void testToDocumentVisibility_or() throws MalformedDocumentVisibilityException {
-        final BasicDBObject dbObject = (BasicDBObject) JSON.parse(
+        final Document document = Document.parse(
             "{" +
                 "documentVisibility : [[\"A\"], [\"B\"], [\"C\"]]" +
             "}"
         );
-        final DocumentVisibility dv = DocumentVisibilityAdapter.toDocumentVisibility(dbObject);
+        final DocumentVisibility dv = DocumentVisibilityAdapter.toDocumentVisibility(document);
         final DocumentVisibility expected = new DocumentVisibility("A|B|C");
         assertEquals(expected, dv);
     }
 
     @Test
     public void testToDocumentVisibility_empty() throws MalformedDocumentVisibilityException {
-        final BasicDBObject dbObject = (BasicDBObject) JSON.parse(
+        final Document document = Document.parse(
             "{" +
                 "documentVisibility : []" +
             "}"
         );
-        final DocumentVisibility dv = DocumentVisibilityAdapter.toDocumentVisibility(dbObject);
+        final DocumentVisibility dv = DocumentVisibilityAdapter.toDocumentVisibility(document);
         final DocumentVisibility expected = MongoDbRdfConstants.EMPTY_DV;
         assertEquals(expected, dv);
     }

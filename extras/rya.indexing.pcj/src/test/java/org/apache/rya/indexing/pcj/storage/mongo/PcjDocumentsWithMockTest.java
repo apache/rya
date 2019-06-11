@@ -50,7 +50,7 @@ public class PcjDocumentsWithMockTest extends MongoRyaITBase {
 
     @Test
     public void populatePcj() throws Exception {
-        final RdfCloudTripleStore ryaStore = new RdfCloudTripleStore();
+        final RdfCloudTripleStore<StatefulMongoDBRdfConfiguration> ryaStore = new RdfCloudTripleStore<>();
         final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         dao.setConf(new StatefulMongoDBRdfConfiguration(conf, getMongoClient()));
         dao.init();

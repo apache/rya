@@ -30,7 +30,6 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.utils.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.PcjException;
@@ -59,7 +58,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
 /**
- * Performs integration test using {@link MiniAccumuloCluster} to ensure the
+ * Performs integration test using {@link MongoClient} to ensure the
  * functions of {@link PcjTables} work within a cluster setting.
  */
 public class PcjDocumentsIntegrationTest extends MongoRyaITBase {
@@ -99,7 +98,7 @@ public class PcjDocumentsIntegrationTest extends MongoRyaITBase {
     }
 
     /**
-     * Ensure when results have been written to the PCJ table that they are in Accumulo.
+     * Ensure when results have been written to the PCJ table that they are in Mongo.
      * <p>
      * The method being tested is {@link PcjTables#addResults(Connector, String, java.util.Collection)}
      */
@@ -140,7 +139,7 @@ public class PcjDocumentsIntegrationTest extends MongoRyaITBase {
         final PcjMetadata metadata = pcjs.getPcjMetadata(pcjTableName);
         assertEquals(3, metadata.getCardinality());
 
-        // Scan Accumulo for the stored results.
+        // Scan Mongo for the stored results.
         final Collection<BindingSet> fetchedResults = loadPcjResults(pcjTableName);
         assertEquals(expected, fetchedResults);
     }
@@ -205,7 +204,7 @@ public class PcjDocumentsIntegrationTest extends MongoRyaITBase {
         final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         dao.setConf(new StatefulMongoDBRdfConfiguration(conf, getMongoClient()));
         dao.init();
-        final RdfCloudTripleStore ryaStore = new RdfCloudTripleStore();
+        final RdfCloudTripleStore<StatefulMongoDBRdfConfiguration> ryaStore = new RdfCloudTripleStore<>();
         ryaStore.setRyaDAO(dao);
         ryaStore.initialize();
         final SailRepositoryConnection ryaConn = new RyaSailRepository(ryaStore).getConnection();
@@ -282,7 +281,7 @@ public class PcjDocumentsIntegrationTest extends MongoRyaITBase {
         final MongoDBRyaDAO dao = new MongoDBRyaDAO();
         dao.setConf(new StatefulMongoDBRdfConfiguration(conf, getMongoClient()));
         dao.init();
-        final RdfCloudTripleStore ryaStore = new RdfCloudTripleStore();
+        final RdfCloudTripleStore<StatefulMongoDBRdfConfiguration> ryaStore = new RdfCloudTripleStore<>();
         ryaStore.setRyaDAO(dao);
         ryaStore.initialize();
         final SailRepositoryConnection ryaConn = new RyaSailRepository(ryaStore).getConnection();

@@ -30,8 +30,8 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.RyaNamespaceManager;
@@ -41,18 +41,18 @@ import org.apache.rya.mongodb.batch.MongoDbBatchWriter;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterConfig;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterException;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterUtils;
-import org.apache.rya.mongodb.batch.collection.DbCollectionType;
+import org.apache.rya.mongodb.batch.collection.MongoCollectionType;
 import org.apache.rya.mongodb.dao.MongoDBNamespaceManager;
 import org.apache.rya.mongodb.dao.MongoDBStorageStrategy;
 import org.apache.rya.mongodb.dao.SimpleMongoDBNamespaceManager;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 import org.apache.rya.mongodb.document.util.DocumentVisibilityUtil;
+import org.bson.Document;
 
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
 import com.mongodb.DuplicateKeyException;
 import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 
 /**
  * Default DAO for mongo backed RYA allowing for CRUD operations.
@@ -64,8 +64,8 @@ public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfigurati
     private final AtomicBoolean flushEachUpdate = new AtomicBoolean(true);
     private StatefulMongoDBRdfConfiguration conf;
     private MongoClient mongoClient;
-    private DB db;
-    private DBCollection coll;
+    private MongoDatabase db;
+    private MongoCollection<Document> coll;
     private MongoDBQueryEngine queryEngine;
     private MongoDBStorageStrategy<RyaStatement> storageStrategy;
     private MongoDBNamespaceManager nameSpaceManager;
@@ -73,7 +73,7 @@ public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfigurati
     private List<MongoSecondaryIndex> secondaryIndexers;
     private Authorizations auths;
 
-    private MongoDbBatchWriter<DBObject> mongoDbBatchWriter;
+    private MongoDbBatchWriter<Document> mongoDbBatchWriter;
 
     @Override
     public synchronized void setConf(final StatefulMongoDBRdfConfiguration conf) {
@@ -82,13 +82,13 @@ public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfigurati
         auths = conf.getAuthorizations();
         flushEachUpdate.set(conf.flushEachUpdate());
     }
-  
-    
-    public void setDB(final DB db) {
+
+
+    public void setDB(final MongoDatabase db) {
         this.db = db;
     }
 
-    public void setDBCollection(final DBCollection coll) {
+    public void setDBCollection(final MongoCollection<Document> coll) {
         this.coll = coll;
     }
 
@@ -107,7 +107,7 @@ public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfigurati
             index.setConf(conf);
         }
 
-        db = mongoClient.getDB(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+        db = mongoClient.getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
         coll = db.getCollection(conf.getTriplesCollectionName());
         nameSpaceManager = new SimpleMongoDBNamespaceManager(db.getCollection(conf.getNameSpacesCollectionName()));
         queryEngine = new MongoDBQueryEngine();
@@ -119,7 +119,7 @@ public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfigurati
         }
 
         final MongoDbBatchWriterConfig mongoDbBatchWriterConfig = MongoDbBatchWriterUtils.getMongoDbBatchWriterConfig(conf);
-        mongoDbBatchWriter = new MongoDbBatchWriter<>(new DbCollectionType(coll), mongoDbBatchWriterConfig);
+        mongoDbBatchWriter = new MongoDbBatchWriter<>(new MongoCollectionType(coll), mongoDbBatchWriterConfig);
         try {
             mongoDbBatchWriter.start();
         } catch (final MongoDbBatchWriterException e) {
@@ -162,7 +162,7 @@ public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfigurati
         try {
             final boolean canAdd = DocumentVisibilityUtil.doesUserHaveDocumentAccess(auths, statement.getColumnVisibility());
             if (canAdd) {
-                final DBObject obj = storageStrategy.serialize(statement);
+                final Document obj = storageStrategy.serialize(statement);
                 try {
                     mongoDbBatchWriter.addObjectToQueue(obj);
                     if (flushEachUpdate.get()) {
@@ -188,12 +188,12 @@ public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfigurati
 
     @Override
     public void add(final Iterator<RyaStatement> statementIter) throws RyaDAOException {
-        final List<DBObject> dbInserts = new ArrayList<>();
+        final List<Document> dbInserts = new ArrayList<>();
         while (statementIter.hasNext()){
             final RyaStatement ryaStatement = statementIter.next();
             final boolean canAdd = DocumentVisibilityUtil.doesUserHaveDocumentAccess(auths, ryaStatement.getColumnVisibility());
             if (canAdd) {
-                final DBObject insert = storageStrategy.serialize(ryaStatement);
+                final Document insert = storageStrategy.serialize(ryaStatement);
                 dbInserts.add(insert);
 
                 try {
@@ -222,8 +222,8 @@ public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfigurati
             throws RyaDAOException {
         final boolean canDelete = DocumentVisibilityUtil.doesUserHaveDocumentAccess(auths, statement.getColumnVisibility());
         if (canDelete) {
-            final DBObject obj = storageStrategy.getQuery(statement);
-            coll.remove(obj);
+            final Document obj = storageStrategy.getQuery(statement);
+            coll.deleteOne(obj);
             for (final RyaSecondaryIndexer index : secondaryIndexers) {
                 try {
                     index.deleteStatement(statement);
@@ -249,7 +249,8 @@ public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfigurati
             final RyaStatement ryaStatement = statements.next();
             final boolean canDelete = DocumentVisibilityUtil.doesUserHaveDocumentAccess(auths, ryaStatement.getColumnVisibility());
             if (canDelete) {
-                coll.remove(storageStrategy.getQuery(ryaStatement));
+                final Document obj = storageStrategy.getQuery(ryaStatement);
+                coll.deleteOne(obj);
                 for (final RyaSecondaryIndexer index : secondaryIndexers) {
                     try {
                         index.deleteStatement(ryaStatement);
@@ -285,7 +286,7 @@ public final class MongoDBRyaDAO implements RyaDAO<StatefulMongoDBRdfConfigurati
 
     @Override
     public void dropAndDestroy() throws RyaDAOException {
-        db.dropDatabase(); // this is dangerous!
+        db.drop(); // this is dangerous!
     }
 
     @Override

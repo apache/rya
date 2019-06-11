@@ -75,7 +75,6 @@ public class MongoRyaDirectExample {
 
     private static final boolean USE_LUBM_QUERIES = true;
     private static final Path LUBM_FILE = Paths.get("src/main/resources/lubm-1uni-withschema.nt");
-    private static final String LUBM_PREFIX = "http://swat.cse.lehigh.edu/onto/univ-bench.owl#";
 
     //
     // Connection configuration parameters
@@ -489,7 +488,7 @@ public class MongoRyaDirectExample {
                 " _:node1atjakcvbx15123 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <urn:MotherOf> .  }}";
         update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
         update.execute();
-        ((RdfCloudTripleStore) sail).getInferenceEngine().refreshGraph();
+        ((RdfCloudTripleStore<?>) sail).getInferenceEngine().refreshGraph();
 
         resultHandler.resetCount();
         query = "select ?x { GRAPH <http://updated/test> {<urn:jenGreatGranMother> <urn:greatMother> ?x}}";
@@ -541,7 +540,7 @@ public class MongoRyaDirectExample {
                 " <urn:12344> <http://www.w3.org/2000/10/swap/list#index> (1 <urn:father>) .  }}";
         update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
         update.execute();
-        ((RdfCloudTripleStore) sail).getInferenceEngine().refreshGraph();
+        ((RdfCloudTripleStore<?>) sail).getInferenceEngine().refreshGraph();
 
         resultHandler.resetCount();
         query = "select ?p { GRAPH <http://updated/test> {<urn:paulGreatGrandfather> <urn:greatGrandfather> ?p}}";
@@ -602,7 +601,7 @@ public class MongoRyaDirectExample {
         update = conn.prepareUpdate(QueryLanguage.SPARQL, ontology);
         update.execute();
         log.info("Refreshing InferenceEngine");
-        ((RdfCloudTripleStore) sail).getInferenceEngine().refreshGraph();
+        ((RdfCloudTripleStore<?>) sail).getInferenceEngine().refreshGraph();
         log.info("Re-running Inference-dependant Query");
         resultHandler.resetCount();
         resultHandler = new CountingResultHandler();
@@ -656,7 +655,7 @@ public class MongoRyaDirectExample {
         update = conn.prepareUpdate(QueryLanguage.SPARQL, insert);
         update.execute();
         log.info("Refreshing InferenceEngine");
-        ((RdfCloudTripleStore) sail).getInferenceEngine().refreshGraph();
+        ((RdfCloudTripleStore<?>) sail).getInferenceEngine().refreshGraph();
         log.info("Re-running Inference-dependent Query");
         resultHandler.resetCount();
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, inferQuery);
@@ -706,7 +705,7 @@ public class MongoRyaDirectExample {
         update = conn.prepareUpdate(QueryLanguage.SPARQL, insert);
         update.execute();
         log.info("Refreshing InferenceEngine");
-        ((RdfCloudTripleStore) sail).getInferenceEngine().refreshGraph();
+        ((RdfCloudTripleStore<?>) sail).getInferenceEngine().refreshGraph();
         log.info("Re-running Inference-dependent Query");
         resultHandler.resetCount();
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, inferQuery);
@@ -809,7 +808,7 @@ public class MongoRyaDirectExample {
         log.info("Result count : " + resultHandler.getCount());
         Validate.isTrue(resultHandler.getCount() == 0);
         log.info("Refreshing InferenceEngine");
-        ((RdfCloudTripleStore) sail).getInferenceEngine().refreshGraph();
+        ((RdfCloudTripleStore<?>) sail).getInferenceEngine().refreshGraph();
         log.info("Re-running Inference-dependent Query");
         resultHandler.resetCount();
         resultHandler = new CountingResultHandler();
@@ -834,7 +833,7 @@ public class MongoRyaDirectExample {
         update.execute();
 
         // refresh the graph for inferencing (otherwise there is a five minute wait)
-        ((RdfCloudTripleStore) sail).getInferenceEngine().refreshGraph();
+        ((RdfCloudTripleStore<?>) sail).getInferenceEngine().refreshGraph();
 
         query = "select ?s { ?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <urn:superclass> . }";
         final CountingResultHandler resultHandler = new CountingResultHandler();

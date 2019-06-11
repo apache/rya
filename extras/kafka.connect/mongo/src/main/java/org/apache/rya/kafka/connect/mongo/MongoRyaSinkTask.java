@@ -20,7 +20,6 @@ package org.apache.rya.kafka.connect.mongo;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
@@ -43,6 +42,7 @@ import org.eclipse.rdf4j.sail.SailException;
 
 import com.google.common.base.Strings;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 
@@ -71,8 +71,10 @@ public class MongoRyaSinkTask extends RyaSinkTask {
         final ServerAddress serverAddr = new ServerAddress(config.getHostname(), config.getPort());
         final boolean hasCredentials = username != null && password != null;
 
-        try(MongoClient mongoClient = hasCredentials ?
-                new MongoClient(serverAddr, Arrays.asList(MongoCredential.createCredential(username, config.getRyaInstanceName(), password))) :
+        final MongoClientOptions options = new MongoClientOptions.Builder().build();
+
+        try(final MongoClient mongoClient = hasCredentials ?
+                new MongoClient(serverAddr, MongoCredential.createCredential(username, config.getRyaInstanceName(), password), options) :
                 new MongoClient(serverAddr)) {
             // Use a RyaClient to see if the configured instance exists.
             // Create the Mongo Connection Details that describe the Mongo DB Server we are interacting with.
@@ -116,7 +118,7 @@ public class MongoRyaSinkTask extends RyaSinkTask {
         // Create the Sail object.
         try {
             return RyaSailFactory.getInstance(ryaConfig);
-        } catch (SailException | AccumuloException | AccumuloSecurityException | RyaDAOException | InferenceEngineException e) {
+        } catch (final SailException | AccumuloException | AccumuloSecurityException | RyaDAOException | InferenceEngineException e) {
             throw new ConnectException("Could not connect to the Rya Instance named " + config.getRyaInstanceName(), e);
         }
     }

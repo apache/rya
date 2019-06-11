@@ -29,7 +29,9 @@ import com.mongodb.WriteConcern;
 
 /**
  * Provides access to the {@link DBCollection} type.
+ * @Deprecated use {@link MongoCollectionType}
  */
+@Deprecated
 public class DbCollectionType implements CollectionType<DBObject> {
     private final DBCollection collection;
 

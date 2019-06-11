@@ -37,7 +37,7 @@ import de.flapdoodle.embed.mongo.config.IMongodConfig;
 public class EmbeddedMongoSingleton {
 
     public static MongoClient getNewMongoClient() throws UnknownHostException, MongoException {
-    	final MongoClient client = InstanceHolder.SINGLETON.factory.newMongoClient();
+        final MongoClient client = InstanceHolder.SINGLETON.factory.newMongoClient();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -76,7 +76,7 @@ public class EmbeddedMongoSingleton {
         InstanceHolder() {
             log = LoggerFactory.getLogger(EmbeddedMongoSingleton.class);
             try {
-            	factory = EmbeddedMongoFactory.newFactory();
+                factory = EmbeddedMongoFactory.newFactory();
                 mongodConfig = factory.getMongoServerDetails();
             } catch (final IOException e) {
                 log.error("Unexpected error while starting mongo client", e);

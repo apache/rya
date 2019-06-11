@@ -37,7 +37,6 @@ import org.apache.rya.mongodb.document.util.AuthorizationsUtil;
 import org.bson.Document;
 
 import com.google.common.collect.Lists;
-import com.mongodb.DBObject;
 
 /**
  * Utility methods for MongoDB aggregation.
@@ -55,7 +54,7 @@ public final class AggregationUtil {
      * All other documents are excluded.
      * @param authorizations the {@link Authorization}s to include in the
      * $redact. Only documents that match the authorizations will be returned.
-     * @return the {@link List} of {@link DBObject}s that represents the $redact
+     * @return the {@link List} of {@link Document}s that represents the $redact
      * aggregation pipeline.
      */
     public static List<Document> createRedactPipeline(final Authorizations authorizations) {

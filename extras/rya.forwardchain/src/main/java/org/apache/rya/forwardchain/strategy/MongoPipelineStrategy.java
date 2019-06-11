@@ -51,8 +51,6 @@ import org.eclipse.rdf4j.query.algebra.QueryRoot;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
 import com.google.common.base.Preconditions;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -179,8 +177,7 @@ public class MongoPipelineStrategy extends AbstractRuleExecutionStrategy {
             .allowDiskUse(true)
             .batchSize(PIPELINE_BATCH_SIZE)
             .forEach((Consumer<Document>)(final Document doc) -> {
-                final DBObject dbo = BasicDBObject.parse(doc.toJson());
-                final RyaStatement rstmt = storageStrategy.deserializeDBObject(dbo);
+                final RyaStatement rstmt = storageStrategy.deserializeDocument(doc);
                 if (!statementExists(rstmt)) {
                     count.increment();
                     doc.replace(SimpleMongoDBStorageStrategy.STATEMENT_METADATA, metadata.toString());

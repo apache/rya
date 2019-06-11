@@ -57,7 +57,7 @@ import org.eclipse.rdf4j.repository.RepositoryException;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.util.JSON;
+import com.mongodb.client.MongoCursor;
 
 /**
  * Creates and modifies PCJs in MongoDB. PCJ's are stored as follows:
@@ -106,6 +106,8 @@ public class MongoPcjDocuments {
     private static final String VISIBILITIES_FIELD = "visibilities";
     private static final String PCJ_ID = "pcjId";
 
+    private static final String METADATA_ID_SUFFIX = "_METADATA";
+
     private final MongoCollection<Document> pcjCollection;
     private static final PcjVarOrderFactory pcjVarOrderFactory = new ShiftVarOrderFactory();
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
@@ -121,8 +123,8 @@ public class MongoPcjDocuments {
         pcjCollection = client.getDatabase(ryaInstanceName).getCollection(PCJ_COLLECTION_NAME);
     }
 
-    private String makeMetadataID(final String pcjId) {
-        return pcjId + "_METADATA";
+    private static String makeMetadataID(final String pcjId) {
+        return pcjId + METADATA_ID_SUFFIX;
     }
 
     /**
@@ -211,7 +213,8 @@ public class MongoPcjDocuments {
 
         final String sparql = result.getString(SPARQL_FIELD);
         final int cardinality = result.getInteger(CARDINALITY_FIELD, 0);
-        final List<List<String>> varOrders= (List<List<String>>) result.get(VAR_ORDER_FIELD);
+        @SuppressWarnings("unchecked")
+        final List<List<String>> varOrders = (List<List<String>>) result.get(VAR_ORDER_FIELD);
         final Set<VariableOrder> varOrder = new HashSet<>();
         for(final List<String> vars : varOrders) {
             varOrder.add(new VariableOrder(vars));
@@ -330,10 +333,13 @@ public class MongoPcjDocuments {
         //This Bson string reads as:
         //{} - no search criteria: find all
         //{ _id: 1 } - only return the _id, which is the PCJ Id.
-        final FindIterable<Document> rez = pcjCollection.find((Bson) JSON.parse("{ }, { " + PCJ_METADATA_ID + ": 1 , _id: 0}"));
-        final Iterator<Document> iter = rez.iterator();
-        while(iter.hasNext()) {
-            pcjIds.add(iter.next().get(PCJ_METADATA_ID).toString().replace("_METADATA", ""));
+        final FindIterable<Document> rez = pcjCollection.find(Document.parse("{ }, { " + PCJ_METADATA_ID + ": 1 , _id: 0}"));
+        try (final MongoCursor<Document> cursor = rez.iterator()) {
+            while(cursor.hasNext()) {
+                final Document doc = cursor.next();
+                final String pcjMetadataId = doc.get(PCJ_METADATA_ID).toString();
+                pcjIds.add(pcjMetadataId.replace(METADATA_ID_SUFFIX, ""));
+            }
         }
 
         return pcjIds;

@@ -34,6 +34,7 @@ import org.apache.rya.indexing.IndexingFunctionRegistry;
 import org.apache.rya.indexing.IndexingFunctionRegistry.FUNCTION_TYPE;
 import org.apache.rya.indexing.geotemporal.GeoTemporalIndexer.GeoPolicy;
 import org.apache.rya.indexing.geotemporal.GeoTemporalIndexer.TemporalPolicy;
+import org.bson.Document;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
@@ -48,12 +49,9 @@ import org.eclipse.rdf4j.query.algebra.Var;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
-
 /**
  * Tests The {@link GeoTemporalMongoDBStorageStrategy}, which turns the filters
- * into mongo {@link DBObject}s used to query.
+ * into mongo {@link Document}s used to query.
  *
  * This tests also ensures all possible filter functions are accounted for in the test.
  * @see TemporalPolicy Temporal Filter Functions
@@ -72,10 +70,10 @@ public class GeoTemporalMongoDBStorageStrategyTest {
     public void emptyFilters_test() throws Exception {
         final List<IndexingExpr> geoFilters = new ArrayList<>();
         final List<IndexingExpr> temporalFilters = new ArrayList<>();
-        final DBObject actual = adapter.getFilterQuery(geoFilters, temporalFilters);
+        final Document actual = adapter.getFilterQuery(geoFilters, temporalFilters);
         final String expectedString =
                 "{ }";
-        final DBObject expected = (DBObject) JSON.parse(expectedString);
+        final Document expected = Document.parse(expectedString);
         assertEqualMongo(expected, actual);
     }
 
@@ -100,7 +98,7 @@ public class GeoTemporalMongoDBStorageStrategyTest {
             geoFilters.add(expr);
         }
         final List<IndexingExpr> temporalFilters = new ArrayList<>();
-        final DBObject actual = adapter.getFilterQuery(geoFilters, temporalFilters);
+        final Document actual = adapter.getFilterQuery(geoFilters, temporalFilters);
         final String expectedString =
             "{ "
             + "\"location\" : { "
@@ -112,7 +110,7 @@ public class GeoTemporalMongoDBStorageStrategyTest {
               + "}"
             + "}"
           + "}";
-        final DBObject expected = (DBObject) JSON.parse(expectedString);
+        final Document expected = Document.parse(expectedString);
         assertEqualMongo(expected, actual);
     }
 
@@ -143,7 +141,7 @@ public class GeoTemporalMongoDBStorageStrategyTest {
                   geoFilters.add(expr);
               }
               final List<IndexingExpr> temporalFilters = new ArrayList<>();
-              final DBObject actual = adapter.getFilterQuery(geoFilters, temporalFilters);
+              final Document actual = adapter.getFilterQuery(geoFilters, temporalFilters);
 
               final String expectedString =
                   "{ "
@@ -162,7 +160,7 @@ public class GeoTemporalMongoDBStorageStrategyTest {
                     + "}"
                   + "}"
                 + "}]}";
-              final DBObject expected = (DBObject) JSON.parse(expectedString);
+              final Document expected = Document.parse(expectedString);
               assertEqualMongo(expected, actual);
     }
 
@@ -187,14 +185,14 @@ public class GeoTemporalMongoDBStorageStrategyTest {
             final IndexingExpr expr = new IndexingExpr(VF.createIRI(filter.getURI()), sps.get(0), Arrays.stream(arguments).toArray());
             temporalFilters.add(expr);
         }
-        final DBObject actual = adapter.getFilterQuery(geoFilters, temporalFilters);
+        final Document actual = adapter.getFilterQuery(geoFilters, temporalFilters);
         final String expectedString =
         "{ "
         + "\"instant\" : {"
           + "\"$date\" : \"2015-12-30T12:00:00.000Z\""
         + "}"
       + "}";
-        final DBObject expected = (DBObject) JSON.parse(expectedString);
+        final Document expected = Document.parse(expectedString);
         assertEqualMongo(expected, actual);
     }
 
@@ -219,7 +217,7 @@ public class GeoTemporalMongoDBStorageStrategyTest {
                   final IndexingExpr expr = new IndexingExpr(VF.createIRI(filter.getURI()), sps.get(0), Arrays.stream(arguments).toArray());
                   temporalFilters.add(expr);
               }
-              final DBObject actual = adapter.getFilterQuery(geoFilters, temporalFilters);
+              final Document actual = adapter.getFilterQuery(geoFilters, temporalFilters);
               final String expectedString =
               "{ "
               + "\"$and\" : [{"
@@ -238,7 +236,7 @@ public class GeoTemporalMongoDBStorageStrategyTest {
                 + "}"
               + "}]"
             + "}";
-              final DBObject expected = (DBObject) JSON.parse(expectedString);
+              final Document expected = Document.parse(expectedString);
               assertEqualMongo(expected, actual);
     }
 
@@ -271,7 +269,7 @@ public class GeoTemporalMongoDBStorageStrategyTest {
                       temporalFilters.add(expr);
                   }
               }
-              final DBObject actual = adapter.getFilterQuery(geoFilters, temporalFilters);
+              final Document actual = adapter.getFilterQuery(geoFilters, temporalFilters);
               final String expectedString =
               "{ "
               + "\"$and\" : [ { "
@@ -291,7 +289,7 @@ public class GeoTemporalMongoDBStorageStrategyTest {
                 + "}"
               + "}]"
             + "}";
-              final DBObject expected = (DBObject) JSON.parse(expectedString);
+              final Document expected = Document.parse(expectedString);
               assertEqualMongo(expected, actual);
     }
 
@@ -326,7 +324,7 @@ public class GeoTemporalMongoDBStorageStrategyTest {
                       temporalFilters.add(expr);
                   }
               }
-              final DBObject actual = adapter.getFilterQuery(geoFilters, temporalFilters);
+              final Document actual = adapter.getFilterQuery(geoFilters, temporalFilters);
               final String expectedString =
                   "{ "
                   + "\"$and\" : [ { "
@@ -359,7 +357,7 @@ public class GeoTemporalMongoDBStorageStrategyTest {
                    + "}]"
                  + "}]"
                + "}";
-              final DBObject expected = (DBObject) JSON.parse(expectedString);
+              final Document expected = Document.parse(expectedString);
               assertEqualMongo(expected, actual);
     }
 
@@ -393,7 +391,7 @@ public class GeoTemporalMongoDBStorageStrategyTest {
                 temporalFilters.add(expr);
              }
         }
-        final DBObject actual = adapter.getFilterQuery(geoFilters, temporalFilters);
+        final Document actual = adapter.getFilterQuery(geoFilters, temporalFilters);
         final String expectedString =
             "{ "
             + "\"$and\" : [ { "
@@ -415,7 +413,7 @@ public class GeoTemporalMongoDBStorageStrategyTest {
               + "}]"
             + "}]"
           + "}";
-        final DBObject expected = (DBObject) JSON.parse(expectedString);
+        final Document expected = Document.parse(expectedString);
         assertEqualMongo(expected, actual);
     }
 
@@ -431,7 +429,7 @@ public class GeoTemporalMongoDBStorageStrategyTest {
         Statement statement = VF.createStatement(subject, predicate, object, context);
         RyaStatement ryaStatement = RdfToRyaConversions.convertStatement(statement);
         int expectedId = ryaStatement.getSubject().hashCode();
-        DBObject actual = adapter.serialize(ryaStatement);
+        Document actual = adapter.serialize(ryaStatement);
         String expectedString =
             "{ "
             + "\"_id\" : " + expectedId + ", "
@@ -440,7 +438,7 @@ public class GeoTemporalMongoDBStorageStrategyTest {
               + "\"type\" : \"Point\""
             + "}"
           + "}";
-        DBObject expected = (DBObject) JSON.parse(expectedString);
+        Document expected = Document.parse(expectedString);
         assertEqualMongo(expected, actual);
 
         //TIME INSTANT
@@ -459,7 +457,7 @@ public class GeoTemporalMongoDBStorageStrategyTest {
                     + "}"
                 + "}"
               + "}";
-        expected = (DBObject) JSON.parse(expectedString);
+        expected = Document.parse(expectedString);
         assertEqualMongo(expected, actual);
 
         //TIME INTERVAL
@@ -481,7 +479,7 @@ public class GeoTemporalMongoDBStorageStrategyTest {
                   + "}"
               + "}"
             + "}";
-        expected = (DBObject) JSON.parse(expectedString);
+        expected = Document.parse(expectedString);
         assertEqualMongo(expected, actual);
     }
 

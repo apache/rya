@@ -59,8 +59,6 @@ import org.junit.Test;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
 
 public class PipelineQueryIT extends MongoRyaITBase {
 
@@ -89,9 +87,9 @@ public class PipelineQueryIT extends MongoRyaITBase {
         builder.setObject(RdfToRyaConversions.convertValue(object));
         final RyaStatement rstmt = builder.build();
         if (derivationLevel > 0) {
-            final DBObject obj = new SimpleMongoDBStorageStrategy().serialize(builder.build());
+            final Document obj = new SimpleMongoDBStorageStrategy().serialize(builder.build());
             obj.put("derivation_level", derivationLevel);
-            getRyaDbCollection().insert(obj);
+            getRyaCollection().insertOne(obj);
         }
         else {
             dao.add(rstmt);
@@ -336,8 +334,7 @@ public class PipelineQueryIT extends MongoRyaITBase {
         final SimpleMongoDBStorageStrategy strategy = new SimpleMongoDBStorageStrategy();
         final List<Statement> results = new LinkedList<>();
         for (final Document doc : getRyaCollection().aggregate(triplePipeline)) {
-            final DBObject dbo = (DBObject) JSON.parse(doc.toJson());
-            final RyaStatement rstmt = strategy.deserializeDBObject(dbo);
+            final RyaStatement rstmt = strategy.deserializeDocument(doc);
             final Statement stmt = RyaToRdfConversions.convertStatement(rstmt);
             results.add(stmt);
         }

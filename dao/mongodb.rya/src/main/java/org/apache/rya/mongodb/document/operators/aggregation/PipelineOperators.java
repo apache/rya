@@ -18,13 +18,9 @@
  */
 package org.apache.rya.mongodb.document.operators.aggregation;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.rya.mongodb.document.operators.query.ConditionalOperators.cond;
 
 import org.bson.Document;
-
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
 
 /**
  * Utility methods for pipeline operators.
@@ -85,7 +81,7 @@ public final class PipelineOperators {
      * the expression passes.
      * @param rejectResult the {@link RedactAggregationResult} to return when
      * the expression fails.
-     * @return the $redact expression {@link BasicDBObjectBuilder}.
+     * @return the $redact expression {@link Document}.
      */
     public static Document redact(final Document expression, final RedactAggregationResult acceptResult, final RedactAggregationResult rejectResult) {
         return new Document("$redact", cond(expression, acceptResult.toString(), rejectResult.toString()));

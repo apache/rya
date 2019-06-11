@@ -75,7 +75,7 @@ public class MongoDBRyaDAO2IT extends MongoRyaITBase {
 
             dao.add(builder.build());
 
-            assertEquals(coll.count(),1);
+            assertEquals(coll.countDocuments(), 1);
         }  finally {
             dao.destroy();
         }
@@ -98,10 +98,10 @@ public class MongoDBRyaDAO2IT extends MongoRyaITBase {
             final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
 
             dao.add(statement);
-            assertEquals(coll.count(),1);
+            assertEquals(coll.countDocuments(), 1);
 
             dao.delete(statement, conf);
-            assertEquals(coll.count(),0);
+            assertEquals(coll.countDocuments(), 0);
         } finally {
             dao.destroy();
         }
@@ -125,7 +125,7 @@ public class MongoDBRyaDAO2IT extends MongoRyaITBase {
             final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
 
             dao.add(statement);
-            assertEquals(coll.count(),1);
+            assertEquals(coll.countDocuments(), 1);
 
             final RyaStatementBuilder builder2 = new RyaStatementBuilder();
             builder2.setPredicate(new RyaIRI("http://temp.com"));
@@ -134,7 +134,7 @@ public class MongoDBRyaDAO2IT extends MongoRyaITBase {
             final RyaStatement query = builder2.build();
 
             dao.delete(query, conf);
-            assertEquals(coll.count(),1);
+            assertEquals(coll.countDocuments(), 1);
         } finally {
             dao.destroy();
         }
@@ -158,11 +158,11 @@ public class MongoDBRyaDAO2IT extends MongoRyaITBase {
 
             dao.add(builder.build());
 
-            assertEquals(coll.count(), 1);
+            assertEquals(coll.countDocuments(), 1);
 
-            final Document dbo = coll.find().first();
-            assertTrue(dbo.containsKey(DOCUMENT_VISIBILITY));
-            assertTrue(dbo.containsKey(TIMESTAMP));
+            final Document doc = coll.find().first();
+            assertTrue(doc.containsKey(DOCUMENT_VISIBILITY));
+            assertTrue(doc.containsKey(TIMESTAMP));
         }  finally {
             dao.destroy();
         }
@@ -191,11 +191,11 @@ public class MongoDBRyaDAO2IT extends MongoRyaITBase {
 
             dao.add(builder.build());
 
-            assertEquals(coll.count(), 1);
+            assertEquals(coll.countDocuments(), 1);
 
-            final Document dbo = coll.find().first();
-            assertTrue(dbo.containsKey(DOCUMENT_VISIBILITY));
-            assertTrue(dbo.containsKey(TIMESTAMP));
+            final Document doc = coll.find().first();
+            assertTrue(doc.containsKey(DOCUMENT_VISIBILITY));
+            assertTrue(doc.containsKey(TIMESTAMP));
         }  finally {
             dao.destroy();
         }

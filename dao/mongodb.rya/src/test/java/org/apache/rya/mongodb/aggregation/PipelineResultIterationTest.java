@@ -18,9 +18,14 @@
  */
 package org.apache.rya.mongodb.aggregation;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.bson.Document;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -29,7 +34,6 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.eclipse.rdf4j.query.impl.ListBindingSet;
-import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -43,32 +47,32 @@ public class PipelineResultIterationTest {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @SuppressWarnings("unchecked")
-    private AggregateIterable<Document> documentIterator(Document ... documents) {
-        Iterator<Document> docIter = Arrays.asList(documents).iterator();
-        MongoCursor<Document> cursor = Mockito.mock(MongoCursor.class);
+    private AggregateIterable<Document> documentIterator(final Document ... documents) {
+        final Iterator<Document> docIter = Arrays.asList(documents).iterator();
+        final MongoCursor<Document> cursor = Mockito.mock(MongoCursor.class);
         Mockito.when(cursor.hasNext()).thenAnswer(new Answer<Boolean>() {
             @Override
-            public Boolean answer(InvocationOnMock invocation) throws Throwable {
+            public Boolean answer(final InvocationOnMock invocation) throws Throwable {
                 return docIter.hasNext();
             }
         });
         Mockito.when(cursor.next()).thenAnswer(new Answer<Document>() {
             @Override
-            public Document answer(InvocationOnMock invocation) throws Throwable {
+            public Document answer(final InvocationOnMock invocation) throws Throwable {
                 return docIter.next();
             }
         });
-        AggregateIterable<Document> aggIter = Mockito.mock(AggregateIterable.class);
+        final AggregateIterable<Document> aggIter = Mockito.mock(AggregateIterable.class);
         Mockito.when(aggIter.iterator()).thenReturn(cursor);
         return aggIter;
     }
 
     @Test
     public void testIteration() throws QueryEvaluationException {
-        HashMap<String, String> nameMap = new HashMap<>();
+        final Map<String, String> nameMap = new HashMap<>();
         nameMap.put("bName", "b");
         nameMap.put("eName", "e");
-        PipelineResultIteration iter = new PipelineResultIteration(
+        try (final PipelineResultIteration iter = new PipelineResultIteration(
                 documentIterator(
                         new Document("<VALUES>", new Document("a", "urn:Alice").append("b", "urn:Bob")),
                         new Document("<VALUES>", new Document("a", "urn:Alice").append("b", "urn:Beth")),
@@ -77,42 +81,44 @@ public class PipelineResultIterationTest {
                         new Document("<VALUES>", new Document("cName", "urn:Carol").append("d", "urn:Dan"))),
                 nameMap,
                 new QueryBindingSet());
-        Assert.assertTrue(iter.hasNext());
-        BindingSet bs = iter.next();
-        Assert.assertEquals(Sets.newHashSet("a", "b"), bs.getBindingNames());
-        Assert.assertEquals("urn:Alice", bs.getBinding("a").getValue().stringValue());
-        Assert.assertEquals("urn:Bob", bs.getBinding("b").getValue().stringValue());
-        Assert.assertTrue(iter.hasNext());
-        bs = iter.next();
-        Assert.assertEquals(Sets.newHashSet("a", "b"), bs.getBindingNames());
-        Assert.assertEquals("urn:Alice", bs.getBinding("a").getValue().stringValue());
-        Assert.assertEquals("urn:Beth", bs.getBinding("b").getValue().stringValue());
-        Assert.assertTrue(iter.hasNext());
-        bs = iter.next();
-        Assert.assertEquals(Sets.newHashSet("a", "b"), bs.getBindingNames());
-        Assert.assertEquals("urn:Alice", bs.getBinding("a").getValue().stringValue());
-        Assert.assertEquals("urn:Bob", bs.getBinding("b").getValue().stringValue());
-        Assert.assertTrue(iter.hasNext());
-        bs = iter.next();
-        Assert.assertEquals(Sets.newHashSet("a", "c"), bs.getBindingNames());
-        Assert.assertEquals("urn:Alice", bs.getBinding("a").getValue().stringValue());
-        Assert.assertEquals("urn:Carol", bs.getBinding("c").getValue().stringValue());
-        bs = iter.next();
-        Assert.assertEquals(Sets.newHashSet("cName", "d"), bs.getBindingNames());
-        Assert.assertEquals("urn:Carol", bs.getBinding("cName").getValue().stringValue());
-        Assert.assertEquals("urn:Dan", bs.getBinding("d").getValue().stringValue());
-        Assert.assertFalse(iter.hasNext());
+        ) {
+            assertTrue(iter.hasNext());
+            BindingSet bs = iter.next();
+            assertEquals(Sets.newHashSet("a", "b"), bs.getBindingNames());
+            assertEquals("urn:Alice", bs.getBinding("a").getValue().stringValue());
+            assertEquals("urn:Bob", bs.getBinding("b").getValue().stringValue());
+            assertTrue(iter.hasNext());
+            bs = iter.next();
+            assertEquals(Sets.newHashSet("a", "b"), bs.getBindingNames());
+            assertEquals("urn:Alice", bs.getBinding("a").getValue().stringValue());
+            assertEquals("urn:Beth", bs.getBinding("b").getValue().stringValue());
+            assertTrue(iter.hasNext());
+            bs = iter.next();
+            assertEquals(Sets.newHashSet("a", "b"), bs.getBindingNames());
+            assertEquals("urn:Alice", bs.getBinding("a").getValue().stringValue());
+            assertEquals("urn:Bob", bs.getBinding("b").getValue().stringValue());
+            assertTrue(iter.hasNext());
+            bs = iter.next();
+            assertEquals(Sets.newHashSet("a", "c"), bs.getBindingNames());
+            assertEquals("urn:Alice", bs.getBinding("a").getValue().stringValue());
+            assertEquals("urn:Carol", bs.getBinding("c").getValue().stringValue());
+            bs = iter.next();
+            assertEquals(Sets.newHashSet("cName", "d"), bs.getBindingNames());
+            assertEquals("urn:Carol", bs.getBinding("cName").getValue().stringValue());
+            assertEquals("urn:Dan", bs.getBinding("d").getValue().stringValue());
+            assertFalse(iter.hasNext());
+        }
     }
 
     @Test
     public void testIterationGivenBindingSet() throws QueryEvaluationException {
-        BindingSet solution = new ListBindingSet(Arrays.asList("b", "c"),
+        final BindingSet solution = new ListBindingSet(Arrays.asList("b", "c"),
                 VF.createIRI("urn:Bob"), VF.createIRI("urn:Charlie"));
-        HashMap<String, String> nameMap = new HashMap<>();
+        final Map<String, String> nameMap = new HashMap<>();
         nameMap.put("bName", "b");
         nameMap.put("cName", "c");
         nameMap.put("c", "cName");
-        PipelineResultIteration iter = new PipelineResultIteration(
+        try (final PipelineResultIteration iter = new PipelineResultIteration(
                 documentIterator(
                         new Document("<VALUES>", new Document("a", "urn:Alice").append("b", "urn:Bob")),
                         new Document("<VALUES>", new Document("a", "urn:Alice").append("b", "urn:Beth")),
@@ -122,31 +128,33 @@ public class PipelineResultIterationTest {
                         new Document("<VALUES>", new Document("c", "urn:Carol").append("d", "urn:Dan"))),
                 nameMap,
                 solution);
-        Assert.assertTrue(iter.hasNext());
-        BindingSet bs = iter.next();
-        // Add 'c=Charlie' to first result ('b=Bob' matches)
-        Assert.assertEquals(Sets.newHashSet("a", "b", "c"), bs.getBindingNames());
-        Assert.assertEquals("urn:Alice", bs.getBinding("a").getValue().stringValue());
-        Assert.assertEquals("urn:Bob", bs.getBinding("b").getValue().stringValue());
-        Assert.assertEquals("urn:Charlie", bs.getBinding("c").getValue().stringValue());
-        Assert.assertTrue(iter.hasNext());
-        bs = iter.next();
-        // Skip second result ('b=Beth' incompatible with 'b=Bob')
-        // Add 'c=Charlie' to third result ('bName=Bob' resolves to 'b=Bob', matches)
-        Assert.assertEquals(Sets.newHashSet("a", "b", "c"), bs.getBindingNames());
-        Assert.assertEquals("urn:Alice", bs.getBinding("a").getValue().stringValue());
-        Assert.assertEquals("urn:Bob", bs.getBinding("b").getValue().stringValue());
-        Assert.assertEquals("urn:Charlie", bs.getBinding("c").getValue().stringValue());
-        Assert.assertTrue(iter.hasNext());
-        bs = iter.next();
-        // Skip fourth result ('bName=Beth' resolves to 'b=Beth', incompatible)
-        // Skip fifth result ('cName=Carol' resolves to 'c=Carol', incompatible with 'c=Charlie')
-        // Add 'b=Bob' and 'c=Charlie' to sixth result ('c=Carol' resolves to 'cName=Carol', compatible)
-        Assert.assertEquals(Sets.newHashSet("b", "c", "cName", "d"), bs.getBindingNames());
-        Assert.assertEquals("urn:Bob", bs.getBinding("b").getValue().stringValue());
-        Assert.assertEquals("urn:Charlie", bs.getBinding("c").getValue().stringValue());
-        Assert.assertEquals("urn:Carol", bs.getBinding("cName").getValue().stringValue());
-        Assert.assertEquals("urn:Dan", bs.getBinding("d").getValue().stringValue());
-        Assert.assertFalse(iter.hasNext());
+        ) {
+            assertTrue(iter.hasNext());
+            BindingSet bs = iter.next();
+            // Add 'c=Charlie' to first result ('b=Bob' matches)
+            assertEquals(Sets.newHashSet("a", "b", "c"), bs.getBindingNames());
+            assertEquals("urn:Alice", bs.getBinding("a").getValue().stringValue());
+            assertEquals("urn:Bob", bs.getBinding("b").getValue().stringValue());
+            assertEquals("urn:Charlie", bs.getBinding("c").getValue().stringValue());
+            assertTrue(iter.hasNext());
+            bs = iter.next();
+            // Skip second result ('b=Beth' incompatible with 'b=Bob')
+            // Add 'c=Charlie' to third result ('bName=Bob' resolves to 'b=Bob', matches)
+            assertEquals(Sets.newHashSet("a", "b", "c"), bs.getBindingNames());
+            assertEquals("urn:Alice", bs.getBinding("a").getValue().stringValue());
+            assertEquals("urn:Bob", bs.getBinding("b").getValue().stringValue());
+            assertEquals("urn:Charlie", bs.getBinding("c").getValue().stringValue());
+            assertTrue(iter.hasNext());
+            bs = iter.next();
+            // Skip fourth result ('bName=Beth' resolves to 'b=Beth', incompatible)
+            // Skip fifth result ('cName=Carol' resolves to 'c=Carol', incompatible with 'c=Charlie')
+            // Add 'b=Bob' and 'c=Charlie' to sixth result ('c=Carol' resolves to 'cName=Carol', compatible)
+            assertEquals(Sets.newHashSet("b", "c", "cName", "d"), bs.getBindingNames());
+            assertEquals("urn:Bob", bs.getBinding("b").getValue().stringValue());
+            assertEquals("urn:Charlie", bs.getBinding("c").getValue().stringValue());
+            assertEquals("urn:Carol", bs.getBinding("cName").getValue().stringValue());
+            assertEquals("urn:Dan", bs.getBinding("d").getValue().stringValue());
+            assertFalse(iter.hasNext());
+        }
     }
 }

@@ -25,19 +25,18 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.TemporalInterval;
 import org.apache.rya.indexing.mongodb.IndexingMongoDBStorageStrategy;
+import org.bson.Document;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
+import com.mongodb.client.MongoCollection;
 
 /**
  * Defines how time based intervals/instants are stored in MongoDB.
  * <p>
  * Time can be stored as the following:
- * <p>l
+ * <ul>
  * <li><b>instant</b> {[statement], instant: TIME}</li>
  * <li><b>interval</b> {[statement], start: TIME, end: TIME}</li>
+ * </ul>
  * @see {@link TemporalInstantRfc3339} for how the dates are formatted.
  */
 public class TemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
@@ -46,32 +45,30 @@ public class TemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStrate
     public static final String INSTANT = "instant";
 
     @Override
-    public void createIndices(final DBCollection coll){
-        coll.createIndex(INTERVAL_START);
-        coll.createIndex(INTERVAL_END);
-        coll.createIndex(INSTANT);
+    public void createIndices(final MongoCollection<Document> coll){
+        coll.createIndex(new Document(INTERVAL_START, 1));
+        coll.createIndex(new Document(INTERVAL_END, 1));
+        coll.createIndex(new Document(INSTANT, 1));
     }
 
     @Override
-    public DBObject serialize(final RyaStatement ryaStatement) {
-        final BasicDBObject base = (BasicDBObject) super.serialize(ryaStatement);
-        final DBObject time = getTimeValue(ryaStatement.getObject().getData());
-        base.putAll(time.toMap());
+    public Document serialize(final RyaStatement ryaStatement) {
+        final Document base = super.serialize(ryaStatement);
+        final Document time = getTimeValue(ryaStatement.getObject().getData());
+        time.forEach((k, v) -> base.put(k, v));
         return base;
     }
 
-    public DBObject getTimeValue(final String timeData) {
+    public Document getTimeValue(final String timeData) {
         final Matcher match = TemporalInstantRfc3339.PATTERN.matcher(timeData);
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
+        final Document doc = new Document();
         if(match.find()) {
             final TemporalInterval date = TemporalInstantRfc3339.parseInterval(timeData);
-            builder.add(INTERVAL_START, date.getHasBeginning().getAsDateTime().toDate());
-            builder.add(INTERVAL_END, date.getHasEnd().getAsDateTime().toDate());
+            doc.append(INTERVAL_START, date.getHasBeginning().getAsDateTime().toDate());
+            doc.append(INTERVAL_END, date.getHasEnd().getAsDateTime().toDate());
         } else {
-            builder.add(INSTANT, TemporalInstantRfc3339.FORMATTER.parseDateTime(timeData).toDate());
+            doc.append(INSTANT, TemporalInstantRfc3339.FORMATTER.parseDateTime(timeData).toDate());
         }
-        return builder.get();
+        return doc;
     }
-
-
 }

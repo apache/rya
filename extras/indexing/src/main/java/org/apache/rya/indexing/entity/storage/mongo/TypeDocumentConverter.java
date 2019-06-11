@@ -72,7 +72,7 @@ public class TypeDocumentConverter implements DocumentConverter<Type> {
         final RyaIRI typeId = new RyaIRI( document.getString(ID) );
 
         final ImmutableSet.Builder<RyaIRI> propertyNames = ImmutableSet.builder();
-        ((List<String>) document.get(PROPERTY_NAMES))
+        document.getList(PROPERTY_NAMES, String.class)
             .forEach(propertyName -> propertyNames.add(new RyaIRI(propertyName)));
 
         return new Type(typeId, propertyNames.build());

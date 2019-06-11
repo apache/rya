@@ -23,8 +23,8 @@ import static java.util.Objects.requireNonNull;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.storage.mongo.key.MongoDbSafeKey;
@@ -114,7 +114,8 @@ public class EntityDocumentConverter implements DocumentConverter<Entity> {
         final Entity.Builder builder = Entity.builder()
                 .setSubject( new RyaIRI(document.getString(SUBJECT)) );
 
-        ((List<String>)document.get(EXPLICIT_TYPE_IDS)).stream()
+        final List<String> explicitTypeIds = document.getList(EXPLICIT_TYPE_IDS, String.class);
+        explicitTypeIds.stream()
             .forEach(explicitTypeId -> builder.setExplicitType(new RyaIRI(explicitTypeId)));
 
         final Document propertiesDoc = (Document) document.get(PROPERTIES);

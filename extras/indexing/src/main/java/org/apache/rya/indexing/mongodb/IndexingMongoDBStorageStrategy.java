@@ -21,34 +21,33 @@ package org.apache.rya.indexing.mongodb;
 
 import java.util.Set;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import com.mongodb.QueryBuilder;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
+import org.apache.rya.mongodb.document.operators.query.QueryBuilder;
+import org.bson.Document;
 import org.eclipse.rdf4j.model.IRI;
 
 public class IndexingMongoDBStorageStrategy extends SimpleMongoDBStorageStrategy {
-    public DBObject getQuery(final StatementConstraints contraints) {
+    public Document getQuery(final StatementConstraints contraints) {
         final QueryBuilder queryBuilder = QueryBuilder.start();
         if (contraints.hasSubject()){
-            queryBuilder.and(new BasicDBObject(SUBJECT, contraints.getSubject().toString()));
+            queryBuilder.and(new Document(SUBJECT, contraints.getSubject().toString()));
         }
 
         if (contraints.hasPredicates()){
             final Set<IRI> predicates = contraints.getPredicates();
             if (predicates.size() > 1){
                 for (final IRI pred : predicates){
-                    final DBObject currentPred = new BasicDBObject(PREDICATE, pred.toString());
+                    final Document currentPred = new Document(PREDICATE, pred.toString());
                     queryBuilder.or(currentPred);
                 }
             }
             else if (!predicates.isEmpty()){
-                queryBuilder.and(new BasicDBObject(PREDICATE, predicates.iterator().next().toString()));
+                queryBuilder.and(new Document(PREDICATE, predicates.iterator().next().toString()));
             }
         }
         if (contraints.hasContext()){
-            queryBuilder.and(new BasicDBObject(CONTEXT, contraints.getContext().toString()));
+            queryBuilder.and(new Document(CONTEXT, contraints.getContext().toString()));
         }
         return queryBuilder.get();
     }

@@ -20,7 +20,6 @@ package org.apache.rya.indexing;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -54,6 +53,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
@@ -170,7 +170,8 @@ public class GeoRyaSailFactory {
         final String password = mongoConf.getMongoPassword();
         if(username != null && password != null) {
             final MongoCredential cred = MongoCredential.createCredential(username, database, password.toCharArray());
-            return new MongoClient(server, Arrays.asList(cred));
+            final MongoClientOptions options = new MongoClientOptions.Builder().build();
+            return new MongoClient(server, cred, options);
         } else {
             return new MongoClient(server);
         }

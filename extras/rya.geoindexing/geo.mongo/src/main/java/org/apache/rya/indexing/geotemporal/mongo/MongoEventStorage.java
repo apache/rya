@@ -40,8 +40,6 @@ import org.bson.BsonString;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
 import com.mongodb.ErrorCategory;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
@@ -125,21 +123,20 @@ public class MongoEventStorage implements EventStorage {
         try {
             final Collection<IndexingExpr> geos = (geoFilters.isPresent() ? geoFilters.get() : new ArrayList<>());
             final Collection<IndexingExpr> tempos = (temporalFilters.isPresent() ? temporalFilters.get() : new ArrayList<>());
-            final DBObject filterObj = queryAdapter.getFilterQuery(geos, tempos);
+            final Document filterObj = queryAdapter.getFilterQuery(geos, tempos);
 
-            final BasicDBObjectBuilder builder = BasicDBObjectBuilder
-            .start(filterObj.toMap());
             if(subject.isPresent()) {
-                builder.append(EventDocumentConverter.SUBJECT, subject.get().getData());
+                filterObj.append(EventDocumentConverter.SUBJECT, subject.get().getData());
             }
-            final MongoCursor<Document> results = mongo.getDatabase(ryaInstanceName)
-                .getCollection(COLLECTION_NAME)
-                .find( BsonDocument.parse(builder.get().toString()) )
-                .iterator();
-
             final List<Event> events = new ArrayList<>();
-            while(results.hasNext()) {
-                events.add(EVENT_CONVERTER.fromDocument(results.next()));
+            try (final MongoCursor<Document> results = mongo.getDatabase(ryaInstanceName)
+                .getCollection(COLLECTION_NAME)
+                .find(filterObj)
+                .iterator())
+            {
+                while(results.hasNext()) {
+                    events.add(EVENT_CONVERTER.fromDocument(results.next()));
+                }
             }
             return events;
         } catch(final MongoException | DocumentConverterException | GeoTemporalIndexException e) {

@@ -420,7 +420,6 @@ public class PcjIntegrationTestingUtil {
     //****************************Creation and Population of PcjTables Mongo ***********************************
 
     public static void deleteCoreRyaTables(final MongoClient client, final String instance, final String collName) {
-        final boolean bool = client.isLocked();
         client.getDatabase(instance).getCollection(collName).drop();
     }
 

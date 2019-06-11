@@ -38,7 +38,7 @@ public class MongoITBase {
         // Remove any DBs that were created by previous tests.
         for(final String dbName : mongoClient.listDatabaseNames()) {
             if (!MongoUtils.ADMIN_DATABASE_NAME.equals(dbName)) {
-                mongoClient.dropDatabase(dbName);
+                mongoClient.getDatabase(dbName).drop();
             }
         }
 

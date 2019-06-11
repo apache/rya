@@ -20,7 +20,6 @@ package org.apache.rya.sail.config;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -53,6 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
@@ -147,7 +147,8 @@ public class RyaSailFactory {
         final String password = mongoConf.getMongoPassword();
         if(username != null && password != null) {
             final MongoCredential cred = MongoCredential.createCredential(username, database, password.toCharArray());
-            return new MongoClient(server, Arrays.asList(cred));
+            final MongoClientOptions options = new MongoClientOptions.Builder().build();
+            return new MongoClient(server, cred, options);
         } else {
             return new MongoClient(server);
         }
@@ -221,7 +222,7 @@ public class RyaSailFactory {
      * @return - MongoDBRyaDAO with Indexers configured according to user's specification
      * @throws RyaDAOException if the DAO can't be initialized
      */
-    public static MongoDBRyaDAO getMongoDAO(MongoDBRdfConfiguration mongoConfig) throws RyaDAOException {
+    public static MongoDBRyaDAO getMongoDAO(final MongoDBRdfConfiguration mongoConfig) throws RyaDAOException {
             // Create the MongoClient that will be used by the Sail object's components.
             final MongoClient client = createMongoClient(mongoConfig);
 

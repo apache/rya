@@ -77,8 +77,8 @@ public class MongoDBQueryEngine implements RyaQueryEngine<StatefulMongoDBRdfConf
         checkNotNull(stmt);
         checkNotNull(conf);
 
-        Entry<RyaStatement, BindingSet> entry = new AbstractMap.SimpleEntry<>(stmt, new MapBindingSet());
-        Collection<Entry<RyaStatement, BindingSet>> collection = Collections.singleton(entry);
+        final Entry<RyaStatement, BindingSet> entry = new AbstractMap.SimpleEntry<>(stmt, new MapBindingSet());
+        final Collection<Entry<RyaStatement, BindingSet>> collection = Collections.singleton(entry);
 
         return new RyaStatementCursorIterator(queryWithBindingSet(collection, conf));
     }
@@ -142,7 +142,8 @@ public class MongoDBQueryEngine implements RyaQueryEngine<StatefulMongoDBRdfConf
             queries.put(stmt, new MapBindingSet());
         }
 
-        Iterator<RyaStatement> iterator = new RyaStatementCursorIterator(queryWithBindingSet(queries.entrySet(), getConf()));
+        @SuppressWarnings("resource")
+        final Iterator<RyaStatement> iterator = new RyaStatementCursorIterator(queryWithBindingSet(queries.entrySet(), getConf()));
         return CloseableIterables.wrap(() -> iterator);
     }
 

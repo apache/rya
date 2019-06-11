@@ -25,13 +25,15 @@ import static java.util.Objects.requireNonNull;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetailsRepository;
 import org.apache.rya.mongodb.instance.MongoDetailsAdapter.MalformedRyaDetailsException;
+import org.bson.Document;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
-import com.mongodb.WriteResult;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.CreateCollectionOptions;
+import com.mongodb.client.model.InsertOneOptions;
+import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.result.UpdateResult;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -44,7 +46,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 public class MongoRyaInstanceDetailsRepository implements RyaDetailsRepository {
     public static final String INSTANCE_DETAILS_COLLECTION_NAME = "instance_details";
 
-    private final DB db;
+    private final MongoDatabase db;
     private final String instanceName;
 
     /**
@@ -57,13 +59,13 @@ public class MongoRyaInstanceDetailsRepository implements RyaDetailsRepository {
         checkNotNull(client);
         this.instanceName = requireNonNull( instanceName );
         // the rya instance is the Mongo db name. This ignores any collection-prefix.
-        db = client.getDB(this.instanceName);
+        db = client.getDatabase(this.instanceName);
     }
 
     @Override
     public boolean isInitialized() throws RyaDetailsRepositoryException {
-        final DBCollection col = db.getCollection(INSTANCE_DETAILS_COLLECTION_NAME);
-        return col.count() == 1;
+        final MongoCollection<Document> col = db.getCollection(INSTANCE_DETAILS_COLLECTION_NAME);
+        return col.countDocuments() == 1;
     }
 
     @Override
@@ -83,10 +85,11 @@ public class MongoRyaInstanceDetailsRepository implements RyaDetailsRepository {
         }
 
         // Create the document that hosts the details if it has not been created yet.
-        final DBCollection col = db.createCollection(INSTANCE_DETAILS_COLLECTION_NAME, new BasicDBObject());
+        db.createCollection(INSTANCE_DETAILS_COLLECTION_NAME, new CreateCollectionOptions());
+        final MongoCollection<Document> col = db.getCollection(INSTANCE_DETAILS_COLLECTION_NAME);
 
         // Write the details to the collection.
-        col.insert(MongoDetailsAdapter.toDBObject(details));
+        col.insertOne(MongoDetailsAdapter.toDocument(details), new InsertOneOptions());
     }
 
     @Override
@@ -98,9 +101,9 @@ public class MongoRyaInstanceDetailsRepository implements RyaDetailsRepository {
         }
 
         // Fetch the value from the collection.
-        final DBCollection col = db.getCollection(INSTANCE_DETAILS_COLLECTION_NAME);
+        final MongoCollection<Document> col = db.getCollection(INSTANCE_DETAILS_COLLECTION_NAME);
         //There should only be one document in the collection.
-        final DBObject mongoObj = col.findOne();
+        final Document mongoObj = col.find().first();
 
         try{
             // Deserialize it.
@@ -132,13 +135,13 @@ public class MongoRyaInstanceDetailsRepository implements RyaDetailsRepository {
             return;
         }
 
-        final DBCollection col = db.getCollection(INSTANCE_DETAILS_COLLECTION_NAME);
-        final DBObject oldObj = MongoDetailsAdapter.toDBObject(oldDetails);
-        final DBObject newObj = MongoDetailsAdapter.toDBObject(newDetails);
-        final WriteResult result = col.update(oldObj, newObj);
+        final MongoCollection<Document> col = db.getCollection(INSTANCE_DETAILS_COLLECTION_NAME);
+        final Document oldObj = MongoDetailsAdapter.toDocument(oldDetails);
+        final Document newObj = MongoDetailsAdapter.toDocument(newDetails);
+        final UpdateResult result = col.replaceOne(oldObj, newObj, new ReplaceOptions());
 
         //since there is only 1 document, there should only be 1 update.
-        if(result.getN() != 1) {
+        if(result.getModifiedCount() != 1) {
             throw new ConcurrentUpdateException("Could not update the details for the Rya instance named '" +
                 instanceName + "' because the old value is out of date.");
         }

@@ -28,7 +28,6 @@ import java.io.IOException;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.shell.SharedShellState.ConnectionState;
 import org.apache.rya.shell.SharedShellState.ShellState;
-import org.apache.rya.shell.util.ConsolePrinter;
 import org.apache.rya.shell.util.InstallPrompt;
 import org.apache.rya.shell.util.PasswordPrompt;
 import org.junit.Test;
@@ -193,26 +192,4 @@ public class MongoRyaShellIT extends RyaShellMongoITBase {
 
     // TODO the rest of them?
 
-    private static final ConsolePrinter systemPrinter = new ConsolePrinter() {
-
-        @Override
-        public void print(final CharSequence cs) throws IOException {
-            System.out.print(cs);
-        }
-
-        @Override
-        public void println(final CharSequence cs) throws IOException {
-            System.out.println(cs);
-        }
-
-        @Override
-        public void println() throws IOException {
-            System.out.println();
-        }
-
-        @Override
-        public void flush() throws IOException {
-            System.out.flush();
-        }
-    };
 }

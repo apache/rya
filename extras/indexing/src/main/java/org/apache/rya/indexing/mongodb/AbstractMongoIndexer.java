@@ -26,8 +26,8 @@ import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
-import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
@@ -38,19 +38,20 @@ import org.apache.rya.mongodb.batch.MongoDbBatchWriter;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterConfig;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterException;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterUtils;
-import org.apache.rya.mongodb.batch.collection.DbCollectionType;
+import org.apache.rya.mongodb.batch.collection.MongoCollectionType;
+import org.apache.rya.mongodb.document.operators.query.QueryBuilder;
+import org.bson.Document;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 
-import com.mongodb.DB;
 import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
-import com.mongodb.QueryBuilder;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
 
 /**
  * Secondary Indexer using MondoDB
@@ -59,31 +60,30 @@ import com.mongodb.QueryBuilder;
 public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrategy> implements MongoSecondaryIndex {
     private static final Logger LOG = Logger.getLogger(AbstractMongoIndexer.class);
 
-    private boolean isInit = false;
     private boolean flushEachUpdate = true;
     protected StatefulMongoDBRdfConfiguration conf;
     protected MongoDBRyaDAO dao;
     protected MongoClient mongoClient;
     protected String dbName;
-    protected DB db;
-    protected DBCollection collection;
+    protected MongoDatabase db;
+    protected MongoCollection<Document> collection;
     protected Set<IRI> predicates;
 
     protected T storageStrategy;
 
-    private MongoDbBatchWriter<DBObject> mongoDbBatchWriter;
+    private MongoDbBatchWriter<Document> mongoDbBatchWriter;
 
     protected void initCore() {
         dbName = conf.getMongoDBName();
         this.mongoClient = conf.getMongoClient();
-        db = this.mongoClient.getDB(dbName);
+        db = this.mongoClient.getDatabase(dbName);
         final String collectionName = conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + getCollectionName();
         collection = db.getCollection(collectionName);
 
         flushEachUpdate = ((MongoDBRdfConfiguration)conf).flushEachUpdate();
 
         final MongoDbBatchWriterConfig mongoDbBatchWriterConfig = MongoDbBatchWriterUtils.getMongoDbBatchWriterConfig(conf);
-        mongoDbBatchWriter = new MongoDbBatchWriter<>(new DbCollectionType(collection), mongoDbBatchWriterConfig);
+        mongoDbBatchWriter = new MongoDbBatchWriter<>(new MongoCollectionType(collection), mongoDbBatchWriterConfig);
         try {
             mongoDbBatchWriter.start();
         } catch (final MongoDbBatchWriterException e) {
@@ -134,8 +134,8 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     @Override
     public void deleteStatement(final RyaStatement stmt) throws IOException {
-        final DBObject obj = storageStrategy.getQuery(stmt);
-        collection.remove(obj);
+        final Document obj = storageStrategy.getQuery(stmt);
+        collection.deleteOne(obj);
     }
 
     @Override
@@ -155,7 +155,7 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     }
 
     private void storeStatement(final RyaStatement ryaStatement, final boolean flush) throws IOException {
-        final DBObject obj = prepareStatementForStorage(ryaStatement);
+        final Document obj = prepareStatementForStorage(ryaStatement);
         try {
             mongoDbBatchWriter.addObjectToQueue(obj);
             if (flush) {
@@ -166,12 +166,12 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
         }
     }
 
-    private DBObject prepareStatementForStorage(final RyaStatement ryaStatement) {
+    private Document prepareStatementForStorage(final RyaStatement ryaStatement) {
         try {
             final Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
             final boolean isValidPredicate = predicates.isEmpty() || predicates.contains(statement.getPredicate());
             if (isValidPredicate && (statement.getObject() instanceof Literal)) {
-                final DBObject obj = storageStrategy.serialize(ryaStatement);
+                final Document obj = storageStrategy.serialize(ryaStatement);
                 return obj;
             }
         } catch (final IllegalArgumentException e) {
@@ -186,13 +186,13 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
         throw new UnsupportedOperationException();
     }
 
-    protected CloseableIteration<Statement, QueryEvaluationException> withConstraints(final StatementConstraints constraints, final DBObject preConstraints) {
-        final DBObject dbo = QueryBuilder.start().and(preConstraints).and(storageStrategy.getQuery(constraints)).get();
-        return closableIterationFromCursor(dbo);
+    protected CloseableIteration<Statement, QueryEvaluationException> withConstraints(final StatementConstraints constraints, final Document preConstraints) {
+        final Document doc = QueryBuilder.start().and(preConstraints).and(storageStrategy.getQuery(constraints)).get();
+        return closableIterationFromCursor(doc);
     }
 
-    private CloseableIteration<Statement, QueryEvaluationException> closableIterationFromCursor(final DBObject dbo) {
-        final DBCursor cursor = collection.find(dbo);
+    private CloseableIteration<Statement, QueryEvaluationException> closableIterationFromCursor(final Document doc) {
+        final MongoCursor<Document> cursor = collection.find(doc).iterator();
         return new CloseableIteration<Statement, QueryEvaluationException>() {
             @Override
             public boolean hasNext() {
@@ -201,8 +201,8 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
             @Override
             public Statement next() throws QueryEvaluationException {
-                final DBObject dbo = cursor.next();
-                return RyaToRdfConversions.convertStatement(storageStrategy.deserializeDBObject(dbo));
+                final Document doc = cursor.next();
+                return RyaToRdfConversions.convertStatement(storageStrategy.deserializeDocument(doc));
             }
 
             @Override

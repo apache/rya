@@ -25,16 +25,15 @@ import org.apache.rya.indexing.FreeTextIndexer;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
+import org.apache.rya.mongodb.document.operators.query.QueryBuilder;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 
-import com.mongodb.QueryBuilder;
-
 public class MongoFreeTextIndexer extends AbstractMongoIndexer<TextMongoDBStorageStrategy> implements FreeTextIndexer {
     private static final String COLLECTION_SUFFIX = "freetext";
     private static final Logger logger = Logger.getLogger(MongoFreeTextIndexer.class);
-    
+
     @Override
     public void init() {
         initCore();
@@ -55,6 +54,6 @@ public class MongoFreeTextIndexer extends AbstractMongoIndexer<TextMongoDBStorag
 
     @Override
     public String getCollectionName() {
-    	return ConfigUtils.getTablePrefix(conf)  + COLLECTION_SUFFIX;
+        return ConfigUtils.getTablePrefix(conf) + COLLECTION_SUFFIX;
     }
 }

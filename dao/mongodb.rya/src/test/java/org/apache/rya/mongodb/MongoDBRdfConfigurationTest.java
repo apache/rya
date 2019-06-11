@@ -42,7 +42,7 @@ public class MongoDBRdfConfigurationTest {
         final boolean useInference = true;
         final boolean displayPlan = false;
 
-        final MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration().getBuilder()
+        final MongoDBRdfConfiguration conf = MongoDBRdfConfiguration.getBuilder()
                 .setVisibilities(visibility)
                 .setUseInference(useInference)
                 .setDisplayQueryPlan(displayPlan)

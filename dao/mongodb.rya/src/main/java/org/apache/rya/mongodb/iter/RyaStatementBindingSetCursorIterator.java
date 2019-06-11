@@ -41,8 +41,6 @@ import org.eclipse.rdf4j.query.BindingSet;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Multimap;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Aggregates;
@@ -105,8 +103,7 @@ public class RyaStatementBindingSetCursorIterator implements CloseableIteration<
         if (currentBatchQueryResultCursorIsValid()) {
             // convert to Rya Statement
             final Document queryResult = batchQueryResultsIterator.next();
-            final DBObject dbo = BasicDBObject.parse(queryResult.toJson());
-            currentResultStatement = strategy.deserializeDBObject(dbo);
+            currentResultStatement = strategy.deserializeDocument(queryResult);
 
             // Find all of the queries in the executed RangeMap that this result matches
             // and collect all of those binding sets
@@ -146,9 +143,8 @@ public class RyaStatementBindingSetCursorIterator implements CloseableIteration<
             count++;
             final RyaStatement query = queryIterator.next();
             executedRangeMap.putAll(query, rangeMap.get(query));
-            final DBObject currentQuery = strategy.getQuery(query);
-            final Document doc = Document.parse(currentQuery.toString());
-            matches.add(doc);
+            final Document currentQuery = strategy.getQuery(query);
+            matches.add(currentQuery);
         }
 
         final int numMatches = matches.size();

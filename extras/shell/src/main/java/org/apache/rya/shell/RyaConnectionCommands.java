@@ -43,6 +43,7 @@ import org.apache.rya.shell.util.ConnectorFactory;
 import org.apache.rya.shell.util.PasswordPrompt;
 import org.apache.rya.streams.api.RyaStreamsClient;
 import org.apache.rya.streams.kafka.KafkaRyaStreamsClientFactory;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
@@ -205,10 +206,15 @@ public class RyaConnectionCommands implements CommandMarker {
             });
 
             try {
-                //attempt to get the connection point, essentially pinging mongo server.
-                adminClient.getConnectPoint();
+                // Pinging mongo server.
+                final Document ping = new Document("ping", 1);
+                final Document result = adminClient.getDatabase(adminClient.listDatabaseNames().first()).runCommand(ping);
+                final Document ok = new Document("ok", 1.0);
+                if (!result.equals(ok)) {
+                    adminClient.close();
+                }
             } catch(final MongoException e) {
-            	//had to rethrow to get scope on adminClient.
+                //had to rethrow to get scope on adminClient.
                 adminClient.close();
                 throw e;
             }

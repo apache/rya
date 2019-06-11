@@ -31,16 +31,12 @@ import org.bson.Document;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
+import com.mongodb.client.MongoCollection;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
 
 public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
     private static final Logger LOG = Logger.getLogger(GeoMongoDBStorageStrategy.class);
@@ -115,11 +111,11 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
     }
 
     @Override
-    public void createIndices(final DBCollection coll){
-        coll.createIndex(new BasicDBObject(GEO, "2dsphere"));
+    public void createIndices(final MongoCollection<Document> coll){
+        coll.createIndex(new Document(GEO, "2dsphere"));
     }
 
-    public DBObject getQuery(final GeoQuery queryObj) throws MalformedQueryException {
+    public Document getQuery(final GeoQuery queryObj) throws MalformedQueryException {
         final Geometry geo = queryObj.getGeo();
         final GeoQueryType queryType = queryObj.getQueryType();
         if (queryType == GeoQueryType.WITHIN && !(geo instanceof Polygon)) {
@@ -130,19 +126,19 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
             throw new MalformedQueryException("Mongo near operations can only be performed on Points.");
         }
 
-        BasicDBObject query;
+        Document query;
         if (queryType.equals(GeoQueryType.EQUALS)){
             if(geo.getNumPoints() == 1) {
-                final List circle = new ArrayList();
+                final List<Object> circle = new ArrayList<>();
                 circle.add(getPoint(geo));
                 circle.add(maxDistance);
-                final BasicDBObject polygon = new BasicDBObject("$centerSphere", circle);
-                query = new BasicDBObject(GEO,  new BasicDBObject(GeoQueryType.WITHIN.getKeyword(), polygon));
+                final Document polygon = new Document("$centerSphere", circle);
+                query = new Document(GEO, new Document(GeoQueryType.WITHIN.getKeyword(), polygon));
             } else {
-                query = new BasicDBObject(GEO, getCorrespondingPoints(geo));
+                query = new Document(GEO, getCorrespondingPoints(geo));
             }
         } else if(queryType.equals(GeoQueryType.NEAR)) {
-            final BasicDBObject geoDoc = new BasicDBObject("$geometry", getDBPoint(geo));
+            final Document geoDoc = new Document("$geometry", getDBPoint(geo));
             if(queryObj.getMaxDistance() != 0) {
                 geoDoc.append("$maxDistance", queryObj.getMaxDistance());
             }
@@ -150,27 +146,27 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
             if(queryObj.getMinDistance() != 0) {
                 geoDoc.append("$minDistance", queryObj.getMinDistance());
             }
-            query = new BasicDBObject(GEO, new BasicDBObject(queryType.getKeyword(), geoDoc));
+            query = new Document(GEO, new Document(queryType.getKeyword(), geoDoc));
         } else {
-            final BasicDBObject geoDoc = new BasicDBObject("$geometry", getCorrespondingPoints(geo));
-            query = new BasicDBObject(GEO, new BasicDBObject(queryType.getKeyword(), geoDoc));
+            final Document geoDoc = new Document("$geometry", getCorrespondingPoints(geo));
+            query = new Document(GEO, new Document(queryType.getKeyword(), geoDoc));
         }
 
         return query;
     }
 
     @Override
-    public DBObject serialize(final RyaStatement ryaStatement) {
+    public Document serialize(final RyaStatement ryaStatement) {
         // if the object is wkt, then try to index it
         // write the statement data to the fields
         try {
             final Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
-            final Geometry geo = (new WKTReader()).read(GeoParseUtils.getWellKnownText(statement));
+            final Geometry geo = GeoParseUtils.getGeometry(statement, new GmlParser());
             if(geo == null) {
                 LOG.error("Failed to parse geo statement: " + statement.toString());
                 return null;
             }
-            final BasicDBObject base = (BasicDBObject) super.serialize(ryaStatement);
+            final Document base = super.serialize(ryaStatement);
             if (geo.getNumPoints() > 1) {
                 base.append(GEO, getCorrespondingPoints(geo));
             } else {

@@ -59,7 +59,7 @@ public final class DocumentVisibilityUtil {
      * expression.
      * @throws DocumentVisibilityConversionException
      */
-    public static Object[] toMultidimensionalArray(final String booleanString) throws DocumentVisibilityConversionException {
+    public static List<Object> toMultidimensionalArray(final String booleanString) throws DocumentVisibilityConversionException {
         final DocumentVisibility dv = new DocumentVisibility(booleanString);
         return toMultidimensionalArray(dv);
     }
@@ -72,17 +72,17 @@ public final class DocumentVisibilityUtil {
      * expression.
      * @throws DocumentVisibilityConversionException
      */
-    public static Object[] toMultidimensionalArray(final DocumentVisibility dv) throws DocumentVisibilityConversionException {
+    public static List<Object> toMultidimensionalArray(final DocumentVisibility dv) throws DocumentVisibilityConversionException {
         checkNotNull(dv);
         final byte[] expression = dv.flatten();
         final DocumentVisibility flattenedDv = DisjunctiveNormalFormConverter.createDnfDocumentVisibility(expression);
-        final Object[] result = toMultidimensionalArray(flattenedDv.getParseTree(), flattenedDv.getExpression());
+        final List<Object> result = toMultidimensionalArray(flattenedDv.getParseTree(), flattenedDv.getExpression());
         // If there's only one group then make sure it's wrapped as an array.
         // (i.e. "A" should be ["A"])
-        if (result.length > 0 && result[0] instanceof String) {
-            final List<Object[]> formattedResult = new ArrayList<>();
+        if (!result.isEmpty() && result.get(0) instanceof String) {
+            final List<Object> formattedResult = new ArrayList<>();
             formattedResult.add(result);
-            return formattedResult.toArray(new Object[0]);
+            return formattedResult;
         }
         return result;
     }
@@ -96,7 +96,7 @@ public final class DocumentVisibilityUtil {
      * expression.
      * @throws DocumentVisibilityConversionException
      */
-    public static Object[] toMultidimensionalArray(final Node node, final byte[] expression) throws DocumentVisibilityConversionException {
+    public static List<Object> toMultidimensionalArray(final Node node, final byte[] expression) throws DocumentVisibilityConversionException {
         checkNotNull(node);
         final List<Object> array = new ArrayList<>();
 
@@ -117,7 +117,7 @@ public final class DocumentVisibilityUtil {
                         data = "";
                     }
                     if (node.getType() == NodeType.OR) {
-                        array.add(Lists.newArrayList(data).toArray(new Object[0]));
+                        array.add(Lists.newArrayList(data));
                     } else {
                         array.add(data);
                     }
@@ -131,7 +131,7 @@ public final class DocumentVisibilityUtil {
             }
         }
 
-        return array.toArray(new Object[0]);
+        return array;
     }
 
     public static String nodeToBooleanString(final Node node, final byte[] expression) throws DocumentVisibilityConversionException {
@@ -218,6 +218,14 @@ public final class DocumentVisibilityUtil {
                 final Object[] obj = (Object[]) child;
                 sb.append("(");
                 sb.append(multidimensionalArrayToBooleanStringInternal(obj));
+                sb.append(")");
+            } else if (child instanceof List) {
+                if (count > 0 && isAnd) {
+                    sb.append("&");
+                }
+                final List<Object> obj = (List<Object>) child;
+                sb.append("(");
+                sb.append(multidimensionalArrayToBooleanStringInternal(obj.toArray()));
                 sb.append(")");
             }
 
@@ -316,16 +324,15 @@ public final class DocumentVisibilityUtil {
      * @param basicDbList the {@link BasicDBList} to convert.
      * @return the array of {@link Object}s.
      */
-    public static Object[] convertBasicDBListToObjectArray(final BasicDBList basicDbList) {
+    public static List<Object> convertObjectArrayToList(final Object[] array) {
         final List<Object> list = new ArrayList<>();
-        final Object[] array = basicDbList.toArray();
         for (final Object child : array) {
-            if (child instanceof BasicDBList) {
-                list.add(convertBasicDBListToObjectArray((BasicDBList)child));
+            if (child instanceof Object[]) {
+                list.add(convertObjectArrayToList((Object[])child));
             } else {
                 list.add(child);
             }
         }
-        return list.toArray(new Object[0]);
+        return list;
     }
 }

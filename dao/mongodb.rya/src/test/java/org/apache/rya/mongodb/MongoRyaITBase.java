@@ -24,7 +24,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.test.mongo.MongoITBase;
 import org.bson.Document;
 
-import com.mongodb.DBCollection;
 import com.mongodb.client.MongoCollection;
 
 /**
@@ -69,12 +68,5 @@ public class MongoRyaITBase extends MongoITBase {
      */
     public MongoCollection<Document> getRyaCollection() {
         return getMongoClient().getDatabase(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName());
-    }
-
-    /**
-     * @return The Rya triples {@link DBCollection}.
-     */
-    public DBCollection getRyaDbCollection() {
-        return getMongoClient().getDB(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName());
     }
 }

@@ -1,8 +1,3 @@
-package org.apache.rya.mongodb.dao;
-
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,25 +16,25 @@ import com.mongodb.DBObject;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.mongodb.dao;
 
-
-import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.query.RyaQuery;
+import org.bson.Document;
+
+import com.mongodb.client.MongoCollection;
 
 /**
  * Defines how objects are stored in MongoDB.
  * <T> - The object to store in MongoDB
  */
 public interface MongoDBStorageStrategy<T> {
+    public Document getQuery(T statement);
 
-	public DBObject getQuery(T statement);
+    public T deserializeDocument(Document queryResult);
 
-	public RyaStatement deserializeDBObject(DBObject queryResult);
+    public Document serialize(T statement);
 
-	public DBObject serialize(T statement);
+    public Document getQuery(RyaQuery ryaQuery);
 
-	public DBObject getQuery(RyaQuery ryaQuery);
-
-	public void createIndices(DBCollection coll);
-
+    public void createIndices(MongoCollection<Document> coll);
 }

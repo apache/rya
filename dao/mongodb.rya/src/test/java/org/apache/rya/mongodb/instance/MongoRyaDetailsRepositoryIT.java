@@ -48,7 +48,7 @@ import com.google.common.base.Optional;
 import com.mongodb.MongoClient;
 
 /**
- * Tests the methods of {@link AccumuloRyaDetailsRepository} by using a {@link MiniAccumuloCluster}.
+ * Tests the methods of {@link MongoRyaDetailsRepository} by using a mock {@link MongoClient}.
  */
 public class MongoRyaDetailsRepositoryIT extends MongoITBase {
     private MongoClient client;
@@ -138,7 +138,7 @@ public class MongoRyaDetailsRepositoryIT extends MongoITBase {
 
     @Test(expected = NotInitializedException.class)
     public void getRyaInstance_notInitialized() throws NotInitializedException, RyaDetailsRepositoryException {
-        // Setup the repository that will be tested using a mock instance of Accumulo.
+        // Setup the repository that will be tested using a mock instance of MongoDB.
         final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(client, "testInstance");
 
         // Try to fetch the details from the uninitialized repository.

@@ -76,21 +76,22 @@ public class MongoLoadStatementsIT extends MongoRyaITBase {
 
         // Fetch the statements that have been stored in Mongo DB.
         final Set<Statement> stmtResults = new HashSet<>();
-        final MongoCursor<Document> triplesIterator = getMongoClient()
+        try (final MongoCursor<Document> triplesIterator = getMongoClient()
                 .getDatabase( conf.getRyaInstanceName() )
                 .getCollection( conf.getTriplesCollectionName() )
                 .find().iterator();
+        ) {
+            while (triplesIterator.hasNext()) {
+                final Document triple = triplesIterator.next();
+                stmtResults.add(VF.createStatement(
+                        VF.createIRI(triple.getString("subject")),
+                        VF.createIRI(triple.getString("predicate")),
+                        VF.createIRI(triple.getString("object"))));
+            }
 
-        while (triplesIterator.hasNext()) {
-            final Document triple = triplesIterator.next();
-            stmtResults.add(VF.createStatement(
-                    VF.createIRI(triple.getString("subject")),
-                    VF.createIRI(triple.getString("predicate")),
-                    VF.createIRI(triple.getString("object"))));
+            // Show the discovered statements match the original statements.
+            assertEquals(statements, stmtResults);
         }
-
-        // Show the discovered statements match the original statements.
-        assertEquals(statements, stmtResults);
     }
 
     public Set<Statement> makeTestStatements() {

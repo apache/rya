@@ -72,13 +72,15 @@ public class GeoFilterIT {
         int count = 0;
         final Collection<Function> funcs = FunctionRegistry.getInstance().getAll();
         for (final Function fun : funcs) {
-            if (fun.getURI().startsWith(GEO)) {
+            final String uri = fun.getURI();
+            if (uri.startsWith(GEO)) {
                 count++;
+                System.out.println(String.format("Geo Registered Function #%02d: %s", count, uri));
             }
         }
 
-        // There are 30 geo functions registered, ensure that there are 30.
-        assertEquals(30, count);
+        // There are 35 geo functions registered, ensure that there are 35.
+        assertEquals(35, count);
     }
 
     @Test

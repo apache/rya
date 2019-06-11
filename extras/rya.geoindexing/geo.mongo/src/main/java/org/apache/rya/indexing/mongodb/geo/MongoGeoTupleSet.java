@@ -44,6 +44,7 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
 public class MongoGeoTupleSet extends ExternalTupleSet {
+    private static final long serialVersionUID = 1L;
 
     private Configuration conf;
     private GeoIndexer geoIndexer;

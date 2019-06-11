@@ -80,19 +80,21 @@ public class MongoLoadStatementsFileIT extends MongoRyaITBase {
         expected.add(vf.createStatement(vf.createIRI("http://example#charlie"), vf.createIRI("http://example#likes"), vf.createIRI("http://example#icecream")));
 
         final Set<Statement> statements = new HashSet<>();
-        final MongoCursor<Document> triplesIterator = getMongoClient()
+        try (final MongoCursor<Document> triplesIterator = getMongoClient()
                 .getDatabase( conf.getRyaInstanceName() )
                 .getCollection( conf.getTriplesCollectionName() )
                 .find().iterator();
-        while (triplesIterator.hasNext()) {
-            final Document triple = triplesIterator.next();
-            statements.add(vf.createStatement(
-                    vf.createIRI(triple.getString("subject")),
-                    vf.createIRI(triple.getString("predicate")),
-                    vf.createIRI(triple.getString("object"))));
-        }
+        ) {
+            while (triplesIterator.hasNext()) {
+                final Document triple = triplesIterator.next();
+                statements.add(vf.createStatement(
+                        vf.createIRI(triple.getString("subject")),
+                        vf.createIRI(triple.getString("predicate")),
+                        vf.createIRI(triple.getString("object"))));
+            }
 
-        assertEquals(expected, statements);
+            assertEquals(expected, statements);
+        }
     }
 
     private MongoConnectionDetails getConnectionDetails() {

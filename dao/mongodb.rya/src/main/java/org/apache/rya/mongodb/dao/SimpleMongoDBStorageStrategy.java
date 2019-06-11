@@ -23,7 +23,6 @@ import static org.eclipse.rdf4j.model.vocabulary.XMLSchema.ANYURI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Map;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -37,12 +36,11 @@ import org.apache.rya.api.utils.LiteralLanguageUtils;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibility;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibilityAdapter;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibilityAdapter.MalformedDocumentVisibilityException;
+import org.bson.Document;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
+import com.mongodb.client.MongoCollection;
 
 /**
  * Defines how {@link RyaStatement}s are stored in MongoDB.
@@ -77,20 +75,20 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
     protected SimpleValueFactory factory = SimpleValueFactory.getInstance();
 
     @Override
-    public void createIndices(final DBCollection coll){
-        BasicDBObject doc = new BasicDBObject();
+    public void createIndices(final MongoCollection<Document> coll){
+        Document doc = new Document();
         doc.put(SUBJECT_HASH, 1);
         doc.put(PREDICATE_HASH, 1);
         doc.put(OBJECT_HASH, 1);
         doc.put(OBJECT_TYPE, 1);
         doc.put(OBJECT_LANGUAGE, 1);
         coll.createIndex(doc);
-        doc = new BasicDBObject(PREDICATE_HASH, 1);
+        doc = new Document(PREDICATE_HASH, 1);
         doc.put(OBJECT_HASH, 1);
         doc.put(OBJECT_TYPE, 1);
         doc.put(OBJECT_LANGUAGE, 1);
         coll.createIndex(doc);
-        doc = new BasicDBObject(OBJECT_HASH, 1);
+        doc = new Document(OBJECT_HASH, 1);
         doc.put(OBJECT_TYPE, 1);
         doc.put(OBJECT_LANGUAGE, 1);
         doc.put(SUBJECT_HASH, 1);
@@ -98,12 +96,12 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
     }
 
     @Override
-    public DBObject getQuery(final RyaStatement stmt) {
+    public Document getQuery(final RyaStatement stmt) {
         final RyaIRI subject = stmt.getSubject();
         final RyaIRI predicate = stmt.getPredicate();
         final RyaType object = stmt.getObject();
         final RyaIRI context = stmt.getContext();
-        final BasicDBObject query = new BasicDBObject();
+        final Document query = new Document();
         if (subject != null){
             query.append(SUBJECT_HASH, hash(subject.getData()));
         }
@@ -122,22 +120,21 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
     }
 
     @Override
-    public RyaStatement deserializeDBObject(final DBObject queryResult) {
-        final Map<?, ?> result = queryResult.toMap();
-        final String subject = (String) result.get(SUBJECT);
-        final String object = (String) result.get(OBJECT);
-        final String objectType = (String) result.get(OBJECT_TYPE);
-        final String objectLanguage = (String) result.get(OBJECT_LANGUAGE);
-        final String predicate = (String) result.get(PREDICATE);
-        final String context = (String) result.get(CONTEXT);
+    public RyaStatement deserializeDocument(final Document queryResult) {
+        final String subject = (String) queryResult.get(SUBJECT);
+        final String object = (String) queryResult.get(OBJECT);
+        final String objectType = (String) queryResult.get(OBJECT_TYPE);
+        final String objectLanguage = (String) queryResult.get(OBJECT_LANGUAGE);
+        final String predicate = (String) queryResult.get(PREDICATE);
+        final String context = (String) queryResult.get(CONTEXT);
         DocumentVisibility documentVisibility = null;
         try {
             documentVisibility = DocumentVisibilityAdapter.toDocumentVisibility(queryResult);
         } catch (final MalformedDocumentVisibilityException e) {
             throw new RuntimeException("Unable to convert document visibility", e);
         }
-        final Long timestamp = (Long) result.get(TIMESTAMP);
-        final String statementMetadata = (String) result.get(STATEMENT_METADATA);
+        final Long timestamp = (Long) queryResult.get(TIMESTAMP);
+        final String statementMetadata = (String) queryResult.get(STATEMENT_METADATA);
         RyaType objectRya = null;
         final String validatedLanguage = LiteralLanguageUtils.validateLanguage(objectLanguage, factory.createIRI(objectType));
         if (objectType.equalsIgnoreCase(ANYURI.stringValue())){
@@ -173,11 +170,11 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
     }
 
     @Override
-    public DBObject serialize(final RyaStatement statement){
+    public Document serialize(final RyaStatement statement){
         return serializeInternal(statement);
     }
 
-    public BasicDBObject serializeInternal(final RyaStatement statement){
+    public Document serializeInternal(final RyaStatement statement){
         String context = "";
         if (statement.getContext() != null){
             context = statement.getContext().getData();
@@ -195,8 +192,8 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         if (statement.getMetadata() == null){
             statement.setStatementMetadata(StatementMetadata.EMPTY_METADATA);
         }
-        final BasicDBObject dvObject = DocumentVisibilityAdapter.toDBObject(statement.getColumnVisibility());
-        final BasicDBObject doc = new BasicDBObject(ID, new String(Hex.encodeHex(bytes)))
+        final Document dvObject = DocumentVisibilityAdapter.toDocument(statement.getColumnVisibility());
+        final Document doc = new Document(ID, new String(Hex.encodeHex(bytes)))
         .append(SUBJECT, statement.getSubject().getData())
         .append(SUBJECT_HASH, hash(statement.getSubject().getData()))
         .append(PREDICATE, statement.getPredicate().getData())
@@ -213,7 +210,7 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
     }
 
     @Override
-    public DBObject getQuery(final RyaQuery ryaQuery) {
+    public Document getQuery(final RyaQuery ryaQuery) {
         return getQuery(ryaQuery.getQuery());
     }
 }

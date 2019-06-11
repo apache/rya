@@ -33,12 +33,11 @@ import org.apache.rya.export.api.store.FetchStatementException;
 import org.apache.rya.export.api.store.RyaStatementStore;
 import org.apache.rya.export.mongo.MongoRyaStatementStore;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
+import org.bson.Document;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.Cursor;
-import com.mongodb.DB;
-import com.mongodb.DBObject;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
 
 /**
  * A {@link RyaStatementStore} decorated to connect to a Mongo database and
@@ -46,7 +45,7 @@ import com.mongodb.DBObject;
  */
 public class TimestampPolicyMongoRyaStatementStore extends TimestampPolicyStatementStore {
     private final SimpleMongoDBStorageStrategy adapter;
-    private final DB db;
+    private final MongoDatabase db;
 
     /**
      * Creates a new {@link TimestampPolicyMongoRyaStatementStore}
@@ -57,21 +56,23 @@ public class TimestampPolicyMongoRyaStatementStore extends TimestampPolicyStatem
     public TimestampPolicyMongoRyaStatementStore(final MongoRyaStatementStore store, final Date timestamp, final String ryaInstanceName) {
         super(store, timestamp);
         adapter = new SimpleMongoDBStorageStrategy();
-        db = store.getClient().getDB(ryaInstanceName);
+        db = store.getClient().getDatabase(ryaInstanceName);
     }
 
     @Override
     public Iterator<RyaStatement> fetchStatements() throws FetchStatementException {
-        final DBObject timeObj = new BasicDBObjectBuilder()
-            .add(SimpleMongoDBStorageStrategy.TIMESTAMP,
-                new BasicDBObjectBuilder()
-                    .add("$gte", timestamp.getTime()).get())
-            .get();
-        final Cursor cur = db.getCollection(TRIPLES_COLLECTION).find(timeObj).sort(new BasicDBObject(TIMESTAMP, 1));
+        final Document timeObj = new Document()
+            .append(SimpleMongoDBStorageStrategy.TIMESTAMP,
+                new Document()
+                    .append("$gte", timestamp.getTime()));
+        final Document sortObj = new Document(TIMESTAMP, 1);
+        final MongoCollection<Document> coll = db.getCollection(TRIPLES_COLLECTION);
         final List<RyaStatement> statements = new ArrayList<>();
-        while(cur.hasNext()) {
-            final RyaStatement statement = adapter.deserializeDBObject(cur.next());
-            statements.add(statement);
+        try (final MongoCursor<Document> cur = coll.find(timeObj).sort(sortObj).iterator()) {
+            while(cur.hasNext()) {
+                final RyaStatement statement = adapter.deserializeDocument(cur.next());
+                statements.add(statement);
+            }
         }
         return statements.iterator();
     }

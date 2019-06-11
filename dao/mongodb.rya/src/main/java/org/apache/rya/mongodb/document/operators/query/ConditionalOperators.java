@@ -22,9 +22,6 @@ import java.util.Arrays;
 
 import org.bson.Document;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
-
 /**
  * Utility methods for conditional operators.
  */
@@ -37,12 +34,12 @@ public final class ConditionalOperators {
 
     /**
      * Creates an "if-then-else" MongoDB expression.
-     * @param ifStatement the "if" statement {@link BasicDBObject}.
+     * @param ifStatement the "if" statement {@link Document}.
      * @param thenResult the {@link Object} to return when the
      * {@code ifStatement} is {@code true}.
      * @param elseResult the {@link Object} to return when the
      * {@code ifStatement} is {@code false}.
-     * @return the "if" expression {@link BasicDBObjectBuilder}.
+     * @return the "if" expression {@link Document}.
      */
     public static Document ifThenElse(final Document ifStatement, final Object thenResult, final Object elseResult) {
         return new Document("if", ifStatement)
@@ -55,7 +52,7 @@ public final class ConditionalOperators {
      * @param expression the expression to {@code null} check.
      * @param replacementExpression the expression to replace it with if it's
      * {@code null}.
-     * @return the $ifNull expression {@link BasicDBObjectBuilder}.
+     * @return the $ifNull expression {@link Document}.
      */
     public static Document ifNull(final Object expression, final Object replacementExpression) {
         return new Document("$ifNull", Arrays.asList(expression, replacementExpression));
@@ -63,12 +60,12 @@ public final class ConditionalOperators {
 
     /**
      * Creates an "$cond" MongoDB expression.
-     * @param expression the expression {@link BasicDBObject}.
+     * @param expression the expression {@link Document}.
      * @param thenResult the {@link Object} to return when the
      * {@code expression} is {@code true}.
      * @param elseResult the {@link Object} to return when the
      * {@code expression} is {@code false}.
-     * @return the $cond expression {@link BasicDBObjectBuilder}.
+     * @return the $cond expression {@link Document}.
      */
     public static Document cond(final Document expression, final Object thenResult, final Object elseResult) {
         return new Document("$cond", ifThenElse(expression, thenResult, elseResult));

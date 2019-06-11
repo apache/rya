@@ -1,5 +1,3 @@
-package org.apache.rya.indexing.mongodb.freetext;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,28 +16,27 @@ package org.apache.rya.indexing.mongodb.freetext;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
+package org.apache.rya.indexing.mongodb.freetext;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.mongodb.IndexingMongoDBStorageStrategy;
+import org.bson.Document;
+
+import com.mongodb.client.MongoCollection;
 
 public class TextMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
-	private static final String text = "text";
+    private static final String TEXT = "text";
 
-	@Override
-    public void createIndices(final DBCollection coll){
-		final BasicDBObject basicDBObject = new BasicDBObject();
-		basicDBObject.append(text, "text");
-		coll.createIndex(basicDBObject);
-	}
+    @Override
+    public void createIndices(final MongoCollection<Document> coll){
+        final Document indexDoc = new Document(TEXT, "text");
+        coll.createIndex(indexDoc);
+    }
 
-	@Override
-    public DBObject serialize(final RyaStatement ryaStatement) {
- 		final BasicDBObject base = (BasicDBObject) super.serialize(ryaStatement);
- 		base.append(text, ryaStatement.getObject().getData());
-     	return base;
-	}
+    @Override
+    public Document serialize(final RyaStatement ryaStatement) {
+         final Document base = super.serialize(ryaStatement);
+         base.append(TEXT, ryaStatement.getObject().getData());
+         return base;
+    }
 }

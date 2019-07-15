@@ -64,7 +64,7 @@ public class IndexingFunctionRegistry {
 
     }
     
-    public enum FUNCTION_TYPE {GEO, TEMPORAL, FREETEXT}
+    public enum FUNCTION_TYPE {GEO, TEMPORAL, FREETEXT, NONE}
 
     public static Set<IRI> getFunctions() {
         return SEARCH_FUNCTIONS.keySet();
@@ -73,7 +73,7 @@ public class IndexingFunctionRegistry {
     
     public static Var getResultVarFromFunctionCall(IRI function, List<ValueExpr> args) {
         
-        FUNCTION_TYPE type = SEARCH_FUNCTIONS.get(function);
+        FUNCTION_TYPE type = SEARCH_FUNCTIONS.getOrDefault(function, FUNCTION_TYPE.NONE);
         
         switch(type) {
         case GEO: 

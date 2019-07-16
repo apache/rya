@@ -24,7 +24,7 @@ under the License.
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya-project</artifactId>
-        <version>4.0.0-incubating-SNAPSHOT</version>
+        <version>4.0.0-incubating</version>
     </parent>
 
     <artifactId>rya.spark</artifactId>

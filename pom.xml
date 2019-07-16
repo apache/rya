@@ -27,7 +27,7 @@ under the License.
 
     <groupId>org.apache.rya</groupId>
     <artifactId>rya-project</artifactId>
-    <version>4.0.0-incubating-SNAPSHOT</version>
+    <version>4.0.0-incubating</version>
 
     <packaging>pom</packaging>
 
@@ -1497,7 +1497,7 @@ under the License.
     <scm>
         <connection>scm:git:git://git.apache.org/incubator-rya.git</connection>
         <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-rya.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>rya-incubating-4.0.0-rc1</tag>
         <url>https://git-wip-us.apache.org/repos/asf?p=incubator-rya.git</url>
     </scm>
 </project>

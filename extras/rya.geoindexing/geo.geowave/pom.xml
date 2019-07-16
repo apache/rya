@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya.geoindexing</artifactId>
-        <version>4.0.0-incubating</version>
+        <version>4.0.1-incubating-SNAPSHOT</version>
     </parent>
     <artifactId>rya.geo.geowave</artifactId>
     <name>Apache Rya Geo indexing using GeoWave</name>

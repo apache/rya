@@ -22,7 +22,7 @@ under the License.
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya.export.parent</artifactId>
-        <version>4.0.0-incubating</version>
+        <version>4.0.1-incubating-SNAPSHOT</version>
     </parent>
     
     <modelVersion>4.0.0</modelVersion>

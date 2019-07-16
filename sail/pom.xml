@@ -23,7 +23,7 @@ under the License.
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya-project</artifactId>
-        <version>4.0.0-incubating</version>
+        <version>4.0.1-incubating-SNAPSHOT</version>
     </parent>
 
     <artifactId>rya.sail</artifactId>

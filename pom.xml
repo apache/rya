@@ -1359,7 +1359,7 @@ under the License.
     <repositories>
         <repository>
             <id>LocationTech - SNAPSHOT</id>
-            <url>https://repo.locationtech.org/content/repositories/snapshots/</url>
+            <url>https://repo.eclipse.org/content/repositories/snapshots/</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
@@ -1369,7 +1369,7 @@ under the License.
         </repository>
         <repository>
             <id>LocationTech - RELEASE</id>
-            <url>https://repo.locationtech.org/content/repositories/releases/</url>
+            <url>https://repo.eclipse.org/content/repositories/releases/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -1379,7 +1379,7 @@ under the License.
         </repository>
         <repository>
             <id>LocationTech - Third Party</id>
-            <url>https://repo.locationtech.org/content/repositories/thirdparty/</url>
+            <url>https://repo.eclipse.org/content/repositories/thirdparty/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -1421,16 +1421,12 @@ under the License.
             </snapshots>
         </repository>
         <repository>
-            <id>boundlessgeo</id>
-            <name>Boundless Geospatial Software and Open Source GIS‎ Repository</name>
-            <url>https://repo.boundlessgeo.com/main/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
+            <id>osgeo-release</id>
+            <name>OSGeo Release Repository</name>
+            <url>https://repo.osgeo.org/repository/release/</url>
+            <snapshots><enabled>false</enabled></snapshots>
+            <releases><enabled>true</enabled></releases>
+         </repository>
     </repositories>
 
     <scm>

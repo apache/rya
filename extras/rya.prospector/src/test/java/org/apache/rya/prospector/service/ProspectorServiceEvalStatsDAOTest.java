@@ -18,13 +18,6 @@
  */
 package org.apache.rya.prospector.service;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -37,9 +30,9 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.api.persist.RdfEvalStatsDAO.CARDINALITY_OF;
 import org.apache.rya.prospector.mr.Prospector;
@@ -47,7 +40,15 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests that show when the {@link Prospector} job is run, the
@@ -82,7 +83,7 @@ public class ProspectorServiceEvalStatsDAOTest {
         final String confFile = "stats_cluster_config.xml";
         final Path confPath = new Path(getClass().getClassLoader().getResource(confFile).toString());
         final String[] args = { confPath.toString() };
-        ToolRunner.run(new Prospector(), args);
+        Assert.assertEquals("MapReduce job failed!", 0, ToolRunner.run(new Prospector(), args));
 
         ryaDAO.destroy();
 
@@ -139,7 +140,7 @@ public class ProspectorServiceEvalStatsDAOTest {
         final String confFile = "stats_cluster_config.xml";
         final Path confPath = new Path(getClass().getClassLoader().getResource(confFile).toString());
         final String[] args = { confPath.toString() };
-        ToolRunner.run(new Prospector(), args);
+        assertEquals("MapReduce job failed!", 0, ToolRunner.run(new Prospector(), args));
 
         ryaDAO.destroy();
 

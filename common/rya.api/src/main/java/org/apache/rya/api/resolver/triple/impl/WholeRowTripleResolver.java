@@ -18,27 +18,27 @@
  */
 package org.apache.rya.api.resolver.triple.impl;
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.google.common.primitives.Bytes;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolver;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 
-import com.google.common.primitives.Bytes;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
 
 /**
  * Will store triple in spo, po, osp. Storing everything in the whole row.
@@ -50,10 +50,10 @@ public class WholeRowTripleResolver implements TripleRowResolver {
     @Override
     public Map<TABLE_LAYOUT, TripleRow> serialize(final RyaStatement stmt) throws TripleRowResolverException {
         try {
-            final RyaIRI subject = stmt.getSubject();
+            final RyaResource subject = stmt.getSubject();
             final RyaIRI predicate = stmt.getPredicate();
-            final RyaType object = stmt.getObject();
-            final RyaIRI context = stmt.getContext();
+            final RyaValue object = stmt.getObject();
+            final RyaResource context = stmt.getContext();
             final Long timestamp = stmt.getTimestamp();
             final byte[] columnVisibility = stmt.getColumnVisibility();
             final String qualifer = stmt.getQualifer();

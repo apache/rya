@@ -18,21 +18,21 @@
  */
 package org.apache.rya.indexing.entity.storage.mongo;
 
-import static java.util.Objects.requireNonNull;
-
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaValue;
 import org.bson.Document;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Converts between {@link RyaType} and {@link Document}.
  */
 @DefaultAnnotation(NonNull.class)
-public class RyaTypeDocumentConverter implements DocumentConverter<RyaType> {
+public class RyaTypeDocumentConverter implements DocumentConverter<RyaValue> {
 
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
@@ -40,7 +40,7 @@ public class RyaTypeDocumentConverter implements DocumentConverter<RyaType> {
     public static final String VALUE = "value";
 
     @Override
-    public Document toDocument(final RyaType ryaType) {
+    public Document toDocument(final RyaValue ryaType) {
         requireNonNull(ryaType);
 
         return new Document()

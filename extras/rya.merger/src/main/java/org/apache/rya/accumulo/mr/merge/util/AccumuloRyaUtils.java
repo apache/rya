@@ -18,17 +18,8 @@
  */
 package org.apache.rya.accumulo.mr.merge.util;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import org.apache.accumulo.core.Constants;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -54,18 +45,27 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.utils.RyaDAOHelper;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.ValueFactory;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
 
 /**
  * Utility methods for an Accumulo Rya instance.
@@ -227,7 +227,7 @@ public final class AccumuloRyaUtils {
     private static String getMetadata(final RyaStatement ryaStatement, final AccumuloRyaDAO dao) throws RyaDAOException {
         String metadata = null;
         final AccumuloRdfConfiguration config = dao.getConf();
-        final CloseableIteration<RyaStatement, RyaDAOException> iter = dao.getQueryEngine().query(ryaStatement, config);
+        final CloseableIteration<RyaStatement, RyaDAOException> iter = RyaDAOHelper.query(dao.getQueryEngine(), ryaStatement, config);
         if (iter.hasNext()) {
             metadata = iter.next().getObject().getData();
         }
@@ -350,7 +350,7 @@ public final class AccumuloRyaUtils {
     /**
      * Creates a {@link Scanner} of the provided table name using the specified {@link Configuration}.
      * This applies common iterator settings to the table scanner that ignore internal metadata keys.
-     * @param tablename the name of the table to scan.
+     * @param tableName the name of the table to scan.
      * @param config the {@link Configuration}.
      * @return the {@link Scanner} for the table.
      * @throws IOException
@@ -361,7 +361,7 @@ public final class AccumuloRyaUtils {
 
     /**
      * Creates a {@link Scanner} of the provided table name using the specified {@link Configuration}.
-     * @param tablename the name of the table to scan.
+     * @param tableName the name of the table to scan.
      * @param config the {@link Configuration}.
      * @param shouldAddCommonIterators {@code true} to add the common iterators to the table scanner.
      * {@code false} otherwise.
@@ -596,7 +596,7 @@ public final class AccumuloRyaUtils {
 
     /**
      * Sets up a {@link AccumuloRyaDAO} with the specified connector.
-     * @param connector the {@link Connector}.
+     * @param accumuloRdfConfiguration the {@link AccumuloRdfConfiguration}.
      * @return the {@link AccumuloRyaDAO}.
      */
     public static AccumuloRyaDAO setupDao(final AccumuloRdfConfiguration accumuloRdfConfiguration) {

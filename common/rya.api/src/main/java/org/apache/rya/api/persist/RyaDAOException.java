@@ -20,12 +20,13 @@ package org.apache.rya.api.persist;
  */
 
 
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 /**
  * Date: 7/17/12
  * Time: 8:20 AM
  */
-public class RyaDAOException extends Exception {
+public class RyaDAOException extends QueryEvaluationException {
     public RyaDAOException() {
     }
 

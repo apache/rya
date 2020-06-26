@@ -8,9 +8,9 @@ package org.apache.rya.api.query.strategy.wholerow;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,18 +19,17 @@ package org.apache.rya.api.query.strategy.wholerow;
  * under the License.
  */
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
-
-import java.io.IOException;
-import java.util.Map;
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.query.strategy.AbstractTriplePatternStrategy;
 import org.apache.rya.api.query.strategy.ByteRange;
+
+import java.io.IOException;
+
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
 
 public class NullRowTriplePatternStrategy extends AbstractTriplePatternStrategy {
 
@@ -40,15 +39,15 @@ public class NullRowTriplePatternStrategy extends AbstractTriplePatternStrategy 
     }
 
     @Override
-    public Map.Entry<TABLE_LAYOUT, ByteRange> defineRange(RyaIRI subject, RyaIRI predicate, RyaType object,
-                                                          RyaIRI context, RdfCloudTripleStoreConfiguration conf) throws IOException {
-      byte[] start = new byte[]{ /* empty array */ }; // Scan from the beginning of the Accumulo Table
-      byte[] stop = LAST_BYTES;  // Scan to the end, up through things beginning with 0xff.
-      return new RdfCloudTripleStoreUtils.CustomEntry<>(TABLE_LAYOUT.SPO, new ByteRange(start, stop));
+    public ByteRange defineRange(final RyaResource subject, final RyaIRI predicate, final RyaValue object,
+                                 final RyaResource context, RdfCloudTripleStoreConfiguration conf) throws IOException {
+        byte[] start = new byte[]{ /* empty array */}; // Scan from the beginning of the Accumulo Table
+        byte[] stop = LAST_BYTES;  // Scan to the end, up through things beginning with 0xff.
+        return new ByteRange(start, stop);
     }
 
     @Override
-    public boolean handles(RyaIRI subject, RyaIRI predicate, RyaType object, RyaIRI context) {
+    public boolean handles(final RyaResource subject, final RyaIRI predicate, final RyaValue object, final RyaResource context) {
         return subject == null && predicate == null && object == null;
     }
 }

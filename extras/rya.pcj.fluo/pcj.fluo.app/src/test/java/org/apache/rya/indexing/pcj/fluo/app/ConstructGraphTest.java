@@ -18,16 +18,10 @@ package org.apache.rya.indexing.pcj.fluo.app;
  * under the License.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.rya.api.domain.RyaStatement;
+import com.google.common.collect.Sets;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -39,7 +33,13 @@ import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Test;
 
-import com.google.common.collect.Sets;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ConstructGraphTest {
 
@@ -83,19 +83,19 @@ public class ConstructGraphTest {
         VisibilityBindingSet vBs = new VisibilityBindingSet(bs, "FOUO");
         Set<RyaStatement> statements = graph.createGraphFromBindingSet(vBs);
         Set<RyaStatement> statements2 = graph.createGraphFromBindingSet(vBs);
-        
-        RyaIRI subject = null;
+
+        RyaResource subject = null;
         for(RyaStatement statement: statements) {
-            RyaIRI subjURI = statement.getSubject();
+            RyaResource subjURI = statement.getSubject();
             if(subject == null) {
                 subject = subjURI;
             } else {
                 assertEquals(subjURI, subject);
             }
         }
-        RyaIRI subject2 = null;
+        RyaResource subject2 = null;
         for(RyaStatement statement: statements2) {
-            RyaIRI subjURI = statement.getSubject();
+            RyaResource subjURI = statement.getSubject();
             if(subject2 == null) {
                 subject2 = subjURI;
             } else {

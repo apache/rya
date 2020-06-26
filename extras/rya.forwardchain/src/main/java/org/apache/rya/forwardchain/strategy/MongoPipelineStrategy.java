@@ -18,17 +18,16 @@
  */
 package org.apache.rya.forwardchain.strategy;
 
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.LongAdder;
-import java.util.function.Consumer;
-
+import com.google.common.base.Preconditions;
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.api.persist.query.RyaQuery;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
+import org.apache.rya.api.persist.utils.RyaDAOHelper;
 import org.apache.rya.forwardchain.ForwardChainException;
 import org.apache.rya.forwardchain.rule.AbstractConstructRule;
 import org.apache.rya.forwardchain.rule.Rule;
@@ -50,10 +49,10 @@ import org.bson.conversions.Bson;
 import org.eclipse.rdf4j.query.algebra.QueryRoot;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
-import com.google.common.base.Preconditions;
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Consumer;
 
 /**
  * A rule execution strategy for MongoDB Rya that converts a single rule into an
@@ -208,7 +207,7 @@ public class MongoPipelineStrategy extends AbstractRuleExecutionStrategy {
 
     private boolean statementExists(final RyaStatement rstmt) {
         try {
-            return engine.query(new RyaQuery(rstmt)).iterator().hasNext();
+            return RyaDAOHelper.query(engine, rstmt, engine.getConf()).hasNext();
         } catch (final RyaDAOException e) {
             logger.error("Error querying for " + rstmt, e);
             return false;

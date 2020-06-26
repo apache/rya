@@ -19,10 +19,6 @@ package org.apache.rya.reasoning.mr;
  * under the License.
  */
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.io.LongWritable;
@@ -47,6 +43,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({DuplicateElimination.DuplicateEliminationReducer.class})

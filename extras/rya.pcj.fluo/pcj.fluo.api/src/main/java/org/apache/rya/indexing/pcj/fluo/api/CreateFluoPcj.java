@@ -18,16 +18,10 @@
  */
 package org.apache.rya.indexing.pcj.fluo.api;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Objects.requireNonNull;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -39,11 +33,12 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
 import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
 import org.apache.rya.api.client.CreatePCJ.QueryType;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.api.persist.query.BatchRyaQuery;
+import org.apache.rya.api.persist.utils.RyaDAOHelper;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
@@ -56,18 +51,22 @@ import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
-import org.calrissian.mango.collect.CloseableIterable;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Sets up a new Pre Computed Join (PCJ) in Fluo from a SPARQL query.
@@ -136,7 +135,6 @@ public class CreateFluoPcj {
      * according to the Kafka {@link ExportStrategy}.  
      *
      * @param sparql - sparql query String to be registered with Fluo
-     * @param strategies - ExportStrategies used to specify how final results will be handled
      * @param fluo - A connection to the Fluo application that updates the PCJ index. (not null)
      * @return The metadata that was written to the Fluo application for the PCJ.
      * @throws MalformedQueryException The SPARQL query stored for the {@code pcjId} is malformed.
@@ -385,11 +383,12 @@ public class CreateFluoPcj {
         conf.setAuths(getAuths(accumulo));
 
         try (final AccumuloRyaQueryEngine queryEngine = new AccumuloRyaQueryEngine(accumulo, conf);
-                CloseableIterable<RyaStatement> queryIterable = queryEngine.query(new BatchRyaQuery(queryBatch))) {
+             CloseableIteration<RyaStatement, RyaDAOException> query = RyaDAOHelper.query(queryEngine, queryBatch, conf)) {
             final Set<RyaStatement> triplesBatch = new HashSet<>();
 
             // Insert batches of the binding sets into Fluo.
-            for (final RyaStatement ryaStatement : queryIterable) {
+            while (query.hasNext()) {
+                final RyaStatement ryaStatement = query.next();
                 if (triplesBatch.size() == spInsertBatchSize) {
                     writeBatch(fluo, triplesBatch);
                     triplesBatch.clear();
@@ -418,9 +417,9 @@ public class CreateFluoPcj {
         final Value predVal = sp.getPredicateVar().getValue();
         final Value objVal = sp.getObjectVar().getValue();
 
-        RyaIRI subjIRI = null;
+        RyaResource subjIRI = null;
         RyaIRI predIRI = null;
-        RyaType objType = null;
+        RyaValue objType = null;
 
         if(subjVal != null) {
             if(!(subjVal instanceof Resource)) {

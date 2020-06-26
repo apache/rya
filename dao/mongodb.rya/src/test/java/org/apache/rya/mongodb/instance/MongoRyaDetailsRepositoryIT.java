@@ -19,12 +19,8 @@ package org.apache.rya.mongodb.instance;
  * under the License.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Date;
-
+import com.google.common.base.Optional;
+import com.mongodb.MongoClient;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
@@ -44,11 +40,14 @@ import org.apache.rya.test.mongo.MongoITBase;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.base.Optional;
-import com.mongodb.MongoClient;
+import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
- * Tests the methods of {@link MongoRyaDetailsRepository} by using a mock {@link MongoClient}.
+ * Tests the methods of {@link MongoRyaInstanceDetailsRepository} by using a mock {@link MongoClient}.
  */
 public class MongoRyaDetailsRepositoryIT extends MongoITBase {
     private MongoClient client;

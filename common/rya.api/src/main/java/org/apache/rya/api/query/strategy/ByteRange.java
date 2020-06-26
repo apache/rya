@@ -20,6 +20,7 @@ package org.apache.rya.api.query.strategy;
  */
 
 
+import java.nio.charset.StandardCharsets;
 
 /**
  * Date: 1/10/13
@@ -42,4 +43,9 @@ public class ByteRange {
     public byte[] getEnd() {
         return end;
     }
+
+    public String toString() {
+        return "start(" + (start == null ? null : new String(start, StandardCharsets.UTF_8)) + ") end(" + (end == null ? null : new String(end, StandardCharsets.UTF_8)) + ")";
+    }
+
 }

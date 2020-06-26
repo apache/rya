@@ -18,10 +18,6 @@
  */
 package org.apache.rya.prospector.mr;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Map.Entry;
-
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.io.LongWritable;
@@ -36,6 +32,10 @@ import org.apache.rya.prospector.domain.IntermediateProspect;
 import org.apache.rya.prospector.plans.IndexWorkPlan;
 import org.apache.rya.prospector.plans.IndexWorkPlanManager;
 import org.apache.rya.prospector.plans.impl.ServicesBackedIndexWorkPlanManager;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Map.Entry;
 
 /**
  * Loads {@link RyaStatement}s from Accumulo and maps them into {@link IntermediateProspect}s
@@ -69,6 +69,7 @@ public class ProspectorMapper extends Mapper<Key, Value, IntermediateProspect, L
             );
         } catch (final TripleRowResolverException e) {
             // Do nothing. The row didn't contain a Rya Statement.
+            e.printStackTrace();
         }
 
         if(ryaStatement != null) {

@@ -31,7 +31,7 @@ import java.util.concurrent.Executors;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.utils.NullableStatementImpl;
+import org.apache.rya.api.utils.WildcardStatement;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection.StoreTripleSource;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
@@ -199,8 +199,8 @@ public class ParallelEvaluationStrategyImpl extends StrictEvaluationStrategy {
                         (predValue != null && !(predValue instanceof IRI))) {
                     continue;
                 }
-                stmts.add(new RdfCloudTripleStoreUtils.CustomEntry<Statement, BindingSet>(
-                        new NullableStatementImpl((Resource) subjValue, (IRI) predValue, objValue, contxtValue), binding));
+                stmts.add(new RdfCloudTripleStoreUtils.CustomEntry<>(
+                        new WildcardStatement((Resource) subjValue, (IRI) predValue, objValue, contxtValue), binding));
             }
             if (stmts.size() == 0) {
                 return new EmptyIteration();

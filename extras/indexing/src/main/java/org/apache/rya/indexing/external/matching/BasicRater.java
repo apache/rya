@@ -36,24 +36,24 @@ package org.apache.rya.indexing.external.matching;
  * under the License.
  */
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-
 import org.apache.rya.api.domain.VarNameUtils;
 import org.eclipse.rdf4j.query.algebra.QueryModelNode;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * This implementation of the QueryNodeListRater assigns a score to a specified
  * list between and 0 and 1, where the lower the score, the better the list. It
  * is assumed that the specified list in
  * {@link BasicRater#rateQuerySegment(List)} is the result of matching
- * {@link ExternalSet}s to the original list specified in the constructor. The
+ * {@link org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet}s
+ * to the original list specified in the constructor. The
  * method {@link BasicRater#rateQuerySegment(List)} determines a score based on
  * how much smaller the specified list is than the original, and based on how
  * many connected components the specified list has. Here the components are among

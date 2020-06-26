@@ -61,8 +61,9 @@ public class TemporalInterval implements Comparable<TemporalInterval> {
      */
     public TemporalInterval(TemporalInstant hasBeginning, TemporalInstant hasEnd) {
         super();
-        if (hasBeginning != null && hasEnd != null && 0 < hasBeginning.compareTo(hasEnd))
-            throw new IllegalArgumentException("The Beginning instance must not compare greater than the end.");
+        if (hasBeginning != null && hasEnd != null && 0 < hasBeginning.compareTo(hasEnd)) {
+            throw new IllegalArgumentException("The Beginning instance must not compare greater than the end. hasBeginning="+hasBeginning+" hasEnd="+hasEnd);
+        }
         this.hasBeginning = hasBeginning;
         this.hasEnd = hasEnd;
     }

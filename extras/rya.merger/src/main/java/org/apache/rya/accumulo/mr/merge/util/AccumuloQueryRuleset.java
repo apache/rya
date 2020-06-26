@@ -18,12 +18,6 @@
  */
 package org.apache.rya.accumulo.mr.merge.util;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.accumulo.core.client.mapreduce.InputTableConfig;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
@@ -34,14 +28,17 @@ import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.query.strategy.ByteRange;
 import org.apache.rya.api.query.strategy.TriplePatternStrategy;
-import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaTripleContext;
-import org.apache.rya.api.utils.NullableStatementImpl;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
-import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.Var;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A {@link QueryRuleset} that additionally maps rules to ranges in Accumulo tables. Also enables
@@ -78,19 +75,18 @@ public class AccumuloQueryRuleset extends QueryRuleset {
 
     /**
      * Turn a single StatementPattern into a Range.
-     * @param conf
+     * @param sp
      * @throws IOException if the range can't be resolved
      */
     private Map.Entry<TABLE_LAYOUT, ByteRange> getRange(final StatementPattern sp) throws IOException {
         final Var context = sp.getContextVar();
-        final Statement stmt = new NullableStatementImpl((Resource) sp.getSubjectVar().getValue(),
+        final RyaStatement rs = new RyaStatement((Resource) sp.getSubjectVar().getValue(),
                 (IRI) sp.getPredicateVar().getValue(), sp.getObjectVar().getValue(),
                 context == null ? null : (Resource) context.getValue());
-        final RyaStatement rs = RdfToRyaConversions.convertStatement(stmt);
         final TriplePatternStrategy strategy = ryaContext.retrieveStrategy(rs);
-        final Map.Entry<TABLE_LAYOUT, ByteRange> entry =
+        final ByteRange range =
                 strategy.defineRange(rs.getSubject(), rs.getPredicate(), rs.getObject(), rs.getContext(), conf);
-        return entry;
+        return new RdfCloudTripleStoreUtils.CustomEntry<>(strategy.getLayout(), range);
     }
 
     /**

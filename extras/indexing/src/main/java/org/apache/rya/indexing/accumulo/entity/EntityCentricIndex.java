@@ -18,21 +18,9 @@
  */
 package org.apache.rya.indexing.accumulo.entity;
 
-import static java.util.Objects.requireNonNull;
-import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_CV;
-import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Bytes;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -51,18 +39,31 @@ import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.eclipse.rdf4j.model.IRI;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.primitives.Bytes;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import static java.util.Objects.requireNonNull;
+import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_CV;
+import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
 
 public class EntityCentricIndex extends AbstractAccumuloIndexer {
 
@@ -231,10 +232,10 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
     }
 
     private static List<TripleRow> serializeStatement(final RyaStatement stmt) throws RyaTypeResolverException {
-        final RyaIRI subject = stmt.getSubject();
+        final RyaResource subject = stmt.getSubject();
         final RyaIRI predicate = stmt.getPredicate();
-        final RyaType object = stmt.getObject();
-        final RyaIRI context = stmt.getContext();
+        final RyaValue object = stmt.getObject();
+        final RyaResource context = stmt.getContext();
         final Long timestamp = stmt.getTimestamp();
         final byte[] columnVisibility = stmt.getColumnVisibility();
         final byte[] value = stmt.getValue();

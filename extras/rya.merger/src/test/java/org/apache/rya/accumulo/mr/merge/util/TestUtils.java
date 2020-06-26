@@ -18,17 +18,18 @@
  */
 package org.apache.rya.accumulo.mr.merge.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.utils.RyaDAOHelper;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 import java.util.Date;
 
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaIRI;
-import org.apache.rya.api.persist.RyaDAOException;
-import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Utility methods for testing merging/copying.
@@ -196,7 +197,7 @@ public final class TestUtils {
      * @throws RyaDAOException
      */
     public static void assertStatementInInstance(final String description, final int verifyResultCount, final RyaStatement matchStatement, final AccumuloRyaDAO dao, final AccumuloRdfConfiguration config) throws RyaDAOException {
-        final CloseableIteration<RyaStatement, RyaDAOException> iter = dao.getQueryEngine().query(matchStatement, config);
+        final CloseableIteration<RyaStatement, RyaDAOException> iter = RyaDAOHelper.query(dao.getQueryEngine(), matchStatement, config);
         int count = 0;
         while (iter.hasNext()) {
             final RyaStatement statement = iter.next();

@@ -20,14 +20,14 @@ package org.apache.rya.api.resolver.triple.impl;
  */
 
 
-
-import java.util.Map;
-
 import junit.framework.TestCase;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.resolver.triple.TripleRow;
+
+import java.util.Map;
 
 /**
  * Date: 7/25/12
@@ -43,8 +43,8 @@ public class HashedWholeRowTripleResolverTest extends TestCase {
         RyaIRI pred = new RyaIRI("urn:test#pred");
         RyaIRI obj = new RyaIRI("urn:test#obj");
         RyaIRI cntxt = new RyaIRI("urn:test#cntxt");
-        final RyaStatement stmt = new RyaStatement(subj, pred, obj, null, null, null, null, 100l);
-        final RyaStatement stmtContext = new RyaStatement(subj, pred, obj, cntxt, null, null, null, 100l);
+        final RyaStatement stmt = new RyaStatement(subj, pred, obj, null, null, (StatementMetadata) null, null, 100l);
+        final RyaStatement stmtContext = new RyaStatement(subj, pred, obj, cntxt, null, (StatementMetadata) null, null, 100l);
 
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = tripleResolver.serialize(stmt);
         TripleRow tripleRow = serialize.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO);
@@ -65,8 +65,8 @@ public class HashedWholeRowTripleResolverTest extends TestCase {
         RyaIRI pred = new RyaIRI("urn:test#pred");
         RyaIRI obj = new RyaIRI("urn:test#obj");
         RyaIRI cntxt = new RyaIRI("urn:test#cntxt");
-        final RyaStatement stmt = new RyaStatement(subj, pred, obj, null, null, null, null, 100l);
-        final RyaStatement stmtContext = new RyaStatement(subj, pred, obj, cntxt, null, null, null, 100l);
+        final RyaStatement stmt = new RyaStatement(subj, pred, obj, null, null, (StatementMetadata) null, null, 100l);
+        final RyaStatement stmtContext = new RyaStatement(subj, pred, obj, cntxt, null, (StatementMetadata) null, null, 100l);
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = tripleResolver.serialize(stmt);
         TripleRow tripleRow = serialize.get(po);
         RyaStatement deserialize = tripleResolver.deserialize(po, tripleRow);
@@ -86,8 +86,8 @@ public class HashedWholeRowTripleResolverTest extends TestCase {
         RyaIRI pred = new RyaIRI("urn:test#pred");
         RyaIRI obj = new RyaIRI("urn:test#obj");
         RyaIRI cntxt = new RyaIRI("urn:test#cntxt");
-        final RyaStatement stmt = new RyaStatement(subj, pred, obj, null, null, null, null, 100l);
-        final RyaStatement stmtContext = new RyaStatement(subj, pred, obj, cntxt, null, null, null, 100l);
+        final RyaStatement stmt = new RyaStatement(subj, pred, obj, null, null, (StatementMetadata) null, null, 100l);
+        final RyaStatement stmtContext = new RyaStatement(subj, pred, obj, cntxt, null, (StatementMetadata) null, null, 100l);
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = tripleResolver.serialize(stmt);
         TripleRow tripleRow = serialize.get(po);
         RyaStatement deserialize = tripleResolver.deserialize(po, tripleRow);
@@ -107,8 +107,8 @@ public class HashedWholeRowTripleResolverTest extends TestCase {
         RyaIRI pred = new RyaIRI("urn:test#pred");
         RyaIRI obj = new RyaIRI("urn:test#obj");
         RyaIRI cntxt = new RyaIRI("urn:test#cntxt");
-        final RyaStatement stmt = new RyaStatement(subj, pred, obj, null, null, null, null, 100l);
-        final RyaStatement stmtContext = new RyaStatement(subj, pred, obj, cntxt, null, null, null, 100l);
+        final RyaStatement stmt = new RyaStatement(subj, pred, obj, null, null, (StatementMetadata) null, null, 100l);
+        final RyaStatement stmtContext = new RyaStatement(subj, pred, obj, cntxt, null, (StatementMetadata) null, null, 100l);
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = tripleResolver.serialize(stmt);
         TripleRow tripleRow = serialize.get(po);
         RyaStatement deserialize = tripleResolver.deserialize(po, tripleRow);

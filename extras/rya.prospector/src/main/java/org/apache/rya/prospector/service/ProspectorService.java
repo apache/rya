@@ -18,16 +18,6 @@
  */
 package org.apache.rya.prospector.service;
 
-import static java.util.Objects.requireNonNull;
-import static org.apache.rya.prospector.utils.ProspectorConstants.METADATA;
-import static org.apache.rya.prospector.utils.ProspectorConstants.PROSPECT_TIME;
-
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -45,6 +35,16 @@ import org.apache.rya.prospector.plans.IndexWorkPlan;
 import org.apache.rya.prospector.plans.IndexWorkPlanManager;
 import org.apache.rya.prospector.plans.impl.ServicesBackedIndexWorkPlanManager;
 import org.apache.rya.prospector.utils.ProspectorUtils;
+
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static java.util.Objects.requireNonNull;
+import static org.apache.rya.prospector.utils.ProspectorConstants.METADATA;
+import static org.apache.rya.prospector.utils.ProspectorConstants.PROSPECT_TIME;
 
 /**
  * Provides access to the Prospect results that have been stored within a specific Accumulo table.
@@ -150,7 +150,7 @@ public class ProspectorService {
      * @param index - The data portion of the {@link IndexEntry}s that may be returned.
      * @param dataType - The data type of the {@link IndexEntry}s that may be returned.
      * @param auths - The authorizations used to search for the entries.
-     * @return The {@link IndexEntries} that match the provided values.
+     * @return The {@link IndexEntry}s that match the provided values.
      * @throws TableNotFoundException No table exists for {@code tableName}.
      */
     public List<IndexEntry> query(List<Long> prospectTimes, String indexType, String type, List<String> index, String dataType, String[] auths) throws TableNotFoundException {

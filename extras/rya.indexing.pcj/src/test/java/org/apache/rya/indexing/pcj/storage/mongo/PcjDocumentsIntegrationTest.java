@@ -18,14 +18,8 @@
  */
 package org.apache.rya.indexing.pcj.storage.mongo;
 
-import static org.junit.Assert.assertEquals;
-
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -54,8 +48,13 @@ import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.junit.Test;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Sets;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Performs integration test using {@link MongoClient} to ensure the
@@ -197,7 +196,7 @@ public class PcjDocumentsIntegrationTest extends MongoRyaITBase {
      * Ensure when results are already stored in Rya, that we are able to populate
      * the PCJ table for a new SPARQL query using those results.
      * <p>
-     * The method being tested is: {@link PcjTables#populatePcj(Connector, String, RepositoryConnection, String)}
+     * The method being tested is: {@link PcjTables#populatePcj(Connector, String, RepositoryConnection)}
      */
     @Test
     public void populatePcj() throws Exception {

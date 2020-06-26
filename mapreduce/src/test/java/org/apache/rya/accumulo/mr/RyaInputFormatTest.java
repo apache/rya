@@ -17,8 +17,6 @@ package org.apache.rya.accumulo.mr;
  * specific language governing permissions and limitations
  * under the License.
  */
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
@@ -39,13 +37,16 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.mr.RyaInputFormat.RyaStatementRecordReader;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaStatement;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RyaInputFormatTest {
 
@@ -141,7 +142,7 @@ public class RyaInputFormatTest {
             System.out.println(value);
         }
 
-        Assert.assertTrue(results.size() == 2);
+        Assert.assertEquals(2, results.size());
         Assert.assertTrue(results.contains(input));
     }
 }

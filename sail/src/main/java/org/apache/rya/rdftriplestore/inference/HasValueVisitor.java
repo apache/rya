@@ -18,21 +18,21 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 import org.eclipse.rdf4j.query.algebra.Var;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Expands the query tree to account for any relevant has-value class
@@ -109,7 +109,7 @@ public class HasValueVisitor extends AbstractInferVisitor {
                         final TupleExpr valueSP = new DoNotExpandSP(subjVar, propVar, valueVar);
                         final FixedStatementPattern relevantValues = new FixedStatementPattern(objVar, propVar, valueVar);
                         for (Value value : sufficientValues.get(property)) {
-                            relevantValues.statements.add(new NullableStatementImpl(objType, property, value));
+                            relevantValues.statements.add(SimpleValueFactory.getInstance().createStatement(objType, property, value));
                         }
                         currentNode = new InferUnion(currentNode, new InferJoin(relevantValues, valueSP));
                     }
@@ -130,7 +130,7 @@ public class HasValueVisitor extends AbstractInferVisitor {
                     for (Resource type : impliedValues.keySet()) {
                         // { ?var rdf:type :type } implies { ?var :property :val } for certain (:type, :val) pairs
                         for (Value impliedValue : impliedValues.get(type)) {
-                            typeToValue.statements.add(new NullableStatementImpl(type, OWL.HASVALUE, impliedValue));
+                            typeToValue.statements.add(SimpleValueFactory.getInstance().createStatement(type, OWL.HASVALUE, impliedValue));
                         }
                     }
                     node.replaceWith(new InferUnion(new InferJoin(typeToValue, typeSP), directValueSP));

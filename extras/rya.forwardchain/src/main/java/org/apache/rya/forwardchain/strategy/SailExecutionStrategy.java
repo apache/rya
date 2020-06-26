@@ -18,6 +18,7 @@
  */
 package org.apache.rya.forwardchain.strategy;
 
+import com.google.common.base.Preconditions;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.log4j.Logger;
@@ -27,15 +28,15 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.api.persist.query.RyaQuery;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
+import org.apache.rya.api.persist.utils.RyaDAOHelper;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.forwardchain.ForwardChainException;
 import org.apache.rya.forwardchain.rule.AbstractConstructRule;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.sail.config.RyaSailFactory;
-import org.calrissian.mango.collect.CloseableIterable;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.query.GraphQuery;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
@@ -46,8 +47,6 @@ import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.rio.RDFHandlerException;
 import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
-
-import com.google.common.base.Preconditions;
 
 /**
  * A naive but back-end-agnostic rule execution strategy that applies a
@@ -206,8 +205,9 @@ public class SailExecutionStrategy extends AbstractRuleExecutionStrategy {
             try {
                 // Need to check whether the statement already exists, because
                 // we need an accurate count of newly added statements.
-                CloseableIterable<RyaStatement> iter = engine.query(new RyaQuery(ryaStatement));
-                if (!iter.iterator().hasNext()) {
+                CloseableIteration<RyaStatement, RyaDAOException> iter = RyaDAOHelper.query(engine, ryaStatement, engine.getConf());
+                if (!iter.hasNext()) {
+                    // Statement does not already exist
                     dao.add(ryaStatement);
                     numStatementsAdded++;
                 }

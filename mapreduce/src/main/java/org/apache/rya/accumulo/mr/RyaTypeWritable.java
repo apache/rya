@@ -19,15 +19,15 @@ package org.apache.rya.accumulo.mr;
  * under the License.
  */
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.utils.LiteralLanguageUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 public class RyaTypeWritable implements WritableComparable<RyaTypeWritable>{
 
@@ -80,8 +80,8 @@ public class RyaTypeWritable implements WritableComparable<RyaTypeWritable>{
     }
     /**
      * Sets the contained RyaStatement.
-     * @param   ryaStatement    The statement to be represented by this
-     *                          RyaStatementWritable.
+     * @param   ryatype    The statement to be represented by this
+     *                     {@link RyaTypeWritable}.
      */
     public void setRyaType(final RyaType ryatype) {
         this.ryatype = ryatype;
@@ -95,8 +95,8 @@ public class RyaTypeWritable implements WritableComparable<RyaTypeWritable>{
     /**
      * Tests for equality using the equals method of the enclosed RyaType.
      * @param   o   Object to compare with
-     * @return  true if both objects are RyaTypeWritables containing equivalent
-     *          RyaTypes.
+     * @return  true if both objects are {@link RyaTypeWritable}s containing equivalent
+     *          {@link RyaType}s.
      */
     @Override
     public boolean equals(final Object o) {

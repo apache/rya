@@ -18,16 +18,7 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
@@ -45,6 +36,14 @@ import org.eclipse.rdf4j.query.algebra.Union;
 import org.eclipse.rdf4j.query.algebra.Var;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AllValuesFromVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
@@ -108,10 +107,10 @@ public class AllValuesFromVisitorTest {
         Assert.assertTrue(left instanceof StatementPattern);
         Assert.assertTrue(right instanceof StatementPattern);
         // Verify expected predicate/restriction pairs
-        Assert.assertTrue(fsp.statements.contains(new NullableStatementImpl(parentsArePeople, OWL.ONPROPERTY, parent)));
-        Assert.assertTrue(fsp.statements.contains(new NullableStatementImpl(relativesArePeople, OWL.ONPROPERTY, relative)));
-        Assert.assertTrue(fsp.statements.contains(new NullableStatementImpl(relativesArePeople, OWL.ONPROPERTY, parent)));
-        Assert.assertTrue(fsp.statements.contains(new NullableStatementImpl(parentsAreTallPeople, OWL.ONPROPERTY, parent)));
+        Assert.assertTrue(fsp.statements.contains(VF.createStatement(parentsArePeople, OWL.ONPROPERTY, parent)));
+        Assert.assertTrue(fsp.statements.contains(VF.createStatement(relativesArePeople, OWL.ONPROPERTY, relative)));
+        Assert.assertTrue(fsp.statements.contains(VF.createStatement(relativesArePeople, OWL.ONPROPERTY, parent)));
+        Assert.assertTrue(fsp.statements.contains(VF.createStatement(parentsAreTallPeople, OWL.ONPROPERTY, parent)));
         Assert.assertEquals(4, fsp.statements.size());
         // Verify general pattern for matching instances of each pair: Join on unknown subject; left
         // triple states it belongs to the restriction while right triple relates it to the original

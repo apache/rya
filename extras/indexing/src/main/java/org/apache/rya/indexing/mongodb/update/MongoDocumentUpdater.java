@@ -18,15 +18,14 @@
  */
 package org.apache.rya.indexing.mongodb.update;
 
-import static java.util.Objects.requireNonNull;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.rya.indexing.mongodb.IndexingException;
 
 import java.util.Optional;
 import java.util.function.Function;
 
-import org.apache.rya.indexing.mongodb.IndexingException;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Performs an update operation on a Document in mongodb.
@@ -65,7 +64,7 @@ public interface MongoDocumentUpdater<T, V> {
 
     /**
      * Implementations of this interface are used to update the state of a
-     * {@link MongoDocumentUpdater#V} in unison with a {@link MongoDocumentUpdater}.
+     * {@link V} in unison with a {@link MongoDocumentUpdater}.
      * </p>
      * This table describes what the updater will do depending on if the object
      * exists and if an updated object is returned.

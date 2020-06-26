@@ -18,19 +18,19 @@
  */
 package org.apache.rya.indexing.entity.storage.mongo;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
+import com.mongodb.ErrorCategory;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
@@ -46,17 +46,16 @@ import org.apache.rya.indexing.smarturi.duplication.EntityNearDuplicateException
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
-import com.mongodb.ErrorCategory;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoException;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.Filters;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * A Mongo DB implementation of {@link EntityStorage}.
@@ -172,7 +171,7 @@ public class MongoEntityStorage implements EntityStorage {
     }
 
     @Override
-    public Optional<Entity> get(final RyaIRI subject) throws EntityStorageException {
+    public Optional<Entity> get(final RyaResource subject) throws EntityStorageException {
         requireNonNull(subject);
 
         try {
@@ -191,7 +190,7 @@ public class MongoEntityStorage implements EntityStorage {
     }
 
     @Override
-    public ConvertingCursor<TypedEntity> search(final Optional<RyaIRI> subject, final Type type, final Set<Property> properties) throws EntityStorageException {
+    public ConvertingCursor<TypedEntity> search(final Optional<RyaResource> subject, final Type type, final Set<Property> properties) throws EntityStorageException {
         requireNonNull(type);
         requireNonNull(properties);
 
@@ -235,7 +234,7 @@ public class MongoEntityStorage implements EntityStorage {
     }
 
     @Override
-    public boolean delete(final RyaIRI subject) throws EntityStorageException {
+    public boolean delete(final RyaResource subject) throws EntityStorageException {
         requireNonNull(subject);
 
         try {
@@ -250,7 +249,7 @@ public class MongoEntityStorage implements EntityStorage {
         }
     }
 
-    private static Bson makeSubjectFilter(final RyaIRI subject) {
+    private static Bson makeSubjectFilter(final RyaResource subject) {
         return Filters.eq(EntityDocumentConverter.SUBJECT, subject.getData());
     }
 
@@ -321,7 +320,7 @@ public class MongoEntityStorage implements EntityStorage {
             final RyaIRI firstType = explicitTypeIds.get(0);
 
             // Check if that type exists anywhere in storage.
-            final List<RyaIRI> subjects = new ArrayList<>();
+            final List<RyaResource> subjects = new ArrayList<>();
             Optional<Type> type;
             try {
                 if (mongoTypeStorage == null) {
@@ -336,13 +335,13 @@ public class MongoEntityStorage implements EntityStorage {
                 final ConvertingCursor<TypedEntity> cursor = search(Optional.empty(), type.get(), Collections.emptySet());
                 while (cursor.hasNext()) {
                     final TypedEntity typedEntity = cursor.next();
-                    final RyaIRI subject = typedEntity.getSubject();
+                    final RyaResource subject = typedEntity.getSubject();
                     subjects.add(subject);
                 }
             }
 
             // Now grab all the Entities that have the subjects we found.
-            for (final RyaIRI subject : subjects) {
+            for (final RyaResource subject : subjects) {
                 final Optional<Entity> entityFromSubject = get(subject);
                 if (entityFromSubject.isPresent()) {
                     final Entity candidateEntity = entityFromSubject.get();

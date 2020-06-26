@@ -8,9 +8,9 @@ package org.apache.rya.api.query.strategy.wholerow;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,15 +19,14 @@ package org.apache.rya.api.query.strategy.wholerow;
  * under the License.
  */
 
-import java.util.Map;
-
+import junit.framework.TestCase;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaIRIRange;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaTypeRange;
-import org.apache.rya.api.domain.RyaIRI;
-import org.apache.rya.api.domain.RyaIRIRange;
 import org.apache.rya.api.query.strategy.ByteRange;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTripleContext;
@@ -36,7 +35,7 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.Before;
 
-import junit.framework.TestCase;
+import java.util.Map;
 
 /**
  * Date: 7/14/12
@@ -61,111 +60,111 @@ public class HashedSpoWholeRowTriplePatternStrategyTest extends TestCase {
 
     @Before
     public void setUp() {
-    	MockRdfConfiguration config = new MockRdfConfiguration();
-    	config.set(MockRdfConfiguration.CONF_PREFIX_ROW_WITH_HASH, Boolean.TRUE.toString());
-    	ryaTripleContext = RyaTripleContext.getInstance(config);
+        MockRdfConfiguration config = new MockRdfConfiguration();
+        config.set(MockRdfConfiguration.CONF_PREFIX_ROW_WITH_HASH, Boolean.TRUE.toString());
+        ryaTripleContext = RyaTripleContext.getInstance(config);
     }
-    
+
     public void testSpo() throws Exception {
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = ryaTripleContext.serializeTriple(
-                new RyaStatement(uri, uri, uri, null));
+                new RyaStatement(uri, uri, uri));
         TripleRow tripleRow = serialize.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO);
 
-        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(uri, uri, uri, null, null);
-         assertContains(entry.getValue(), tripleRow.getRow());
-        
+        ByteRange entry = strategy.defineRange(uri, uri, uri, null, null);
+        assertContains(entry, tripleRow.getRow());
+
 
         entry = strategy.defineRange(uri, uri, uri2, null, null);
-        assertContainsFalse(entry.getValue(), tripleRow.getRow());
+        assertContainsFalse(entry, tripleRow.getRow());
     }
 
-	private void assertContains(ByteRange value, byte[] row) {
-	       Text rowText = new Text(row);
-	        Text startText = new Text(value.getStart());
-	        Text endText = new Text(value.getEnd());
-	        assertTrue((startText.compareTo(rowText) <= 0) &&(endText.compareTo(rowText) >= 0)) ;
-	}
+    private void assertContains(ByteRange value, byte[] row) {
+        Text rowText = new Text(row);
+        Text startText = new Text(value.getStart());
+        Text endText = new Text(value.getEnd());
+        assertTrue((startText.compareTo(rowText) <= 0) && (endText.compareTo(rowText) >= 0));
+    }
 
-	private void assertContainsFalse(ByteRange value, byte[] row) {
-	       Text rowText = new Text(row);
-	        Text startText = new Text(value.getStart());
-	        Text endText = new Text(value.getEnd());
-	        assertFalse((startText.compareTo(rowText) <= 0) &&(endText.compareTo(rowText) >= 0)) ;
-	}
+    private void assertContainsFalse(ByteRange value, byte[] row) {
+        Text rowText = new Text(row);
+        Text startText = new Text(value.getStart());
+        Text endText = new Text(value.getEnd());
+        assertFalse((startText.compareTo(rowText) <= 0) && (endText.compareTo(rowText) >= 0));
+    }
 
     public void testSpoCustomType() throws Exception {
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = ryaTripleContext.serializeTriple(
-                new RyaStatement(uri, uri, customType1, null));
+                new RyaStatement(uri, uri, customType1));
         TripleRow tripleRow = serialize.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO);
 
-        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(uri, uri, customType1, null, null);
-        assertContains(entry.getValue(), tripleRow.getRow());
+        ByteRange entry = strategy.defineRange(uri, uri, customType1, null, null);
+        assertContains(entry, tripleRow.getRow());
 
         entry = strategy.defineRange(uri, uri, customType2, null, null);
-        assertContainsFalse(entry.getValue(), tripleRow.getRow());
+        assertContainsFalse(entry, tripleRow.getRow());
     }
 
     public void testSpoRange() throws Exception {
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = ryaTripleContext.serializeTriple(
-                new RyaStatement(uri, uri, uri, null));
+                new RyaStatement(uri, uri, uri));
         TripleRow tripleRow = serialize.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO);
 
-        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(uri, uri, rangeIRI, null, null);
-        assertContains(entry.getValue(), tripleRow.getRow());
+        ByteRange entry = strategy.defineRange(uri, uri, rangeIRI, null, null);
+        assertContains(entry, tripleRow.getRow());
 
         entry = strategy.defineRange(uri, uri, rangeIRI2, null, null);
-        assertContainsFalse(entry.getValue(), tripleRow.getRow());
+        assertContainsFalse(entry, tripleRow.getRow());
     }
 
     public void testSpoRangeCustomType() throws Exception {
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = ryaTripleContext.serializeTriple(
-                new RyaStatement(uri, uri, customType1, null));
+                new RyaStatement(uri, uri, customType1));
         TripleRow tripleRow = serialize.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO);
 
-        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(uri, uri, customTypeRange1, null, null);
-        assertContains(entry.getValue(), tripleRow.getRow());
+        ByteRange entry = strategy.defineRange(uri, uri, customTypeRange1, null, null);
+        assertContains(entry, tripleRow.getRow());
 
         entry = strategy.defineRange(uri, uri, customTypeRange2, null, null);
-        assertContainsFalse(entry.getValue(), tripleRow.getRow());
+        assertContainsFalse(entry, tripleRow.getRow());
     }
 
     public void testSp() throws Exception {
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = ryaTripleContext.serializeTriple(
-                new RyaStatement(uri, uri, uri, null));
+                new RyaStatement(uri, uri, uri));
         TripleRow tripleRow = serialize.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO);
 
-        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(uri, uri, null, null, null);
-        assertContains(entry.getValue(), tripleRow.getRow());
+        ByteRange entry = strategy.defineRange(uri, uri, null, null, null);
+        assertContains(entry, tripleRow.getRow());
         entry = strategy.defineRange(uri, uri2, null, null, null);
-        assertContainsFalse(entry.getValue(), tripleRow.getRow());
+        assertContainsFalse(entry, tripleRow.getRow());
     }
 
     public void testSpRange() throws Exception {
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = ryaTripleContext.serializeTriple(
-                new RyaStatement(uri, uri, uri, null));
+                new RyaStatement(uri, uri, uri));
         TripleRow tripleRow = serialize.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO);
 
-        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(uri, rangeIRI, null, null, null);
-        assertContains(entry.getValue(), tripleRow.getRow());
+        ByteRange entry = strategy.defineRange(uri, rangeIRI, null, null, null);
+        assertContains(entry, tripleRow.getRow());
         entry = strategy.defineRange(uri, rangeIRI2, null, null, null);
-        assertContainsFalse(entry.getValue(), tripleRow.getRow());
+        assertContainsFalse(entry, tripleRow.getRow());
     }
 
     public void testS() throws Exception {
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = ryaTripleContext.serializeTriple(
-                new RyaStatement(uri, uri, uri, null));
+                new RyaStatement(uri, uri, uri));
         TripleRow tripleRow = serialize.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO);
- 
-        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(uri, null, null, null, null);
-        assertContains(entry.getValue(), tripleRow.getRow());
+
+        ByteRange entry = strategy.defineRange(uri, null, null, null, null);
+        assertContains(entry, tripleRow.getRow());
 
         entry = strategy.defineRange(uri2, null, null, null, null);
-        assertContainsFalse(entry.getValue(), tripleRow.getRow());
+        assertContainsFalse(entry, tripleRow.getRow());
     }
 
     public void testSRange() throws Exception {
- 
-        Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(rangeIRI, null, null, null, null);
+
+        ByteRange entry = strategy.defineRange(rangeIRI, null, null, null, null);
         assertNull(entry);
     }
 

@@ -19,13 +19,6 @@ package org.apache.rya.accumulo.mr;
  * under the License.
  */
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.Map.Entry;
-
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.mapreduce.AbstractInputFormat;
@@ -39,11 +32,18 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 import org.apache.spark.graphx.Edge;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.Map.Entry;
 
 /**
  * Subclass of {@link AbstractInputFormat} for reading
@@ -185,10 +185,10 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 
 	}
 
-	public static long getVertexId(final RyaType resource) throws IOException {
+	public static long getVertexId(final RyaValue resource) throws IOException {
 		String iri = "";
 		if (resource != null) {
-			iri = resource.getData().toString();
+			iri = resource.getData();
 		}
 		try {
 			// SHA-256 the string value and then generate a hashcode from

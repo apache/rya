@@ -28,6 +28,7 @@ import org.apache.http.annotation.Contract;
 import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.smarturi.SmartUriAdapter;
 import org.apache.rya.indexing.smarturi.SmartUriException;
@@ -78,7 +79,7 @@ import static java.util.Objects.requireNonNull;
 public class Entity {
     private static final Logger log = Logger.getLogger(Entity.class);
 
-    private final RyaIRI subject;
+    private final RyaResource subject;
     private final ImmutableList<RyaIRI> explicitTypeIds;
 
     // First key is Type ID.
@@ -104,7 +105,7 @@ public class Entity {
      * {@link Entity}.
      */
     private Entity(
-            final RyaIRI subject,
+            final RyaResource subject,
             final ImmutableList<RyaIRI> explicitTypeIds,
             final ImmutableMap<RyaIRI, ImmutableMap<RyaIRI, Property>> typeProperties,
             final int version,
@@ -137,7 +138,7 @@ public class Entity {
      * {@link EntityStorage} to prevent stale updates.
      */
     private Entity(
-            final RyaIRI subject,
+            final RyaResource subject,
             final ImmutableList<RyaIRI> explicitTypeIds,
             final ImmutableMap<RyaIRI, ImmutableMap<RyaIRI, Property>> typeProperties,
             final int version) {
@@ -147,7 +148,7 @@ public class Entity {
     /**
      * @return Identifies the thing that is being represented as an Entity.
      */
-    public RyaIRI getSubject() {
+    public RyaResource getSubject() {
         return subject;
     }
 
@@ -288,7 +289,7 @@ public class Entity {
     @DefaultAnnotation(NonNull.class)
     public static class Builder {
 
-        private RyaIRI subject = null;
+        private RyaResource subject = null;
         private final List<RyaIRI> explicitTypes = new ArrayList<>();
         private final Map<RyaIRI, Map<RyaIRI, Property>> properties = new HashMap<>();
         private IRI smartUri = null;
@@ -324,7 +325,7 @@ public class Entity {
          * @param subject - Identifies the {@link TypedEntity}.
          * @return This {@link Builder} so that method invocations may be chained.
          */
-        public Builder setSubject(@Nullable final RyaIRI subject) {
+        public Builder setSubject(@Nullable final RyaResource subject) {
             this.subject = subject;
             return this;
         }

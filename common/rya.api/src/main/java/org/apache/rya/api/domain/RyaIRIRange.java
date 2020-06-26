@@ -20,6 +20,8 @@ package org.apache.rya.api.domain;
  */
 
 
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.eclipse.rdf4j.model.Resource;
 
 /**
  * Date: 7/17/12
@@ -28,31 +30,35 @@ package org.apache.rya.api.domain;
 public class RyaIRIRange extends RyaIRI implements RyaRange {
     public static final RyaIRI LAST_IRI = new RyaIRI(((char) 255) + ":#" + ((char) 255));
 
-    private RyaIRI start;
-    private RyaIRI stop;
+    private RyaResource start;
+    private RyaResource stop;
 
     public RyaIRIRange() {
         super();
     }
 
-    public RyaIRIRange(RyaIRI start, RyaIRI stop) {
+    public RyaIRIRange(Resource start, Resource stop) {
+        this(RdfToRyaConversions.convertResource(start), RdfToRyaConversions.convertResource(stop));
+    }
+
+    public RyaIRIRange(RyaResource start, RyaResource stop) {
         this.start = start;
         this.stop = stop;
     }
 
-    public RyaIRI getStart() {
+    public RyaResource getStart() {
         return start;
     }
 
-    public void setStart(RyaIRI start) {
+    public void setStart(RyaResource start) {
         this.start = start;
     }
 
-    public RyaIRI getStop() {
+    public RyaResource getStop() {
         return stop;
     }
 
-    public void setStop(RyaIRI stop) {
+    public void setStop(RyaResource stop) {
         this.stop = stop;
     }
 

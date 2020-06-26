@@ -19,12 +19,8 @@ package org.apache.rya.accumulo.pig;
  * under the License.
  */
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteStreams;
 import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.data.Key;
@@ -39,9 +35,10 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.query.strategy.ByteRange;
 import org.apache.rya.api.query.strategy.TriplePatternStrategy;
@@ -62,8 +59,11 @@ import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.QueryParser;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteStreams;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 /**
  */
@@ -190,17 +190,16 @@ public class StatementPatternStorage extends AccumuloStorage {
     }
 
     protected Map.Entry<TABLE_LAYOUT, Range> createRange(Value s_v, Value p_v, Value o_v) throws IOException {
-        RyaIRI subject_rya = RdfToRyaConversions.convertResource((Resource) s_v);
+        RyaResource subject_rya = RdfToRyaConversions.convertResource((Resource) s_v);
         RyaIRI predicate_rya = RdfToRyaConversions.convertIRI((IRI) p_v);
-        RyaType object_rya = RdfToRyaConversions.convertValue(o_v);
+        RyaValue object_rya = RdfToRyaConversions.convertValue(o_v);
         TriplePatternStrategy strategy = ryaContext.retrieveStrategy(subject_rya, predicate_rya, object_rya, null);
         if (strategy == null) {
-            return new RdfCloudTripleStoreUtils.CustomEntry<TABLE_LAYOUT, Range>(TABLE_LAYOUT.SPO, new Range());
+            return new RdfCloudTripleStoreUtils.CustomEntry<>(TABLE_LAYOUT.SPO, new Range());
         }
-        Map.Entry<TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(subject_rya, predicate_rya, object_rya, null, null);
-        ByteRange byteRange = entry.getValue();
-        return new RdfCloudTripleStoreUtils.CustomEntry<org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT, Range>(
-                entry.getKey(), new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()))
+        ByteRange byteRange = strategy.defineRange(subject_rya, predicate_rya, object_rya, null, null);
+        return new RdfCloudTripleStoreUtils.CustomEntry<>(
+                strategy.getLayout(), new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()))
         );
     }
 

@@ -19,27 +19,28 @@ package org.apache.rya;
  * under the License.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreUtils.CustomEntry;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.join.MergeJoin;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * TODO: Move to rya.api when we have proper mock ryaDao
@@ -91,8 +92,8 @@ public class MergeJoinTest {
 
         //1 join
         MergeJoin mergeJoin = new MergeJoin(dao.getQueryEngine());
-        CloseableIteration<RyaIRI, RyaDAOException> join = mergeJoin.join(null, new CustomEntry<RyaIRI, RyaType>(pred, one),
-                new CustomEntry<RyaIRI, RyaType>(pred, two));
+        CloseableIteration<RyaIRI, RyaDAOException> join = mergeJoin.join(conf, new CustomEntry<RyaIRI, RyaValue>(pred, one),
+                new CustomEntry<RyaIRI, RyaValue>(pred, two));
 
         Set<RyaIRI> uris = new HashSet<RyaIRI>();
         while (join.hasNext()) {
@@ -128,7 +129,7 @@ public class MergeJoinTest {
 
         //1 join
         MergeJoin mergeJoin = new MergeJoin(dao.getQueryEngine());
-        CloseableIteration<RyaStatement, RyaDAOException> join = mergeJoin.join(null, pred1, pred2);
+        CloseableIteration<RyaStatement, RyaDAOException> join = mergeJoin.join(conf, pred1, pred2);
 
         int count = 0;
         while (join.hasNext()) {
@@ -180,7 +181,7 @@ public class MergeJoinTest {
 
         //1 join
         MergeJoin mergeJoin = new MergeJoin(dao.getQueryEngine());
-        CloseableIteration<RyaStatement, RyaDAOException> join = mergeJoin.join(null, pred1, pred2);
+        CloseableIteration<RyaStatement, RyaDAOException> join = mergeJoin.join(conf, pred1, pred2);
 
         int count = 0;
         while (join.hasNext()) {
@@ -224,10 +225,10 @@ public class MergeJoinTest {
 
         //1 join
         MergeJoin mergeJoin = new MergeJoin(dao.getQueryEngine());
-        CloseableIteration<RyaIRI, RyaDAOException> join = mergeJoin.join(null, new CustomEntry<RyaIRI, RyaType>(pred, one),
-                new CustomEntry<RyaIRI, RyaType>(pred, two),
-                new CustomEntry<RyaIRI, RyaType>(pred, three),
-                new CustomEntry<RyaIRI, RyaType>(pred, four)
+        CloseableIteration<RyaIRI, RyaDAOException> join = mergeJoin.join(conf, new CustomEntry<RyaIRI, RyaValue>(pred, one),
+                new CustomEntry<RyaIRI, RyaValue>(pred, two),
+                new CustomEntry<RyaIRI, RyaValue>(pred, three),
+                new CustomEntry<RyaIRI, RyaValue>(pred, four)
         );
 
         Set<RyaIRI> uris = new HashSet<RyaIRI>();
@@ -275,10 +276,10 @@ public class MergeJoinTest {
 
         //1 join
         MergeJoin mergeJoin = new MergeJoin(dao.getQueryEngine());
-        CloseableIteration<RyaIRI, RyaDAOException> join = mergeJoin.join(null, new CustomEntry<RyaIRI, RyaType>(pred, one),
-                new CustomEntry<RyaIRI, RyaType>(pred, two),
-                new CustomEntry<RyaIRI, RyaType>(pred, three),
-                new CustomEntry<RyaIRI, RyaType>(pred, four)
+        CloseableIteration<RyaIRI, RyaDAOException> join = mergeJoin.join(conf, new CustomEntry<RyaIRI, RyaValue>(pred, one),
+                new CustomEntry<RyaIRI, RyaValue>(pred, two),
+                new CustomEntry<RyaIRI, RyaValue>(pred, three),
+                new CustomEntry<RyaIRI, RyaValue>(pred, four)
         );
 
         Set<RyaIRI> uris = new HashSet<RyaIRI>();
@@ -320,10 +321,10 @@ public class MergeJoinTest {
 
         //1 join
         MergeJoin mergeJoin = new MergeJoin(dao.getQueryEngine());
-        CloseableIteration<RyaIRI, RyaDAOException> join = mergeJoin.join(null, new CustomEntry<RyaIRI, RyaType>(pred, one),
-                new CustomEntry<RyaIRI, RyaType>(pred, two),
-                new CustomEntry<RyaIRI, RyaType>(pred, three),
-                new CustomEntry<RyaIRI, RyaType>(pred, four)
+        CloseableIteration<RyaIRI, RyaDAOException> join = mergeJoin.join(conf, new CustomEntry<RyaIRI, RyaValue>(pred, one),
+                new CustomEntry<RyaIRI, RyaValue>(pred, two),
+                new CustomEntry<RyaIRI, RyaValue>(pred, three),
+                new CustomEntry<RyaIRI, RyaValue>(pred, four)
         );
 
         assertFalse(join.hasNext());
@@ -357,10 +358,10 @@ public class MergeJoinTest {
 
         //1 join
         MergeJoin mergeJoin = new MergeJoin(dao.getQueryEngine());
-        CloseableIteration<RyaIRI, RyaDAOException> join = mergeJoin.join(null, new CustomEntry<RyaIRI, RyaType>(pred, one),
-                new CustomEntry<RyaIRI, RyaType>(pred, two),
-                new CustomEntry<RyaIRI, RyaType>(pred, three),
-                new CustomEntry<RyaIRI, RyaType>(pred, four)
+        CloseableIteration<RyaIRI, RyaDAOException> join = mergeJoin.join(conf, new CustomEntry<RyaIRI, RyaValue>(pred, one),
+                new CustomEntry<RyaIRI, RyaValue>(pred, two),
+                new CustomEntry<RyaIRI, RyaValue>(pred, three),
+                new CustomEntry<RyaIRI, RyaValue>(pred, four)
         );
 
         assertFalse(join.hasNext());

@@ -19,22 +19,30 @@ package org.apache.rya.api.persist.query;
  * under the License.
  */
 
-
-
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import org.apache.rya.api.domain.RyaStatement;
+
+import java.util.Collections;
+import java.util.Objects;
 
 /**
  * Query domain object contains the query to run as a {@link RyaStatement} and options for running the query
  */
+@Deprecated
 public class RyaQuery extends RyaQueryOptions {
 
-    //query
-    private RyaStatement query;
+    protected Iterable<RyaStatement> queries;
 
     public RyaQuery(RyaStatement query) {
-        Preconditions.checkNotNull(query, "RyaStatement query cannot be null");
-        this.query = query;
+        Preconditions.checkNotNull(query, "Statement query cannot be null");
+        this.queries = Collections.singleton(query);
+    }
+
+    protected RyaQuery(Iterable<RyaStatement> queries) {
+        Preconditions.checkNotNull(queries, "Statement queries cannot be null");
+        Preconditions.checkState(queries.iterator().hasNext(), "Statement queries cannot be empty");
+        this.queries = queries;
     }
 
     public static RyaQueryBuilder builder(RyaStatement query) {
@@ -59,11 +67,15 @@ public class RyaQuery extends RyaQueryOptions {
     }
 
     public RyaStatement getQuery() {
-        return query;
+        return queries.iterator().next();
     }
 
-    public void setQuery(RyaStatement query) {
-        this.query = query;
+    public Iterable<RyaStatement> getQueries() {
+        return queries;
+    }
+
+    public void setQueries(Iterable<RyaStatement> queries) {
+        this.queries = queries;
     }
 
     @Override
@@ -72,24 +84,22 @@ public class RyaQuery extends RyaQueryOptions {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        RyaQuery ryaQuery = (RyaQuery) o;
+        BatchRyaQuery that = (BatchRyaQuery) o;
 
-        if (query != null ? !query.equals(ryaQuery.query) : ryaQuery.query != null) return false;
-
-        return true;
+        return Objects.equals(queries, that.queries);
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (query != null ? query.hashCode() : 0);
+        result = 31 * result + (queries != null ? queries.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
         return "RyaQuery{" +
-                "query=" + query +
+                "query=" + Iterables.toString(queries) +
                 "options={" + super.toString() +
                 '}' +
                 '}';

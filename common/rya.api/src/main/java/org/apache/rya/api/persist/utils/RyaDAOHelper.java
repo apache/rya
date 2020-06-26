@@ -19,19 +19,17 @@ package org.apache.rya.api.persist.utils;
  * under the License.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.NoSuchElementException;
-
+import com.google.common.base.Preconditions;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.persist.RyaDAO;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.query.RyaQueryEngine;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
-import org.apache.rya.api.resolver.RyaToRdfConversions;
-import org.apache.rya.api.utils.NullableStatementImpl;
+import org.apache.rya.api.utils.WildcardStatement;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
@@ -40,135 +38,254 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+
 /**
- * Date: 7/20/12
- * Time: 10:36 AM
+ * TODO: Check there are sufficient unit tests in the DAOs to cover these methods...
  */
 public class RyaDAOHelper {
 
-    public static CloseableIteration<Statement, QueryEvaluationException> query(RyaDAO ryaDAO, Resource subject, IRI predicate, Value object, RdfCloudTripleStoreConfiguration conf, Resource... contexts) throws QueryEvaluationException {
-        return query(ryaDAO, new NullableStatementImpl(subject, predicate, object, contexts), conf);
-    }
-
-    public static CloseableIteration<Statement, QueryEvaluationException> query(RyaDAO ryaDAO, Statement stmt, RdfCloudTripleStoreConfiguration conf) throws QueryEvaluationException {
-        final CloseableIteration<RyaStatement, RyaDAOException> query;
-        try {
-            query = ryaDAO.getQueryEngine().query(RdfToRyaConversions.convertStatement(stmt),
-                    conf);
-        } catch (RyaDAOException e) {
-            throw new QueryEvaluationException(e);
+    /**
+     * This is a method used by {@link org.eclipse.rdf4j.query.algebra.evaluation.TripleSource}.
+     * @param queryEngine
+     * @param subject
+     * @param predicate
+     * @param object
+     * @param conf
+     * @param contexts
+     * @return
+     * @throws RyaDAOException
+     */
+    public static CloseableIteration<Statement, QueryEvaluationException> queryRdf4j(RyaQueryEngine queryEngine, Resource subject, IRI predicate, Value object, RdfCloudTripleStoreConfiguration conf, Resource... contexts) throws RyaDAOException {
+        Preconditions.checkState(!(subject instanceof RyaResource), "Defensive coding. This method shouldn't be used with Rya types.");
+        Preconditions.checkState(!(predicate instanceof RyaIRI), "Defensive coding. This method shouldn't be used with Rya types.");
+        Preconditions.checkState(!(object instanceof RyaValue), "Defensive coding. This method shouldn't be used with Rya types.");
+        Preconditions.checkState(!(contexts instanceof RyaResource[]), "Defensive coding. This method shouldn't be used with Rya types.");
+        Collection<Map.Entry<Statement, BindingSet>> statements = new ArrayList<>(1);
+        if (contexts != null && contexts.length > 0) {
+            for (Resource context : contexts) {
+                statements.add(new RdfCloudTripleStoreUtils.CustomEntry<>(
+                        new WildcardStatement(subject, predicate, object, context), null));
+            }
+        } else {
+            statements.add(new RdfCloudTripleStoreUtils.CustomEntry<>(
+                    new WildcardStatement(subject, predicate, object), null));
         }
-        //TODO: only support one context for now
-        return new CloseableIteration<Statement, QueryEvaluationException>() {   //TODO: Create a new class struct for this
+        CloseableIteration<Map.Entry<Statement, BindingSet>, QueryEvaluationException> query = queryRdf4j(queryEngine, statements, conf);
+        // This translates from <Map.Entry<Statement, BindingSet>, QueryEvaluationException> to <Statement, QueryEvaluationException>
+        return new CloseableIteration<Statement, QueryEvaluationException>() {
 
             private boolean isClosed = false;
+
             @Override
-            public void close() throws QueryEvaluationException {
+            public void close() throws RyaDAOException {
                 try {
                     isClosed = true;
                     query.close();
                 } catch (RyaDAOException e) {
-                    throw new QueryEvaluationException(e);
+                    throw new RyaDAOException(e);
                 }
             }
 
             @Override
-            public boolean hasNext() throws QueryEvaluationException {
+            public boolean hasNext() throws RyaDAOException {
                 try {
                     return query.hasNext();
                 } catch (RyaDAOException e) {
-                    throw new QueryEvaluationException(e);
+                    throw new RyaDAOException(e);
                 }
             }
 
             @Override
-            public Statement next() throws QueryEvaluationException {
+            public Statement next() throws RyaDAOException {
                 if (!hasNext() || isClosed) {
                     throw new NoSuchElementException();
                 }
 
                 try {
-                    RyaStatement next = query.next();
-                    if (next == null) {
+                    Map.Entry<Statement, BindingSet> next = query.next();
+                    if (next == null || next.getKey() == null) {
                         return null;
                     }
-                    return RyaToRdfConversions.convertStatement(next);
+                    return next.getKey();
                 } catch (RyaDAOException e) {
-                    throw new QueryEvaluationException(e);
+                    throw new RyaDAOException(e);
                 }
             }
 
             @Override
-            public void remove() throws QueryEvaluationException {
+            public void remove() throws RyaDAOException {
                 try {
                     query.remove();
                 } catch (RyaDAOException e) {
-                    throw new QueryEvaluationException(e);
+                    throw new RyaDAOException(e);
                 }
             }
         };
     }
 
-    public static CloseableIteration<? extends Map.Entry<Statement, BindingSet>, QueryEvaluationException> query(RyaDAO ryaDAO, Collection<Map.Entry<Statement, BindingSet>> statements, RdfCloudTripleStoreConfiguration conf) throws QueryEvaluationException {
-        Collection<Map.Entry<RyaStatement, BindingSet>> ryaStatements = new ArrayList<Map.Entry<RyaStatement, BindingSet>>(statements.size());
+    /**
+     * This is a method used by {@link org.eclipse.rdf4j.query.algebra.evaluation.TripleSource}.
+     * @param queryEngine
+     * @param statements
+     * @param conf
+     * @return
+     * @throws RyaDAOException
+     */
+    public static CloseableIteration<Map.Entry<Statement, BindingSet>, QueryEvaluationException> queryRdf4j(RyaQueryEngine queryEngine, Collection<Map.Entry<Statement, BindingSet>> statements, RdfCloudTripleStoreConfiguration conf) throws RyaDAOException {
+        Preconditions.checkNotNull(conf, "Defensive coding. You should pass the configuration.");
+        Collection<Map.Entry<RyaStatement, BindingSet>> ryaStatements = new ArrayList<>(statements.size());
         for (Map.Entry<Statement, BindingSet> entry : statements) {
-            ryaStatements.add(new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>
-                    (RdfToRyaConversions.convertStatement(entry.getKey()), entry.getValue()));
+            Statement statement = entry.getKey();
+            BindingSet bindingSet = entry.getValue();
+            ryaStatements.add(new RdfCloudTripleStoreUtils.CustomEntry<>(RdfToRyaConversions.convertStatement(statement), bindingSet));
         }
-        final CloseableIteration<? extends Map.Entry<RyaStatement, BindingSet>, RyaDAOException> query;
-        try {
-            query = ryaDAO.getQueryEngine().queryWithBindingSet(ryaStatements, conf);
-        } catch (RyaDAOException e) {
-            throw new QueryEvaluationException(e);
-        }
-        return new CloseableIteration<Map.Entry<Statement, BindingSet>, QueryEvaluationException>() {   //TODO: Create a new class struct for this
+        CloseableIteration<Map.Entry<RyaStatement, BindingSet>, RyaDAOException> query = queryEngine.queryWithBindingSet(ryaStatements, conf);
+        // This translates from <Map.Entry<RyaStatement, BindingSet>, RyaDAOException> to <Map.Entry<Statement, BindingSet>, QueryEvaluationException>
+        return new CloseableIteration<Map.Entry<Statement, BindingSet>, QueryEvaluationException>() {
+
             private boolean isClosed = false;
 
             @Override
-            public void close() throws QueryEvaluationException {
-                isClosed = true;
+            public void close() throws RyaDAOException {
                 try {
+                    isClosed = true;
                     query.close();
                 } catch (RyaDAOException e) {
-                    throw new QueryEvaluationException(e);
+                    throw new RyaDAOException(e);
                 }
             }
 
             @Override
-            public boolean hasNext() throws QueryEvaluationException {
+            public boolean hasNext() throws RyaDAOException {
                 try {
                     return query.hasNext();
                 } catch (RyaDAOException e) {
-                    throw new QueryEvaluationException(e);
+                    throw new RyaDAOException(e);
                 }
             }
 
             @Override
-            public Map.Entry<Statement, BindingSet> next() throws QueryEvaluationException {
+            public Map.Entry<Statement, BindingSet> next() throws RyaDAOException {
                 if (!hasNext() || isClosed) {
                     throw new NoSuchElementException();
                 }
-                try {
 
+                try {
                     Map.Entry<RyaStatement, BindingSet> next = query.next();
-                    if (next == null) {
+                    if (next == null || next.getKey() == null) {
                         return null;
                     }
-                    return new RdfCloudTripleStoreUtils.CustomEntry<Statement, BindingSet>(RyaToRdfConversions.convertStatement(next.getKey()), next.getValue());
+                    Statement statement = next.getKey().toStatement();
+                    BindingSet bindingSet = next.getValue();
+                    return new RdfCloudTripleStoreUtils.CustomEntry<>(statement, bindingSet);
                 } catch (RyaDAOException e) {
-                    throw new QueryEvaluationException(e);
+                    throw new RyaDAOException(e);
                 }
             }
 
             @Override
-            public void remove() throws QueryEvaluationException {
+            public void remove() throws RyaDAOException {
                 try {
                     query.remove();
                 } catch (RyaDAOException e) {
-                    throw new QueryEvaluationException(e);
+                    throw new RyaDAOException(e);
                 }
             }
         };
+    }
+
+    public static CloseableIteration<RyaStatement, RyaDAOException> query(RyaQueryEngine queryEngine, RyaResource subject, RyaIRI predicate, RyaValue object, RdfCloudTripleStoreConfiguration conf, RyaResource... contexts) throws RyaDAOException {
+        List<RyaStatement> statements = new ArrayList<>();
+        if (contexts != null && contexts.length > 0) {
+            for (Resource context : contexts) {
+                statements.add(new RyaStatement(subject, predicate, object, context));
+            }
+        } else {
+            statements.add(new RyaStatement(subject, predicate, object));
+        }
+        return query(queryEngine, statements, conf);
+    }
+
+    public static CloseableIteration<RyaStatement, RyaDAOException> query(RyaQueryEngine queryEngine, RyaResource subject, RyaIRI predicate, RyaValue object, RdfCloudTripleStoreConfiguration conf) throws RyaDAOException {
+        return query(queryEngine, new RyaStatement(subject, predicate, object), conf);
+    }
+
+    public static CloseableIteration<RyaStatement, RyaDAOException> query(RyaQueryEngine queryEngine, RyaStatement stmt, RdfCloudTripleStoreConfiguration conf) throws RyaDAOException {
+        return query(queryEngine, Collections.singletonList(stmt), conf);
+    }
+
+    public static CloseableIteration<RyaStatement, RyaDAOException> query(RyaQueryEngine queryEngine, Iterable<RyaStatement> stmts, RdfCloudTripleStoreConfiguration conf) throws RyaDAOException {
+        final Map<RyaStatement, BindingSet> statements = new HashMap<>();
+        for (RyaStatement stmt : stmts) {
+            statements.put(stmt, null);
+        }
+        CloseableIteration<Map.Entry<RyaStatement, BindingSet>, RyaDAOException> query = query(queryEngine, statements.entrySet(), conf);
+        // This translates from <Map.Entry<RyaStatement, BindingSet>, RyaDAOException> to <RyaStatement, RyaDAOException>
+        return new CloseableIteration<RyaStatement, RyaDAOException>() {
+
+            private boolean isClosed = false;
+
+            @Override
+            public void close() throws RyaDAOException {
+                try {
+                    isClosed = true;
+                    query.close();
+                } catch (RyaDAOException e) {
+                    throw new RyaDAOException(e);
+                }
+            }
+
+            @Override
+            public boolean hasNext() throws RyaDAOException {
+                try {
+                    return query.hasNext();
+                } catch (RyaDAOException e) {
+                    throw new RyaDAOException(e);
+                }
+            }
+
+            @Override
+            public RyaStatement next() throws RyaDAOException {
+                if (!hasNext() || isClosed) {
+                    throw new NoSuchElementException();
+                }
+
+                try {
+                    Map.Entry<RyaStatement, BindingSet> next = query.next();
+                    if (next == null || next.getKey() == null) {
+                        return null;
+                    }
+                    return next.getKey();
+                } catch (RyaDAOException e) {
+                    throw new RyaDAOException(e);
+                }
+            }
+
+            @Override
+            public void remove() throws RyaDAOException {
+                try {
+                    query.remove();
+                } catch (RyaDAOException e) {
+                    throw new RyaDAOException(e);
+                }
+            }
+        };
+    }
+
+    public static CloseableIteration<Map.Entry<RyaStatement, BindingSet>, RyaDAOException> query(RyaQueryEngine queryEngine, Collection<Map.Entry<RyaStatement, BindingSet>> statements, RdfCloudTripleStoreConfiguration conf) throws RyaDAOException {
+        Preconditions.checkNotNull(conf, "Defensive coding. You should pass the configuration.");
+        Collection<Map.Entry<RyaStatement, BindingSet>> ryaStatements = new ArrayList<>(statements.size());
+        for (Map.Entry<RyaStatement, BindingSet> entry : statements) {
+            ryaStatements.add(new RdfCloudTripleStoreUtils.CustomEntry<>(entry.getKey(), entry.getValue()));
+        }
+        return queryEngine.queryWithBindingSet(ryaStatements, conf);
     }
 
 }

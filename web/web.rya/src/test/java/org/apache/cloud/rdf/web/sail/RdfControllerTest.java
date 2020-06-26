@@ -19,14 +19,6 @@ package org.apache.cloud.rdf.web.sail;
  * under the License.
  */
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -48,6 +40,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.util.NestedServletException;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -87,7 +87,7 @@ public class RdfControllerTest {
     }
 
     @Test
-    public void emptyQueryXMLFormat() throws Exception {
+    public void queryXMLFormat() throws Exception {
         this.mockMvc.perform(get("/queryrdf")
                 .param("query", "SELECT * WHERE { ?s ?p ?o . }")
                 .param("query.resultformat", "xml"))
@@ -96,7 +96,7 @@ public class RdfControllerTest {
     }
 
     @Test
-    public void emptyQueryJSONFormat() throws Exception {
+    public void queryJSONFormat() throws Exception {
         this.mockMvc.perform(get("/queryrdf")
                 .param("query", "SELECT * WHERE { ?s ?p ?o . }")
                 .param("query.resultformat", "json"))
@@ -105,7 +105,7 @@ public class RdfControllerTest {
     }
 
     @Test
-    public void emptyQueryNoFormat() throws Exception {
+    public void queryNoFormat() throws Exception {
         this.mockMvc.perform(get("/queryrdf")
                 .param("query", "SELECT * WHERE { ?s ?p ?o . }"))
                 .andExpect(status().isOk())

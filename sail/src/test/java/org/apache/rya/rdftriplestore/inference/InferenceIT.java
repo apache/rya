@@ -18,19 +18,12 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import junit.framework.TestCase;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
@@ -50,7 +43,15 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
-import junit.framework.TestCase;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.RTS_SUBJECT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.VERSION_RYA;
 
 public class InferenceIT extends TestCase {
     private final static String LUBM = "http://swat.cse.lehigh.edu/onto/univ-bench.owl#";
@@ -81,6 +82,7 @@ public class InferenceIT extends TestCase {
         store.setRyaDAO(dao);
         inferenceEngine = new InferenceEngine();
         inferenceEngine.setRyaDAO(dao);
+        inferenceEngine.setConf(conf);
         store.setInferenceEngine(inferenceEngine);
         inferenceEngine.refreshGraph();
         store.initialize();
@@ -674,8 +676,8 @@ public class InferenceIT extends TestCase {
         everything.add(new ListBindingSet(varNames, eve, eve));
         everything.add(new ListBindingSet(varNames, hasFamily, hasFamily));
         everything.add(new ListBindingSet(varNames, rp, rp));
-        everything.add(new ListBindingSet(varNames, RdfCloudTripleStoreConstants.RTS_SUBJECT, RdfCloudTripleStoreConstants.RTS_SUBJECT));
-        everything.add(new ListBindingSet(varNames, RdfCloudTripleStoreConstants.VERSION, RdfCloudTripleStoreConstants.VERSION));
+        everything.add(new ListBindingSet(varNames, RTS_SUBJECT, RTS_SUBJECT));
+        everything.add(new ListBindingSet(varNames, VERSION_RYA, VERSION_RYA));
         final String everythingQuery = "SELECT * { GRAPH <http://updated/test> {\n"
                 + "  ?x <urn:hasFamilyMember> ?y .\n"
                 + "} }";

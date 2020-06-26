@@ -18,23 +18,26 @@
  */
 package org.apache.rya.api.domain;
 
-import java.util.Objects;
-
 import org.apache.commons.lang.builder.CompareToBuilder;
 import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+
+import java.util.Objects;
 
 /**
  * Base Rya Type
  * Date: 7/16/12
  * Time: 11:45 AM
  */
-public class RyaType implements Comparable<RyaType> {
+public class RyaType implements Comparable<RyaType>, RyaValue {
 
-    private IRI dataType;
-    private String data;
-    private String language;
+    protected IRI dataType;
+    protected String data;
+    protected String language;
 
     /**
      * Creates a new instance of {@link RyaType}.
@@ -111,38 +114,34 @@ public class RyaType implements Comparable<RyaType> {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("RyaType");
-        sb.append("{dataType=").append(dataType);
-        sb.append(", data='").append(data).append('\'');
-        if (language != null) {
-            sb.append(", language='").append(language).append('\'');
-        }
-        sb.append('}');
-        return sb.toString();
+        return stringValue();
     }
 
     /**
      * Determine equality based on string representations of data, datatype, and
-     * language.
+     * language. Fallback to standard RDF equals if the compared object is not a RyaType.
      * @param o The object to compare with
      * @return {@code true} if the other object is also a RyaType and the data,
-     * datatype, and language all match.
+     * datatype, and language all match. Also return true if {@param o} is a {@link Resource} with the same value.
      */
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
-        if (o == null || !(o instanceof RyaType)) {
+        if (!(o instanceof Value)) {
             return false;
         }
-        final RyaType other = (RyaType) o;
-        final EqualsBuilder builder = new EqualsBuilder()
-                .append(getData(), other.getData())
-                .append(getDataType(), other.getDataType())
-                .append(getLanguage(), other.getLanguage());
-        return builder.isEquals();
+        if (o instanceof RyaType) {
+            final RyaType other = (RyaType) o;
+            final EqualsBuilder builder = new EqualsBuilder()
+                    .append(getData(), other.getData())
+                    .append(getDataType(), other.getDataType())
+                    .append(getLanguage(), other.getLanguage());
+            return builder.isEquals();
+        }
+        // Fall back to the equals method of the Value class.
+        return (((Value) o).stringValue()).equals(this.stringValue());
     }
 
     /**
@@ -176,4 +175,10 @@ public class RyaType implements Comparable<RyaType> {
                 .append(getLanguage(), o.getLanguage());
         return builder.toComparison();
     }
+
+    @Override
+    public String stringValue() {
+        return RyaToRdfConversions.convertLiteral(this).stringValue();
+    }
+
 }

@@ -18,18 +18,9 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Objects.requireNonNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-
+import com.google.common.base.Optional;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -68,10 +59,17 @@ import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 
-import com.google.common.base.Optional;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Functions that create and maintain the PCJ tables that are used by Rya.
@@ -187,7 +185,7 @@ public class PcjTables {
     }
 
     /**
-     * Create the {@link Mutation}s required to write a {@link PCJMetadata} object
+     * Create the {@link Mutation}s required to write a {@link PcjMetadata} object
      * to an Accumulo table.
      *
      * @param metadata - The metadata to write. (not null)
@@ -225,7 +223,7 @@ public class PcjTables {
     }
 
     /**
-     * Fetch the {@link PCJMetadata} from an Accumulo table.
+     * Fetch the {@link PcjMetadata} from an Accumulo table.
      * <p>
      * This method assumes the PCJ table has already been created.
      *
@@ -387,7 +385,7 @@ public class PcjTables {
     }
 
     /**
-     * Create the {@link Mutations} required to write a new {@link BindingSet}
+     * Create the {@link Mutation}s required to write a new {@link BindingSet}
      * to a PCJ table for each {@link VariableOrder} that is provided.
      *
      * @param varOrders - The variables orders the result will be written to. (not null)
@@ -574,7 +572,7 @@ public class PcjTables {
             final TupleQueryResult results = query.evaluate();
 
             // Load batches of 1000 of them at a time into the PCJ table
-            final Set<VisibilityBindingSet> batch = new HashSet<>(1000);
+            final Set<VisibilityBindingSet> batch = new HashSet<>(1000); // Match below
             while(results.hasNext()) {
                 batch.add( new VisibilityBindingSet(results.next()) );
 

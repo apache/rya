@@ -18,9 +18,8 @@
  */
 package org.apache.rya.indexing.smarturi;
 
-import java.util.Map;
-
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.model.TypedEntity;
@@ -28,6 +27,8 @@ import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
 import org.calrissian.mango.collect.CloseableIterator;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
+
+import java.util.Map;
 
 /**
  * Interface for interacting with a Smart URI's datastore.
@@ -40,7 +41,7 @@ public interface SmartUriStorage {
      * @param map the {@link Map} of {@link IRI}s to {@link Value}s.
      * @throws SmartUriException
      */
-    public void storeEntity(final RyaIRI subject, final Map<IRI, Value> map) throws SmartUriException;
+    public void storeEntity(final RyaResource subject, final Map<IRI, Value> map) throws SmartUriException;
 
     /**
      * Stores the entity into the datastore.
@@ -64,7 +65,7 @@ public interface SmartUriStorage {
      * @return the {@link Entity} matching the subject.
      * @throws SmartUriException
      */
-    public Entity queryEntity(final RyaIRI subject) throws SmartUriException;
+    public Entity queryEntity(final RyaResource subject) throws SmartUriException;
 
     /**
      * Queries the datastore for the map.

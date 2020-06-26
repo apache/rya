@@ -19,14 +19,15 @@ package org.apache.rya.api.persist.query.join;
  * under the License.
  */
 
-import java.util.Map;
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+
+import java.util.Map;
 
 /**
  * Date: 7/24/12
@@ -34,9 +35,15 @@ import org.eclipse.rdf4j.common.iteration.CloseableIteration;
  */
 public interface Join<C extends RdfCloudTripleStoreConfiguration> {
 
+    /**
+     * Returns the {@link RyaStatement}s matching a predicate.
+     */
     public CloseableIteration<RyaStatement, RyaDAOException> join(C conf, RyaIRI... preds)
             throws RyaDAOException;
 
-    public CloseableIteration<RyaIRI, RyaDAOException> join(C conf, Map.Entry<RyaIRI, RyaType>... predObjs)
+    /**
+     * Returns the subject given a predicate and object.
+     */
+    public CloseableIteration<RyaResource, RyaDAOException> join(C conf, Map.Entry<RyaIRI, RyaValue>... predObjs)
                     throws RyaDAOException;
 }

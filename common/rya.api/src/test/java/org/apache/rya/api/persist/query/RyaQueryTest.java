@@ -20,9 +20,8 @@ package org.apache.rya.api.persist.query;
  */
 
 
-
-import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaStatement;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -49,7 +48,7 @@ public class RyaQueryTest {
                 .build();
 
         assertNotNull(ryaQuery);
-        assertEquals(ryaStatement, ryaQuery.getQuery());
+        assertEquals(ryaStatement, ryaQuery.getQueries().iterator().next());
         assertEquals(4, (int) ryaQuery.getNumQueryThreads());
         assertEquals("regexObj", ryaQuery.getRegexObject());
         assertEquals("regexPred", ryaQuery.getRegexPredicate());

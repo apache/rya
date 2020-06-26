@@ -26,7 +26,8 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.http.annotation.Contract;
 import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.rya.api.domain.RyaIRI;
-import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaValue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,7 +47,7 @@ public class TypedEntity {
     /**
      * The Subject of the {@link Entity} this view was derived from.
      */
-    private final RyaIRI subject;
+    private final RyaResource subject;
 
     /**
      * The ID of the {@link Type} that defines the structure of this TypedEntity.
@@ -75,9 +76,9 @@ public class TypedEntity {
      * @param explicitlyTyped - {@code true} if the Entity's Type has been explicitly set to the
      *   {@link #typeId} value; {@code false} if it is implicit (this Entity only exists because
      *   it has properties that happen to match that type's properties).
-     * @param properties - The optional {@link Property} values of this {@link TypedEntity}. (not null)
+     * @param optionalFields - The map of {@link RyaIRI} to {@link Property} values of this {@link TypedEntity}. (not null)
      */
-    private TypedEntity(final RyaIRI subject,
+    private TypedEntity(final RyaResource subject,
             final RyaIRI dataTypeId,
             final boolean explicitlyTyped,
             final ImmutableMap<RyaIRI, Property> optionalFields) {
@@ -90,7 +91,7 @@ public class TypedEntity {
     /**
      * @return The Subject of the {@link Entity} this view was derived from.
      */
-    public RyaIRI getSubject() {
+    public RyaResource getSubject() {
         return subject;
     }
 
@@ -124,7 +125,7 @@ public class TypedEntity {
      * @param propertyName - The name of {@link Property} that may be in this Entity. (not null)
      * @return The value of the Property if it has been set.
      */
-    public Optional<RyaType> getPropertyValue(final RyaIRI propertyName) {
+    public Optional<RyaValue> getPropertyValue(final RyaIRI propertyName) {
         requireNonNull(propertyName);
 
         final Property field = optionalFields.get(propertyName);
@@ -183,7 +184,7 @@ public class TypedEntity {
     @DefaultAnnotation(NonNull.class)
     public static class Builder {
 
-        private RyaIRI subject;
+        private RyaResource subject;
         private RyaIRI typeId;
         private boolean explicitlyTyped = false;
         private final Map<RyaIRI, Property> properties = new HashMap<>();
@@ -192,7 +193,7 @@ public class TypedEntity {
          * @param subject - The Subject of the {@link Entity} this view was derived from.
          * @return This {@link Builder} so that method invocations may be chained.
          */
-        public Builder setId(@Nullable final RyaIRI subject) {
+        public Builder setId(@Nullable final RyaResource subject) {
             this.subject = subject;
             return this;
         }

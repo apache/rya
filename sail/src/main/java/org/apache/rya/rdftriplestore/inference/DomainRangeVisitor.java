@@ -18,18 +18,18 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import java.util.Set;
-import java.util.UUID;
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 import org.eclipse.rdf4j.query.algebra.Var;
+
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Expands the query tree to account for any relevant domain and range information known to the
@@ -87,7 +87,7 @@ public class DomainRangeVisitor extends AbstractInferVisitor {
                 // Enumerate predicates having this type as domain
                 FixedStatementPattern domainFSP = new FixedStatementPattern(domainPredVar, domainVar, objVar);
                 for (IRI property : domainProperties) {
-                    domainFSP.statements.add(new NullableStatementImpl(property, RDFS.DOMAIN, inferredType));
+                    domainFSP.statements.add(SimpleValueFactory.getInstance().createStatement(property, RDFS.DOMAIN, inferredType));
                 }
                 // For each such predicate, any triple <subjVar predicate _:any> implies the type
                 currentNode = new InferUnion(currentNode, new InferJoin(domainFSP, domainSP));
@@ -103,7 +103,7 @@ public class DomainRangeVisitor extends AbstractInferVisitor {
                 // Enumerate predicates having this type as range
                 FixedStatementPattern rangeFSP = new FixedStatementPattern(rangePredVar, rangeVar, objVar);
                 for (IRI property : rangeProperties) {
-                    rangeFSP.statements.add(new NullableStatementImpl(property, RDFS.RANGE, inferredType));
+                    rangeFSP.statements.add(SimpleValueFactory.getInstance().createStatement(property, RDFS.RANGE, inferredType));
                 }
                 // For each such predicate, any triple <_:any predicate subjVar> implies the type
                 currentNode = new InferUnion(currentNode, new InferJoin(rangeFSP, rangeSP));

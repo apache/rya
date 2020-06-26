@@ -18,17 +18,17 @@
  */
 package org.apache.rya.api.resolver;
 
-import static org.apache.rya.api.utils.LiteralLanguageUtils.UNDETERMINED_LANGUAGE;
-
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RangeIRI;
 import org.apache.rya.api.domain.RangeValue;
 import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaIRIRange;
+import org.apache.rya.api.domain.RyaResource;
 import org.apache.rya.api.domain.RyaSchema;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaTypeRange;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.log.LogUtils;
 import org.eclipse.rdf4j.model.BNode;
 import org.eclipse.rdf4j.model.IRI;
@@ -37,6 +37,8 @@ import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.util.Literals;
+
+import static org.apache.rya.api.utils.LiteralLanguageUtils.UNDETERMINED_LANGUAGE;
 
 /**
  * Methods for converting values from their RDF4J object representations into
@@ -55,22 +57,28 @@ public class RdfToRyaConversions {
         if (iri == null) {
             return null;
         }
+        if (iri instanceof RyaIRI) {
+            return (RyaIRI) iri;
+        }
         if (iri instanceof RangeIRI) {
             final RangeIRI riri = (RangeIRI) iri;
-            return new RyaIRIRange(convertIRI(riri.getStart()), convertIRI(riri.getEnd()));
+            return new RyaIRIRange(convertResource(riri.getStart()), convertResource(riri.getEnd()));
         }
         return new RyaIRI(iri.stringValue());
     }
 
     /**
-     * Converts a {@link Literal} into a {@link RyaType} representation of the
+     * Converts a {@link Literal} into a {@link RyaValue} representation of the
      * {@code literal}.
      * @param literal the {@link Literal} to convert.
-     * @return the {@link RyaType} representation of the {@code literal}.
+     * @return the {@link RyaValue} representation of the {@code literal}.
      */
-    public static RyaType convertLiteral(final Literal literal) {
+    public static RyaValue convertLiteral(final Literal literal) {
         if (literal == null) {
             return null;
+        }
+        if (literal instanceof RyaType) {
+            return (RyaType) literal;
         }
         if (literal.getDatatype() != null) {
             if (Literals.isLanguageLiteral(literal)) {
@@ -89,14 +97,17 @@ public class RdfToRyaConversions {
     }
 
     /**
-     * Converts a {@link Value} into a {@link RyaType} representation of the
+     * Converts a {@link Value} into a {@link RyaValue} representation of the
      * {@code value}.
      * @param value the {@link Value} to convert.
-     * @return the {@link RyaType} representation of the {@code value}.
+     * @return the {@link RyaValue} representation of the {@code value}.
      */
-    public static RyaType convertValue(final Value value) {
+    public static RyaValue convertValue(final Value value) {
         if (value == null) {
             return null;
+        }
+        if (value instanceof RyaValue) {
+            return (RyaValue) value;
         }
         //assuming either IRI or Literal here
         if (value instanceof Resource) {
@@ -118,20 +129,44 @@ public class RdfToRyaConversions {
     }
 
     /**
-     * Converts a {@link Resource} into a {@link RyaIRI} representation of the
+     * Converts a {@link Resource} into a {@link RyaResource} representation of the
      * {@code resource}.
      * @param resource the {@link Resource} to convert. Generally this will be
      * the subject.
-     * @return the {@link RyaIRI} representation of the {@code resource}.
+     * @return the {@link RyaResource} representation of the {@code resource}.
      */
-    public static RyaIRI convertResource(final Resource resource) {
+    public static RyaResource convertResource(final Resource resource) {
         if (resource == null) {
             return null;
+        }
+        if (resource instanceof RyaIRI) {
+            return (RyaIRI) resource;
         }
         if (resource instanceof BNode) {
             return new RyaIRI(RyaSchema.BNODE_NAMESPACE + ((BNode) resource).getID());
         }
-        return convertIRI((IRI) resource);
+        if (resource instanceof IRI) {
+            return convertIRI((IRI) resource);
+        }
+        return (RyaResource) convertValue(resource);
+    }
+
+    /**
+     * Converts a {@link Resource[]} into a {@link RyaResource[]} representation of the
+     * {@code resource}.
+     * @param resources the {@link Resource} to convert. Generally this will be
+     * the subject.
+     * @return the {@link RyaResource} representation of the {@code resources}.
+     */
+    public static RyaResource[] convertResource(final Resource... resources) {
+        if (resources == null || resources.length == 0) {
+            return null;
+        }
+        RyaResource[] ryaResources = new RyaResource[resources.length];
+        for (int i = 0; i < resources.length; i++) {
+            ryaResources[i] = convertResource(resources[i]);
+        }
+        return ryaResources;
     }
 
     /**
@@ -143,6 +178,9 @@ public class RdfToRyaConversions {
     public static RyaStatement convertStatement(final Statement statement) {
         if (statement == null) {
             return null;
+        }
+        if (statement instanceof RyaStatement) {
+            return (RyaStatement) statement;
         }
         final Resource subject = statement.getSubject();
         final IRI predicate = statement.getPredicate();

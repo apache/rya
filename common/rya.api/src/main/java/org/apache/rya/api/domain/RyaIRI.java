@@ -19,6 +19,7 @@ package org.apache.rya.api.domain;
  * under the License.
  */
 
+import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.URIUtil;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
@@ -28,7 +29,7 @@ import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
  * Date: 7/16/12
  * Time: 11:56 AM
  */
-public class RyaIRI extends RyaType {
+public class RyaIRI extends RyaType implements RyaResource, IRI {
 
     public RyaIRI() {
         setDataType(XMLSchema.ANYURI);
@@ -56,6 +57,21 @@ public class RyaIRI extends RyaType {
         if (data == null)
             throw new IllegalArgumentException("Null not IRI");
         URIUtil.getLocalNameIndex(data);
+    }
+
+    @Override
+    public String getNamespace() {
+        return RyaToRdfConversions.convertIRI(this).getNamespace();
+    }
+
+    @Override
+    public String getLocalName() {
+        return RyaToRdfConversions.convertIRI(this).getLocalName();
+    }
+
+    @Override
+    public String stringValue() {
+        return RyaToRdfConversions.convertIRI(this).stringValue();
     }
 
 }

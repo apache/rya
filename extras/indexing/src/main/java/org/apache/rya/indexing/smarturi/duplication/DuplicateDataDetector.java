@@ -18,7 +18,22 @@
  */
 package org.apache.rya.indexing.smarturi.duplication;
 
-import static java.util.Objects.requireNonNull;
+import com.google.common.collect.ImmutableMap;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.lang.StringUtils;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaValue;
+import org.apache.rya.api.resolver.impl.DateTimeRyaTypeResolver;
+import org.apache.rya.indexing.entity.model.Entity;
+import org.apache.rya.indexing.entity.model.Property;
+import org.apache.rya.indexing.smarturi.SmartUriAdapter;
+import org.apache.rya.indexing.smarturi.SmartUriException;
+import org.apache.rya.indexing.smarturi.duplication.conf.DuplicateDataConfig;
+import org.calrissian.mango.types.exception.TypeEncodingException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.joda.time.DateTime;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -33,23 +48,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.lang.StringUtils;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
-import org.apache.rya.api.resolver.impl.DateTimeRyaTypeResolver;
-import org.apache.rya.indexing.entity.model.Entity;
-import org.apache.rya.indexing.entity.model.Property;
-import org.apache.rya.indexing.smarturi.SmartUriAdapter;
-import org.apache.rya.indexing.smarturi.SmartUriException;
-import org.apache.rya.indexing.smarturi.duplication.conf.DuplicateDataConfig;
-import org.calrissian.mango.types.exception.TypeEncodingException;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
-import org.joda.time.DateTime;
-
-import com.google.common.collect.ImmutableMap;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Detects if two entities contain data that's nearly identical based on a set
@@ -266,8 +265,8 @@ public class DuplicateDataDetector {
                 final Optional<Property> p2 = entity2.lookupTypeProperty(typeIdUri, propertyNameUri);
                 if (p2.isPresent()) {
                     final Property property2 = p2.get();
-                    final RyaType value1 = property1.getValue();
-                    final RyaType value2 = property2.getValue();
+                    final RyaValue value1 = property1.getValue();
+                    final RyaValue value2 = property2.getValue();
                     final String data1 = value1.getData();
                     final String data2 = value2.getData();
                     final IRI xmlSchemaUri1 = value1.getDataType();

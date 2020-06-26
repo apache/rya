@@ -18,26 +18,15 @@
  */
 package org.apache.rya.indexing.entity.update;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
-import static java.util.Collections.singleton;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.groupingBy;
-
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-
+import com.google.common.base.Objects;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
@@ -52,10 +41,20 @@ import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 
-import com.google.common.base.Objects;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
+import static java.util.Collections.singleton;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * A base class that may be used to update an {@link EntityStorage} as new
@@ -108,10 +107,10 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
     public void storeStatements(final Collection<RyaStatement> statements) throws IOException {
         requireNonNull(statements);
 
-        final Map<RyaIRI,List<RyaStatement>> groupedBySubject = statements.stream()
+        final Map<RyaResource,List<RyaStatement>> groupedBySubject = statements.stream()
                 .collect(groupingBy(RyaStatement::getSubject));
 
-        for(final Entry<RyaIRI, List<RyaStatement>> entry : groupedBySubject.entrySet()) {
+        for(final Entry<RyaResource, List<RyaStatement>> entry : groupedBySubject.entrySet()) {
             try {
                 updateEntity(entry.getKey(), entry.getValue());
             } catch (final IndexingException e) {
@@ -127,7 +126,7 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
      * @param statements - Statements that the {@link Entity} will be updated with. (not null)
      * @throws IndexingException
      */
-    private void updateEntity(final RyaIRI subject, final Collection<RyaStatement> statements) throws IndexingException {
+    private void updateEntity(final RyaResource subject, final Collection<RyaStatement> statements) throws IndexingException {
         requireNonNull(subject);
         requireNonNull(statements);
 
@@ -161,7 +160,7 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
                 // The Statement is adding a Property to the Entity.
                 else {
                     final RyaIRI propertyName = statement.getPredicate();
-                    final RyaType propertyValue = statement.getObject();
+                    final RyaValue propertyValue = statement.getObject();
 
                     try(final ConvertingCursor<Type> typesIt = types.search(propertyName)) {
                         // Set the Property for each type that includes the Statement's predicate.

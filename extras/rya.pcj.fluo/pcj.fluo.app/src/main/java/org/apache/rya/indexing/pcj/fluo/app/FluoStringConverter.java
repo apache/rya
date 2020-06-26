@@ -18,13 +18,11 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.DELIM;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.TYPE_DELIM;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.URI_TYPE;
-
+import com.google.common.base.Preconditions;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.rya.api.domain.RyaSchema;
-import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.eclipse.rdf4j.model.BNode;
@@ -37,10 +35,10 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.Var;
 
-import com.google.common.base.Preconditions;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.DELIM;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.TYPE_DELIM;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.URI_TYPE;
 
 /**
  * Contains method that convert between the RDF4J representations of RDF
@@ -162,8 +160,8 @@ public class FluoStringConverter {
         if (objVar.getValue() != null) {
             final Value objValue = objVar.getValue();
             obj = VarNameUtils.createSimpleConstVarName(objVar);
-            final RyaType rt = RdfToRyaConversions.convertValue(objValue);
-            obj =  obj + TYPE_DELIM + rt.getDataType().stringValue();
+            final RyaValue ryaValue = RdfToRyaConversions.convertValue(objValue);
+            obj =  obj + TYPE_DELIM + ryaValue.getDataType().stringValue();
         }
 
         return subj + DELIM + pred + DELIM + obj;

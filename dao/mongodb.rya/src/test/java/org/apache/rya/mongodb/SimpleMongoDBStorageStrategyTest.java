@@ -18,11 +18,7 @@ package org.apache.rya.mongodb;
  * under the License.
  */
 
-import static org.eclipse.rdf4j.model.vocabulary.XMLSchema.ANYURI;
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-
+import com.mongodb.MongoException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
@@ -37,7 +33,10 @@ import org.bson.Document;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.junit.Test;
 
-import com.mongodb.MongoException;
+import java.io.IOException;
+
+import static org.eclipse.rdf4j.model.vocabulary.XMLSchema.ANYURI;
+import static org.junit.Assert.assertEquals;
 
 public class SimpleMongoDBStorageStrategyTest {
     private static final String SUBJECT = "http://subject.com";
@@ -61,6 +60,7 @@ public class SimpleMongoDBStorageStrategyTest {
         builder.setContext(new RyaIRI(CONTEXT));
         builder.setColumnVisibility(DOCUMENT_VISIBILITY.flatten());
         builder.setTimestamp(null);
+        builder.setMetadata(null);
         testStatement = builder.build();
 
         TEST_DOC = new Document();
@@ -90,6 +90,7 @@ public class SimpleMongoDBStorageStrategyTest {
         builder.setContext(new RyaIRI(CONTEXT));
         builder.setColumnVisibility(DOCUMENT_VISIBILITY.flatten());
         builder.setTimestamp(null);
+        builder.setMetadata(null);
         testStatement2 = builder.build();
 
         // Check language support

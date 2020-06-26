@@ -18,13 +18,7 @@
  */
 package org.apache.rya.forwardchain.strategy;
 
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.google.common.base.Preconditions;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.StatementMetadata;
@@ -34,7 +28,12 @@ import org.apache.rya.forwardchain.rule.Rule;
 import org.apache.rya.forwardchain.rule.Ruleset;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
-import com.google.common.base.Preconditions;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A simple {@link AbstractForwardChainStrategy} that iterates over every
@@ -67,7 +66,7 @@ import com.google.common.base.Preconditions;
  * that could produce triples in response will be triggered.
  * <p>
  * The procedure for executing the individual rules is governed by the
- * {@link RuleExecutionStrategy}. This class uses the strategy's reported counts
+ * {@link AbstractRuleExecutionStrategy}. This class uses the strategy's reported counts
  * to determine whether or not a rule has produced inferences.
  */
 public class RoundRobinStrategy extends AbstractForwardChainStrategy {

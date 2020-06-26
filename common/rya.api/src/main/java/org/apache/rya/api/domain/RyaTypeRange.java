@@ -28,30 +28,30 @@ import org.eclipse.rdf4j.model.IRI;
  * Time: 9:53 AM
  */
 public class RyaTypeRange extends RyaType implements RyaRange {
-    private RyaType start;
-    private RyaType stop;
+    private RyaValue start;
+    private RyaValue stop;
 
     public RyaTypeRange() {
     }
 
-    public RyaTypeRange(RyaType start, RyaType stop) {
+    public RyaTypeRange(RyaValue start, RyaValue stop) {
         this.start = start;
         this.stop = stop;
     }
 
-    public RyaType getStart() {
+    public RyaValue getStart() {
         return start;
     }
 
-    public void setStart(RyaType start) {
+    public void setStart(RyaValue start) {
         this.start = start;
     }
 
-    public RyaType getStop() {
+    public RyaValue getStop() {
         return stop;
     }
 
-    public void setStop(RyaType stop) {
+    public void setStop(RyaValue stop) {
         this.stop = stop;
     }
 

@@ -18,19 +18,6 @@
  */
 package org.apache.rya.prospector.plans.impl;
 
-import static org.apache.rya.prospector.utils.ProspectorConstants.COUNT;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -44,9 +31,10 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.prospector.domain.IndexEntry;
 import org.apache.rya.prospector.domain.IntermediateProspect;
 import org.apache.rya.prospector.domain.TripleValueType;
@@ -56,6 +44,19 @@ import org.apache.rya.prospector.utils.ProspectorUtils;
 import org.eclipse.rdf4j.model.util.URIUtil;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static org.apache.rya.prospector.utils.ProspectorConstants.COUNT;
+
 /**
  * An implementation of {@link IndexWorkPlan} that counts the number of times
  * a piece of data appears within a Rya Instance for every {@link TripleValueType}.
@@ -64,12 +65,12 @@ public class CountPlan implements IndexWorkPlan {
 
     @Override
     public Collection<Map.Entry<IntermediateProspect, LongWritable>> map(final RyaStatement ryaStatement) {
-        final RyaIRI subject = ryaStatement.getSubject();
+        final RyaResource subject = ryaStatement.getSubject();
         final RyaIRI predicate = ryaStatement.getPredicate();
         final String subjpred = ryaStatement.getSubject().getData() + DELIM + ryaStatement.getPredicate().getData();
         final String predobj = ryaStatement.getPredicate().getData() + DELIM + ryaStatement.getObject().getData();
         final String subjobj = ryaStatement.getSubject().getData() + DELIM + ryaStatement.getObject().getData();
-        final RyaType object = ryaStatement.getObject();
+        final RyaValue object = ryaStatement.getObject();
         final int localIndex = URIUtil.getLocalNameIndex(subject.getData());
         final String namespace = subject.getData().substring(0, localIndex - 1);
         final String visibility = new String(ryaStatement.getColumnVisibility(), StandardCharsets.UTF_8);

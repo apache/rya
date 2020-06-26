@@ -26,7 +26,7 @@ package org.apache.rya.api.domain;
  * Time: 10:02 AM
  */
 public interface RyaRange {
-    public RyaType getStart();
+    RyaValue getStart();
 
-    public RyaType getStop();
+    RyaValue getStop();
 }

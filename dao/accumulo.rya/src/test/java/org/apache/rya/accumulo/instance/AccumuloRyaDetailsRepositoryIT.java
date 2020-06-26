@@ -18,12 +18,7 @@
  */
 package org.apache.rya.accumulo.instance;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Date;
-
+import com.google.common.base.Optional;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -47,10 +42,14 @@ import org.apache.rya.test.accumulo.AccumuloITBase;
 import org.apache.rya.test.accumulo.MiniAccumuloClusterInstance;
 import org.junit.Test;
 
-import com.google.common.base.Optional;
+import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
- * Tests the methods of {@link AccumuloRyaDetailsRepository} by using a {@link MiniAccumuloCluster}.
+ * Tests the methods of {@link AccumuloRyaInstanceDetailsRepository} by using a {@link MiniAccumuloCluster}.
  */
 public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
 

@@ -18,13 +18,7 @@
  */
 package org.apache.rya.prospector.mr;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-
+import com.google.common.collect.Lists;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -38,17 +32,23 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.prospector.domain.IndexEntry;
 import org.apache.rya.prospector.domain.TripleValueType;
 import org.apache.rya.prospector.service.ProspectorService;
 import org.apache.rya.prospector.utils.ProspectorConstants;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests that show when the {@link Prospector} job is run, it creates a table
@@ -82,7 +82,7 @@ public class ProspectorTest {
         final String confFile = "stats_cluster_config.xml";
         final Path confPath = new Path(getClass().getClassLoader().getResource(confFile).toString());
         final String[] args = { confPath.toString() };
-        ToolRunner.run(new Prospector(), args);
+        Assert.assertEquals("MapReduce job failed!", 0, ToolRunner.run(new Prospector(), args));
         ryaDAO.destroy();
 
         // Interrogate the results of the Prospect job to ensure the correct results were created.

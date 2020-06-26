@@ -18,17 +18,15 @@
  */
 package org.apache.rya.indexing.accumulo.entity;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.common.primitives.Bytes;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.documentIndex.TextColumn;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaContext;
@@ -39,10 +37,11 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.Var;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.common.primitives.Bytes;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class StarQuery {
 
@@ -340,7 +339,7 @@ public class StarQuery {
             tc.setColumnQualifier(new Text("subject" + "\u0000" + v.stringValue()));
             tc.setIsPrefix(false);
         } else if (cqArray[0].equals("object")) {
-            final RyaType objType = RdfToRyaConversions.convertValue(v);
+            final RyaValue objType = RdfToRyaConversions.convertValue(v);
             final byte[][] b1 = RyaContext.getInstance().serializeType(objType);
             final byte[] b2 = Bytes.concat("object".getBytes(StandardCharsets.UTF_8),
                     "\u0000".getBytes(StandardCharsets.UTF_8), b1[0], b1[1]);
@@ -387,7 +386,7 @@ public class StarQuery {
             } else {
 
                 isCommonVarURI = true;
-                final RyaType objType = RdfToRyaConversions.convertValue(objVar.getValue());
+                final RyaValue objType = RdfToRyaConversions.convertValue(objVar.getValue());
                 final byte[][] b1 = rc.serializeType(objType);
 
                 final byte[] b2 = Bytes.concat("object".getBytes(StandardCharsets.UTF_8), "\u0000".getBytes(StandardCharsets.UTF_8), b1[0], b1[1]);

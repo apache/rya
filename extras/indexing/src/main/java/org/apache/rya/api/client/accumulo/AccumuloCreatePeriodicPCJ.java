@@ -18,10 +18,7 @@
  */
 package org.apache.rya.api.client.accumulo;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Properties;
-
+import com.google.common.base.Optional;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -50,7 +47,9 @@ import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.sail.SailException;
 
-import com.google.common.base.Optional;
+import java.util.Properties;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Class used by the RyaClient for creating Periodic PCJ.
@@ -95,7 +94,7 @@ public class AccumuloCreatePeriodicPCJ extends AccumuloCommand implements Create
             try {
                 return updateFluoAppAndRegisterWithKafka(instanceName, fluoAppName, sparql, periodicTopic, bootStrapServers);
             } catch (RepositoryException | MalformedQueryException | SailException | QueryEvaluationException | PcjException
-                    | RyaDAOException | PeriodicQueryCreationException e) {
+                    | PeriodicQueryCreationException e) {
                 throw new RyaClientException("Problem while initializing the Fluo application with the new PCJ.", e);
             } catch (UnsupportedQueryException e) {
                 throw new RyaClientException("The new PCJ could not be initialized because it either contains an unsupported query node "

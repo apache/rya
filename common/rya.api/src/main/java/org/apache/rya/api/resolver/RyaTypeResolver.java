@@ -23,6 +23,7 @@ package org.apache.rya.api.resolver;
 
 import org.apache.rya.api.domain.RyaRange;
 import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaValue;
 import org.eclipse.rdf4j.model.IRI;
 
 /**
@@ -30,8 +31,8 @@ import org.eclipse.rdf4j.model.IRI;
  * Time: 12:08 PM
  */
 public interface RyaTypeResolver {
-    public byte[] serialize(RyaType ryaType) throws RyaTypeResolverException;
-    public byte[][] serializeType(RyaType ryaType) throws RyaTypeResolverException;
+    public byte[] serialize(RyaValue ryaValue) throws RyaTypeResolverException;
+    public byte[][] serializeType(RyaValue ryaValue) throws RyaTypeResolverException;
 
     public RyaType deserialize(byte[] bytes) throws RyaTypeResolverException;
 

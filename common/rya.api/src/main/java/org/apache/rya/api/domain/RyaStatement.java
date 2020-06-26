@@ -18,6 +18,14 @@
  */
 package org.apache.rya.api.domain;
 
+import org.apache.log4j.Logger;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -26,61 +34,95 @@ import java.util.Arrays;
  * Time: 7:20 AM
  */
 public class RyaStatement {
-    private RyaIRI subject;
+
+    private static final Logger logger = Logger.getLogger(RyaStatement.class);
+
+    private RyaResource subject;
     private RyaIRI predicate;
-    private RyaType object;
-    private RyaIRI context;
+    private RyaValue object;
+    private RyaResource context;
     private String qualifer;
     private byte[] columnVisibility;
     private byte[] value;
     private Long timestamp;
 
     public RyaStatement() {
+        this(null, null, null);
     }
 
-    public RyaStatement(final RyaIRI subject, final RyaIRI predicate, final RyaType object) {
+    public RyaStatement(Resource subject, IRI predicate, Value object) {
         this(subject, predicate, object, null);
     }
 
-    public RyaStatement(final RyaIRI subject, final RyaIRI predicate, final RyaType object, final RyaIRI context) {
-        this(subject, predicate, object, context, null);
+    public RyaStatement(Resource subject, IRI predicate, Value object, Resource context) {
+        this(RdfToRyaConversions.convertResource(subject), RdfToRyaConversions.convertIRI(predicate), RdfToRyaConversions.convertValue(object), RdfToRyaConversions.convertResource(context));
     }
 
+    public RyaStatement(final RyaResource subject, final RyaIRI predicate, final RyaValue object) {
+        this(subject, predicate, object, null, null, new StatementMetadata());
+    }
 
-    public RyaStatement(final RyaIRI subject, final RyaIRI predicate, final RyaType object, final RyaIRI context, final String qualifier) {
+    public RyaStatement(final RyaResource subject, final RyaIRI predicate, final RyaValue object, final Long timestamp) {
+        this(subject, predicate, object, null, timestamp);
+    }
+
+    public RyaStatement(final RyaResource subject, final RyaIRI predicate, final RyaValue object, final RyaResource context) {
+        this(subject, predicate, object, context, null, new StatementMetadata());
+    }
+
+    public RyaStatement(final RyaResource subject, final RyaIRI predicate, final RyaValue object, final RyaResource context, final Long timestamp) {
+        this(subject, predicate, object, context, null, "".getBytes(StandardCharsets.UTF_8), (byte[]) null, timestamp);
+    }
+
+    public RyaStatement(final RyaResource subject, final RyaIRI predicate, final RyaValue object, final RyaResource context, final String qualifier) {
         this(subject, predicate, object, context, qualifier, new StatementMetadata());
     }
 
-    public RyaStatement(final RyaIRI subject, final RyaIRI predicate, final RyaType object, final RyaIRI context, final String qualifier, final StatementMetadata metadata) {
-        this(subject, predicate, object, context, qualifier, metadata, null);
+    public RyaStatement(final RyaResource subject, final RyaIRI predicate, final RyaValue object, final RyaResource context, final String qualifier, final StatementMetadata metadata) {
+        this(subject, predicate, object, context, qualifier, metadata, "".getBytes(StandardCharsets.UTF_8));
     }
 
-    public RyaStatement(final RyaIRI subject, final RyaIRI predicate, final RyaType object, final RyaIRI context, final String qualifier, final StatementMetadata metadata, final byte[] columnVisibility) {
-        this(subject, predicate, object, context, qualifier, columnVisibility, metadata.toBytes());
+    public RyaStatement(final RyaResource subject, final RyaIRI predicate, final RyaValue object, final RyaResource context, final String qualifier, final StatementMetadata metadata, final byte[] columnVisibility) {
+        this(subject, predicate, object, context, qualifier, metadata, columnVisibility, null);
     }
 
-    @Deprecated
-    public RyaStatement(final RyaIRI subject, final RyaIRI predicate, final RyaType object, final RyaIRI context, final String qualifier, final byte[] columnVisibility, final byte[] value) {
+    public RyaStatement(final RyaResource subject, final RyaIRI predicate, final RyaValue object, final RyaResource context, final String qualifier, final StatementMetadata metadata, final byte[] columnVisibility, final Long timestamp) {
+        this(subject, predicate, object, context, qualifier, columnVisibility, metadata, timestamp);
+    }
+
+    public RyaStatement(final RyaResource subject, final RyaIRI predicate, final RyaValue object, final RyaResource context, final String qualifier, final byte[] columnVisibility, final byte[] value) {
         this(subject, predicate, object, context, qualifier, columnVisibility, value, null);
     }
 
-    @Deprecated
-    public RyaStatement(final RyaIRI subject, final RyaIRI predicate, final RyaType object, final RyaIRI context, final String qualifier, final byte[] columnVisibility, final byte[] value, final Long timestamp) {
+    public RyaStatement(final RyaResource subject, final RyaIRI predicate, final RyaValue object, final RyaResource context, final String qualifier, final byte[] columnVisibility, final StatementMetadata value, final Long timestamp) {
+        this(subject, predicate, object, context, qualifier, columnVisibility, value != null ? value.toBytes() : null, timestamp);
+    }
+
+    public RyaStatement(final RyaResource subject, final RyaIRI predicate, final RyaValue object, final RyaResource context, final String qualifier, final byte[] columnVisibility, final byte[] value, final Long timestamp) {
         this.subject = subject;
         this.predicate = predicate;
         this.object = object;
         this.context = context;
         this.qualifer = qualifier;
         this.columnVisibility = columnVisibility;
-        this.value = value;
+        {
+            // Do not serialise and deserialise the value from JSON because this significantly slows down queries (~35%)
+            if (value != null) {
+                this.value = value;
+            }
+            // Never allow value to be null, because Accumulo can't tell the difference between null and new byte[0]
+            if (this.value == null) {
+                this.value = "".getBytes(StandardCharsets.UTF_8);
+            }
+        }
         this.timestamp = timestamp != null ? timestamp : System.currentTimeMillis();
     }
 
-    public RyaIRI getSubject() {
+    public RyaResource getSubject() {
         return subject;
     }
 
-    public void setSubject(final RyaIRI subject) {
+    public void setSubject(final RyaResource subject) {
         this.subject = subject;
     }
 
@@ -92,19 +134,19 @@ public class RyaStatement {
         this.predicate = predicate;
     }
 
-    public RyaType getObject() {
+    public RyaValue getObject() {
         return object;
     }
 
-    public void setObject(final RyaType object) {
+    public void setObject(final RyaValue object) {
         this.object = object;
     }
 
-    public RyaIRI getContext() {
+    public RyaResource getContext() {
         return context;
     }
 
-    public void setContext(final RyaIRI context) {
+    public void setContext(final RyaResource context) {
         this.context = context;
     }
 
@@ -121,14 +163,18 @@ public class RyaStatement {
         // no explicit metadata
         try {
             return new StatementMetadata(value);
-        }
-        catch (final Exception ex){
-            return null;
+        } catch (final Exception ex) {
+            logger.error("Error converting value to StatementMetadata: ", ex);
+            return new StatementMetadata();
         }
     }
 
     public void setStatementMetadata(final StatementMetadata metadata){
-        this.value = metadata.toBytes();
+        if (metadata == null) {
+            this.value = new byte[0];
+        } else {
+            this.value = metadata.toBytes();
+        }
     }
 
     @Deprecated
@@ -233,7 +279,6 @@ public class RyaStatement {
         return new RyaStatementBuilder(ryaStatement);
     }
 
-
     //builder
     public static class RyaStatementBuilder {
 
@@ -259,7 +304,11 @@ public class RyaStatement {
         }
 
         public RyaStatementBuilder setMetadata(final StatementMetadata metadata) {
-            ryaStatement.setValue(metadata.toBytes());
+            if (metadata == null) {
+                ryaStatement.setValue(new byte[0]);
+            } else {
+                ryaStatement.setValue(metadata.toBytes());
+            }
             return this;
         }
 
@@ -273,12 +322,12 @@ public class RyaStatement {
             return this;
         }
 
-        public RyaStatementBuilder setContext(final RyaIRI ryaIRI) {
+        public RyaStatementBuilder setContext(final RyaResource ryaIRI) {
             ryaStatement.setContext(ryaIRI);
             return this;
         }
 
-        public RyaStatementBuilder setSubject(final RyaIRI ryaIRI) {
+        public RyaStatementBuilder setSubject(final RyaResource ryaIRI) {
             ryaStatement.setSubject(ryaIRI);
             return this;
         }
@@ -288,7 +337,7 @@ public class RyaStatement {
             return this;
         }
 
-        public RyaStatementBuilder setObject(final RyaType ryaType) {
+        public RyaStatementBuilder setObject(final RyaValue ryaType) {
             ryaStatement.setObject(ryaType);
             return this;
         }
@@ -297,4 +346,9 @@ public class RyaStatement {
             return ryaStatement;
         }
     }
+
+    public Statement toStatement() {
+        return RyaToRdfConversions.convertStatement(this);
+    }
+
 }

@@ -18,20 +18,6 @@
  */
 package org.apache.rya.accumulo.mr.merge;
 
-import static org.apache.rya.accumulo.mr.merge.util.TestUtils.LAST_MONTH;
-import static org.apache.rya.accumulo.mr.merge.util.TestUtils.TODAY;
-import static org.apache.rya.accumulo.mr.merge.util.TestUtils.YESTERDAY;
-import static org.apache.rya.accumulo.mr.merge.util.TestUtils.createRyaStatement;
-import static org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -56,6 +42,7 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.utils.RyaDAOHelper;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.junit.After;
@@ -64,6 +51,20 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.File;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.LAST_MONTH;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.TODAY;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.YESTERDAY;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.createRyaStatement;
+import static org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * Tests for {@link CopyTool}.
@@ -298,7 +299,7 @@ public class CopyToolTest {
 
         // Check that it can NOT be queried with some other visibility
         childConfig.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "bad_auth");
-        final CloseableIteration<RyaStatement, RyaDAOException> iter = childDao.getQueryEngine().query(ryaStatementVisibilityDifferent, childConfig);
+        final CloseableIteration<RyaStatement, RyaDAOException> iter = RyaDAOHelper.query(childDao.getQueryEngine(), ryaStatementVisibilityDifferent, childConfig);
         count = 0;
         try {
             while (iter.hasNext()) {

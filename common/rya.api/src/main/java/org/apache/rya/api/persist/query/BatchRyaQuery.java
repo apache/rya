@@ -19,30 +19,42 @@ package org.apache.rya.api.persist.query;
  * under the License.
  */
 
-
-
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.apache.rya.api.domain.RyaStatement;
+
+import java.util.Objects;
 
 /**
  * Query domain object contains the query to run as a {@link org.apache.rya.api.domain.RyaStatement} and options for running the query
  */
-public class BatchRyaQuery extends RyaQueryOptions {
+@Deprecated
+public class BatchRyaQuery extends RyaQuery {
 
-    //queries
-    private Iterable<RyaStatement> queries;
-
-    //maximum number of ranges before we use a batchScanner
-    private int maxRanges = 2;
+    // Maximum number of ranges before we use a batchScanner
+    private int maxRanges = 2; // TODO: What purpose does this provide?
 
     public BatchRyaQuery(Iterable<RyaStatement> queries) {
-        Preconditions.checkNotNull(queries, "RyaStatement queries cannot be null");
-        this.queries = queries;
+        super(queries);
     }
 
     public static RyaBatchQueryBuilder builder(Iterable<RyaStatement> queries) {
         return new RyaBatchQueryBuilder(queries);
+    }
+
+    public static BatchRyaQuery fromRyaQuery(RyaQuery ryaQuery) {
+        return BatchRyaQuery.builder(Lists.newArrayList(ryaQuery.getQueries()))
+                .setAuths(ryaQuery.getAuths())
+                .setBatchSize(ryaQuery.getBatchSize())
+                .setCurrentTime(ryaQuery.getCurrentTime())
+                .setMaxRanges(1)
+                .setMaxResults(ryaQuery.getMaxResults())
+                .setNumQueryThreads(ryaQuery.getNumQueryThreads())
+                .setRegexObject(ryaQuery.getRegexObject())
+                .setRegexPredicate(ryaQuery.getRegexPredicate())
+                .setRegexSubject(ryaQuery.getRegexSubject())
+                .setTtl(ryaQuery.getTtl())
+                .build();
     }
 
     public static class RyaBatchQueryBuilder extends RyaOptionsBuilder<RyaBatchQueryBuilder> {
@@ -67,14 +79,6 @@ public class BatchRyaQuery extends RyaQueryOptions {
         }
     }
 
-    public Iterable<RyaStatement> getQueries() {
-        return queries;
-    }
-
-    public void setQueries(Iterable<RyaStatement> queries) {
-        this.queries = queries;
-    }
-
     public int getMaxRanges() {
         return maxRanges;
     }
@@ -91,7 +95,7 @@ public class BatchRyaQuery extends RyaQueryOptions {
 
         BatchRyaQuery that = (BatchRyaQuery) o;
 
-        return queries != null ? queries.equals(that.queries) : that.queries == null;
+        return Objects.equals(queries, that.queries);
     }
 
     @Override

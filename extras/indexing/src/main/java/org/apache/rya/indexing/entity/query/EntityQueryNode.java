@@ -18,20 +18,13 @@
  */
 package org.apache.rya.indexing.entity.query;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import org.apache.rya.api.domain.RyaType;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
@@ -56,12 +49,17 @@ import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMap.Builder;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Consumer;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Indexing Node for {@link Entity} expressions to be inserted into execution plan
@@ -140,7 +138,7 @@ public class EntityQueryNode extends ExternalSet implements ExternalBatchingIter
             final RyaIRI predIRI = new RyaIRI(pred.getValue().stringValue());
             bindingNames.addAll(sp.getBindingNames());
             if(object.isConstant() && !pred.getValue().equals(RDF.TYPE)) {
-                final RyaType propertyType = RdfToRyaConversions.convertValue(object.getValue());
+                final RyaValue propertyType = RdfToRyaConversions.convertValue(object.getValue());
                 properties.add(new Property(predIRI, propertyType));
             }
             builder.put(predIRI, object);
@@ -293,9 +291,9 @@ public class EntityQueryNode extends ExternalSet implements ExternalBatchingIter
                 final ImmutableCollection<Property> properties = typedEntity.getProperties();
                 //ensure properties match and only add properties that are in the statement patterns to the binding set
                 for(final RyaIRI key : objectVariables.keySet()) {
-                    final Optional<RyaType> prop = typedEntity.getPropertyValue(new RyaIRI(key.getData()));
+                    final Optional<RyaValue> prop = typedEntity.getPropertyValue(new RyaIRI(key.getData()));
                     if(prop.isPresent()) {
-                        final RyaType type = prop.get();
+                        final RyaValue type = prop.get();
                         final String bindingName = objectVariables.get(key).getName();
                         resultSet.addBinding(bindingName, SimpleValueFactory.getInstance().createLiteral(type.getData()));
                     }

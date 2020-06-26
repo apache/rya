@@ -18,28 +18,7 @@
  */
 package org.apache.rya.rdftriplestore.inference;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.Stack;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.ReentrantLock;
-
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
@@ -66,7 +45,27 @@ import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.rio.RDFHandlerException;
 import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.Stack;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Will pull down inference relationships from dao every x seconds. <br>
@@ -102,7 +101,7 @@ public class InferenceEngine {
     private final Map<IRI, Set<Resource>> hasSelfByProperty = new ConcurrentHashMap<>();
     private final Map<Resource, Set<IRI>> hasSelfByType = new ConcurrentHashMap<>();
 
-    private RyaDAO<?> ryaDAO;
+    private RyaDAO<? extends RdfCloudTripleStoreConfiguration> ryaDAO;
     private RdfCloudTripleStoreConfiguration conf;
     private RyaDaoQueryWrapper ryaDaoQueryWrapper;
     private final AtomicBoolean isInitialized = new AtomicBoolean();
@@ -205,7 +204,7 @@ public class InferenceEngine {
      * to have few members, such as ontology vocabulary terms, as instances will be collected in
      * memory.
      */
-    private Set<IRI> fetchInstances(final IRI type) throws QueryEvaluationException {
+    private Set<IRI> fetchInstances(final Value type) throws QueryEvaluationException {
         final Set<IRI> instances = new HashSet<>();
         ryaDaoQueryWrapper.queryAll(null, RDF.TYPE, type, new AbstractRDFHandler() {
             @Override
@@ -231,7 +230,7 @@ public class InferenceEngine {
      */
     private void addPredicateEdges(final IRI predicate, final Direction dir, final Graph graph, final String edgeName)
             throws QueryEvaluationException {
-        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO,
+        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(),
                 null, predicate, null, conf);
         try {
             while (iter.hasNext()) {
@@ -262,7 +261,7 @@ public class InferenceEngine {
      * @throws QueryEvaluationException
      */
     private void addUnions(final Graph graph) throws QueryEvaluationException {
-        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null, OWL.UNIONOF, null, conf);
+        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(), null, OWL.UNIONOF, null, conf);
         try {
             while (iter.hasNext()) {
                 final Statement st = iter.next();
@@ -271,7 +270,7 @@ public class InferenceEngine {
                 Value current = st.getObject();
                 while (current instanceof Resource && !RDF.NIL.equals(current)) {
                     final Resource listNode = (Resource) current;
-                    CloseableIteration<Statement, QueryEvaluationException> listIter = RyaDAOHelper.query(ryaDAO,
+                    CloseableIteration<Statement, QueryEvaluationException> listIter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(),
                             listNode, RDF.FIRST, null, conf);
                     try {
                         if (listIter.hasNext()) {
@@ -285,7 +284,7 @@ public class InferenceEngine {
                     } finally {
                         listIter.close();
                     }
-                    listIter = RyaDAOHelper.query(ryaDAO, listNode, RDF.REST, null, conf);
+                    listIter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(), listNode, RDF.REST, null, conf);
                     try {
                         if (listIter.hasNext()) {
                             current = listIter.next().getObject();
@@ -306,7 +305,7 @@ public class InferenceEngine {
     }
 
     private void refreshInverseOf() throws QueryEvaluationException {
-        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null, OWL.INVERSEOF, null, conf);
+        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(), null, OWL.INVERSEOF, null, conf);
         final Map<IRI, IRI> invProp = new HashMap<>();
         try {
             while (iter.hasNext()) {
@@ -326,65 +325,64 @@ public class InferenceEngine {
     }
 
     private void refreshPropertyChainPropertyToChain() throws QueryEvaluationException {
-        CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null,
-                VF.createIRI("http://www.w3.org/2002/07/owl#propertyChainAxiom"),
-                null, conf);
+        CloseableIteration<Statement, QueryEvaluationException> propertyChainIter = RyaDAOHelper.queryRdf4j(
+                ryaDAO.getQueryEngine(), null, VF.createIRI("http://www.w3.org/2002/07/owl#propertyChainAxiom"), null, conf);
         final Map<IRI, IRI> propertyChainPropertiesToBNodes = new HashMap<>();
         final Map<IRI, List<IRI>> tempPropertyChainPropertyToChain = new HashMap<>();
         try {
-            while (iter.hasNext()){
-                final Statement st = iter.next();
+            while (propertyChainIter.hasNext()){
+                final Statement st = propertyChainIter.next();
                 propertyChainPropertiesToBNodes.put((IRI)st.getSubject(), (IRI)st.getObject());
             }
         } finally {
-            if (iter != null) {
-                iter.close();
+            if (propertyChainIter != null) {
+                propertyChainIter.close();
             }
         }
         // now for each property chain bNode, get the indexed list of properties associated with that chain
         for (final IRI propertyChainProperty : propertyChainPropertiesToBNodes.keySet()){
             final IRI bNode = propertyChainPropertiesToBNodes.get(propertyChainProperty);
             // query for the list of indexed properties
-            iter = RyaDAOHelper.query(ryaDAO, bNode, VF.createIRI("http://www.w3.org/2000/10/swap/list#index"),
-                    null, conf);
+            propertyChainIter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(),
+                    bNode, VF.createIRI("http://www.w3.org/2000/10/swap/list#index"), null, conf);
             final TreeMap<Integer, IRI> orderedProperties = new TreeMap<>();
             // TODO refactor this.  Wish I could execute sparql
             try {
-                while (iter.hasNext()){
-                    final Statement st = iter.next();
+                while (propertyChainIter.hasNext()){
+                    final Statement st = propertyChainIter.next();
                     final String indexedElement = st.getObject().stringValue();
                     log.info(indexedElement);
-                    CloseableIteration<Statement, QueryEvaluationException>  iter2 = RyaDAOHelper.query(ryaDAO, VF.createIRI(st.getObject().stringValue()), RDF.FIRST,
-                            null, conf);
+                    CloseableIteration<Statement, QueryEvaluationException> indexedPropertiesIter = RyaDAOHelper.queryRdf4j(
+                            ryaDAO.getQueryEngine(), VF.createIRI(st.getObject().stringValue()), RDF.FIRST, null, conf);
                     String integerValue = "";
                     Value anonPropNode = null;
                     Value propIRI = null;
-                    if (iter2 != null){
-                        while (iter2.hasNext()){
-                            final Statement iter2Statement = iter2.next();
-                            integerValue = iter2Statement.getObject().stringValue();
+                    if (indexedPropertiesIter != null){
+                        while (indexedPropertiesIter.hasNext()){
+                            final Statement property = indexedPropertiesIter.next();
+                            integerValue = property.getObject().stringValue();
                             break;
                         }
-                        iter2.close();
+                        indexedPropertiesIter.close();
                     }
-                    iter2 = RyaDAOHelper.query(ryaDAO, VF.createIRI(st.getObject().stringValue()), RDF.REST,
-                            null, conf);
-                    if (iter2 != null){
-                        while (iter2.hasNext()){
-                            final Statement iter2Statement = iter2.next();
-                            anonPropNode = iter2Statement.getObject();
+                    indexedPropertiesIter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(),
+                            VF.createIRI(st.getObject().stringValue()), RDF.REST, null, conf);
+                    if (indexedPropertiesIter != null){
+                        while (indexedPropertiesIter.hasNext()){
+                            final Statement property = indexedPropertiesIter.next();
+                            anonPropNode = property.getObject();
                             break;
                         }
-                        iter2.close();
+                        indexedPropertiesIter.close();
                         if (anonPropNode != null){
-                            iter2 = RyaDAOHelper.query(ryaDAO, VF.createIRI(anonPropNode.stringValue()), RDF.FIRST,
-                                    null, conf);
-                            while (iter2.hasNext()){
-                                final Statement iter2Statement = iter2.next();
-                                propIRI = iter2Statement.getObject();
+                            indexedPropertiesIter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(),
+                                    VF.createIRI(anonPropNode.stringValue()), RDF.FIRST, null, conf);
+                            while (indexedPropertiesIter.hasNext()){
+                                final Statement property = indexedPropertiesIter.next();
+                                propIRI = property.getObject();
                                 break;
                             }
-                            iter2.close();
+                            indexedPropertiesIter.close();
                         }
                     }
                     if (!integerValue.isEmpty() && propIRI!=null) {
@@ -399,8 +397,8 @@ public class InferenceEngine {
                     }
                 }
             } finally{
-                if (iter != null){
-                    iter.close();
+                if (propertyChainIter != null){
+                    propertyChainIter.close();
                 }
             }
             final List<IRI> properties = new ArrayList<>();
@@ -416,41 +414,41 @@ public class InferenceEngine {
             // if we didn't get a chain, try to get it through following the collection
             if ((existingChain == null) || existingChain.isEmpty()) {
 
-                CloseableIteration<Statement, QueryEvaluationException>  iter2 = RyaDAOHelper.query(ryaDAO, propertyChainPropertiesToBNodes.get(propertyChainProperty), RDF.FIRST,
-                        null, conf);
+                CloseableIteration<Statement, QueryEvaluationException> bNodesPropertiesIter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(),
+                        propertyChainPropertiesToBNodes.get(propertyChainProperty), RDF.FIRST, null, conf);
                 final List<IRI> properties = new ArrayList<>();
                 IRI previousBNode = propertyChainPropertiesToBNodes.get(propertyChainProperty);
-                if (iter2.hasNext()) {
-                    Statement iter2Statement = iter2.next();
-                    Value currentPropValue = iter2Statement.getObject();
+                if (bNodesPropertiesIter.hasNext()) {
+                    Statement property = bNodesPropertiesIter.next();
+                    Value currentPropValue = property.getObject();
                     while ((currentPropValue != null) && (!currentPropValue.stringValue().equalsIgnoreCase(RDF.NIL.stringValue()))){
                         if (currentPropValue instanceof IRI){
-                            iter2 = RyaDAOHelper.query(ryaDAO, VF.createIRI(currentPropValue.stringValue()), RDF.FIRST,
-                                    null, conf);
-                            if (iter2.hasNext()){
-                                iter2Statement = iter2.next();
-                                if (iter2Statement.getObject() instanceof IRI){
-                                    properties.add((IRI)iter2Statement.getObject());
+                            bNodesPropertiesIter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(),
+                                    VF.createIRI(currentPropValue.stringValue()), RDF.FIRST, null, conf);
+                            if (bNodesPropertiesIter.hasNext()){
+                                property = bNodesPropertiesIter.next();
+                                if (property.getObject() instanceof IRI){
+                                    properties.add((IRI)property.getObject());
                                 }
                             }
                             // otherwise see if there is an inverse declaration
                             else {
-                                iter2 = RyaDAOHelper.query(ryaDAO, VF.createIRI(currentPropValue.stringValue()), OWL.INVERSEOF,
-                                        null, conf);
-                                if (iter2.hasNext()){
-                                    iter2Statement = iter2.next();
-                                    if (iter2Statement.getObject() instanceof IRI){
-                                        properties.add(new InverseIRI((IRI)iter2Statement.getObject()));
+                                bNodesPropertiesIter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(),
+                                        VF.createIRI(currentPropValue.stringValue()), OWL.INVERSEOF, null, conf);
+                                if (bNodesPropertiesIter.hasNext()){
+                                    property = bNodesPropertiesIter.next();
+                                    if (property.getObject() instanceof IRI){
+                                        properties.add(new InverseIRI((IRI)property.getObject()));
                                     }
                                 }
                             }
                             // get the next prop pointer
-                            iter2 = RyaDAOHelper.query(ryaDAO, previousBNode, RDF.REST,
-                                    null, conf);
-                            if (iter2.hasNext()){
-                                iter2Statement = iter2.next();
+                            bNodesPropertiesIter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(),
+                                    previousBNode, RDF.REST, null, conf);
+                            if (bNodesPropertiesIter.hasNext()){
+                                property = bNodesPropertiesIter.next();
                                 previousBNode = (IRI)currentPropValue;
-                                currentPropValue = iter2Statement.getObject();
+                                currentPropValue = property.getObject();
                             }
                             else {
                                 currentPropValue = null;
@@ -491,7 +489,7 @@ public class InferenceEngine {
         final Map<IRI, Set<IRI>> domainByTypePartial = new ConcurrentHashMap<>();
         final Map<IRI, Set<IRI>> rangeByTypePartial = new ConcurrentHashMap<>();
         // First, populate domain and range based on direct domain/range triples.
-        CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null, RDFS.DOMAIN, null, conf);
+        CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(), null, RDFS.DOMAIN, null, conf);
         try {
             while (iter.hasNext()) {
                 final Statement st = iter.next();
@@ -509,7 +507,7 @@ public class InferenceEngine {
                 iter.close();
             }
         }
-        iter = RyaDAOHelper.query(ryaDAO, null, RDFS.RANGE, null, conf);
+        iter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(), null, RDFS.RANGE, null, conf);
         try {
             while (iter.hasNext()) {
                 final Statement st = iter.next();
@@ -638,7 +636,7 @@ public class InferenceEngine {
 
     private void refreshPropertyRestrictions() throws QueryEvaluationException {
         // Get a set of all property restrictions of any type
-        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null, OWL.ONPROPERTY, null, conf);
+        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(), null, OWL.ONPROPERTY, null, conf);
         final Map<Resource, IRI> restrictions = new HashMap<>();
         try {
             while (iter.hasNext()) {
@@ -660,7 +658,7 @@ public class InferenceEngine {
     private void refreshHasValueRestrictions(final Map<Resource, IRI> restrictions) throws QueryEvaluationException {
         hasValueByType.clear();
         hasValueByProperty.clear();
-        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null, OWL.HASVALUE, null, conf);
+        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(), null, OWL.HASVALUE, null, conf);
         try {
             while (iter.hasNext()) {
                 final Statement st = iter.next();
@@ -743,7 +741,7 @@ public class InferenceEngine {
 
         for(final Resource type : restrictions.keySet()) {
             final IRI property = restrictions.get(type);
-            final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, type, HAS_SELF, null, conf);
+            final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(), type, HAS_SELF, null, conf);
             try {
                 if (iter.hasNext()) {
                     Set<IRI> typeSet = hasSelfByType.get(type);
@@ -991,7 +989,7 @@ public class InferenceEngine {
      * @throws QueryEvaluationException
      */
     private List<Resource> getList(final IRI firstItem) throws QueryEvaluationException {
-        IRI head = firstItem;
+        Resource head = firstItem;
         final List<Resource> list = new ArrayList<>();
         // Go through and find all bnodes that are part of the defined list.
         while (!RDF.NIL.equals(head)) {
@@ -1255,7 +1253,7 @@ public class InferenceEngine {
     }
 
     public CloseableIteration<Statement, QueryEvaluationException> queryDao(final Resource subject, final IRI predicate, final Value object, final Resource... contexts) throws QueryEvaluationException {
-        return RyaDAOHelper.query(ryaDAO, subject, predicate, object, conf, contexts);
+        return RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(), subject, predicate, object, conf, contexts);
     }
 
     /**
@@ -1341,7 +1339,7 @@ public class InferenceEngine {
         return ryaDAO;
     }
 
-    public synchronized void setRyaDAO(final RyaDAO<?> ryaDAO) {
+    public synchronized void setRyaDAO(final RyaDAO<? extends RdfCloudTripleStoreConfiguration> ryaDAO) {
         this.ryaDAO = ryaDAO;
         ryaDaoQueryWrapper = new RyaDaoQueryWrapper(ryaDAO);
     }

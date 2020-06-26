@@ -18,11 +18,12 @@
  */
 package org.apache.rya.export.accumulo;
 
-import java.util.Date;
-
-import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.export.accumulo.util.AccumuloRyaUtils;
+
+import java.util.Date;
 
 /**
  * Utility methods for testing merging/copying.
@@ -44,7 +45,7 @@ public final class TestUtils {
      * @param ryaIri the {@link RyaIRI} to convert.
      * @return the data value without the namespace.
      */
-    public static String convertRyaIriToString(final RyaIRI ryaIri) {
+    public static String convertRyaIriToString(final RyaResource ryaIri) {
         return AccumuloRyaUtils.convertRyaIriToString(NAMESPACE, ryaIri);
     }
 

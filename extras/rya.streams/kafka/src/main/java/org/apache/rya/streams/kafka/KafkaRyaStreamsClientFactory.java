@@ -18,12 +18,9 @@
  */
 package org.apache.rya.streams.kafka;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Properties;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -55,10 +52,11 @@ import org.apache.rya.streams.kafka.serialization.queries.QueryChangeSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Constructs instances of {@link RyaStreamsClient} that are connected to a Kafka cluster.
@@ -111,7 +109,7 @@ public final class KafkaRyaStreamsClientFactory {
             @Override
             public void close() {
                 try {
-                    queryRepo.stopAndWait();
+                    queryRepo.stopAsync();
                 } catch (final Exception e) {
                     log.warn("Couldn't close a QueryRepository.", e);
                 }
@@ -123,7 +121,7 @@ public final class KafkaRyaStreamsClientFactory {
      * Create a {@link Producer} that is able to write to a topic in Kafka.
      *
      * @param kafkaHostname - The Kafka broker hostname. (not null)
-     * @param kafkaPort - The Kafka broker port.
+     * @param kakfaPort - The Kafka broker port.
      * @param keySerializerClass - Serializes the keys. (not null)
      * @param valueSerializerClass - Serializes the values. (not null)
      * @return A {@link Producer} that can be used to write records to a topic.
@@ -149,7 +147,7 @@ public final class KafkaRyaStreamsClientFactory {
      * starting at the earliest point by default.
      *
      * @param kafkaHostname - The Kafka broker hostname. (not null)
-     * @param kafkaPort - The Kafka broker port.
+     * @param kakfaPort - The Kafka broker port.
      * @param keyDeserializerClass - Deserializes the keys. (not null)
      * @param valueDeserializerClass - Deserializes the values. (not null)
      * @return A {@link Consumer} that can be used to read records from a topic.

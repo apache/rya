@@ -18,15 +18,7 @@
  */
 package org.apache.rya.streams.querymanager.kafka;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
 import org.apache.rya.streams.api.queries.QueryChangeLog;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.querymanager.QueryChangeLogSource;
@@ -36,7 +28,14 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Integration tests the methods of {@link KafkaQueryChangeLogSource}.
@@ -79,13 +78,14 @@ public class KafkaQueryChangeLogSourceIT {
 
         try {
             // Start the source.
-            source.startAndWait();
+            source.startAsync();
+            source.awaitRunning();
 
             // If the latch isn't counted down, then fail the test.
             assertTrue( created.await(5, TimeUnit.SECONDS) );
 
         } finally {
-            source.stopAndWait();
+            source.stopAsync();
         }
     }
 
@@ -113,7 +113,8 @@ public class KafkaQueryChangeLogSourceIT {
 
         try {
             // Start the source.
-            source.startAndWait();
+            source.startAsync();
+            source.awaitRunning();
 
             // Wait twice the polling duration to ensure it iterates at least once.
             Thread.sleep(200);
@@ -125,7 +126,7 @@ public class KafkaQueryChangeLogSourceIT {
             // If the latch isn't counted down, then fail the test.
             assertTrue( created.await(5, TimeUnit.SECONDS) );
         } finally {
-            source.stopAndWait();
+            source.stopAsync();
         }
     }
 
@@ -161,7 +162,8 @@ public class KafkaQueryChangeLogSourceIT {
 
         try {
             // Start the source
-            source.startAndWait();
+            source.startAsync();
+            source.awaitRunning();
 
             // Wait for it to indicate the topic was created.
             assertTrue( created.await(5, TimeUnit.SECONDS) );
@@ -173,7 +175,7 @@ public class KafkaQueryChangeLogSourceIT {
             assertTrue( deleted.await(5, TimeUnit.SECONDS) );
 
         } finally {
-            source.stopAndWait();
+            source.stopAsync();
         }
     }
 
@@ -205,7 +207,8 @@ public class KafkaQueryChangeLogSourceIT {
 
         try {
             // Start the source
-            source.startAndWait();
+            source.startAsync();
+            source.awaitRunning();
 
             // Wait for that first listener to indicate the topic was created. This means that one has been cached.
             assertTrue( created.await(5, TimeUnit.SECONDS) );
@@ -226,7 +229,7 @@ public class KafkaQueryChangeLogSourceIT {
             assertTrue( newListenerCreated.await(5, TimeUnit.SECONDS) );
 
         } finally {
-            source.stopAndWait();
+            source.stopAsync();
         }
     }
 
@@ -240,7 +243,8 @@ public class KafkaQueryChangeLogSourceIT {
 
         try {
             // Start the source.
-            source.startAndWait();
+            source.startAsync();
+            source.awaitRunning();
 
             // Create a listener that flips a boolean to true when it is notified.
             final AtomicBoolean notified = new AtomicBoolean(false);
@@ -271,7 +275,7 @@ public class KafkaQueryChangeLogSourceIT {
             // Show the boolean was never flipped to true.
             assertFalse(notified.get());
         } finally {
-            source.stopAndWait();
+            source.stopAsync();
         }
     }
 }

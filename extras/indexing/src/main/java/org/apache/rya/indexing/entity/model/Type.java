@@ -18,18 +18,16 @@
  */
 package org.apache.rya.indexing.entity.model;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Objects;
-
-import org.apache.http.annotation.Immutable;
+import com.google.common.collect.ImmutableSet;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import jdk.nashorn.internal.ir.annotations.Immutable;
 import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.Objects;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Defines the structure of an {@link TypedEntity}.

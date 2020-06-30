@@ -18,12 +18,7 @@
  */
 package org.apache.rya.streams.querymanager.kafka;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
+import com.google.common.collect.Lists;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -50,7 +45,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Integration tests the methods of {@link LocalQueryExecutor}.
@@ -124,7 +123,8 @@ public class LocalQueryExecutorIT {
         final String kafkaServers = kafka.getKafkaHostname() + ":" + kafka.getKafkaPort();
         final KafkaStreamsFactory jobFactory = new SingleThreadKafkaStreamsFactory(kafkaServers);
         final QueryExecutor executor = new LocalQueryExecutor(createKafkaTopic, jobFactory);
-        executor.startAndWait();
+        executor.startAsync();
+        executor.awaitRunning();
         try {
             // Start the query.
             executor.startQuery(ryaInstance, sQuery);
@@ -144,7 +144,7 @@ public class LocalQueryExecutorIT {
             assertEquals(expected, results);
 
         } finally {
-            executor.stopAndWait();
+            executor.stopAsync();
         }
     }
 }

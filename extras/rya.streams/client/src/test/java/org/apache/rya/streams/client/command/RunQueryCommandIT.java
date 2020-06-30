@@ -18,17 +18,8 @@
  */
 package org.apache.rya.streams.client.command;
 
-import static org.junit.Assert.assertEquals;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -60,8 +51,16 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Integration tests the methods of {@link RunQueryCommand}.
@@ -99,7 +98,7 @@ public class RunQueryCommandIT {
 
     @After
     public void cleanup() throws Exception {
-        queryRepo.stopAndWait();
+        queryRepo.stopAsync();
         stmtProducer.close();
         resultConsumer.close();
     }

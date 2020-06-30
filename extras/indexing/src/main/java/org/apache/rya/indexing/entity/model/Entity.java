@@ -18,7 +18,19 @@
  */
 package org.apache.rya.indexing.entity.model;
 
-import static java.util.Objects.requireNonNull;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
+import jdk.nashorn.internal.ir.annotations.Immutable;
+import org.apache.log4j.Logger;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.indexing.entity.storage.EntityStorage;
+import org.apache.rya.indexing.smarturi.SmartUriAdapter;
+import org.apache.rya.indexing.smarturi.SmartUriException;
+import org.eclipse.rdf4j.model.IRI;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,21 +40,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.apache.http.annotation.Immutable;
-import org.apache.log4j.Logger;
-import org.apache.rya.api.domain.RyaIRI;
-import org.apache.rya.indexing.entity.storage.EntityStorage;
-import org.apache.rya.indexing.smarturi.SmartUriAdapter;
-import org.apache.rya.indexing.smarturi.SmartUriException;
-import org.eclipse.rdf4j.model.IRI;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import edu.umd.cs.findbugs.annotations.Nullable;
+import static java.util.Objects.requireNonNull;
 
 /**
  * An {@link Entity} is a named concept that has at least one defined structure

@@ -18,16 +18,12 @@
  */
 package org.apache.rya.streams.querymanager;
 
-import static java.util.Objects.requireNonNull;
-
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.concurrent.TimeUnit;
-
-import javax.xml.bind.JAXBException;
-
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
+import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
@@ -44,13 +40,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.ParameterException;
-import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
+import javax.xml.bind.JAXBException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * JSVC integration code for a {@link QueryManager} to be used as a non-Windows daemon.
@@ -122,13 +119,15 @@ public class QueryManagerDaemon implements Daemon {
     @Override
     public void start() throws Exception {
         log.info("Starting the Rya Streams Query Manager Daemon.");
-        manager.startAndWait();
+        manager.startAsync();
+        manager.awaitRunning();
     }
 
     @Override
     public void stop() throws Exception {
         log.info("Stopping the Rya Streams Query Manager Daemon.");
-        manager.stopAndWait();
+        manager.stopAsync();
+        manager.awaitTerminated();
     }
 
     @Override

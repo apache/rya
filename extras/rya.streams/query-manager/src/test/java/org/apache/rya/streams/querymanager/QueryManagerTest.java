@@ -18,23 +18,23 @@
  */
 package org.apache.rya.streams.querymanager;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.rya.streams.api.entity.StreamsQuery;
 import org.apache.rya.streams.api.queries.InMemoryQueryChangeLog;
 import org.apache.rya.streams.api.queries.QueryChange;
 import org.apache.rya.streams.api.queries.QueryChangeLog;
 import org.apache.rya.streams.querymanager.QueryChangeLogSource.SourceListener;
 import org.junit.Test;
+
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests the methods of {@link QueryManager}.
@@ -75,11 +75,12 @@ public class QueryManagerTest {
 
         final QueryManager qm = new QueryManager(qe, source, 50, TimeUnit.MILLISECONDS);
         try {
-            qm.startAndWait();
+            qm.startAsync();
+            qm.awaitRunning();
             queryStarted.await(5, TimeUnit.SECONDS);
             verify(qe).startQuery(ryaInstance, query);
         } finally {
-            qm.stopAndWait();
+            qm.stopAsync();
         }
     }
 
@@ -129,11 +130,12 @@ public class QueryManagerTest {
 
         final QueryManager qm = new QueryManager(qe, source, 50, TimeUnit.MILLISECONDS);
         try {
-            qm.startAndWait();
+            qm.startAsync();
+            qm.awaitRunning();
             queryDeleted.await(5, TimeUnit.SECONDS);
             verify(qe).stopQuery(query.getQueryId());
         } finally {
-            qm.stopAndWait();
+            qm.stopAsync();
         }
     }
 
@@ -184,11 +186,12 @@ public class QueryManagerTest {
 
         final QueryManager qm = new QueryManager(qe, source, 50, TimeUnit.MILLISECONDS);
         try {
-            qm.startAndWait();
+            qm.startAsync();
+            qm.awaitRunning();
             queryDeleted.await(10, TimeUnit.SECONDS);
             verify(qe).stopQuery(query.getQueryId());
         } finally {
-            qm.stopAndWait();
+            qm.stopAsync();
         }
     }
 }

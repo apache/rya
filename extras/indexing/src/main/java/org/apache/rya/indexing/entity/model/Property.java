@@ -18,16 +18,15 @@
  */
 package org.apache.rya.indexing.entity.model;
 
-import static java.util.Objects.requireNonNull;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import jdk.nashorn.internal.ir.annotations.Immutable;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaType;
 
 import java.util.Objects;
 
-import org.apache.http.annotation.Immutable;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * A value that has been set for an {@link TypedEntity}.

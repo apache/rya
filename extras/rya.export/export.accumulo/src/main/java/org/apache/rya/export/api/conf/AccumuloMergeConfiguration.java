@@ -18,7 +18,7 @@
  */
 package org.apache.rya.export.api.conf;
 
-import org.apache.http.annotation.Immutable;
+import jdk.nashorn.internal.ir.annotations.Immutable;
 import org.apache.rya.export.InstanceType;
 
 /**

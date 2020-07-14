@@ -250,7 +250,7 @@ under the License.
                 </repository>
                 <repository>
                     <id>LocationTech - Third Party</id>
-                    <url>https://repo.eclipse.org/content/repositories/thirdparty/</url>
+                    <url>https://repo.eclipse.org/content/repositories/locationtech-thirdparty/</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>

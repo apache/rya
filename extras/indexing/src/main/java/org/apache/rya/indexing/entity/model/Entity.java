@@ -24,7 +24,8 @@ import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import jdk.nashorn.internal.ir.annotations.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
@@ -72,7 +73,7 @@ import static java.util.Objects.requireNonNull;
  * the {@link Type}, but nothing has explicitly indicated it is of  that Type.
  * Once something has done so, it is an explicitly typed Entity.
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @DefaultAnnotation(NonNull.class)
 public class Entity {
     private static final Logger log = Logger.getLogger(Entity.class);

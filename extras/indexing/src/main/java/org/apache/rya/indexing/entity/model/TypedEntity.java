@@ -23,7 +23,8 @@ import com.google.common.collect.ImmutableMap;
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import jdk.nashorn.internal.ir.annotations.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaType;
 
@@ -38,7 +39,7 @@ import static java.util.Objects.requireNonNull;
  * A {@link TypedEntity} is a view of an {@link Entity} that has had a specific
  * {@link Type} applied to it.
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @DefaultAnnotation(NonNull.class)
 public class TypedEntity {
 

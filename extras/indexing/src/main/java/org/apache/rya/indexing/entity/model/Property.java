@@ -20,7 +20,8 @@ package org.apache.rya.indexing.entity.model;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import jdk.nashorn.internal.ir.annotations.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaType;
 
@@ -31,7 +32,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * A value that has been set for an {@link TypedEntity}.
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @DefaultAnnotation(NonNull.class)
 public class Property {
 

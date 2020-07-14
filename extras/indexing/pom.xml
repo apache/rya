@@ -70,7 +70,6 @@
             <artifactId>httpclient</artifactId>
         </dependency>
 
-
         <!-- PCJ Indexing -->
         <dependency>
             <groupId>org.apache.rya</groupId>
@@ -84,6 +83,7 @@
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.periodic.notification.api</artifactId>
         </dependency>
+
         <!-- RDF4J -->
         <dependency>
             <groupId>org.eclipse.rdf4j</groupId>

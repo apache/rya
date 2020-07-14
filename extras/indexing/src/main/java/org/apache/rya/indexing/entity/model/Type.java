@@ -21,7 +21,8 @@ package org.apache.rya.indexing.entity.model;
 import com.google.common.collect.ImmutableSet;
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import jdk.nashorn.internal.ir.annotations.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 
@@ -42,7 +43,7 @@ import static java.util.Objects.requireNonNull;
  *                          &lt;urn:nutritionalInformation>
  * </pre>
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @DefaultAnnotation(NonNull.class)
 public class Type {
 

@@ -19,20 +19,23 @@ package org.apache.rya.api.persist.query.join;
  * under the License.
  */
 
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
+import org.apache.rya.api.persist.utils.RyaDAOHelper;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.utils.EnumerationWrapper;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Use HashTable to do a HashJoin.
@@ -44,30 +47,30 @@ import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 public class HashJoin<C extends RdfCloudTripleStoreConfiguration> implements Join<C> {
 
     private RyaContext ryaContext = RyaContext.getInstance();
-    private RyaQueryEngine ryaQueryEngine;
+    private RyaQueryEngine<C> ryaQueryEngine;
 
     public HashJoin() {
     }
 
-    public HashJoin(RyaQueryEngine ryaQueryEngine) {
+    public HashJoin(RyaQueryEngine<C> ryaQueryEngine) {
         this.ryaQueryEngine = ryaQueryEngine;
     }
 
     @Override
     public CloseableIteration<RyaStatement, RyaDAOException> join(C conf, RyaIRI... preds) throws RyaDAOException {
-        ConcurrentHashMap<Map.Entry<RyaIRI, RyaType>, Integer> ht = new ConcurrentHashMap<Map.Entry<RyaIRI, RyaType>, Integer>();
+        ConcurrentHashMap<Map.Entry<RyaResource, RyaValue>, Integer> ht = new ConcurrentHashMap<>();
         int count = 0;
         boolean first = true;
         for (RyaIRI pred : preds) {
             count++;
             //query
-            CloseableIteration<RyaStatement, RyaDAOException> results = ryaQueryEngine.query(new RyaStatement(null, pred, null), null);
+            CloseableIteration<RyaStatement, RyaDAOException> results = RyaDAOHelper.query(ryaQueryEngine, new RyaStatement(null, pred, null), conf);
             //add to hashtable
             while (results.hasNext()) {
                 RyaStatement next = results.next();
-                RyaIRI subject = next.getSubject();
-                RyaType object = next.getObject();
-                Map.Entry<RyaIRI, RyaType> entry = new RdfCloudTripleStoreUtils.CustomEntry<RyaIRI, RyaType>(subject, object);
+                RyaResource subject = next.getSubject();
+                RyaValue object = next.getObject();
+                Map.Entry<RyaResource, RyaValue> entry = new RdfCloudTripleStoreUtils.CustomEntry<>(subject, object);
                 if (!first) {
                     if (!ht.containsKey(entry)) {
                         continue; //not in join
@@ -79,14 +82,14 @@ public class HashJoin<C extends RdfCloudTripleStoreConfiguration> implements Joi
             if (first) {
                 first = false;
             } else {
-                for (Map.Entry<Map.Entry<RyaIRI, RyaType>, Integer> entry : ht.entrySet()) {
+                for (Map.Entry<Map.Entry<RyaResource, RyaValue>, Integer> entry : ht.entrySet()) {
                     if (entry.getValue() < count) {
                         ht.remove(entry.getKey());
                     }
                 }
             }
         }
-        final Enumeration<Map.Entry<RyaIRI, RyaType>> keys = ht.keys();
+        final Enumeration<Map.Entry<RyaResource, RyaValue>> keys = ht.keys();
         return new CloseableIteration<RyaStatement, RyaDAOException>() {
             @Override
             public void close() throws RyaDAOException {
@@ -100,7 +103,7 @@ public class HashJoin<C extends RdfCloudTripleStoreConfiguration> implements Joi
 
             @Override
             public RyaStatement next() throws RyaDAOException {
-                Map.Entry<RyaIRI, RyaType> subjObj = keys.nextElement();
+                Map.Entry<RyaResource, RyaValue> subjObj = keys.nextElement();
                 return new RyaStatement(subjObj.getKey(), null, subjObj.getValue());
             }
 
@@ -112,19 +115,19 @@ public class HashJoin<C extends RdfCloudTripleStoreConfiguration> implements Joi
     }
 
     @Override
-    public CloseableIteration<RyaIRI, RyaDAOException> join(C conf, Map.Entry<RyaIRI, RyaType>... predObjs) throws RyaDAOException {
-        ConcurrentHashMap<RyaIRI, Integer> ht = new ConcurrentHashMap<RyaIRI, Integer>();
+    public CloseableIteration<RyaResource, RyaDAOException> join(C conf, Map.Entry<RyaIRI, RyaValue>... predObjs) throws QueryEvaluationException {
+        ConcurrentHashMap<RyaResource, Integer> ht = new ConcurrentHashMap<>();
         int count = 0;
         boolean first = true;
-        for (Map.Entry<RyaIRI, RyaType> predObj : predObjs) {
+        for (Map.Entry<RyaIRI, RyaValue> predObj : predObjs) {
             count++;
             RyaIRI pred = predObj.getKey();
-            RyaType obj = predObj.getValue();
+            RyaValue obj = predObj.getValue();
             //query
-            CloseableIteration<RyaStatement, RyaDAOException> results = ryaQueryEngine.query(new RyaStatement(null, pred, obj), null);
+            CloseableIteration<RyaStatement, RyaDAOException> results = RyaDAOHelper.query(ryaQueryEngine, new RyaStatement(null, pred, obj), conf);
             //add to hashtable
             while (results.hasNext()) {
-                RyaIRI subject = results.next().getSubject();
+                RyaResource subject = results.next().getSubject();
                 if (!first) {
                     if (!ht.containsKey(subject)) {
                         continue; //not in join
@@ -136,14 +139,14 @@ public class HashJoin<C extends RdfCloudTripleStoreConfiguration> implements Joi
             if (first) {
                 first = false;
             } else {
-                for (Map.Entry<RyaIRI, Integer> entry : ht.entrySet()) {
+                for (Map.Entry<RyaResource, Integer> entry : ht.entrySet()) {
                     if (entry.getValue() < count) {
                         ht.remove(entry.getKey());
                     }
                 }
             }
         }
-        return new EnumerationWrapper<RyaIRI, RyaDAOException>(ht.keys());
+        return new EnumerationWrapper<>(ht.keys());
     }
 
     public RyaQueryEngine getRyaQueryEngine() {

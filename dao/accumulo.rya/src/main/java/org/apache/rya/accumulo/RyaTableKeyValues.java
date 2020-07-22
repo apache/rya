@@ -8,9 +8,9 @@ package org.apache.rya.accumulo;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,14 +18,6 @@ package org.apache.rya.accumulo;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
-
-import java.io.IOException;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
@@ -38,6 +30,14 @@ import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 
+import java.io.IOException;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+
+import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
+
 public class RyaTableKeyValues {
     public static final ColumnVisibility EMPTY_CV = new ColumnVisibility();
     public static final Text EMPTY_CV_TEXT = new Text(EMPTY_CV.getExpression());
@@ -45,9 +45,9 @@ public class RyaTableKeyValues {
     RyaTripleContext instance;
 
     private RyaStatement stmt;
-    private Collection<Map.Entry<Key, Value>> spo = new ArrayList<Map.Entry<Key, Value>>();
-    private Collection<Map.Entry<Key, Value>> po = new ArrayList<Map.Entry<Key, Value>>();
-    private Collection<Map.Entry<Key, Value>> osp = new ArrayList<Map.Entry<Key, Value>>();
+    private Collection<Map.Entry<Key, Value>> spo = new ArrayList<>();
+    private Collection<Map.Entry<Key, Value>> po = new ArrayList<>();
+    private Collection<Map.Entry<Key, Value>> osp = new ArrayList<>();
 
     public RyaTableKeyValues(RyaStatement stmt, RdfCloudTripleStoreConfiguration conf) {
         this.stmt = stmt;
@@ -71,8 +71,9 @@ public class RyaTableKeyValues {
         /**
          * TODO: If there are contexts, do we still replicate the information into the default graph as well
          * as the named graphs?
-         */try {
-            Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, org.apache.rya.api.resolver.triple.TripleRow> rowMap = instance.serializeTriple(stmt);
+         */
+        try {
+            Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> rowMap = instance.serializeTriple(stmt);
             TripleRow tripleRow = rowMap.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO);
             byte[] columnVisibility = tripleRow.getColumnVisibility();
             Text cv = columnVisibility == null ? EMPTY_CV_TEXT : new Text(columnVisibility);

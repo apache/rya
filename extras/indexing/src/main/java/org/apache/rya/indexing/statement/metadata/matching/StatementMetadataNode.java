@@ -19,27 +19,15 @@ package org.apache.rya.indexing.statement.metadata.matching;
  * under the License.
  */
 
-import static java.util.Objects.requireNonNull;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.Set;
-
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
@@ -60,8 +48,21 @@ import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.Set;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * This class provides users with the ability to issue reified queries to Rya.
@@ -97,6 +98,8 @@ import com.google.common.base.Preconditions;
  * specified properties with the StatementMetadata extracted from each of the
  * results. This class allows users to issue queries about RyaStatements and any
  * contextual properties without the inefficiencies associated with reification.
+ *
+ * See: https://jena.apache.org/documentation/notes/reification.html
  *
  * @param <C>
  *            - Configuration object
@@ -360,10 +363,10 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
         final Value predValue = getVarValue(statement.getPredicateVar(), bs);
         final Value objValue = getVarValue(statement.getObjectVar(), bs);
         final Value contextValue = getVarValue(statement.getContextVar(), bs);
-        RyaIRI subj = null;
+        RyaResource subj = null;
         RyaIRI pred = null;
-        RyaType obj = null;
-        RyaIRI context = null;
+        RyaValue obj = null;
+        RyaResource context = null;
 
         if (subjValue != null) {
             Preconditions.checkArgument(subjValue instanceof IRI);
@@ -636,7 +639,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
          */
         private Optional<BindingSet> buildPropertyBindingSet(final RyaStatement statement) {
             final StatementMetadata metadata = statement.getMetadata();
-            final Map<RyaIRI, RyaType> statementProps = metadata.getMetadata();
+            final Map<RyaIRI, RyaValue> statementProps = metadata.getMetadata();
             if (statementProps.size() < properties.size()) {
                 return Optional.empty();
             }

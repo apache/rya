@@ -18,14 +18,15 @@
  */
 package org.apache.rya.export.api.conf;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.rya.export.InstanceType;
 
 /**
  * Immutable configuration object to allow the MergeTool to connect to the parent and child
  * databases for data merging.
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class AccumuloMergeConfiguration extends MergeConfigurationDecorator {
     /**
      * Information needed to connect to the parent database

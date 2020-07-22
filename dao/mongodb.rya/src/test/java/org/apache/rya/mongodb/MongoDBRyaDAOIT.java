@@ -18,29 +18,28 @@
  */
 package org.apache.rya.mongodb;
 
-import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.DOCUMENT_VISIBILITY;
-import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.TIMESTAMP;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-
+import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.api.persist.query.RyaQuery;
+import org.apache.rya.api.persist.utils.RyaDAOHelper;
 import org.apache.rya.mongodb.document.util.AuthorizationsUtil;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibility;
 import org.bson.Document;
-import org.calrissian.mango.collect.CloseableIterable;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.junit.Test;
 
-import com.mongodb.MongoException;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import java.io.IOException;
+
+import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.DOCUMENT_VISIBILITY;
+import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.TIMESTAMP;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class MongoDBRyaDAOIT extends MongoRyaITBase {
 
@@ -606,10 +605,10 @@ public class MongoDBRyaDAOIT extends MongoRyaITBase {
 
         final MongoDBQueryEngine queryEngine = (MongoDBQueryEngine) dao.getQueryEngine();
         queryEngine.setConf(conf);
-        final CloseableIterable<RyaStatement> iter = queryEngine.query(new RyaQuery(statement));
+        final CloseableIteration<RyaStatement, RyaDAOException> iter = RyaDAOHelper.query(queryEngine, statement, conf);
 
         // Check if user has authorization to view document based on its visibility
-        final boolean hasNext = iter.iterator().hasNext();
+        final boolean hasNext = iter.hasNext();
 
         // Reset
         dao.delete(statement, conf);

@@ -18,24 +18,33 @@
  */
 package org.apache.rya.api.resolver;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.Lists;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.utils.LiteralLanguageUtils;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleLiteral;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.Literals;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the methods of {@link RyaToRdfConversionsTest}.
@@ -45,9 +54,9 @@ public class RyaToRdfConversionsTest {
 
     private static final Set<String> LANGUAGE_CODES = LanguageCodesTestHelper.getInstance().getLanguageCodes();
 
-    @Test (expected=NullPointerException.class)
+    @Test
     public void testConvertLiteral_null() {
-        RyaToRdfConversions.convertLiteral(null);
+        assertNull(RyaToRdfConversions.convertLiteral(null));
     }
 
     @Test
@@ -124,4 +133,99 @@ public class RyaToRdfConversionsTest {
         final Literal expectedLiteral = VF.createLiteral(expectedData);
         assertEquals(expectedLiteral, literal);
     }
+    
+    @Test
+    public void testConvertValue() {
+        final String expectedData = "urn:the/test";
+        final RyaValue ryaValue = new RyaIRI(expectedData);
+        final Value value = RyaToRdfConversions.convertValue(ryaValue);
+        assertEquals(expectedData, value.stringValue());
+        assertTrue(value.getClass().getName(), value instanceof IRI);
+    }
+
+    @Test
+    public void testConvertLiteralValue() {
+        final String expectedData = "Value";
+        final RyaValue ryaValue = new RyaType(expectedData);
+        final Value value = RyaToRdfConversions.convertValue(ryaValue);
+        assertEquals(expectedData, value.stringValue());
+        assertTrue(value.getClass().getName(), value instanceof Literal);
+    }
+
+    @Test
+    public void testConvertIRIValueByDataType() {
+        final String expectedData = "urn:the/test";
+        final RyaValue ryaValue = new RyaType(XMLSchema.ANYURI, expectedData);
+        final Value value = RyaToRdfConversions.convertValue(ryaValue);
+        assertEquals(expectedData, value.stringValue());
+        assertTrue(value.getClass().getName(), value instanceof IRI);
+    }
+
+    @Test
+    public void testConvertIRI() {
+        final String expectedData = "urn:the/test";
+        final RyaResource ryaResource = new RyaIRI(expectedData);
+        final Resource resource = RyaToRdfConversions.convertResource(ryaResource);
+        assertEquals(expectedData, resource.stringValue());
+        assertTrue(resource.getClass().getName(), resource instanceof IRI);
+    }
+
+    @Test
+    public void testConvertResource() {
+        final String expectedData = "urn:the/test";
+        final RyaIRI ryaIRI = new RyaIRI(expectedData);
+        final IRI iri = RyaToRdfConversions.convertIRI(ryaIRI);
+        assertEquals(expectedData, iri.toString());
+        assertEquals("test", iri.getLocalName());
+        assertEquals("urn:the/", iri.getNamespace());
+    }
+
+    @Test
+    public void testConvertResources() {
+        final String expectedData1 = "urn:the/test1";
+        final String expectedData2 = "urn:the/test2";
+        final RyaResource[] ryaResources = {new RyaIRI(expectedData1), new RyaIRI(expectedData2)};
+        final Resource[] resources = RyaToRdfConversions.convertResource(ryaResources);
+        assertEquals(2, resources.length);
+
+        assertEquals(expectedData1, ((IRI)resources[0]).toString());
+        assertEquals("test1", ((IRI)resources[0]).getLocalName());
+        assertEquals("urn:the/", ((IRI)resources[0]).getNamespace());
+
+        assertEquals(expectedData2, ((IRI)resources[1]).toString());
+        assertEquals("test2", ((IRI)resources[1]).getLocalName());
+        assertEquals("urn:the/", ((IRI)resources[1]).getNamespace());
+    }
+
+    @Test
+    public void testConvertStatement() {
+        final RyaResource subject = new RyaIRI("urn:subject");
+        final RyaIRI predicate = new RyaIRI("urn:predicate");
+        final RyaValue object = new RyaIRI("urn:object");
+        final RyaResource context = new RyaIRI("urn:context");
+        final RyaStatement ryaStatement = new RyaStatement(subject, predicate, object, context);
+        final Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
+        assertEquals(subject.stringValue(), statement.getSubject().stringValue());
+        assertEquals(predicate.stringValue(), statement.getPredicate().stringValue());
+        assertEquals(object.stringValue(), statement.getObject().stringValue());
+        assertEquals(context.stringValue(), statement.getContext().stringValue());
+    }
+
+    @Test
+    public void testConvertStatementLiteral() {
+        final RyaResource subject = new RyaIRI("urn:subject");
+        final RyaIRI predicate = new RyaIRI("urn:predicate");
+        final RyaValue object = new RyaType(XMLSchema.DOUBLE, "12.345");
+        final RyaResource context = new RyaIRI("urn:context");
+        final RyaStatement ryaStatement = new RyaStatement(subject, predicate, object, context);
+        final Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
+        assertEquals(subject.stringValue(), statement.getSubject().stringValue());
+        assertEquals(predicate.stringValue(), statement.getPredicate().stringValue());
+        assertEquals(object.stringValue(), statement.getObject().stringValue());
+        assertEquals(12.345, ((SimpleLiteral)statement.getObject()).doubleValue(), 0.0001);
+        assertFalse(((SimpleLiteral)statement.getObject()).getLanguage().isPresent());
+        assertEquals(XMLSchema.DOUBLE, ((SimpleLiteral)statement.getObject()).getDatatype());
+        assertEquals(context.stringValue(), statement.getContext().stringValue());
+    }
+    
 }

@@ -18,13 +18,9 @@
  */
 package org.apache.rya.indexing.external.tupleSet;
 
-import java.math.BigInteger;
-import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -62,9 +58,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.math.BigInteger;
+import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class AccumuloIndexSetTest {
 
@@ -130,7 +129,7 @@ public class AccumuloIndexSetTest {
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(new QueryBindingSet());
-        final Set<BindingSet> fetchedResults = new HashSet<BindingSet>();
+        final Set<BindingSet> fetchedResults = new HashSet<>();
         while(results.hasNext()) {
             fetchedResults.add(results.next());
         }

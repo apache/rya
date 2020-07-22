@@ -18,10 +18,7 @@ package org.apache.rya.indexing.external.matching;
  * under the License.
  */
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.base.Optional;
 import org.apache.rya.indexing.external.matching.QueryNodesToTupleExpr.TupleExprAndNodes;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizerUtilities;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -37,7 +34,9 @@ import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
-import com.google.common.base.Optional;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Abstract base class meant to be extended by any QueryOptimizer that matches ExternalSets
@@ -64,7 +63,7 @@ public abstract class AbstractExternalSetOptimizer<T extends ExternalSet> implem
      * portion of the query starting with the Join, Filter, or LeftJoin is
      * replaced by the {@link TupleExpr} returned by
      * {@link ExternalSetMatcher#getQuery()}. This visitor then visits each of
-     * the nodes returned by {@link ExternalSetMatcher#getUnmatchedArgs()}.
+     * the nodes returned by {@link ExternalSetMatcher#getUnmatchedArgNodes()} ()}.
      *
      */
     protected class QuerySegmentMatchVisitor extends AbstractQueryModelVisitor<RuntimeException> {

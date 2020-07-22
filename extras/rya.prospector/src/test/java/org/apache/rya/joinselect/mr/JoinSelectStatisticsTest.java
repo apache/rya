@@ -20,47 +20,6 @@ package org.apache.rya.joinselect.mr;
  */
 
 
-
-import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.INPUTPATH;
-import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.INSTANCE;
-import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.OUTPUTPATH;
-import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.PASSWORD;
-import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.PROSPECTS_OUTPUTPATH;
-import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.PROSPECTS_TABLE;
-import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.SELECTIVITY_TABLE;
-import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.SPO_OUTPUTPATH;
-import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.SPO_TABLE;
-import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.USERNAME;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
-import org.apache.rya.api.resolver.RyaTripleContext;
-import org.apache.rya.api.resolver.triple.TripleRow;
-import org.apache.rya.joinselect.mr.JoinSelectAggregate.JoinReducer;
-import org.apache.rya.joinselect.mr.JoinSelectAggregate.JoinSelectAggregateMapper;
-import org.apache.rya.joinselect.mr.JoinSelectAggregate.JoinSelectGroupComparator;
-import org.apache.rya.joinselect.mr.JoinSelectAggregate.JoinSelectPartitioner;
-import org.apache.rya.joinselect.mr.JoinSelectAggregate.JoinSelectSortComparator;
-import org.apache.rya.joinselect.mr.JoinSelectProspectOutput.CardinalityMapper;
-import org.apache.rya.joinselect.mr.JoinSelectSpoTableOutput.JoinSelectMapper;
-import org.apache.rya.joinselect.mr.JoinSelectStatisticsSum.CardinalityIdentityCombiner;
-import org.apache.rya.joinselect.mr.JoinSelectStatisticsSum.CardinalityIdentityMapper;
-import org.apache.rya.joinselect.mr.JoinSelectStatisticsSum.CardinalityIdentityReducer;
-import org.apache.rya.joinselect.mr.utils.CardList;
-import org.apache.rya.joinselect.mr.utils.CompositeType;
-import org.apache.rya.joinselect.mr.utils.JoinSelectStatsUtil;
-import org.apache.rya.joinselect.mr.utils.TripleCard;
-import org.apache.rya.joinselect.mr.utils.TripleEntry;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -90,9 +49,48 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.joinselect.mr.JoinSelectAggregate.JoinReducer;
+import org.apache.rya.joinselect.mr.JoinSelectAggregate.JoinSelectAggregateMapper;
+import org.apache.rya.joinselect.mr.JoinSelectAggregate.JoinSelectGroupComparator;
+import org.apache.rya.joinselect.mr.JoinSelectAggregate.JoinSelectPartitioner;
+import org.apache.rya.joinselect.mr.JoinSelectAggregate.JoinSelectSortComparator;
+import org.apache.rya.joinselect.mr.JoinSelectProspectOutput.CardinalityMapper;
+import org.apache.rya.joinselect.mr.JoinSelectSpoTableOutput.JoinSelectMapper;
+import org.apache.rya.joinselect.mr.JoinSelectStatisticsSum.CardinalityIdentityCombiner;
+import org.apache.rya.joinselect.mr.JoinSelectStatisticsSum.CardinalityIdentityMapper;
+import org.apache.rya.joinselect.mr.JoinSelectStatisticsSum.CardinalityIdentityReducer;
+import org.apache.rya.joinselect.mr.utils.CardList;
+import org.apache.rya.joinselect.mr.utils.CompositeType;
+import org.apache.rya.joinselect.mr.utils.JoinSelectStatsUtil;
+import org.apache.rya.joinselect.mr.utils.TripleCard;
+import org.apache.rya.joinselect.mr.utils.TripleEntry;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.INPUTPATH;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.INSTANCE;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.OUTPUTPATH;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.PASSWORD;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.PROSPECTS_OUTPUTPATH;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.PROSPECTS_TABLE;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.SELECTIVITY_TABLE;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.SPO_OUTPUTPATH;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.SPO_TABLE;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.USERNAME;
 
 public class JoinSelectStatisticsTest {
     
@@ -446,7 +444,7 @@ public class JoinSelectStatisticsTest {
         
         
 
-        Assert.assertEquals(0, ToolRunner.run(new JoinSelectTestDriver(), new String[]{""}));     
+        Assert.assertEquals("MapReduce job failed!", 0, ToolRunner.run(new JoinSelectTestDriver(), new String[]{""}));
         Scanner scan = c.createScanner("rya_selectivity", new Authorizations());
         scan.setRange(new Range());
 
@@ -557,7 +555,7 @@ public class JoinSelectStatisticsTest {
         }
         bw_table2.close();
 
-        Assert.assertEquals(0, ToolRunner.run(new JoinSelectTestDriver(), new String[]{""}));
+        Assert.assertEquals("MapReduce job failed!", 0, ToolRunner.run(new JoinSelectTestDriver(), new String[]{""}));
         Scanner scan1 = c.createScanner("rya_selectivity" , new Authorizations());
         scan1.setRange(Range.prefix("subject" +DELIM + iri + 1));
         int i = 0;
@@ -652,7 +650,7 @@ public class JoinSelectStatisticsTest {
         
         
 
-        Assert.assertEquals(0, ToolRunner.run(new JoinSelectTestDriver(), new String[]{""}));
+        Assert.assertEquals("MapReduce job failed!", 0, ToolRunner.run(new JoinSelectTestDriver(), new String[]{""}));
         Scanner scan = c.createScanner("rya_selectivity", new Authorizations());
         scan.setRange(new Range());
 
@@ -762,7 +760,7 @@ public class JoinSelectStatisticsTest {
         
         
 
-        Assert.assertEquals(0, ToolRunner.run(new JoinSelectTestDriver(), new String[]{""}));
+        Assert.assertEquals("MapReduce job failed!", 0, ToolRunner.run(new JoinSelectTestDriver(), new String[]{""}));
         Scanner scan = c.createScanner("rya_selectivity", new Authorizations());
         scan.setRange(new Range());
 

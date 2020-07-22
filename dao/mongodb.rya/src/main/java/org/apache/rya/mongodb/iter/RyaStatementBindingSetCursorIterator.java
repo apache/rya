@@ -18,26 +18,6 @@
  */
 package org.apache.rya.mongodb.iter;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.accumulo.core.security.Authorizations;
-import org.apache.log4j.Logger;
-import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.mongodb.dao.MongoDBStorageStrategy;
-import org.apache.rya.mongodb.document.operators.aggregation.AggregationUtil;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.eclipse.rdf4j.common.iteration.CloseableIteration;
-import org.eclipse.rdf4j.query.BindingSet;
-
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Multimap;
@@ -45,6 +25,25 @@ import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
+import org.apache.accumulo.core.security.Authorizations;
+import org.apache.log4j.Logger;
+import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.mongodb.dao.MongoDBStorageStrategy;
+import org.apache.rya.mongodb.document.operators.aggregation.AggregationUtil;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.BindingSet;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
 public class RyaStatementBindingSetCursorIterator implements CloseableIteration<Entry<RyaStatement, BindingSet>, RyaDAOException> {
     private static final Logger log = Logger.getLogger(RyaStatementBindingSetCursorIterator.class);
@@ -129,7 +128,7 @@ public class RyaStatementBindingSetCursorIterator implements CloseableIteration<
                 isResult(query.getContext(), result.getContext());
     }
 
-    private static boolean isResult(final RyaType query, final RyaType result) {
+    private static boolean isResult(final Value query, final Value result) {
         return (query == null) || query.equals(result);
     }
 

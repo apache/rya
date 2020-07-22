@@ -18,10 +18,19 @@
  */
 package org.apache.rya.api.resolver.triple.impl;
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
+import com.google.common.primitives.Bytes;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaValue;
+import org.apache.rya.api.domain.StatementMetadata;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowResolver;
+import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -30,18 +39,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.codec.binary.Hex;
-import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
-import org.apache.rya.api.resolver.RyaContext;
-import org.apache.rya.api.resolver.RyaTypeResolverException;
-import org.apache.rya.api.resolver.triple.TripleRow;
-import org.apache.rya.api.resolver.triple.TripleRowResolver;
-import org.apache.rya.api.resolver.triple.TripleRowResolverException;
-
-import com.google.common.primitives.Bytes;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
 
 /**
  * Will store triple in spo, po, osp. Storing everything in the whole row.
@@ -53,10 +54,10 @@ public class WholeRowHashedTripleResolver implements TripleRowResolver {
     @Override
     public Map<TABLE_LAYOUT, TripleRow> serialize(final RyaStatement stmt) throws TripleRowResolverException {
         try {
-            final RyaIRI subject = stmt.getSubject();
+            final RyaResource subject = stmt.getSubject();
             final RyaIRI predicate = stmt.getPredicate();
-            final RyaType object = stmt.getObject();
-            final RyaIRI context = stmt.getContext();
+            final RyaValue object = stmt.getObject();
+            final RyaResource context = stmt.getContext();
             final Long timestamp = stmt.getTimestamp();
             final byte[] columnVisibility = stmt.getColumnVisibility();
             final String qualifer = stmt.getQualifer();
@@ -121,6 +122,7 @@ public class WholeRowHashedTripleResolver implements TripleRowResolver {
             final Long timestamp = tripleRow.getTimestamp();
             final byte[] columnVisibility = tripleRow.getColumnVisibility();
             final byte[] value = tripleRow.getValue();
+            final StatementMetadata metadata = new StatementMetadata(value);
 
             switch (table_layout) {
                 case SPO: {
@@ -129,7 +131,7 @@ public class WholeRowHashedTripleResolver implements TripleRowResolver {
                             new RyaIRI(new String(first, StandardCharsets.UTF_8)),
                             new RyaIRI(new String(second, StandardCharsets.UTF_8)),
                             RyaContext.getInstance().deserialize(obj),
-                            context, qualifier, columnVisibility, value, timestamp);
+                            context, qualifier, columnVisibility, metadata, timestamp);
                 }
                 case PO: {
                     final byte[] obj = Bytes.concat(second, type);
@@ -137,7 +139,7 @@ public class WholeRowHashedTripleResolver implements TripleRowResolver {
                             new RyaIRI(new String(third, StandardCharsets.UTF_8)),
                             new RyaIRI(new String(first, StandardCharsets.UTF_8)),
                             RyaContext.getInstance().deserialize(obj),
-                            context, qualifier, columnVisibility, value, timestamp);
+                            context, qualifier, columnVisibility, metadata, timestamp);
                 }
                 case OSP: {
                     final byte[] obj = Bytes.concat(first, type);
@@ -145,7 +147,7 @@ public class WholeRowHashedTripleResolver implements TripleRowResolver {
                             new RyaIRI(new String(second, StandardCharsets.UTF_8)),
                             new RyaIRI(new String(third, StandardCharsets.UTF_8)),
                             RyaContext.getInstance().deserialize(obj),
-                            context, qualifier, columnVisibility, value, timestamp);
+                            context, qualifier, columnVisibility, metadata, timestamp);
                 }
             }
         } catch (final RyaTypeResolverException e) {

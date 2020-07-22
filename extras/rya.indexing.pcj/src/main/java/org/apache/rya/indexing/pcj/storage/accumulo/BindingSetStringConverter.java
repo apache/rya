@@ -18,13 +18,10 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.Objects.requireNonNull;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.rya.api.domain.RyaType;
+import com.google.common.base.Joiner;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
@@ -35,10 +32,11 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
 
-import com.google.common.base.Joiner;
+import java.util.ArrayList;
+import java.util.List;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Converts {@link BindingSet}s to Strings and back again. The Strings do not
@@ -64,7 +62,7 @@ public class BindingSetStringConverter implements BindingSetConverter<String> {
             if(bindingSet.hasBinding(varName)) {
                 // Add a value to the binding set.
                 final Value value = bindingSet.getBinding(varName).getValue();
-                final RyaType ryaValue = RdfToRyaConversions.convertValue(value);
+                final RyaValue ryaValue = RdfToRyaConversions.convertValue(value);
                 final String bindingString = ryaValue.getData() + TYPE_DELIM + ryaValue.getDataType();
                 bindingStrings.add(bindingString);
             } else {

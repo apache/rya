@@ -18,15 +18,8 @@
  */
 package org.apache.rya.export.accumulo.util;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import org.apache.accumulo.core.Constants;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -53,8 +46,9 @@ import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaTripleContext;
@@ -63,8 +57,14 @@ import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.eclipse.rdf4j.model.ValueFactory;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
 
 /**
  * Utility methods for an Accumulo Rya instance.
@@ -122,7 +122,7 @@ public final class AccumuloRyaUtils {
      * @param ryaIri the {@link RyaIRI} to convert.
      * @return the data value without the namespace.
      */
-    public static String convertRyaIriToString(final String namespace, final RyaIRI ryaIri) {
+    public static String convertRyaIriToString(final String namespace, final RyaResource ryaIri) {
         return StringUtils.replaceOnce(ryaIri.getData(), namespace, "");
     }
 
@@ -172,7 +172,7 @@ public final class AccumuloRyaUtils {
     /**
      * Creates a {@link Scanner} of the provided table name using the specified {@link Configuration}.
      * This applies common iterator settings to the table scanner that ignore internal metadata keys.
-     * @param tablename the name of the table to scan.
+     * @param tableName the name of the table to scan.
      * @param config the {@link Configuration}.
      * @return the {@link Scanner} for the table.
      * @throws IOException
@@ -183,7 +183,7 @@ public final class AccumuloRyaUtils {
 
     /**
      * Creates a {@link Scanner} of the provided table name using the specified {@link Configuration}.
-     * @param tablename the name of the table to scan.
+     * @param tableName the name of the table to scan.
      * @param config the {@link Configuration}.
      * @param shouldAddCommonIterators {@code true} to add the common iterators to the table scanner.
      * {@code false} otherwise.
@@ -418,7 +418,7 @@ public final class AccumuloRyaUtils {
 
     /**
      * Sets up a {@link AccumuloRyaDAO} with the specified connector.
-     * @param connector the {@link Connector}.
+     * @param accumuloRdfConfiguration the {@link AccumuloRdfConfiguration}.
      * @return the {@link AccumuloRyaDAO}.
      */
     public static AccumuloRyaDAO setupDao(final AccumuloRdfConfiguration accumuloRdfConfiguration) {

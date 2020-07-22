@@ -19,13 +19,6 @@ package org.apache.rya.accumulo.mr;
  * under the License.
  */
 
-import java.io.Closeable;
-import java.io.Flushable;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriterConfig;
@@ -50,9 +43,10 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRdfConstants;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaTripleContext;
@@ -64,6 +58,13 @@ import org.apache.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
 import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+
+import java.io.Closeable;
+import java.io.Flushable;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * {@link OutputFormat} that uses Rya, the {@link GeoIndexer}, the
@@ -485,10 +486,10 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
         }
 
         private int statementSize(final RyaStatement ryaStatement) {
-            final RyaIRI subject = ryaStatement.getSubject();
+            final RyaResource subject = ryaStatement.getSubject();
             final RyaIRI predicate = ryaStatement.getPredicate();
-            final RyaType object = ryaStatement.getObject();
-            final RyaIRI context = ryaStatement.getContext();
+            final RyaValue object = ryaStatement.getObject();
+            final RyaResource context = ryaStatement.getContext();
             int size = 3 + subject.getData().length() + predicate.getData().length() + object.getData().length();
             if (!XMLSchema.ANYURI.equals(object.getDataType())) {
                 size += 2 + object.getDataType().toString().length();

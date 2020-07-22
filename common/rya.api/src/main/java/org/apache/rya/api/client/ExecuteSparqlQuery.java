@@ -18,13 +18,12 @@
  */
 package org.apache.rya.api.client;
 
-import java.io.Closeable;
-
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import java.io.Closeable;
 
 /**
  * Loads a SPARQL Query and executes the query against an instance of Rya.
@@ -41,5 +40,6 @@ public interface ExecuteSparqlQuery extends Closeable {
      * @throws InstanceDoesNotExistException No instance of Rya exists for the provided name.
      * @throws RyaClientException Something caused the command to fail.
      */
-    public TupleQueryResult executeSparqlQuery(String ryaInstanceName, String sparqlQuery) throws InstanceDoesNotExistException, RyaClientException;
+    TupleQueryResult executeSparqlQuery(String ryaInstanceName, String sparqlQuery) throws InstanceDoesNotExistException, RyaClientException;
+
 }

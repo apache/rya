@@ -18,25 +18,23 @@
  */
 package org.apache.rya.api.query.strategy.wholerow;
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Arrays;
-import java.util.Map;
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.query.strategy.ByteRange;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.util.Arrays;
+
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class NullRowTriplePatternStrategyTest {
 
@@ -91,11 +89,11 @@ public class NullRowTriplePatternStrategyTest {
     RyaIRI context = null;
     RdfCloudTripleStoreConfiguration conf = new MockRdfConfiguration();
     NullRowTriplePatternStrategy instance = new NullRowTriplePatternStrategy();
-    Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> expResult = new RdfCloudTripleStoreUtils.CustomEntry<>(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO, new ByteRange(new byte[]{}, LAST_BYTES));
-    Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> result = instance.defineRange(subject, predicate, object, context, conf);
-    assertEquals(expResult.getKey(), result.getKey());
-    assertTrue(Arrays.equals(expResult.getValue().getStart(), result.getValue().getStart()));
-    assertTrue(Arrays.equals(expResult.getValue().getEnd(), result.getValue().getEnd()));
+    ByteRange expResult = new ByteRange(new byte[]{}, LAST_BYTES);
+    ByteRange result = instance.defineRange(subject, predicate, object, context, conf);
+    assertEquals(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO, instance.getLayout());
+    assertTrue(Arrays.equals(expResult.getStart(), result.getStart()));
+    assertTrue(Arrays.equals(expResult.getEnd(), result.getEnd()));
   }
 
   /**

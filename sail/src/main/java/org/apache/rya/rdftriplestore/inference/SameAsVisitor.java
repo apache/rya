@@ -19,12 +19,8 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.utils.NullableStatementImpl;
+import org.apache.rya.api.utils.WildcardStatement;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
 import org.eclipse.rdf4j.model.IRI;
@@ -36,6 +32,10 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.model.vocabulary.SESAME;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.Var;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * All predicates are changed
@@ -134,7 +134,7 @@ public class SameAsVisitor extends AbstractInferVisitor {
             			StatementPattern origDummyStatement = new DoNotExpandSP(origStatement.getSubjectVar(), origStatement.getPredicateVar(), dummyVar, cntxtVar);
             	        FixedStatementPattern fsp = new FixedStatementPattern(dummyVar, new Var("c-" + s, OWL.SAMEAS), objVar, cntxtVar);
             	        for (Resource sameAs : objURIs){
-            	    		NullableStatementImpl newStatement = new NullableStatementImpl(sameAs, OWL.SAMEAS,
+            	    		WildcardStatement newStatement = new WildcardStatement(sameAs, OWL.SAMEAS,
                                     objVar.getValue(), getVarValue(cntxtVar));
             	            fsp.statements.add(newStatement);        		
             	    	}
@@ -168,7 +168,7 @@ public class SameAsVisitor extends AbstractInferVisitor {
        }
         FixedStatementPattern fsp = new FixedStatementPattern(dummyVar, new Var("c-" + s, OWL.SAMEAS), subVar, cntxtVar);
         for (Resource sameAs : uris){
-    		NullableStatementImpl newStatement = new NullableStatementImpl(sameAs, OWL.SAMEAS,
+    		WildcardStatement newStatement = new WildcardStatement(sameAs, OWL.SAMEAS,
                     subVar.getValue(), getVarValue(cntxtVar));
             fsp.statements.add(newStatement);        		
     	}

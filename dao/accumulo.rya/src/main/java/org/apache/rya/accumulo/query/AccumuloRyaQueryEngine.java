@@ -46,9 +46,11 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaRange;
+import org.apache.rya.api.domain.RyaResource;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.layout.TableLayoutStrategy;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.BatchRyaQuery;
@@ -129,9 +131,9 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
             Collection<Range> ranges = new HashSet<Range>();
             RangeBindingSetEntries rangeMap = new RangeBindingSetEntries();
             TABLE_LAYOUT layout = null;
-            RyaIRI context = null;
+            RyaResource context = null;
             TriplePatternStrategy strategy = null;
-            RyaIRI columnFamily = null;
+            RyaResource columnFamily = null;
             boolean columnFamilySet = false;
             for (Map.Entry<RyaStatement, BindingSet> stmtbs : stmts) {
                 RyaStatement stmt = stmtbs.getKey();
@@ -152,13 +154,12 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                     throw new IllegalArgumentException("TriplePattern[" + stmt + "] not supported");
                 }
 
-                Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(stmt.getSubject(),
+                ByteRange byteRange = strategy.defineRange(stmt.getSubject(),
                         stmt.getPredicate(), stmt.getObject(), stmt.getContext(), conf);
 
                 // use range to set scanner
                 // populate scanner based on authorizations, ttl
-                layout = entry.getKey();
-                ByteRange byteRange = entry.getValue();
+                layout = strategy.getLayout();
                 Range range = new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()));
                 Range rangeMapRange = range;
                 // if context != null, bind context info to Range so that
@@ -269,18 +270,17 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
             TriplePatternStrategy strategy = ryaContext.retrieveStrategy(stmt);
             TABLE_LAYOUT layout;
             Range range;
-            RyaIRI subject = stmt.getSubject();
+            RyaResource subject = stmt.getSubject();
             RyaIRI predicate = stmt.getPredicate();
-            RyaType object = stmt.getObject();
-            RyaIRI context = stmt.getContext();
+            RyaValue object = stmt.getObject();
+            RyaResource context = stmt.getContext();
             String qualifier = stmt.getQualifer();
             TripleRowRegex tripleRowRegex = null;
             if (strategy != null) {
                 // otherwise, full table scan is supported
-                Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(subject, predicate, object,
+                ByteRange byteRange = strategy.defineRange(subject, predicate, object,
                         context, null);
-                layout = entry.getKey();
-                ByteRange byteRange = entry.getValue();
+                layout = strategy.getLayout();
                 range = new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()));
 
             } else {
@@ -347,7 +347,7 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
         try {
             Collection<Range> ranges = new HashSet<Range>();
             TABLE_LAYOUT layout = null;
-            RyaIRI context = null;
+            RyaResource context = null;
             TriplePatternStrategy strategy = null;
             for (RyaStatement stmt : stmts) {
                 context = stmt.getContext(); // TODO: This will be overwritten
@@ -356,13 +356,12 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                     throw new IllegalArgumentException("TriplePattern[" + stmt + "] not supported");
                 }
 
-                Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(stmt.getSubject(),
+                ByteRange byteRange = strategy.defineRange(stmt.getSubject(),
                         stmt.getPredicate(), stmt.getObject(), stmt.getContext(), null);
 
                 // use range to set scanner
                 // populate scanner based on authorizations, ttl
-                layout = entry.getKey();
-                ByteRange byteRange = entry.getValue();
+                layout = strategy.getLayout();
                 Range range = new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()));
                 ranges.add(range);
             }
@@ -382,7 +381,7 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 results = FluentCloseableIterable.from(new ScannerBaseCloseableIterable(scanner))
                         .transform(keyValueToRyaStatementFunctionMap.get(layout));
             } else {
-                final RyaIRI fcontext = context;
+                final RyaResource fcontext = context;
                 final RdfCloudTripleStoreConfiguration fconf = ryaQuery.getConf();
                 FluentIterable<RyaStatement> fluent = FluentIterable.from(ranges)
                         .transformAndConcat(new Function<Range, Iterable<Map.Entry<Key, Value>>>() {
@@ -410,7 +409,7 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
         }
     }
 
-    protected void fillScanner(ScannerBase scanner, RyaIRI context, String qualifier, Long ttl, Long currentTime,
+    protected void fillScanner(ScannerBase scanner, RyaResource context, String qualifier, Long ttl, Long currentTime,
             TripleRowRegex tripleRowRegex, RdfCloudTripleStoreConfiguration conf) throws IOException {
         if (context != null && qualifier != null) {
             scanner.fetchColumn(new Text(context.getData()), new Text(qualifier));

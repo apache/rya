@@ -18,6 +18,8 @@
  */
 package org.apache.rya.api.domain;
 
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Assert;
@@ -37,6 +39,7 @@ public class RyaTypeTest {
     RyaType nullLang = new RyaType(RDF.LANGSTRING, "http://www.example.com/Alice", null);
     RyaType nullBoth = new RyaType(null, null);
     RyaType same = new RyaType(XMLSchema.STRING, "http://www.example.com/Alice");
+    IRI iri = SimpleValueFactory.getInstance().createIRI("http://www.example.com/Alice");
 
     @Test
     public void testCompareTo() throws Exception {
@@ -90,6 +93,7 @@ public class RyaTypeTest {
         Assert.assertTrue("Same data and datatype should be equal.", a.equals(same));
         Assert.assertFalse("Same data, different datatype should be unequal.", a.equals(aIri));
         Assert.assertFalse("Same datatype, different data should be unequal.", a.equals(b));
+        Assert.assertTrue("Same data and datatype should be equal.", a.equals(iri));
     }
 
     @Test

@@ -18,19 +18,18 @@
  */
 package org.apache.rya.accumulo.mr.merge.mappers;
 
-import java.io.IOException;
-import java.util.Map;
-
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.log4j.Logger;
-
 import org.apache.rya.accumulo.AccumuloRdfUtils;
 import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
+
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * Extended {@link BaseCopyToolMapper} that handles the {@code AccumuloFileOutputFormat} for the copy tool.
@@ -70,7 +69,7 @@ public class FileCopyToolMapper extends BaseCopyToolMapper<Key, Value, Key, Valu
     }
 
     private void writeRyaStatement(final RyaStatement ryaStatement, final Context context) throws TripleRowResolverException, IOException, InterruptedException {
-        final Map<TABLE_LAYOUT, TripleRow> serialize = childRyaContext.getTripleResolver().serialize(ryaStatement);
+        final Map<TABLE_LAYOUT, TripleRow> serialize = childRyaContext.serializeTriple(ryaStatement);
         final TripleRow tripleRow = serialize.get(TABLE_LAYOUT.SPO);
         final Key key = AccumuloRdfUtils.from(tripleRow);
         final Value value = AccumuloRdfUtils.extractValue(tripleRow);

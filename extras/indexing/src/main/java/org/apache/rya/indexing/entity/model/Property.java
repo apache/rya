@@ -18,34 +18,33 @@
  */
 package org.apache.rya.indexing.entity.model;
 
-import static java.util.Objects.requireNonNull;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaValue;
 
 import java.util.Objects;
 
-import org.apache.http.annotation.Immutable;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * A value that has been set for an {@link TypedEntity}.
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @DefaultAnnotation(NonNull.class)
 public class Property {
 
     private final RyaIRI name;
-    private final RyaType value;
+    private final RyaValue value;
 
     /**
      * Constructs an instance of {@link Property}.
-     *
      * @param name - Uniquely identifies the {@link Property}. (not null)
      * @param value - The value of the {@link Property}. (not null)
      */
-    public Property(final RyaIRI name, final RyaType value) {
+    public Property(final RyaIRI name, final RyaValue value) {
         this.name = requireNonNull(name);
         this.value = requireNonNull(value);
     }
@@ -60,7 +59,7 @@ public class Property {
     /**
      * @return The value of the {@link Property}.
      */
-    public RyaType getValue() {
+    public RyaValue getValue() {
         return value;
     }
 

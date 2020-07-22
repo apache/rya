@@ -19,15 +19,14 @@ package org.apache.rya.indexing.pcj.fluo.app;
  * under the License.
  */
 
-import java.io.UnsupportedEncodingException;
-import java.util.Map;
-import java.util.Optional;
-
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.log4j.Logger;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
@@ -41,8 +40,9 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.Var;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
+import java.io.UnsupportedEncodingException;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * This class projects a VisibilityBindingSet onto a RyaStatement. The Binding
@@ -205,9 +205,9 @@ public class ConstructProjection {
         Preconditions.checkArgument(subj instanceof Resource);
         Preconditions.checkArgument(pred instanceof IRI);
 
-        RyaIRI subjType = RdfToRyaConversions.convertResource((Resource) subj);
+        RyaResource subjType = RdfToRyaConversions.convertResource((Resource) subj);
         RyaIRI predType = RdfToRyaConversions.convertIRI((IRI) pred);
-        RyaType objectType = RdfToRyaConversions.convertValue(obj);
+        RyaValue objectType = RdfToRyaConversions.convertValue(obj);
 
         RyaStatement statement = new RyaStatement(subjType, predType, objectType);
         try {

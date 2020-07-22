@@ -18,19 +18,19 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.Var;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Expands the query tree to account for any universal class expressions (property restrictions
@@ -100,8 +100,8 @@ public class AllValuesFromVisitor extends AbstractInferVisitor {
                         new Var(OWL.ONPROPERTY.stringValue(), OWL.ONPROPERTY), avfPredVar);
                 for (Resource avfRestrictionType : relevantAvfRestrictions.keySet()) {
                     for (IRI avfProperty : relevantAvfRestrictions.get(avfRestrictionType)) {
-                        avfPropertyTypes.statements.add(new NullableStatementImpl(avfRestrictionType,
-                                OWL.ONPROPERTY, avfProperty));
+                        avfPropertyTypes.statements.add(SimpleValueFactory.getInstance().createStatement(
+                                avfRestrictionType, OWL.ONPROPERTY, avfProperty));
                     }
                 }
                 final InferJoin avfInferenceQuery = new InferJoin(avfPropertyTypes, avfPattern);

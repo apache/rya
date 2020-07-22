@@ -19,12 +19,9 @@ package org.apache.rya.api.resolver;
  * under the License.
  */
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.rya.api.domain.RyaRange;
 import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.resolver.impl.BooleanRyaTypeResolver;
 import org.apache.rya.api.resolver.impl.ByteRyaTypeResolver;
 import org.apache.rya.api.resolver.impl.CustomDatatypeResolver;
@@ -33,14 +30,18 @@ import org.apache.rya.api.resolver.impl.DoubleRyaTypeResolver;
 import org.apache.rya.api.resolver.impl.FloatRyaTypeResolver;
 import org.apache.rya.api.resolver.impl.IntegerRyaTypeResolver;
 import org.apache.rya.api.resolver.impl.LongRyaTypeResolver;
-import org.apache.rya.api.resolver.impl.RyaTypeResolverImpl;
 import org.apache.rya.api.resolver.impl.RyaIRIResolver;
+import org.apache.rya.api.resolver.impl.RyaTypeResolverImpl;
 import org.apache.rya.api.resolver.impl.ServiceBackedRyaTypeResolverMappings;
 import org.apache.rya.api.resolver.impl.ShortRyaTypeResolver;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Date: 7/16/12
@@ -116,7 +117,7 @@ public class RyaContext {
         return null;
     }
 
-    public byte[][] serializeType(final RyaType ryaType) throws RyaTypeResolverException {
+    public byte[][] serializeType(final RyaValue ryaType) throws RyaTypeResolverException {
         final RyaTypeResolver ryaTypeResolver = retrieveResolver(ryaType.getDataType());
         if (ryaTypeResolver != null) {
             return ryaTypeResolver.serializeType(ryaType);

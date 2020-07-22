@@ -20,8 +20,8 @@ package org.apache.rya.api.domain;
  */
 
 
-
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
 
 /**
  * Created by IntelliJ IDEA.
@@ -29,14 +29,14 @@ import org.eclipse.rdf4j.model.IRI;
  * Time: 1:03 PM
  * To change this template use File | Settings | File Templates.
  */
-public class RangeIRI extends RangeValue<IRI> implements IRI {
+public class RangeIRI extends RangeValue<Resource> implements IRI {
 
-    public RangeIRI(IRI start, IRI end) {
+    public RangeIRI(Resource start, Resource end) {
         super(start, end);
     }
 
-    public RangeIRI(RangeValue rangeValue) {
-        super((IRI) rangeValue.getStart(), (IRI) rangeValue.getEnd());
+    public RangeIRI(RangeValue<Resource> rangeValue) {
+        super(rangeValue.getStart(), rangeValue.getEnd());
     }
 
     @Override

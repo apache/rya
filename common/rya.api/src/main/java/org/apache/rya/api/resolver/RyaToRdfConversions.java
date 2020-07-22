@@ -19,11 +19,14 @@
 package org.apache.rya.api.resolver;
 
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.utils.LiteralLanguageUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -50,22 +53,44 @@ public class RyaToRdfConversions {
     }
 
     /**
-     * Converts a {@link RyaType} into a {@link IRI} representation of the
-     * {@code ryaType}.
-     * @param ryaType the {@link RyaType} to convert.
-     * @return the {@link IRI} representation of the {@code ryaType}.
+     * Converts a {@link RyaValue} into a {@link Resource} representation of the
+     * {@code ryaValue}.
+     * @param ryaValue the {@link RyaValue} to convert.
+     * @return the {@link Resource} representation of the {@code ryaValue}.
      */
-    private static IRI convertIRI(final RyaType ryaType) {
-        return VF.createIRI(ryaType.getData());
+    public static Resource convertResource(final RyaValue ryaValue) {
+        return VF.createIRI(ryaValue.getData());
     }
 
     /**
-     * Converts a {@link RyaType} into a {@link Literal} representation of the
-     * {@code ryaType}.
-     * @param ryaType the {@link RyaType} to convert.
-     * @return the {@link Literal} representation of the {@code ryaType}.
+     * Converts a {@link RyaValue[]} into a {@link Resource[]} representation of the
+     * {@code resource}.
+     * @param ryaValues the {@link RyaResource} to convert. Generally this will be
+     * the subject.
+     * @return the {@link Resource} representation of the {@code ryaValues}.
      */
-    public static Literal convertLiteral(final RyaType ryaType) {
+    public static Resource[] convertResource(final RyaValue... ryaValues) {
+        if (ryaValues == null || ryaValues.length == 0) {
+            return null;
+        }
+        Resource[] resources = new Resource[ryaValues.length];
+        for (int i = 0; i < ryaValues.length; i++) {
+            resources[i] = convertResource(ryaValues[i]);
+        }
+        return resources;
+    }
+
+    /**
+     * Converts a {@link RyaValue} into a {@link Literal} representation of the
+     * {@code ryaValue}.
+     * @param ryaValue the {@link RyaValue} to convert.
+     * @return the {@link Literal} representation of the {@code ryaValue}.
+     */
+    public static Literal convertLiteral(final RyaValue ryaValue) {
+        if (ryaValue == null) {
+            return null;
+        }
+        RyaType ryaType = (RyaType) ryaValue;
         if (XMLSchema.STRING.equals(ryaType.getDataType())) {
             return VF.createLiteral(ryaType.getData());
         } else if (RDF.LANGSTRING.equals(ryaType.getDataType())) {
@@ -81,14 +106,20 @@ public class RyaToRdfConversions {
     }
 
     /**
-     * Converts a {@link RyaType} into a {@link Value} representation of the
-     * {@code ryaType}.
-     * @param ryaType the {@link RyaType} to convert.
+     * Converts a {@link RyaValue} into a {@link Value} representation of the
+     * {@code ryaValue}.
+     * @param ryaValue the {@link RyaValue} to convert.
      * @return the {@link Value} representation of the {@code ryaType}.
      */
-    public static Value convertValue(final RyaType ryaType) {
-        //assuming either IRI or Literal here
-        return (ryaType instanceof RyaIRI || ryaType.getDataType().equals(XMLSchema.ANYURI)) ? convertIRI(ryaType) : convertLiteral(ryaType);
+    public static Value convertValue(final RyaValue ryaValue) {
+        if (ryaValue == null) {
+            return null;
+        }
+        // We need to ensure IRIs stay as IRIs. The data type check here is just defensive programming and shouldn't be relied on.
+        if (ryaValue instanceof RyaResource || XMLSchema.ANYURI.equals(ryaValue.getDataType())) {
+            return convertResource(ryaValue);
+        }
+        return convertLiteral(ryaValue);
     }
 
     /**
@@ -99,15 +130,11 @@ public class RyaToRdfConversions {
      */
     public static Statement convertStatement(final RyaStatement ryaStatement) {
         assert ryaStatement != null;
-        if (ryaStatement.getContext() != null) {
-            return VF.createStatement(convertIRI(ryaStatement.getSubject()),
-                    convertIRI(ryaStatement.getPredicate()),
-                    convertValue(ryaStatement.getObject()),
-                    convertIRI(ryaStatement.getContext()));
-        } else {
-            return VF.createStatement(convertIRI(ryaStatement.getSubject()),
-                    convertIRI(ryaStatement.getPredicate()),
-                    convertValue(ryaStatement.getObject()));
-        }
+        return VF.createStatement(
+                convertResource(ryaStatement.getSubject()),
+                convertIRI(ryaStatement.getPredicate()),
+                convertValue(ryaStatement.getObject()),
+                ryaStatement.getContext() != null ? convertResource(ryaStatement.getContext()) : null
+        );
     }
 }

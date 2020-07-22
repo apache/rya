@@ -18,18 +18,15 @@
  */
 package org.apache.rya.mongodb.dao;
 
-import static org.eclipse.rdf4j.model.vocabulary.XMLSchema.ANYURI;
-
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
+import com.mongodb.client.MongoCollection;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.query.RyaQuery;
 import org.apache.rya.api.utils.LiteralLanguageUtils;
@@ -40,7 +37,11 @@ import org.bson.Document;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
-import com.mongodb.client.MongoCollection;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import static org.eclipse.rdf4j.model.vocabulary.XMLSchema.ANYURI;
 
 /**
  * Defines how {@link RyaStatement}s are stored in MongoDB.
@@ -97,10 +98,10 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
 
     @Override
     public Document getQuery(final RyaStatement stmt) {
-        final RyaIRI subject = stmt.getSubject();
+        final RyaResource subject = stmt.getSubject();
         final RyaIRI predicate = stmt.getPredicate();
-        final RyaType object = stmt.getObject();
-        final RyaIRI context = stmt.getContext();
+        final RyaValue object = stmt.getObject();
+        final RyaResource context = stmt.getContext();
         final Document query = new Document();
         if (subject != null){
             query.append(SUBJECT_HASH, hash(subject.getData()));
@@ -157,14 +158,13 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         if(timestamp != null) {
             statement.setTimestamp(timestamp);
         }
-        if(statementMetadata != null) {
-            try {
-                final StatementMetadata metadata = new StatementMetadata(statementMetadata);
-                statement.setStatementMetadata(metadata);
-            }
-            catch (final Exception ex){
-                LOG.debug("Error deserializing metadata for statement", ex);
-            }
+        try {
+            final StatementMetadata metadata = new StatementMetadata(statementMetadata);
+            statement.setStatementMetadata(metadata);
+        }
+        catch (final Exception ex){
+            LOG.error("Error deserializing metadata for statement!", ex);
+            statement.setStatementMetadata(null);
         }
         return statement;
     }

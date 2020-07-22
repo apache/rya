@@ -18,11 +18,6 @@ package org.apache.rya.rdftriplestore.evaluation;
  * specific language governing permissions and limitations
  * under the License.
  */
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
@@ -31,9 +26,8 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection.StoreTripleSource;
@@ -53,6 +47,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class StatementPatternEvalTest {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
@@ -68,7 +68,7 @@ public class StatementPatternEvalTest {
         dao = new AccumuloRyaDAO();
         dao.setConnector(conn);
         dao.init();
-        eval = new ParallelEvaluationStrategyImpl(new StoreTripleSource(conf, dao), null, null, conf);
+        eval = new ParallelEvaluationStrategyImpl(new StoreTripleSource<>(conf, dao), null, null, conf);
     }
 
     @After
@@ -87,15 +87,15 @@ public class StatementPatternEvalTest {
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
         RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
         RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
         dao.add(statement2);
         
         RyaStatement statement3 = new RyaStatement(new RyaIRI("uri:Eric"), new RyaIRI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaIRI("uri:context3"), "", new StatementMetadata());
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context3"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
@@ -138,15 +138,15 @@ public class StatementPatternEvalTest {
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
         RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
         RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
         dao.add(statement2);
         
         RyaStatement statement3 = new RyaStatement(new RyaIRI("uri:Eric"), new RyaIRI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaIRI("uri:context3"), "", new StatementMetadata());
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context3"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
@@ -192,15 +192,15 @@ public class StatementPatternEvalTest {
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
         RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
         RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
         dao.add(statement2);
         
         RyaStatement statement3 = new RyaStatement(new RyaIRI("uri:Eric"), new RyaIRI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaIRI("uri:context3"), "", new StatementMetadata());
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context3"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
@@ -238,15 +238,15 @@ public class StatementPatternEvalTest {
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
         RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
         RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
         dao.add(statement2);
         
         RyaStatement statement3 = new RyaStatement(new RyaIRI("uri:Eric"), new RyaIRI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaIRI("uri:context3"), "", new StatementMetadata());
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context3"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
@@ -278,15 +278,15 @@ public class StatementPatternEvalTest {
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
         
         RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement1);
         
         RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
         dao.add(statement2);
         
         RyaStatement statement3 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
-                new RyaType("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
         dao.add(statement3);
 
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
@@ -296,7 +296,7 @@ public class StatementPatternEvalTest {
 
         List<BindingSet> bsList = new ArrayList<>();
         while (iteration.hasNext()) {
-            bsList.add(iteration.next());
+            bsList.add(iteration.next());  // this causes a NullPointerException #1 of 2 https://github.com/apache/rya/pull/247/files
         }
 
         Assert.assertEquals(1, bsList.size());
@@ -309,7 +309,84 @@ public class StatementPatternEvalTest {
         dao.delete(Arrays.asList(statement1, statement2, statement3).iterator(), conf);
     }
 
-    
+    @Test
+    public void simpleQueryWithBindingWithoutContext()
+            throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
+        //query is used to build statement that will be evaluated
+        String query = "select ?x where{?x <uri:talksTo> <uri:Bob>. }";
+        SPARQLParser parser = new SPARQLParser();
+        ParsedQuery pq = parser.parseQuery(query, null);
+        List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
+
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
+        dao.add(statement1);
+
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
+        dao.add(statement2);
+
+        QueryBindingSet bsConstraint1 = new QueryBindingSet();
+        bsConstraint1.addBinding("x", VF.createIRI("uri:Doug"));
+
+        CloseableIteration<BindingSet, QueryEvaluationException> iteration = eval.evaluate(spList.get(0), Arrays.asList(bsConstraint1));
+
+        List<BindingSet> bsList = new ArrayList<>();
+        while (iteration.hasNext()) {
+            bsList.add(iteration.next());
+        }
+
+        Assert.assertEquals(1, bsList.size());
+
+        QueryBindingSet expected = new QueryBindingSet();
+        expected.addBinding("x", VF.createIRI("uri:Doug"));
+
+        Assert.assertEquals(expected, bsList.get(0));
+        dao.delete(Arrays.asList(statement1, statement2).iterator(), conf);
+    }
+
+    @Test
+    public void simpleQueryWithBindingSetWithContext()
+            throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
+        //query is used to build statement that will be evaluated
+        String query = "select ?x ?c where{graph ?c {?x <uri:talksTo>  <uri:Bob>. }}";
+        SPARQLParser parser = new SPARQLParser();
+        ParsedQuery pq = parser.parseQuery(query, null);
+        List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
+
+        RyaStatement statement1 = new RyaStatement(new RyaIRI("uri:Joe"), new RyaIRI("uri:talksTo"),
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
+        dao.add(statement1);
+
+        RyaStatement statement2 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context1"), "", new StatementMetadata());
+        dao.add(statement2);
+
+        RyaStatement statement3 = new RyaStatement(new RyaIRI("uri:Doug"), new RyaIRI("uri:talksTo"),
+                new RyaIRI("uri:Bob"), new RyaIRI("uri:context2"), "", new StatementMetadata());
+        dao.add(statement3);
+
+        QueryBindingSet bsConstraint1 = new QueryBindingSet();
+        bsConstraint1.addBinding("x", VF.createIRI("uri:Doug"));
+        bsConstraint1.addBinding("c", VF.createIRI("uri:context1"));
+
+        CloseableIteration<BindingSet, QueryEvaluationException> iteration = eval.evaluate(spList.get(0), Arrays.asList(bsConstraint1));
+
+        List<BindingSet> bsList = new ArrayList<>();
+        while (iteration.hasNext()) {
+            bsList.add(iteration.next());    // this causes a NullPointerException #2 of 2 https://github.com/apache/rya/pull/247/files
+        }
+
+        Assert.assertEquals(1, bsList.size());
+
+        QueryBindingSet expected = new QueryBindingSet();
+        expected.addBinding("x", VF.createIRI("uri:Doug"));
+        expected.addBinding("c", VF.createIRI("uri:context1"));
+
+        Assert.assertEquals(expected, bsList.get(0));
+        dao.delete(Arrays.asList(statement1, statement2, statement3).iterator(), conf);
+    }
+
     private static AccumuloRdfConfiguration getConf() {
 
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();

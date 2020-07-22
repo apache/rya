@@ -18,24 +18,24 @@
  */
 package org.apache.rya.accumulo.query;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
+import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparator;
 import org.eclipse.rdf4j.query.BindingSet;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Class RangeBindingSetCollection Date: Feb 23, 2011 Time: 10:15:48 AM
  */
 public class RangeBindingSetEntries {
-    private Multimap<Range, BindingSet> ranges = HashMultimap.create();
+    private Multimap<Range, BindingSet> ranges;
 
     public RangeBindingSetEntries() {
         ranges = HashMultimap.create();
@@ -45,6 +45,13 @@ public class RangeBindingSetEntries {
         ranges.put(range, bs);
     }
 
+    /**
+     * This method is used to see if a returned {@link Key}/{@link Value} pair is represented by a particular scan range.
+     * We need to expand upon the default Accumulo behavior by checking not just the row but also the column.
+     * This is very important when we are looking for specific context values (that are in the column family).
+     * @param key The returned {@link Key} to be checked.
+     * @return The relevant {@link BindingSet}s of the returned data from the input query.
+     */
     public Collection<BindingSet> containsKey(Key key) {
         Set<BindingSet> bsSet = new HashSet<>();
         for (Range range : ranges.keySet()) {

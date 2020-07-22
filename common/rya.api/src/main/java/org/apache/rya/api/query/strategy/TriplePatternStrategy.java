@@ -24,8 +24,10 @@ import java.util.Map;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaResource;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.resolver.triple.TripleRowRegex;
 
 /**
@@ -34,13 +36,13 @@ import org.apache.rya.api.resolver.triple.TripleRowRegex;
  */
 public interface TriplePatternStrategy {
 
-    public Map.Entry<TABLE_LAYOUT, ByteRange> defineRange(RyaIRI subject, RyaIRI predicate, RyaType object, RyaIRI context,
+    ByteRange defineRange(RyaResource subject, RyaIRI predicate, RyaValue object, RyaResource context,
                                                           RdfCloudTripleStoreConfiguration conf) throws IOException;
 
-    public TABLE_LAYOUT getLayout();
+    TABLE_LAYOUT getLayout();
 
-    public boolean handles(RyaIRI subject, RyaIRI predicate, RyaType object, RyaIRI context);
+    boolean handles(RyaResource subject, RyaIRI predicate, RyaValue object, RyaResource context);
 
-    public TripleRowRegex buildRegex(String subject, String predicate, String object, String context, byte[] objectTypeInfo);
+    TripleRowRegex buildRegex(String subject, String predicate, String object, String context, byte[] objectTypeInfo);
 
 }

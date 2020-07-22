@@ -18,23 +18,12 @@
  */
 package org.apache.rya.rdftriplestore;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.lang.reflect.Constructor;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.NoSuchElementException;
-
 import org.apache.hadoop.conf.Configurable;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.api.persist.RyaDAO;
@@ -103,18 +92,33 @@ import org.eclipse.rdf4j.query.algebra.evaluation.impl.SameTermFilterOptimizer;
 import org.eclipse.rdf4j.query.impl.EmptyBindingSet;
 import org.eclipse.rdf4j.sail.SailException;
 import org.eclipse.rdf4j.sail.helpers.AbstractSailConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Constructor;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NoSuchElementException;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfiguration> extends AbstractSailConnection {
+
+    private static final Logger logger = LoggerFactory.getLogger(RdfCloudTripleStoreConnection.class);
+
     private final RdfCloudTripleStore<C> store;
+    private final C conf;
 
     private RdfEvalStatsDAO<C> rdfEvalStatsDAO;
     private SelectivityEvalDAO<C> selectEvalDAO;
     private RyaDAO<C> ryaDAO;
     private InferenceEngine inferenceEngine;
     private NamespaceManager namespaceManager;
-    private final C conf;
-
-
     private ProvenanceCollector provenanceCollector;
 
     public RdfCloudTripleStoreConnection(final RdfCloudTripleStore<C> sailBase, final C conf, final ValueFactory vf)
@@ -186,7 +190,7 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
     @Override
     protected void clearInternal(final Resource... aresource) throws SailException {
         try {
-            final RyaIRI[] graphs = new RyaIRI[aresource.length];
+            final RyaResource[] graphs = new RyaIRI[aresource.length];
             for (int i = 0 ; i < graphs.length ; i++){
                 graphs[i] = RdfToRyaConversions.convertResource(aresource[i]);
             }
@@ -575,8 +579,7 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
                 final RyaStatement statement = new RyaStatement(
                         RdfToRyaConversions.convertResource(subject),
                         RdfToRyaConversions.convertIRI(predicate),
-                        RdfToRyaConversions.convertValue(object),
-                        null);
+                        RdfToRyaConversions.convertValue(object));
 
                 ryaDAO.delete(statement, conf);
             }
@@ -627,15 +630,12 @@ public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfigur
         public CloseableIteration<Statement, QueryEvaluationException> getStatements(
                 final Resource subject, final IRI predicate, final Value object,
                 final Resource... contexts) throws QueryEvaluationException {
-            return RyaDAOHelper.query(ryaDAO, subject, predicate, object, conf, contexts);
+            return RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(), subject, predicate, object, conf, contexts);
         }
 
         public CloseableIteration<? extends Entry<Statement, BindingSet>, QueryEvaluationException> getStatements(
-                final Collection<Map.Entry<Statement, BindingSet>> statements,
-                final Resource... contexts) throws QueryEvaluationException {
-
-            return RyaDAOHelper.query(ryaDAO, statements, conf);
-        }
+                final Collection<Map.Entry<Statement, BindingSet>> statements) throws QueryEvaluationException {
+            return RyaDAOHelper.queryRdf4j(ryaDAO.getQueryEngine(), statements, conf);        }
 
         @Override
         public ValueFactory getValueFactory() {

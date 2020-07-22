@@ -18,23 +18,22 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.util;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
-import static org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter.TYPE_DELIM;
-
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.hash.Hashing;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Bytes.BytesBuilder;
-import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.eclipse.rdf4j.model.Value;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.hash.Hashing;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
+import static org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter.TYPE_DELIM;
 
 /**
  * This class adds or removes a hash to or from the rowId for sharding purposes. When creating a sharded row key, it
@@ -98,7 +97,7 @@ public class BindingHashShardingFunction {
         checkNotNull(nodeId);
         checkNotNull(firstBsVal);
 
-        final RyaType ryaValue = RdfToRyaConversions.convertValue(firstBsVal);
+        final RyaValue ryaValue = RdfToRyaConversions.convertValue(firstBsVal);
         final String bindingString = ryaValue.getData() + TYPE_DELIM + ryaValue.getDataType();
 
         return getShardedScanPrefix(nodeId, bindingString);

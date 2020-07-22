@@ -18,10 +18,8 @@
  */
 package org.apache.rya.indexing.accumulo;
 
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
-
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AbstractAccumuloRdfConfigurationBuilder;
@@ -35,8 +33,9 @@ import org.apache.rya.indexing.external.PrecomputedJoinIndexer;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataOptimizer;
 import org.eclipse.rdf4j.sail.Sail;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * This class is an extension of the AccumuloRdfConfiguration object used to to
@@ -117,7 +116,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
 
     /**
      *
-     * Specify whether to use use {@link EntitCentricIndex} for ingest and at
+     * Specify whether to use use {@link EntityCentricIndex} for ingest and at
      * query time. The default value is false, and if useEntity is set to true
      * and the EntityIndex does not exist, then useEntity will default to false.
      *
@@ -137,7 +136,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
 
     /**
      *
-     * Specify whether to use use {@link AccumuloTemproalIndexer} for ingest and
+     * Specify whether to use use {@link AccumuloTemporalIndexer} for ingest and
      * at query time. The default value is false, and if useTemporal is set to
      * true and the TemporalIndex does not exist, then useTemporal will default
      * to false.
@@ -170,7 +169,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
      * true and the FreeTextIndex does not exist, then useFreeText will default
      * to false.
      *
-     * @param useFreeText
+     * @param useFreetext
      *            - use freetext indexing
      */
     public void setUseFreetext(final boolean useFreetext) {
@@ -220,7 +219,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
     /**
      * Use Precomputed Joins as a query optimization.
      *
-     * @param usePcj
+     * @param usePCJ
      *            - use PCJ
      */
     public void setUsePCJ(final boolean usePCJ) {
@@ -238,7 +237,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
      * Use Precomputed Joins as a query optimization and attempt to find the
      * best combination of PCJ in the query plan
      *
-     * @param useOptimalPcj
+     * @param useOptimalPCJ
      *            - use optimal pcj plan
      */
     public void setUseOptimalPCJ(final boolean useOptimalPCJ) {
@@ -370,7 +369,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
          * ingest. Default is false.
          * <li>"use.entity" - Use Accumulo Entity Index for querying and ingest.
          * Default is false.
-         * <li>"use.metadata" - Use Accumulo StatementMetadata index for querying Statement Properties.
+         * <li>"use.metadata" - Use Accumulo {@link org.apache.rya.api.domain.StatementMetadata} index for querying Statement Properties.
          * Default is false.
          * <li>"metadata.properties" - Set Statement Properties that can be queried using the StatementMetadataOptimizer.
          * Default is empty.
@@ -475,7 +474,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
 
         /**
          *
-         * Specify whether to use use {@link EntitCentricIndex} for ingest and
+         * Specify whether to use use {@link EntityCentricIndex} for ingest and
          * at query time. The default value is false, and if useEntity is set to
          * true and the EntityIndex does not exist, then useEntity will default
          * to false.
@@ -584,7 +583,7 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
 
         /**
          * Specify properties that the {@link StatementMetadataOptimizer} will use to query
-         * @param useMetadata
+         * @param metadataProps
          * @return AccumuloIndexingConfigBuilder for chaining method invocations
          */
         public AccumuloIndexingConfigBuilder setStatementMetadataProperties(final Set<RyaIRI> metadataProps) {

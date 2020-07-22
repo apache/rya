@@ -18,14 +18,12 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.export.kafka;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.Map;
-
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
-import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.eclipse.rdf4j.model.IRI;
@@ -37,9 +35,10 @@ import org.eclipse.rdf4j.query.Binding;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.impl.ListBindingSet;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Serialize and deserialize a VisibilityBindingSet using Kyro lib. Great for exporting results of queries.
@@ -132,7 +131,7 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
             output.writeInt(visBindingSet.size());
             for (final Binding binding : visBindingSet) {
                 output.writeString(binding.getName());
-                final RyaType ryaValue = RdfToRyaConversions.convertValue(binding.getValue());
+                final RyaValue ryaValue = RdfToRyaConversions.convertValue(binding.getValue());
                 final String valueString = ryaValue.getData();
                 final IRI type = ryaValue.getDataType();
                 output.writeString(valueString);

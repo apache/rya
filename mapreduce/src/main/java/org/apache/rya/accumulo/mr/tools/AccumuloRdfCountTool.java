@@ -19,10 +19,10 @@ package org.apache.rya.accumulo.mr.tools;
  * under the License.
  */
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-
+import com.google.common.collect.Lists;
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
@@ -42,18 +42,17 @@ import org.apache.rya.accumulo.AccumuloRdfConstants;
 import org.apache.rya.accumulo.mr.AbstractAccumuloMRTool;
 import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaResource;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
-import com.google.common.collect.Lists;
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 /**
  * Count subject, predicate, object. Save in table
@@ -152,7 +151,7 @@ public class AccumuloRdfCountTool extends AbstractAccumuloMRTool implements Tool
                 final String subj = statement.getSubject().getData();
                 final String pred = statement.getPredicate().getData();
 //                byte[] objBytes = tripleFormat.getValueFormat().serialize(statement.getObject());
-                final RyaIRI scontext = statement.getContext();
+                final RyaResource scontext = statement.getContext();
                 final boolean includesContext = scontext != null;
                 final String scontext_str = (includesContext) ? scontext.getData() : null;
 

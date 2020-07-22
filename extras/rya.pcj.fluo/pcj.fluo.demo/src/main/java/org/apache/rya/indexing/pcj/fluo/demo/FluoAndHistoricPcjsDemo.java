@@ -18,9 +18,8 @@
  */
 package org.apache.rya.indexing.pcj.fluo.demo;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Set;
-
+import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.commons.lang3.StringUtils;
@@ -28,9 +27,10 @@ import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.mini.MiniFluo;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.api.utils.CloseableIterator;
@@ -50,8 +50,8 @@ import org.eclipse.rdf4j.queryrender.sparql.SPARQLQueryRenderer;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Sets;
+import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 /**
  * Demonstrates historicly added Rya statements that are stored within the core
@@ -292,9 +292,9 @@ public class FluoAndHistoricPcjsDemo implements Demo {
     }
 
     private static String prettyFormat(final RyaStatement statement) {
-        final RyaIRI s = statement.getSubject();
+        final RyaResource s = statement.getSubject();
         final RyaIRI p = statement.getPredicate();
-        final RyaType o = statement.getObject();
+        final RyaValue o = statement.getObject();
         return "<" + s.getData() + "> <"+ p.getData() + "> <" + o.getData() + ">";
     }
 

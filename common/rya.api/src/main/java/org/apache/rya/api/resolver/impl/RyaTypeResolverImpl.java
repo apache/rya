@@ -18,13 +18,10 @@
  */
 package org.apache.rya.api.resolver.impl;
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
-
-import java.nio.charset.StandardCharsets;
-
+import com.google.common.primitives.Bytes;
 import org.apache.rya.api.domain.RyaRange;
 import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.resolver.RyaTypeResolver;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.api.utils.LiteralLanguageUtils;
@@ -35,7 +32,10 @@ import org.eclipse.rdf4j.model.util.Literals;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
-import com.google.common.primitives.Bytes;
+import java.nio.charset.StandardCharsets;
+
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
 
 /**
  * Date: 7/16/12
@@ -75,13 +75,13 @@ public class RyaTypeResolverImpl implements RyaTypeResolver {
     }
 
     @Override
-    public byte[] serialize(final RyaType ryaType) throws RyaTypeResolverException {
+    public byte[] serialize(final RyaValue ryaType) throws RyaTypeResolverException {
         final byte[][] bytes = serializeType(ryaType);
         return Bytes.concat(bytes[0], bytes[1]);
     }
 
     @Override
-    public byte[][] serializeType(final RyaType ryaType) throws RyaTypeResolverException {
+    public byte[][] serializeType(final RyaValue ryaType) throws RyaTypeResolverException {
         final StringBuilder dataBuilder = new StringBuilder();
         dataBuilder.append(ryaType.getData());
         final String validatedLanguage = LiteralLanguageUtils.validateLanguage(ryaType.getLanguage(), dataType);

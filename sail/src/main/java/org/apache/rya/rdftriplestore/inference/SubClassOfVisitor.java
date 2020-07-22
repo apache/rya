@@ -18,17 +18,17 @@
  */
 package org.apache.rya.rdftriplestore.inference;
 
-import java.util.Collection;
-import java.util.UUID;
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.Var;
+
+import java.util.Collection;
+import java.util.UUID;
 
 /**
  * Class SubClassOfVisitor
@@ -69,7 +69,7 @@ public class SubClassOfVisitor extends AbstractInferVisitor {
                 final FixedStatementPattern fsp = new FixedStatementPattern(typeVar, new Var("c-" + s, RDFS.SUBCLASSOF), objVar, conVar);
                 parents.add(subclassof_iri);
                 for (final IRI iri : parents) {
-                    fsp.statements.add(new NullableStatementImpl(iri, RDFS.SUBCLASSOF, subclassof_iri));
+                    fsp.statements.add(SimpleValueFactory.getInstance().createStatement(iri, RDFS.SUBCLASSOF, subclassof_iri));
                 }
 
                 final StatementPattern rdfType = new DoNotExpandSP(sp.getSubjectVar(), sp.getPredicateVar(), typeVar, conVar);

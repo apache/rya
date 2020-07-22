@@ -18,16 +18,12 @@
  */
 package org.apache.rya.mongodb;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.Map.Entry;
-
+import com.google.common.collect.Lists;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
+import org.apache.rya.api.persist.utils.RyaDAOHelper;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -35,7 +31,11 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Integration tests the methods of {@link MongoDBQueryEngine}.
@@ -79,7 +79,7 @@ public class MongoDBQueryEngineIT extends MongoRyaITBase {
             dao.add(getStatement("u:a", "u:tt", "u:c"));
 
             final RyaStatement s = getStatement("u:a", null, null);
-            assertEquals(2, size(engine.query(s, conf)));
+            assertEquals(2, size(RyaDAOHelper.query(dao.getQueryEngine(), s, conf)));
         } finally {
             dao.destroy();
         }

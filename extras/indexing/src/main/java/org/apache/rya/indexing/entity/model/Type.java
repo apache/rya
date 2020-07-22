@@ -18,18 +18,17 @@
  */
 package org.apache.rya.indexing.entity.model;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Objects;
-
-import org.apache.http.annotation.Immutable;
+import com.google.common.collect.ImmutableSet;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.Objects;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Defines the structure of an {@link TypedEntity}.
@@ -44,7 +43,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  *                          &lt;urn:nutritionalInformation>
  * </pre>
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @DefaultAnnotation(NonNull.class)
 public class Type {
 

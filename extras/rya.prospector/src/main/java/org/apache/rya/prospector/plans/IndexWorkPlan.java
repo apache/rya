@@ -18,12 +18,6 @@
  */
 package org.apache.rya.prospector.plans;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.hadoop.io.LongWritable;
@@ -33,7 +27,14 @@ import org.apache.rya.prospector.domain.IndexEntry;
 import org.apache.rya.prospector.domain.IntermediateProspect;
 import org.apache.rya.prospector.mr.ProspectorCombiner;
 import org.apache.rya.prospector.mr.ProspectorMapper;
+import org.apache.rya.prospector.mr.ProspectorReducer;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Contains the methods that perform each of the Map Reduce functions that result
@@ -73,7 +74,7 @@ public interface IndexWorkPlan {
     public Collection<Map.Entry<IntermediateProspect, LongWritable>> combine(IntermediateProspect prospect, Iterable<LongWritable> counts);
 
     /**
-     * This method is invoked by {@link ProsectorReducer}. It is used to reduce
+     * This method is invoked by {@link ProspectorReducer}. It is used to reduce
      * the counts to their final states and write them to output via the
      * {@code context}.l
      *
@@ -108,7 +109,7 @@ public interface IndexWorkPlan {
      * @param index - The data portion of the {@link IndexEntry}s that may be returned.
      * @param dataType - The data type of the {@link IndexEntry}s that may be returned.
      * @param auths - The authorizations used to search for the entries.
-     * @return The {@link IndexEntries} that match the provided values.
+     * @return The {@link IndexEntry}s that match the provided values.
      * @throws TableNotFoundException No table exists for {@code tableName}.
      */
     public List<IndexEntry> query(Connector connector, String tableName, List<Long> prospectTimes, String type, String index, String dataType, String[] auths) throws TableNotFoundException;

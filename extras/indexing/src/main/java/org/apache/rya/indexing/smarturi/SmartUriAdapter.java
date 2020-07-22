@@ -18,25 +18,22 @@
  */
 package org.apache.rya.indexing.smarturi;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
+import com.google.common.base.Charsets;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Floats;
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.entity.model.Entity;
@@ -49,13 +46,17 @@ import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 
-import com.google.common.base.Charsets;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Floats;
-import com.google.common.primitives.Ints;
-import com.google.common.primitives.Longs;
+import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Interface for serializing and deserializing Smart URIs.
@@ -176,7 +177,7 @@ public class SmartUriAdapter {
             final RyaIRI key = entry.getKey();
             final Property property = entry.getValue();
 
-            final RyaType ryaType = property.getValue();
+            final RyaValue ryaType = property.getValue();
             final String keyString = (VF.createIRI(key.getData())).getLocalName();
             final Value value = RyaToRdfConversions.convertValue(ryaType);
             final String valueString = value.stringValue();
@@ -274,7 +275,7 @@ public class SmartUriAdapter {
         final Value typeValue = RyaToRdfConversions.convertValue(valueRyaType);
         objectMap.put(RYA_TYPES_URI, typeValue);
 
-        final RyaIRI subject = entity.getSubject();
+        final RyaResource subject = entity.getSubject();
         final Map<RyaIRI, ImmutableMap<RyaIRI, Property>> typeMap = entity.getProperties();
         for (final Entry<RyaIRI, ImmutableMap<RyaIRI, Property>> typeEntry : typeMap.entrySet()) {
             final RyaIRI type = typeEntry.getKey();
@@ -285,9 +286,9 @@ public class SmartUriAdapter {
                 final RyaIRI key = properties.getKey();
                 final Property property = properties.getValue();
                 final String valueString = property.getValue().getData();
-                final RyaType ryaType = property.getValue();
+                final RyaValue ryaType = property.getValue();
 
-                //final RyaType ryaType = new RyaType(VF.createIRI(key.getData()), valueString);
+                //final RyaValue ryaType = new RyaType(VF.createIRI(key.getData()), valueString);
 
                 final Value value = RyaToRdfConversions.convertValue(ryaType);
 
@@ -311,7 +312,7 @@ public class SmartUriAdapter {
      * @return the Smart {@link IRI}.
      * @throws SmartUriException
      */
-    public static IRI serializeUri(final RyaIRI subject, final Map<IRI, Value> map) throws SmartUriException {
+    public static IRI serializeUri(final RyaResource subject, final Map<IRI, Value> map) throws SmartUriException {
         final String subjectData = subject.getData();
         final int fragmentPosition = subjectData.indexOf("#");
         String prefix = subjectData;
@@ -602,7 +603,7 @@ public class SmartUriAdapter {
             final Value value = entry.getValue();
 
             final RyaIRI ryaIri = new RyaIRI(iri.stringValue());
-            final RyaType ryaType = RdfToRyaConversions.convertValue(value);
+            final RyaValue ryaType = RdfToRyaConversions.convertValue(value);
 
             final Property property = new Property(ryaIri, ryaType);
             properties.add(property);

@@ -18,21 +18,6 @@
  */
 package org.apache.rya.accumulo;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.PREDOBJECT_CF_TXT;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.PRED_CF_TXT;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.SUBJECTOBJECT_CF_TXT;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.SUBJECTPRED_CF_TXT;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.SUBJECT_CF_TXT;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.admin.TableOperations;
@@ -45,6 +30,21 @@ import org.apache.rya.api.persist.RdfDAOException;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Value;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.PREDOBJECT_CF_TXT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.PRED_CF_TXT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.SUBJECTOBJECT_CF_TXT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.SUBJECTPRED_CF_TXT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.SUBJECT_CF_TXT;
 
 /**
  * Class AccumuloRdfEvalStatsDAO

@@ -19,10 +19,6 @@ package org.apache.rya.accumulo;
  * under the License.
  */
 
-
-
-import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableExistsException;
@@ -31,6 +27,7 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.rya.api.resolver.triple.TripleRow;
 
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
 

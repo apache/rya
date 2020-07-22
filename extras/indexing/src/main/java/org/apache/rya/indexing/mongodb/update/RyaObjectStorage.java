@@ -18,38 +18,38 @@
  */
 package org.apache.rya.indexing.mongodb.update;
 
-import java.util.Optional;
-
-import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
 import org.apache.rya.indexing.mongodb.IndexingException;
+
+import java.util.Optional;
 
 /**
  * Stores and provides access to objects of type T.
- * The {@link RyaIRI} subject is the primary storage key used.
+ * The {@link RyaResource} subject is the primary storage key used.
  * @param <T> - The type of object to store/access.
  */
 public interface RyaObjectStorage<T> {
 
     /**
-     * Creates a new {@link RyaObjectStorage#T} within the storage. The new object's subject must be unique.
+     * Creates a new {@link T} within the storage. The new object's subject must be unique.
      *
-     * @param obj - The {@link RyaObjectStorage#T} to create. (not null)
+     * @param doc - The {@link T} to create. (not null)
      * @throws ObjectAlreadyExistsException An Object could not be created because one already exists for the Subject.
      * @throws ObjectStorageException A problem occurred while creating the Object.
      */
     public void create(T doc) throws ObjectAlreadyExistsException, ObjectStorageException;
 
     /**
-     * Get an Object from the storage by its subject.
+     * Get an {@link T} object from the storage by its subject.
      *
      * @param subject - Identifies which Object to get. (not null)
      * @return The Object if one exists for the subject.
      * @throws ObjectStorageException A problem occurred while fetching the Object from the storage.
      */
-    public Optional<T> get(RyaIRI subject) throws ObjectStorageException;
+    public Optional<T> get(RyaResource subject) throws ObjectStorageException;
 
     /**
-     * Update the state of an {@link RyaObjectStorage#T}.
+     * Update the state of an {@link T}.
      *
      * @param old - The Object the changes were applied to. (not null)
      * @param updated - The updated Object to store. (not null)
@@ -59,13 +59,13 @@ public interface RyaObjectStorage<T> {
     public void update(T old, T updated) throws StaleUpdateException, ObjectStorageException;
 
     /**
-     * Deletes an {@link RyaObjectStorage#T} from the storage.
+     * Deletes an {@link RyaResource} from the storage.
      *
-     * @param subject -Identifies which {@link RyaObjectStorage#T} to delete. (not null)
+     * @param subject -Identifies which {@link T} to delete. (not null)
      * @return {@code true} if something was deleted; otherwise {@code false}.
      * @throws ObjectStorageException A problem occurred while deleting from the storage.
      */
-    public boolean delete(RyaIRI subject) throws ObjectStorageException;
+    public boolean delete(RyaResource subject) throws ObjectStorageException;
 
     /**
      * Indicates a problem while interacting with an {@link RyaObjectStorage}.
@@ -104,7 +104,7 @@ public interface RyaObjectStorage<T> {
     }
 
     /**
-     * An {@link RyaObjectStorage#T} could not be created because one already exists for the Subject.
+     * An object could not be created because one already exists for the Subject.
      */
     public static class ObjectAlreadyExistsException extends ObjectStorageException {
         private static final long serialVersionUID = 1L;

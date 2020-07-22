@@ -20,13 +20,12 @@ package org.apache.rya.api.persist;
  */
 
 
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.query.RyaQueryEngine;
 
 import java.util.Iterator;
-
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaIRI;
-import org.apache.rya.api.persist.query.RyaQueryEngine;
 
 /**
  * Provides the access layer to the Rya triple store.
@@ -89,7 +88,7 @@ public interface RyaDAO<C extends RdfCloudTripleStoreConfiguration> extends RyaC
      * @param conf
      * @throws RyaDAOException
      */
-    public void dropGraph(C conf, RyaIRI... graphs) throws RyaDAOException;
+    public void dropGraph(C conf, RyaResource... graphs) throws RyaDAOException;
 
     /**
      * Delete a collection of RyaStatements.

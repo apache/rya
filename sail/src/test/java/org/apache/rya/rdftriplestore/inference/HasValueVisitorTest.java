@@ -18,18 +18,7 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
@@ -48,6 +37,16 @@ import org.eclipse.rdf4j.query.algebra.Union;
 import org.eclipse.rdf4j.query.algebra.Var;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class HasValueVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
@@ -186,12 +185,12 @@ public class HasValueVisitorTest {
         // Verify FSP: should provide (type, value) pairs
         final List<Statement> expectedStatements = new LinkedList<>();
         final IRI fspPred = (IRI) fsp.getPredicateVar().getValue();
-        expectedStatements.add(new NullableStatementImpl(chordate, fspPred, notochord));
-        expectedStatements.add(new NullableStatementImpl(tunicate, fspPred, notochord));
-        expectedStatements.add(new NullableStatementImpl(vertebrate, fspPred, notochord));
-        expectedStatements.add(new NullableStatementImpl(mammal, fspPred, notochord));
-        expectedStatements.add(new NullableStatementImpl(vertebrate, fspPred, skull));
-        expectedStatements.add(new NullableStatementImpl(mammal, fspPred, skull));
+        expectedStatements.add(VF.createStatement(chordate, fspPred, notochord));
+        expectedStatements.add(VF.createStatement(tunicate, fspPred, notochord));
+        expectedStatements.add(VF.createStatement(vertebrate, fspPred, notochord));
+        expectedStatements.add(VF.createStatement(mammal, fspPred, notochord));
+        expectedStatements.add(VF.createStatement(vertebrate, fspPred, skull));
+        expectedStatements.add(VF.createStatement(mammal, fspPred, skull));
         final List<Statement> actualStatements = new LinkedList<>(fsp.statements);
         Assert.assertTrue(containsAll(expectedStatements, actualStatements));
 

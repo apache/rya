@@ -18,33 +18,19 @@
  */
 package org.apache.rya.mongodb.aggregation;
 
-import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.CONTEXT;
-import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.DOCUMENT_VISIBILITY;
-import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.OBJECT;
-import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.OBJECT_HASH;
-import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.OBJECT_TYPE;
-import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.PREDICATE;
-import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.PREDICATE_HASH;
-import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.STATEMENT_METADATA;
-import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.SUBJECT;
-import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.SUBJECT_HASH;
-import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.TIMESTAMP;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableSet;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.function.Function;
-
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.BsonField;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Projections;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.mongodb.MongoDbRdfConstants;
@@ -72,15 +58,29 @@ import org.eclipse.rdf4j.query.algebra.ValueExpr;
 import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Aggregates;
-import com.mongodb.client.model.BsonField;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Projections;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableSet;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.function.Function;
+
+import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.CONTEXT;
+import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.DOCUMENT_VISIBILITY;
+import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.OBJECT;
+import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.OBJECT_HASH;
+import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.OBJECT_TYPE;
+import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.PREDICATE;
+import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.PREDICATE_HASH;
+import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.STATEMENT_METADATA;
+import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.SUBJECT;
+import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.SUBJECT_HASH;
+import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.TIMESTAMP;
 
 /**
  * Represents a portion of a query tree as MongoDB aggregation pipeline. Should
@@ -260,10 +260,10 @@ public class AggregationPipelineQueryNode extends ExternalSet {
         final Var predVar = sp.getPredicateVar();
         final Var objVar = sp.getObjectVar();
         final Var contextVar = sp.getContextVar();
-        RyaIRI s = null;
+        RyaResource s = null;
         RyaIRI p = null;
-        RyaType o = null;
-        RyaIRI c = null;
+        RyaValue o = null;
+        RyaResource c = null;
         if (subjVar != null && subjVar.getValue() instanceof Resource) {
             s = RdfToRyaConversions.convertResource((Resource) subjVar.getValue());
         }
@@ -274,7 +274,7 @@ public class AggregationPipelineQueryNode extends ExternalSet {
             o = RdfToRyaConversions.convertValue(objVar.getValue());
         }
         if (contextVar != null && contextVar.getValue() instanceof IRI) {
-            c = RdfToRyaConversions.convertIRI((IRI) contextVar.getValue());
+            c = RdfToRyaConversions.convertResource((IRI) contextVar.getValue());
         }
         final RyaStatement rs = new RyaStatement(s, p, o, c);
         final Document obj = strategy.getQuery(rs);

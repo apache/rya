@@ -18,13 +18,8 @@
  */
 package org.apache.rya.rdftriplestore.inference;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
+import junit.framework.TestCase;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
@@ -44,16 +39,19 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.common.collect.Sets;
-
-import junit.framework.TestCase;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class InferenceEngineTest extends TestCase {
     private Connector connector;
     private AccumuloRyaDAO dao;
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
     private AccumuloRdfConfiguration conf;
-    private RdfCloudTripleStore store;
+    private RdfCloudTripleStore<AccumuloRdfConfiguration> store;
     private InferenceEngine inferenceEngine;
     private SailRepository repository;
     private SailRepositoryConnection conn;
@@ -67,11 +65,12 @@ public class InferenceEngineTest extends TestCase {
         conf = new AccumuloRdfConfiguration();
         dao.setConf(conf);
         dao.init();
-        store = new RdfCloudTripleStore();
+        store = new RdfCloudTripleStore<>();
         store.setConf(conf);
         store.setRyaDAO(dao);
         inferenceEngine = new InferenceEngine();
         inferenceEngine.setRyaDAO(dao);
+        inferenceEngine.setConf(conf);
         store.setInferenceEngine(inferenceEngine);
         inferenceEngine.refreshGraph();
         store.initialize();

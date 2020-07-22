@@ -18,20 +18,13 @@
  */
 package org.apache.rya.indexing.pcj.storage.mongo;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Objects.requireNonNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.rya.api.domain.RyaType;
+import com.mongodb.MongoClient;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
-import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.api.utils.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
@@ -44,6 +37,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
@@ -54,10 +48,15 @@ import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 
-import com.mongodb.MongoClient;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Creates and modifies PCJs in MongoDB. PCJ's are stored as follows:
@@ -238,7 +237,7 @@ public class MongoPcjDocuments {
             // each binding gets it's own doc.
             final Document bindingDoc = new Document(PCJ_ID, pcjId);
             vbs.forEach(binding -> {
-                final RyaType type = RdfToRyaConversions.convertValue(binding.getValue());
+                final RyaValue type = RdfToRyaConversions.convertValue(binding.getValue());
                 bindingDoc.append(binding.getName(),
                         new Document()
                         .append(BINDING_TYPE, type.getDataType().stringValue())
@@ -393,7 +392,7 @@ public class MongoPcjDocuments {
             final Document bindingDoc = new Document();
             final List<Document> bindings = new ArrayList<>();
             bindingSet.forEach(binding -> {
-                final RyaType type = RdfToRyaConversions.convertValue(binding.getValue());
+                final RyaValue type = RdfToRyaConversions.convertValue(binding.getValue());
                 final Document typeDoc = new Document()
                         .append(BINDING_TYPE, type.getDataType().stringValue())
                         .append(BINDING_VALUE, type.getData());
@@ -427,8 +426,14 @@ public class MongoPcjDocuments {
                         // is the binding value.
                         final Document typeDoc = (Document) bs.get(key);
                         final IRI dataType = VF.createIRI(typeDoc.getString(BINDING_TYPE));
-                        final RyaType type = new RyaType(dataType, typeDoc.getString(BINDING_VALUE));
-                        final Value value = RyaToRdfConversions.convertValue(type);
+                        final Value value;
+                        // Decide whether the value is a IRI or a Literal
+                        if (XMLSchema.ANYURI.equals(dataType)) {
+                            value = VF.createIRI(typeDoc.getString(BINDING_VALUE));
+                        } else {
+                            // We need to do this to correctly convert the string representation to the correct data type
+                            value = VF.createLiteral(typeDoc.getString(BINDING_VALUE), dataType);
+                        }
                         binding.addBinding(key, value);
                     }
                 }

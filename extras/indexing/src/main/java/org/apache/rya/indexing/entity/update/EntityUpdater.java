@@ -18,25 +18,24 @@
  */
 package org.apache.rya.indexing.entity.update;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Optional;
-
-import org.apache.rya.api.domain.RyaIRI;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.rya.api.domain.RyaResource;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 import org.apache.rya.indexing.mongodb.update.MongoDocumentUpdater;
 import org.apache.rya.indexing.mongodb.update.RyaObjectStorage.ObjectStorageException;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import java.util.Optional;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Performs update operations over an {@link EntityStorage}.
  */
 @DefaultAnnotation(NonNull.class)
-public class EntityUpdater implements MongoDocumentUpdater<RyaIRI, Entity>{
+public class EntityUpdater implements MongoDocumentUpdater<RyaResource, Entity>{
 
     private final EntityStorage storage;
 
@@ -68,7 +67,7 @@ public class EntityUpdater implements MongoDocumentUpdater<RyaIRI, Entity>{
     }
 
     @Override
-    public Optional<Entity> getOld(final RyaIRI key) throws EntityStorageException {
+    public Optional<Entity> getOld(final RyaResource key) throws EntityStorageException {
         try {
             return storage.get(key);
         } catch (final ObjectStorageException e) {

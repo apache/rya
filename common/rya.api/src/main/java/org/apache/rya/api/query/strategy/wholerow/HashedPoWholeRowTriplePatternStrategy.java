@@ -18,28 +18,26 @@
  */
 package org.apache.rya.api.query.strategy.wholerow;
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
+import com.google.common.primitives.Bytes;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaRange;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaValue;
+import org.apache.rya.api.query.strategy.ByteRange;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Map;
 
-import org.apache.commons.codec.binary.Hex;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.domain.RyaRange;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
-import org.apache.rya.api.query.strategy.ByteRange;
-import org.apache.rya.api.resolver.RyaContext;
-import org.apache.rya.api.resolver.RyaTypeResolverException;
-
-import com.google.common.primitives.Bytes;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
 
 /**
  * Date: 7/14/12
@@ -53,9 +51,8 @@ public class HashedPoWholeRowTriplePatternStrategy extends AbstractHashedTripleP
     }
 
     @Override
-    public Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT,
-            ByteRange> defineRange(final RyaIRI subject, final RyaIRI predicate, final RyaType object,
-                                   final RyaIRI context, final RdfCloudTripleStoreConfiguration conf) throws IOException {
+    public ByteRange defineRange(final RyaResource subject, final RyaIRI predicate, final RyaValue object,
+                                 final RyaResource context, final RdfCloudTripleStoreConfiguration conf) throws IOException {
         try {
             //po(ng)
             //po_r(s)(ng)
@@ -112,17 +109,14 @@ public class HashedPoWholeRowTriplePatternStrategy extends AbstractHashedTripleP
                 start = Bytes.concat(predHash, DELIM_BYTES, predBytes, DELIM_BYTES);
                 stop = Bytes.concat(start, LAST_BYTES);
             }
-            return new RdfCloudTripleStoreUtils.CustomEntry<RdfCloudTripleStoreConstants.TABLE_LAYOUT,
-                    ByteRange>(table_layout, new ByteRange(start, stop));
-        } catch (final RyaTypeResolverException e) {
+            return new ByteRange(start, stop);
+        } catch (final RyaTypeResolverException | NoSuchAlgorithmException e) {
             throw new IOException(e);
-        } catch (final NoSuchAlgorithmException e) {
-        	throw new IOException(e);
-		}
+        }
     }
 
     @Override
-    public boolean handles(final RyaIRI subject, final RyaIRI predicate, final RyaType object, final RyaIRI context) {
+    public boolean handles(final RyaResource subject, final RyaIRI predicate, final RyaValue object, final RyaResource context) {
         //po(ng)
         //p_r(o)(ng)
         //po_r(s)(ng)

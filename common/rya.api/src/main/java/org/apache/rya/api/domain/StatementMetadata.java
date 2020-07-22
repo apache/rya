@@ -18,14 +18,6 @@
  */
 package org.apache.rya.api.domain;
 
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.rya.api.persist.RdfDAOException;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-
 import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -38,16 +30,24 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import org.apache.rya.api.persist.RdfDAOException;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class StatementMetadata {
 
-    private static Gson gson = new GsonBuilder().enableComplexMapKeySerialization()
+    private final static Gson gson = new GsonBuilder().enableComplexMapKeySerialization()
     .registerTypeHierarchyAdapter(RyaType.class, new RyaTypeAdapter()).create();
     public static StatementMetadata EMPTY_METADATA = new StatementMetadata();
 
-    private Map<RyaIRI, RyaType> metadataMap = new HashMap<>();
+    private Map<RyaIRI, RyaValue> metadataMap = new HashMap<>();
     @SuppressWarnings("serial")
-    private Type type = new TypeToken<Map<RyaIRI, RyaType>>(){}.getType();
+    private final Type type = new TypeToken<Map<RyaIRI, RyaType>>(){}.getType();
 
     public StatementMetadata() {}
 
@@ -77,11 +77,11 @@ public class StatementMetadata {
         }
     }
 
-    public void addMetadata(RyaIRI key, RyaType value) {
+    public void addMetadata(RyaIRI key, RyaValue value) {
         metadataMap.put(key, value);
     }
 
-    public Map<RyaIRI, RyaType> getMetadata() {
+    public Map<RyaIRI, RyaValue> getMetadata() {
         return metadataMap;
     }
 
@@ -92,19 +92,15 @@ public class StatementMetadata {
     public byte[] toBytes() {
         // convert the map to a json string
         if (metadataMap.isEmpty()) {
-            return null;
+            return new byte[0];
         }
         // TODO may want to cache this for performance reasons
-        try {
-            return toString().getBytes("UTF8");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+        return toString().getBytes(StandardCharsets.UTF_8);
     }
 
-    public static class RyaTypeAdapter implements JsonSerializer<RyaType>, JsonDeserializer<RyaType> {
+    public static class RyaTypeAdapter implements JsonSerializer<RyaValue>, JsonDeserializer<RyaValue> {
         @Override
-        public JsonElement serialize(RyaType src, Type typeOfSrc, JsonSerializationContext context) {
+        public JsonElement serialize(RyaValue src, Type typeOfSrc, JsonSerializationContext context) {
             JsonObject result = new JsonObject();
             result.add("type", new JsonPrimitive(src.getClass().getName()));
             
@@ -116,7 +112,7 @@ public class StatementMetadata {
         }
      
         @Override
-        public RyaType deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+        public RyaValue deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
             throws JsonParseException {
             JsonObject jsonObject = json.getAsJsonObject();
             String type = jsonObject.get("type").getAsString();
@@ -127,7 +123,7 @@ public class StatementMetadata {
             if(type.equals(RyaIRI.class.getName())){
                 return new RyaIRI(array[0]);
             } else if(type.equals(RyaType.class.getName())){
-                RyaType ryaType = new RyaType(SimpleValueFactory.getInstance().createIRI(array[1]), array[0]);
+                RyaValue ryaType = new RyaType(SimpleValueFactory.getInstance().createIRI(array[1]), array[0]);
                 return ryaType;
             } else {
                 throw new IllegalArgumentException("Unparseable RyaType.");

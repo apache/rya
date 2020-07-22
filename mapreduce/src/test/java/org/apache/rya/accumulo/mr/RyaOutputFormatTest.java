@@ -1,10 +1,5 @@
 package org.apache.rya.accumulo.mr;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
@@ -21,9 +16,10 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.api.resolver.RyaTripleContext;
@@ -44,6 +40,11 @@ import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -225,7 +226,7 @@ public class RyaOutputFormatTest {
         RyaOutputFormat.setEntityEnabled(job, false);
         final ValueFactory vf = SimpleValueFactory.getInstance();
         for (int i = 0; i < instants.length; i++) {
-            final RyaType time = RdfToRyaConversions.convertLiteral(vf.createLiteral(instants[i].toString()));
+            final RyaValue time = RdfToRyaConversions.convertLiteral(vf.createLiteral(instants[i].toString()));
             final RyaStatement input = RyaStatement.builder()
                     .setSubject(new RyaIRI(GRAPH + ":s"))
                     .setPredicate(new RyaIRI(GRAPH + ":p"))

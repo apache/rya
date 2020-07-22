@@ -18,15 +18,8 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
@@ -45,7 +38,12 @@ import org.eclipse.rdf4j.query.algebra.Var;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.common.collect.Sets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class SomeValuesFromVisitorTest {
     private static final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
@@ -111,11 +109,11 @@ public class SomeValuesFromVisitorTest {
         Assert.assertTrue(left instanceof StatementPattern);
         Assert.assertTrue(right instanceof StatementPattern);
         // Verify expected predicate/type pairs
-        Assert.assertTrue(fsp.statements.contains(new NullableStatementImpl(takesCourse, OWL.SOMEVALUESFROM, course)));
-        Assert.assertTrue(fsp.statements.contains(new NullableStatementImpl(takesCourse, OWL.SOMEVALUESFROM, gradCourse)));
-        Assert.assertTrue(fsp.statements.contains(new NullableStatementImpl(headOf, OWL.SOMEVALUESFROM, department)));
-        Assert.assertTrue(fsp.statements.contains(new NullableStatementImpl(headOf, OWL.SOMEVALUESFROM, organization)));
-        Assert.assertTrue(fsp.statements.contains(new NullableStatementImpl(worksFor, OWL.SOMEVALUESFROM, organization)));
+        Assert.assertTrue(fsp.statements.contains(VF.createStatement(takesCourse, OWL.SOMEVALUESFROM, course)));
+        Assert.assertTrue(fsp.statements.contains(VF.createStatement(takesCourse, OWL.SOMEVALUESFROM, gradCourse)));
+        Assert.assertTrue(fsp.statements.contains(VF.createStatement(headOf, OWL.SOMEVALUESFROM, department)));
+        Assert.assertTrue(fsp.statements.contains(VF.createStatement(headOf, OWL.SOMEVALUESFROM, organization)));
+        Assert.assertTrue(fsp.statements.contains(VF.createStatement(worksFor, OWL.SOMEVALUESFROM, organization)));
         Assert.assertEquals(5, fsp.statements.size());
         // Verify pattern for matching instances of each pair: a Join of <_:x rdf:type ?t> and
         // <?s ?p _:x> where p and t are the predicate/type pair and s is the original subject

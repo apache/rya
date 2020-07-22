@@ -18,10 +18,10 @@
  */
 package org.apache.rya.test.accumulo;
 
+import org.junit.rules.ExternalResource;
+
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.junit.rules.ExternalResource;
 
 public class RyaTestInstanceRule extends ExternalResource {
 
@@ -46,7 +46,7 @@ public class RyaTestInstanceRule extends ExternalResource {
     }
 
     /**
-     * Constructs an instance of {@link RyaTestInstnaceRule} where no extra steps need
+     * Constructs an instance of {@link RyaTestInstanceRule} where no extra steps need
      * to be performed within {@link #before()}.
      */
     public RyaTestInstanceRule() {
@@ -54,7 +54,7 @@ public class RyaTestInstanceRule extends ExternalResource {
     }
 
     /**
-     * Constructs an instance of {@link RyaTestInstnaceRule}.
+     * Constructs an instance of {@link RyaTestInstanceRule}.
      *
      * @param doInstall - Invoked within {@link #before()}. (not null)
      */

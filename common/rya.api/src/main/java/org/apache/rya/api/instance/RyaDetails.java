@@ -18,7 +18,13 @@
  */
 package org.apache.rya.api.instance;
 
-import static java.util.Objects.requireNonNull;
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
+import net.jcip.annotations.Immutable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -29,14 +35,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import edu.umd.cs.findbugs.annotations.Nullable;
-import net.jcip.annotations.Immutable;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Details about how a Rya instance's state.
@@ -221,7 +220,7 @@ public class RyaDetails implements Serializable {
     }
 
     /**
-     * @param detials - The builder will be initialized with this object's values. (not null)
+     * @param details - The builder will be initialized with this object's values. (not null)
      * @return An instance of {@link Builder} that is initialized with a {@link RyaDetails}'s values.
      */
     public static Builder builder(final RyaDetails details) {
@@ -262,7 +261,7 @@ public class RyaDetails implements Serializable {
          * Constructs an instance of {@link Builder} that is initialized with
          * a {@link RyaDetails}'s values.
          *
-         * @param detials - The builder will be initialized with this object's values. (not null)
+         * @param details - The builder will be initialized with this object's values. (not null)
          */
         public Builder(final RyaDetails details) {
             requireNonNull(details);
@@ -355,7 +354,7 @@ public class RyaDetails implements Serializable {
         }
 
         /**
-         * @param pcjDetails - Information about the instance's Precomputed Join Index.
+         * @param pcjDetailsBuilder - Information about the instance's Precomputed Join Index.
          * @return This {@link Builder} so that method invocations may be chained.
          */
         public Builder setPCJIndexDetails(@Nullable final PCJIndexDetails.Builder pcjDetailsBuilder) {
@@ -676,7 +675,7 @@ public class RyaDetails implements Serializable {
         }
 
         /**
-         * @param detials - The builder will be initialized with this object's values. (not null)
+         * @param pcjIndexDetails - The builder will be initialized with this object's values. (not null)
          * @return An instance of {@link Builder} that is initialized with a {@link PCJIndexDetails}'s values.
          */
         public static Builder builder(final PCJIndexDetails pcjIndexDetails) {
@@ -735,7 +734,7 @@ public class RyaDetails implements Serializable {
             }
 
             /**
-             * @param pcjDetails - Details about the PCJs that have been created for this Rya instance.
+             * @param pcjDetailsBuilder - Details about the PCJs that have been created for this Rya instance.
              * @return This {@link Builder} so that method invocations may be chained.
              */
             public Builder addPCJDetails(@Nullable final PCJDetails.Builder pcjDetailsBuilder) {
@@ -896,7 +895,7 @@ public class RyaDetails implements Serializable {
             }
 
             /**
-             * @param detials - The builder will be initialized with this object's values. (not null)
+             * @param details - The builder will be initialized with this object's values. (not null)
              * @return An instance of {@link Builder} that is initialized with a {@link PCJDetails}' values.
              */
             public static Builder builder(final PCJDetails details) {

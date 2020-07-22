@@ -19,23 +19,24 @@ package org.apache.rya.api.persist.query.join;
  * under the License.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-
+import com.google.common.base.Preconditions;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
+import org.apache.rya.api.persist.utils.RyaDAOHelper;
 import org.apache.rya.api.resolver.RyaContext;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.common.iteration.ConvertingIteration;
 import org.eclipse.rdf4j.query.BindingSet;
 
-import com.google.common.base.Preconditions;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Date: 7/24/12
@@ -54,7 +55,7 @@ public class IterativeJoin<C extends RdfCloudTripleStoreConfiguration> implement
     }
 
     /**
-     * Return all statements that have input predicates. Predicates must not be null or ranges
+     * Return all statements that have input predicates. Predicates must not be null or ranges.
      *
      * @param preds
      * @return
@@ -64,12 +65,12 @@ public class IterativeJoin<C extends RdfCloudTripleStoreConfiguration> implement
             throws RyaDAOException {
         Preconditions.checkNotNull(preds);
         Preconditions.checkArgument(preds.length > 1, "Must join 2 or more");
-        //TODO: Reorder predObjs based on statistics
+        // TODO: Reorder predObjs based on statistics
 
         CloseableIteration<RyaStatement, RyaDAOException> iter = null;
         for (RyaIRI pred : preds) {
             if (iter == null) {
-                iter = ryaQueryEngine.query(new RyaStatement(null, pred, null), null);
+                iter = RyaDAOHelper.query(ryaQueryEngine, new RyaStatement(null, pred, null), conf);
             } else {
                 iter = join(iter, pred);
             }
@@ -79,8 +80,7 @@ public class IterativeJoin<C extends RdfCloudTripleStoreConfiguration> implement
     }
 
     /**
-     * Return all subjects that have the predicate objects associated. Predicate and objects must be not null or ranges
-     * to ensure sorting
+     * Return all subjects that have the predicate and object associated.
      *
      * @param predObjs
      * @return
@@ -88,24 +88,25 @@ public class IterativeJoin<C extends RdfCloudTripleStoreConfiguration> implement
      *
      */
     @Override
-    public CloseableIteration<RyaIRI, RyaDAOException> join(C conf, Map.Entry<RyaIRI, RyaType>... predObjs)
+    public CloseableIteration<RyaResource, RyaDAOException> join(C conf, Map.Entry<RyaIRI, RyaValue>... predObjs)
             throws RyaDAOException {
         Preconditions.checkNotNull(predObjs);
         Preconditions.checkArgument(predObjs.length > 1, "Must join 2 or more");
 
-        //TODO: Reorder predObjs based on statistics
+        // TODO: Reorder predObjs based on statistics
         CloseableIteration<RyaStatement, RyaDAOException> first = null;
-        CloseableIteration<RyaIRI, RyaDAOException> iter = null;
-        for (Map.Entry<RyaIRI, RyaType> entry : predObjs) {
+        CloseableIteration<RyaResource, RyaDAOException> iter = null;
+        for (Map.Entry<RyaIRI, RyaValue> entry : predObjs) {
             if (first == null) {
-                first = ryaQueryEngine.query(new RyaStatement(null, entry.getKey(), entry.getValue()), null);
+                first = RyaDAOHelper.query(ryaQueryEngine, new RyaStatement(null, entry.getKey(), entry.getValue()), conf);
             } else if (iter == null) {
-                iter = join(new ConvertingIteration<RyaStatement, RyaIRI, RyaDAOException>(first) {
+                iter = join(new ConvertingIteration<RyaStatement, RyaResource, RyaDAOException>(first) {
 
                     @Override
-                    protected RyaIRI convert(RyaStatement statement) throws RyaDAOException {
+                    protected RyaResource convert(RyaStatement statement) throws RyaDAOException {
                         return statement.getSubject();
                     }
+
                 }, entry);
             } else {
                 iter = join(iter, entry);
@@ -115,12 +116,12 @@ public class IterativeJoin<C extends RdfCloudTripleStoreConfiguration> implement
         return iter;
     }
 
-    protected CloseableIteration<RyaIRI, RyaDAOException> join(final CloseableIteration<RyaIRI, RyaDAOException> iteration,
-                                                               final Map.Entry<RyaIRI, RyaType> predObj) {
-        //TODO: configure batch
-        //TODO: batch = 1, does not work
+    protected CloseableIteration<RyaResource, RyaDAOException> join(final CloseableIteration<RyaResource, RyaDAOException> iteration,
+                                                               final Map.Entry<RyaIRI, RyaValue> predObj) {
+        // TODO: configure batch
+        // TODO: batch = 1, does not work
         final int batch = 100;
-        return new CloseableIteration<RyaIRI, RyaDAOException>() {
+        return new CloseableIteration<RyaResource, RyaDAOException>() {
 
             private CloseableIteration<Map.Entry<RyaStatement, BindingSet>, RyaDAOException> query;
 
@@ -138,7 +139,7 @@ public class IterativeJoin<C extends RdfCloudTripleStoreConfiguration> implement
             }
 
             @Override
-            public RyaIRI next() throws RyaDAOException {
+            public RyaResource next() throws RyaDAOException {
                 if (query == null || !query.hasNext()) {
                     if (!batchNext()) return null;
                 }
@@ -153,9 +154,9 @@ public class IterativeJoin<C extends RdfCloudTripleStoreConfiguration> implement
                 if (!iteration.hasNext()) {
                     return false;
                 }
-                Collection<Map.Entry<RyaStatement, BindingSet>> batchedResults = new ArrayList<Map.Entry<RyaStatement, BindingSet>>();
+                Collection<Map.Entry<RyaStatement, BindingSet>> batchedResults = new ArrayList<>();
                 for (int i = 0; i < batch && iteration.hasNext(); i++) {
-                    batchedResults.add(new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(
+                    batchedResults.add(new RdfCloudTripleStoreUtils.CustomEntry<>(
                             new RyaStatement(iteration.next(), predObj.getKey(), predObj.getValue()), null));
                 }
                 query = ryaQueryEngine.queryWithBindingSet(batchedResults, null);
@@ -171,8 +172,8 @@ public class IterativeJoin<C extends RdfCloudTripleStoreConfiguration> implement
 
     protected CloseableIteration<RyaStatement, RyaDAOException> join(
             final CloseableIteration<RyaStatement, RyaDAOException> iteration, final RyaIRI pred) {
-        //TODO: configure batch
-        //TODO: batch = 1, does not work
+        // TODO: configure batch
+        // TODO: batch = 1, does not work
         final int batch = 100;
         return new CloseableIteration<RyaStatement, RyaDAOException>() {
 
@@ -207,10 +208,10 @@ public class IterativeJoin<C extends RdfCloudTripleStoreConfiguration> implement
                 if (!iteration.hasNext()) {
                     return false;
                 }
-                Collection<Map.Entry<RyaStatement, BindingSet>> batchedResults = new ArrayList<Map.Entry<RyaStatement, BindingSet>>();
+                Collection<Map.Entry<RyaStatement, BindingSet>> batchedResults = new ArrayList<>();
                 for (int i = 0; i < batch && iteration.hasNext(); i++) {
                     RyaStatement next = iteration.next();
-                    batchedResults.add(new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(
+                    batchedResults.add(new RdfCloudTripleStoreUtils.CustomEntry<>(
                             new RyaStatement(next.getSubject(), pred, next.getObject()), null));
                 }
                 query = ryaQueryEngine.queryWithBindingSet(batchedResults, null);
@@ -231,4 +232,5 @@ public class IterativeJoin<C extends RdfCloudTripleStoreConfiguration> implement
     public void setRyaQueryEngine(RyaQueryEngine ryaQueryEngine) {
         this.ryaQueryEngine = ryaQueryEngine;
     }
+
 }

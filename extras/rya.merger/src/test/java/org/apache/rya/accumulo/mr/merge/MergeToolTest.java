@@ -18,19 +18,6 @@
  */
 package org.apache.rya.accumulo.mr.merge;
 
-import static org.apache.rya.accumulo.mr.merge.util.TestUtils.LAST_MONTH;
-import static org.apache.rya.accumulo.mr.merge.util.TestUtils.TODAY;
-import static org.apache.rya.accumulo.mr.merge.util.TestUtils.YESTERDAY;
-import static org.apache.rya.accumulo.mr.merge.util.TestUtils.createRyaStatement;
-import static org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Map.Entry;
-import java.util.TreeSet;
-
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
@@ -52,12 +39,26 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.utils.RyaDAOHelper;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.TreeSet;
+
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.LAST_MONTH;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.TODAY;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.YESTERDAY;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.createRyaStatement;
+import static org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * Tests for {@link MergeTool}.
@@ -267,7 +268,7 @@ public class MergeToolTest {
 
         // Check that it can NOT be queried with some other visibility
         parentConfig.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "bad_auth");
-        final CloseableIteration<RyaStatement, RyaDAOException> iter = parentDao.getQueryEngine().query(ryaStatementVisibilityDifferent, parentConfig);
+        final CloseableIteration<RyaStatement, RyaDAOException> iter = RyaDAOHelper.query(parentDao.getQueryEngine(), ryaStatementVisibilityDifferent, parentConfig);
         count = 0;
         try {
             while (iter.hasNext()) {

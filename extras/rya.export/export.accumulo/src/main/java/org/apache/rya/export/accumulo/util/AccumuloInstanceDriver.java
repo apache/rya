@@ -18,17 +18,9 @@
  */
 package org.apache.rya.export.accumulo.util;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.io.Files;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -52,9 +44,16 @@ import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.export.InstanceType;
 import org.apache.rya.export.accumulo.conf.AccumuloExportConstants;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Handles running a single {@link MiniAccumuloCluster} or a single {@link MockInstance} for an instance.
@@ -584,7 +583,7 @@ public class AccumuloInstanceDriver {
     }
 
     /**
-     * @return the {@link ZooKeepInstance} or {@link MockInstance}.
+     * @return the {@link ZooKeeperInstance} or {@link MockInstance}.
      */
     public Instance getInstance() {
         return instance;

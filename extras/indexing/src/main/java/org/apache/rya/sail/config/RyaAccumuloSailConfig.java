@@ -20,15 +20,15 @@ package org.apache.rya.sail.config;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.util.GraphUtil;
-import org.eclipse.rdf4j.model.util.GraphUtilException;
 import org.eclipse.rdf4j.sail.config.AbstractSailImplConfig;
 import org.eclipse.rdf4j.sail.config.SailConfigException;
+
+import java.util.Set;
 
 /**
  * @deprecated Use {@link AccumuloRdfConfiguration} instead.
@@ -117,9 +117,7 @@ public class RyaAccumuloSailConfig extends AbstractSailImplConfig {
     public Resource export(final Model model) {
         final Resource implNode = super.export(model);
 
-        @SuppressWarnings("deprecation")
-        final
-        ValueFactory v = model.getValueFactory();
+        final ValueFactory v = SimpleValueFactory.getInstance();
 
         model.add(implNode, USER, v.createLiteral(user));
         model.add(implNode, PASSWORD, v.createLiteral(password));
@@ -136,27 +134,27 @@ public class RyaAccumuloSailConfig extends AbstractSailImplConfig {
         System.out.println("parsing");
 
         try {
-            final Literal userLit = GraphUtil.getOptionalObjectLiteral(model, implNode, USER);
-            if (userLit != null) {
-                setUser(userLit.getLabel());
+            final Set<Value> userLit = model.filter(implNode, USER, null).objects();
+            if (userLit.size() == 1) {
+                setUser(userLit.iterator().next().stringValue());
             }
-            final Literal pwdLit = GraphUtil.getOptionalObjectLiteral(model, implNode, PASSWORD);
-            if (pwdLit != null) {
-                setPassword(pwdLit.getLabel());
+            final Set<Value> pwdLit = model.filter(implNode, PASSWORD, null).objects();
+            if (pwdLit.size() == 1) {
+                setPassword(pwdLit.iterator().next().stringValue());
             }
-            final Literal instLit = GraphUtil.getOptionalObjectLiteral(model, implNode, INSTANCE);
-            if (instLit != null) {
-                setInstance(instLit.getLabel());
+            final Set<Value> instLit = model.filter(implNode, INSTANCE, null).objects();
+            if (instLit.size() == 1) {
+                setInstance(instLit.iterator().next().stringValue());
             }
-            final Literal zooLit = GraphUtil.getOptionalObjectLiteral(model, implNode, ZOOKEEPERS);
-            if (zooLit != null) {
-                setZookeepers(zooLit.getLabel());
+            final Set<Value> zooLit = model.filter(implNode, ZOOKEEPERS, null).objects();
+            if (zooLit.size() == 1) {
+                setZookeepers(zooLit.iterator().next().stringValue());
             }
-            final Literal mockLit = GraphUtil.getOptionalObjectLiteral(model, implNode, IS_MOCK);
-            if (mockLit != null) {
-                setMock(Boolean.parseBoolean(mockLit.getLabel()));
+            final Set<Value> mockLit = model.filter(implNode, IS_MOCK, null).objects();
+            if (mockLit.size() == 1) {
+                setMock(Boolean.parseBoolean(mockLit.iterator().next().stringValue()));
             }
-        } catch (final GraphUtilException e) {
+        } catch (final Exception e) {
             throw new SailConfigException(e.getMessage(), e);
         }
     }

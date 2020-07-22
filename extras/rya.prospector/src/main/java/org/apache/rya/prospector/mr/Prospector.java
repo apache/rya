@@ -18,20 +18,6 @@
  */
 package org.apache.rya.prospector.mr;
 
-import static org.apache.rya.prospector.utils.ProspectorConstants.DEFAULT_VIS;
-import static org.apache.rya.prospector.utils.ProspectorConstants.EMPTY;
-import static org.apache.rya.prospector.utils.ProspectorConstants.METADATA;
-import static org.apache.rya.prospector.utils.ProspectorConstants.PERFORMANT;
-import static org.apache.rya.prospector.utils.ProspectorConstants.PROSPECT_TIME;
-import static org.apache.rya.prospector.utils.ProspectorUtils.connector;
-import static org.apache.rya.prospector.utils.ProspectorUtils.getReverseIndexDateTime;
-import static org.apache.rya.prospector.utils.ProspectorUtils.instance;
-import static org.apache.rya.prospector.utils.ProspectorUtils.writeMutations;
-
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
@@ -45,6 +31,20 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.rya.prospector.domain.IntermediateProspect;
 import org.apache.rya.prospector.utils.ProspectorUtils;
+
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+
+import static org.apache.rya.prospector.utils.ProspectorConstants.DEFAULT_VIS;
+import static org.apache.rya.prospector.utils.ProspectorConstants.EMPTY;
+import static org.apache.rya.prospector.utils.ProspectorConstants.METADATA;
+import static org.apache.rya.prospector.utils.ProspectorConstants.PERFORMANT;
+import static org.apache.rya.prospector.utils.ProspectorConstants.PROSPECT_TIME;
+import static org.apache.rya.prospector.utils.ProspectorUtils.connector;
+import static org.apache.rya.prospector.utils.ProspectorUtils.getReverseIndexDateTime;
+import static org.apache.rya.prospector.utils.ProspectorUtils.instance;
+import static org.apache.rya.prospector.utils.ProspectorUtils.writeMutations;
 
 /**
  * Configures and runs the Hadoop Map Reduce job that executes the Prospector's work.
@@ -106,6 +106,8 @@ public class Prospector extends Configured implements Tool {
             final Mutation m = new Mutation(METADATA);
             m.put(PROSPECT_TIME, getReverseIndexDateTime(truncatedDate), new ColumnVisibility(DEFAULT_VIS), truncatedDate.getTime(), new Value(EMPTY));
             writeMutations(connector(instance(conf), conf), outTable, Collections.singleton(m));
+        } else {
+            System.err.println("Job was not successful!\n" + job.toString());
         }
 
         return success;

@@ -19,19 +19,17 @@ package org.apache.rya.accumulo.mr;
  * under the License.
  */
 
-import java.io.IOException;
-import java.util.Iterator;
-
 import org.apache.accumulo.core.client.Connector;
-import org.calrissian.mango.collect.CloseableIterable;
-import org.junit.Assert;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.api.persist.query.RyaQuery;
+import org.apache.rya.api.persist.utils.RyaDAOHelper;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.junit.Assert;
+
+import java.io.IOException;
 
 public class TestUtils {
     public static void verify(Connector connector, AccumuloRdfConfiguration conf, RyaStatement... ryaStatements)
@@ -50,9 +48,10 @@ public class TestUtils {
     public static RyaStatement verify(RyaStatement ryaStatement, AccumuloRyaQueryEngine queryEngine)
       throws RyaDAOException, IOException {
         //check osp
-        CloseableIterable<RyaStatement> statements =
-          queryEngine.query(RyaQuery.builder(new RyaStatement(null, null, ryaStatement.getObject()))
-                                    .build());
+        CloseableIteration<RyaStatement, RyaDAOException> statements =
+          RyaDAOHelper.query(queryEngine,
+                  new RyaStatement(null, null, ryaStatement.getObject()),
+                  queryEngine.getConf());
         try {
             verifyFirstStatement(ryaStatement, statements);
         } finally {
@@ -60,9 +59,9 @@ public class TestUtils {
         }
 
         //check po
-        statements = queryEngine.query(RyaQuery.builder(
-          new RyaStatement(null, ryaStatement.getPredicate(),
-                           ryaStatement.getObject())).build());
+        statements = RyaDAOHelper.query(queryEngine,
+                new RyaStatement(null, ryaStatement.getPredicate(),
+                           ryaStatement.getObject()), queryEngine.getConf());
         try {
             verifyFirstStatement(ryaStatement, statements);
         } finally {
@@ -71,10 +70,10 @@ public class TestUtils {
 
         //check spo
         RyaStatement result;
-        statements = queryEngine.query(RyaQuery.builder(
-          new RyaStatement(ryaStatement.getSubject(),
+        statements = RyaDAOHelper.query(queryEngine,
+                new RyaStatement(ryaStatement.getSubject(),
                            ryaStatement.getPredicate(),
-                           ryaStatement.getObject())).build());
+                           ryaStatement.getObject()), queryEngine.getConf());
         try {
             result = verifyFirstStatement(ryaStatement, statements);
         } finally {
@@ -84,8 +83,7 @@ public class TestUtils {
     }
 
     private static RyaStatement verifyFirstStatement(
-      RyaStatement ryaStatement, CloseableIterable<RyaStatement> statements) {
-        final Iterator<RyaStatement> iterator = statements.iterator();
+            RyaStatement ryaStatement, CloseableIteration<RyaStatement, RyaDAOException> iterator) {
         Assert.assertTrue(iterator.hasNext());
         final RyaStatement first = iterator.next();
         Assert.assertEquals(ryaStatement.getSubject(), first.getSubject());

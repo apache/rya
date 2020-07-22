@@ -18,18 +18,10 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
-
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.rya.api.domain.RyaType;
+import com.google.common.primitives.Bytes;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
@@ -38,10 +30,16 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 
-import com.google.common.primitives.Bytes;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
 
 /**
  * Converts {@link BindingSet}s to byte[]s and back again. The bytes do not
@@ -63,7 +61,7 @@ public class AccumuloPcjSerializer implements BindingSetConverter<byte[]> {
             for(final String varName: varOrder) {
                 // Only write information for a variable name if the binding set contains it.
                 if(bindingSet.hasBinding(varName)) {
-                    final RyaType rt = RdfToRyaConversions.convertValue(bindingSet.getBinding(varName).getValue());
+                    final RyaValue rt = RdfToRyaConversions.convertValue(bindingSet.getBinding(varName).getValue());
                     final byte[][] serializedVal = RyaContext.getInstance().serializeType(rt);
                     byteSegments.add(serializedVal[0]);
                     byteSegments.add(serializedVal[1]);
@@ -158,7 +156,7 @@ public class AccumuloPcjSerializer implements BindingSetConverter<byte[]> {
          checkArgument(typeIndex >= 0);
          final byte[] data = Arrays.copyOf(byteVal, typeIndex);
          final byte[] type = Arrays.copyOfRange(byteVal, typeIndex, byteVal.length);
-         final RyaType rt = RyaContext.getInstance().deserialize(Bytes.concat(data,type));
+         final RyaValue rt = RyaContext.getInstance().deserialize(Bytes.concat(data,type));
          return RyaToRdfConversions.convertValue(rt);
     }
 }

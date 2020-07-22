@@ -18,23 +18,19 @@
  */
 package org.apache.rya.api.query.strategy.wholerow;
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM;
-
-import java.nio.charset.StandardCharsets;
-
+import com.google.common.base.Preconditions;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.query.strategy.AbstractTriplePatternStrategy;
 import org.apache.rya.api.query.strategy.TriplePatternStrategy;
 import org.apache.rya.api.resolver.triple.TripleRowRegex;
 
-import com.google.common.base.Preconditions;
+import java.nio.charset.StandardCharsets;
+
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM;
 
 public abstract class AbstractHashedTriplePatternStrategy extends AbstractTriplePatternStrategy implements TriplePatternStrategy {
     public static final String HASHED_ALL_REGEX = "([0-9a-f]{32})\u0000";
-
-    @Override
-    public abstract RdfCloudTripleStoreConstants.TABLE_LAYOUT getLayout();
 
     @Override
     public TripleRowRegex buildRegex(final String subject, final String predicate, final String object, final String context, final byte[] objectTypeInfo) {
@@ -91,4 +87,5 @@ public abstract class AbstractHashedTriplePatternStrategy extends AbstractTriple
 
         return new TripleRowRegex(sb.toString(), (context != null) ? (context + ALL_REGEX) : null, null);
     }
+
 }

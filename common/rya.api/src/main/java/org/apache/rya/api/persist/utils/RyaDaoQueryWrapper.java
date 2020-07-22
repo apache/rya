@@ -18,8 +18,6 @@
  */
 package org.apache.rya.api.persist.utils;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAO;
@@ -32,6 +30,8 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.rio.RDFHandler;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Wraps Rya DAO queries into a simpler interface that just passes in the
  * statement to query for and a handler for dealing with each statement in the
@@ -40,7 +40,7 @@ import org.eclipse.rdf4j.rio.RDFHandler;
  * for multiple queries.
  */
 public class RyaDaoQueryWrapper {
-    private final RyaDAO<?> ryaDao;
+    private final RyaDAO<? extends RdfCloudTripleStoreConfiguration> ryaDao;
     private final RdfCloudTripleStoreConfiguration conf;
 
     /**
@@ -49,7 +49,7 @@ public class RyaDaoQueryWrapper {
      * @param conf the {@link RdfCloudTripleStoreConfiguration}.
      * (not {@code null})
      */
-    public RyaDaoQueryWrapper(final RyaDAO<?> ryaDao, final RdfCloudTripleStoreConfiguration conf) {
+    public RyaDaoQueryWrapper(final RyaDAO<? extends RdfCloudTripleStoreConfiguration> ryaDao, final RdfCloudTripleStoreConfiguration conf) {
         this.ryaDao = checkNotNull(ryaDao);
         this.conf = checkNotNull(conf);
     }
@@ -58,7 +58,7 @@ public class RyaDaoQueryWrapper {
      * Creates a new instance of {@link RyaDaoQueryWrapper}.
      * @param ryaDao the {@link RyaDAO}. (not {@code null})
      */
-    public RyaDaoQueryWrapper(final RyaDAO<?> ryaDao) {
+    public RyaDaoQueryWrapper(final RyaDAO<? extends RdfCloudTripleStoreConfiguration> ryaDao) {
         this(checkNotNull(ryaDao), ryaDao.getConf());
     }
 
@@ -69,12 +69,12 @@ public class RyaDaoQueryWrapper {
      * @param object the object {@link Value} to query for.
      * @param rdfStatementHandler the {@link RDFHandler} to use for handling
      * each statement returned. (not {@code null})
-     * @param contexts the context {@link Resource}s to query for.
+     * @param context the context {@link Resource}s to query for.
      * @throws QueryEvaluationException
      */
-    public void queryAll(final Resource subject, final IRI predicate, final Value object, final RDFHandler rdfStatementHandler, final Resource... contexts) throws QueryEvaluationException {
+    public void queryAll(final Resource subject, final IRI predicate, final Value object, final RDFHandler rdfStatementHandler, final Resource... context) throws QueryEvaluationException {
         checkNotNull(rdfStatementHandler);
-        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDao, subject, predicate, object, conf, contexts);
+        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.queryRdf4j(ryaDao.getQueryEngine(), subject, predicate, object, conf, context);
         try {
             while (iter.hasNext()) {
                 final Statement statement = iter.next();
@@ -89,6 +89,10 @@ public class RyaDaoQueryWrapper {
                 iter.close();
             }
         }
+    }
+
+    public void queryAll(final Resource subject, final IRI predicate, final Value object, final RDFHandler rdfStatementHandler) throws QueryEvaluationException {
+        queryAll(subject, predicate, object, rdfStatementHandler, null);
     }
 
     /**
@@ -128,12 +132,12 @@ public class RyaDaoQueryWrapper {
      * @param object the object {@link Value} to query for.
      * @param rdfStatementHandler the {@link RDFHandler} to use for handling the
      * first statement returned. (not {@code null})
-     * @param contexts the context {@link Resource}s to query for.
+     * @param context the context {@link Resource}s to query for.
      * @throws QueryEvaluationException
      */
-    public void queryFirst(final Resource subject, final IRI predicate, final Value object, final RDFHandler rdfStatementHandler, final Resource... contexts) throws QueryEvaluationException {
+    public void queryFirst(final Resource subject, final IRI predicate, final Value object, final RDFHandler rdfStatementHandler, final Resource... context) throws QueryEvaluationException {
         checkNotNull(rdfStatementHandler);
-        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDao, subject, predicate, object, conf, contexts);
+        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.queryRdf4j(ryaDao.getQueryEngine(), subject, predicate, object, conf, context);
         try {
             if (iter.hasNext()) {
                 final Statement statement = iter.next();
@@ -148,6 +152,10 @@ public class RyaDaoQueryWrapper {
                 iter.close();
             }
         }
+    }
+
+    public void queryFirst(final Resource subject, final IRI predicate, final Value object, final RDFHandler rdfStatementHandler) throws QueryEvaluationException {
+        queryFirst(subject, predicate, object, rdfStatementHandler, null);
     }
 
     /**

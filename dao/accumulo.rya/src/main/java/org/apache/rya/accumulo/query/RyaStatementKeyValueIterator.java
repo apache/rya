@@ -19,9 +19,6 @@ package org.apache.rya.accumulo.query;
  * under the License.
  */
 
-import java.util.Iterator;
-import java.util.Map;
-
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
@@ -32,10 +29,14 @@ import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
+import java.util.Iterator;
+import java.util.Map;
+
 /**
  * Date: 7/17/12
  * Time: 11:48 AM
  */
+@Deprecated
 public class RyaStatementKeyValueIterator implements CloseableIteration<RyaStatement, RyaDAOException> {
     private Iterator<Map.Entry<Key, Value>> dataIterator;
     private TABLE_LAYOUT tableLayout;

@@ -19,24 +19,25 @@ package org.apache.rya.api.persist.query.join;
  * under the License.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.base.Preconditions;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaRange;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaIRIRange;
+import org.apache.rya.api.domain.RyaRange;
+import org.apache.rya.api.domain.RyaResource;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
+import org.apache.rya.api.persist.utils.RyaDAOHelper;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.utils.PeekingCloseableIteration;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.common.iteration.EmptyIteration;
 
-import com.google.common.base.Preconditions;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Date: 7/24/12
@@ -65,12 +66,13 @@ public class MergeJoin<C extends RdfCloudTripleStoreConfiguration> implements Jo
             throws RyaDAOException {
         Preconditions.checkNotNull(preds);
         Preconditions.checkArgument(preds.length > 1, "Must join 2 or more");
-        //TODO: Reorder predObjs based on statistics
-        final List<CloseableIteration<RyaStatement, RyaDAOException>> iters = new ArrayList<CloseableIteration<RyaStatement, RyaDAOException>>();
+        // TODO: Reorder predObjs based on statistics
+        final List<CloseableIteration<RyaStatement, RyaDAOException>> iters = new ArrayList<>();
         for (RyaIRI predicate : preds) {
             Preconditions.checkArgument(predicate != null && !(predicate instanceof RyaRange));
 
-            CloseableIteration<RyaStatement, RyaDAOException> iter = ryaQueryEngine.query(new RyaStatement(null, predicate, null), conf);
+            CloseableIteration<RyaStatement, RyaDAOException> iter = RyaDAOHelper.query(ryaQueryEngine,
+                    new RyaStatement(null, predicate, null), conf);
             iters.add(iter);
         }
         Preconditions.checkArgument(iters.size() > 1, "Must join 2 or more");
@@ -82,7 +84,7 @@ public class MergeJoin<C extends RdfCloudTripleStoreConfiguration> implements Jo
         return new CloseableIteration<RyaStatement, RyaDAOException>() {
 
             private RyaStatement first_stmt;
-            private RyaType first_obj;
+            private RyaValue first_obj;
 
             @Override
             public void close() throws RyaDAOException {
@@ -122,12 +124,12 @@ public class MergeJoin<C extends RdfCloudTripleStoreConfiguration> implements Jo
                 first_obj = first_stmt.getObject();
                 for (CloseableIteration<RyaStatement, RyaDAOException> iter : iters) {
                     if (!iter.hasNext()) return false; //no more left to join
-                    RyaType iter_obj = iter.next().getObject();
-                    while (first_obj.compareTo(iter_obj) < 0) {
+                    RyaValue iter_obj = iter.next().getObject();
+                    while (first_obj.stringValue().compareTo(iter_obj.stringValue()) < 0) {
                         if (!first.hasNext()) return false;
                         first_obj = first.next().getObject();
                     }
-                    while (first_obj.compareTo(iter_obj) > 0) {
+                    while (first_obj.stringValue().compareTo(iter_obj.stringValue()) > 0) {
                         if (!iter.hasNext()) return false;
                         iter_obj = iter.next().getObject();
                     }
@@ -146,30 +148,30 @@ public class MergeJoin<C extends RdfCloudTripleStoreConfiguration> implements Jo
      * @throws RyaDAOException
      */
     @Override
-    public CloseableIteration<RyaIRI, RyaDAOException> join(C conf, Map.Entry<RyaIRI, RyaType>... predObjs)
+    public CloseableIteration<RyaResource, RyaDAOException> join(C conf, Map.Entry<RyaIRI, RyaValue>... predObjs)
             throws RyaDAOException {
         Preconditions.checkNotNull(predObjs);
         Preconditions.checkArgument(predObjs.length > 1, "Must join 2 or more");
 
-        //TODO: Reorder predObjs based on statistics
-        final List<CloseableIteration<RyaStatement, RyaDAOException>> iters = new ArrayList<CloseableIteration<RyaStatement, RyaDAOException>>();
-        RyaIRI earliest_subject = null;
-        for (Map.Entry<RyaIRI, RyaType> predObj : predObjs) {
+        // TODO: Reorder predObjs based on statistics
+        final List<CloseableIteration<RyaStatement, RyaDAOException>> iters = new ArrayList<>();
+        RyaResource earliest_subject = null;
+        for (Map.Entry<RyaIRI, RyaValue> predObj : predObjs) {
             RyaIRI predicate = predObj.getKey();
-            RyaType object = predObj.getValue();
+            RyaValue object = predObj.getValue();
             Preconditions.checkArgument(predicate != null && !(predicate instanceof RyaRange));
             Preconditions.checkArgument(object != null && !(object instanceof RyaRange));
 
             PeekingCloseableIteration<RyaStatement, RyaDAOException> iter = null;
             if (earliest_subject == null) {
-                iter = new PeekingCloseableIteration<RyaStatement, RyaDAOException>(
-                        ryaQueryEngine.query(new RyaStatement(null, predicate, object), conf));
+                iter = new PeekingCloseableIteration<>(
+                        RyaDAOHelper.query(ryaQueryEngine, new RyaStatement(null, predicate, object), conf));
             } else {
-                iter = new PeekingCloseableIteration<RyaStatement, RyaDAOException>(
-                        ryaQueryEngine.query(new RyaStatement(new RyaIRIRange(earliest_subject, RyaIRIRange.LAST_IRI), predicate, object), conf));
+                iter = new PeekingCloseableIteration<>(
+                        RyaDAOHelper.query(ryaQueryEngine, new RyaStatement(new RyaIRIRange(earliest_subject, RyaIRIRange.LAST_IRI), predicate, object), conf));
             }
             if (!iter.hasNext()) {
-                return new EmptyIteration<RyaIRI, RyaDAOException>();
+                return new EmptyIteration<>();
             }
             //setting up range to make performant query
             earliest_subject = iter.peek().getSubject();
@@ -181,9 +183,9 @@ public class MergeJoin<C extends RdfCloudTripleStoreConfiguration> implements Jo
 
         //perform merge operation
 
-        return new CloseableIteration<RyaIRI, RyaDAOException>() {
+        return new CloseableIteration<RyaResource, RyaDAOException>() {
 
-            private RyaIRI first_subj;
+            private RyaResource first_subj;
 
             @Override
             public void close() throws RyaDAOException {
@@ -198,14 +200,14 @@ public class MergeJoin<C extends RdfCloudTripleStoreConfiguration> implements Jo
             }
 
             @Override
-            public RyaIRI next() throws RyaDAOException {
+            public RyaResource next() throws RyaDAOException {
                 if (first_subj != null) {
-                    RyaIRI temp = first_subj;
+                    RyaResource temp = first_subj;
                     first_subj = null;
                     return temp;
                 }
                 if (check()) {
-                    RyaIRI temp = first_subj;
+                    RyaResource temp = first_subj;
                     first_subj = null;
                     return temp;
                 }
@@ -222,12 +224,12 @@ public class MergeJoin<C extends RdfCloudTripleStoreConfiguration> implements Jo
                 first_subj = first.next().getSubject();
                 for (CloseableIteration<RyaStatement, RyaDAOException> iter : iters) {
                     if (!iter.hasNext()) return false; //no more left to join
-                    RyaIRI iter_subj = iter.next().getSubject();
-                    while (first_subj.compareTo(iter_subj) < 0) {
+                    RyaResource iter_subj = iter.next().getSubject();
+                    while (first_subj.stringValue().compareTo(iter_subj.stringValue()) < 0) {
                         if (!first.hasNext()) return false;
                         first_subj = first.next().getSubject();
                     }
-                    while (first_subj.compareTo(iter_subj) > 0) {
+                    while (first_subj.stringValue().compareTo(iter_subj.stringValue()) > 0) {
                         if (!iter.hasNext()) return false;
                         iter_subj = iter.next().getSubject();
                     }

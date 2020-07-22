@@ -19,18 +19,17 @@ package org.apache.rya.api.resolver.triple;
  * under the License.
  */
 
-
-
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
 
 import java.util.Map;
 
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 
 /**
+ * This interface represents classes like {@link org.apache.rya.api.resolver.triple.impl.WholeRowTripleResolver} and
+ * {@link org.apache.rya.api.resolver.triple.impl.WholeRowHashedTripleResolver}.
+ * It transforms between {@link RyaStatement}s and Accumulo entries, which are represented as {@link TripleRow}.
  * Date: 7/17/12
  * Time: 7:33 AM
  */

@@ -18,9 +18,9 @@
  */
 package org.apache.rya.prospector.domain;
 
-import static java.util.Objects.requireNonNull;
-
 import com.google.common.collect.ImmutableMap;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Enumerates the different types of counts that are performed over a Rya instance's
@@ -46,7 +46,7 @@ public enum TripleValueType {
     OBJECT("object"),
 
     /**
-     * The data portion of an {@link IndexEntrY} contains a unique Namespace from
+     * The data portion of an {@link IndexEntry} contains a unique Namespace from
      * the Subjects that appear within a Rya instance.
      */
     ENTITY("entity"),

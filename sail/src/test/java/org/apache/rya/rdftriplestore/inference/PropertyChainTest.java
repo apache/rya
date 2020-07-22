@@ -18,8 +18,7 @@
  */
 package org.apache.rya.rdftriplestore.inference;
 
-import java.util.List;
-
+import junit.framework.TestCase;
 import org.apache.accumulo.core.Constants;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
@@ -40,7 +39,7 @@ import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.junit.Assert;
 import org.junit.Test;
 
-import junit.framework.TestCase;
+import java.util.List;
 
 public class PropertyChainTest extends TestCase {
     private String user = "user";
@@ -89,11 +88,12 @@ public class PropertyChainTest extends TestCase {
     @Test
     public void testGraphConfiguration() throws Exception {
         // build a connection
-        RdfCloudTripleStore store = new RdfCloudTripleStore();
+        RdfCloudTripleStore<AccumuloRdfConfiguration> store = new RdfCloudTripleStore<>();
         store.setConf(conf);
         store.setRyaDAO(ryaDAO);
         InferenceEngine inferenceEngine = new InferenceEngine();
         inferenceEngine.setRyaDAO(ryaDAO);
+        inferenceEngine.setConf(conf);
         store.setInferenceEngine(inferenceEngine);
         inferenceEngine.refreshGraph();
         store.initialize();

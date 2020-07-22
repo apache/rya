@@ -19,25 +19,18 @@ package org.apache.rya.accumulo.mr;
  * under the License.
  */
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.base.Preconditions;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
-import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.file.FileSKVIterator;
 import org.apache.accumulo.core.file.rfile.RFileOperations;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.core.util.ArgumentChecker;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
@@ -51,6 +44,12 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 /**
  * {@link FileInputFormat} that finds the Accumulo tablet files on the HDFS
@@ -68,8 +67,8 @@ public class AccumuloHDFSFileInputFormat extends FileInputFormat<Key, Value> {
         String user = MRUtils.AccumuloProps.getUsername(jobContext);
         AuthenticationToken password = MRUtils.AccumuloProps.getPassword(jobContext);
         String table = MRUtils.AccumuloProps.getTablename(jobContext);
-        ArgumentChecker.notNull(instance);
-        ArgumentChecker.notNull(table);
+        Preconditions.checkNotNull(instance);
+        Preconditions.checkNotNull(table);
 
         //find the files necessary
         try {
@@ -113,8 +112,11 @@ public class AccumuloHDFSFileInputFormat extends FileInputFormat<Key, Value> {
                 FileSystem fs = file.getFileSystem(job);
                 Instance instance = MRUtils.AccumuloProps.getInstance(taskAttemptContext);
 
-                fileSKVIterator = RFileOperations.getInstance().openReader(file.toString(), ALLRANGE,
-                        new HashSet<ByteSequence>(), false, fs, job, instance.getConfiguration());
+                fileSKVIterator = RFileOperations.getInstance().newScanReaderBuilder()
+                        .forFile(file.toString(), fs, job)
+                        .withTableConfiguration(instance.getConfiguration())
+                        .overRange(ALLRANGE, new HashSet<>(), false)
+                        .build();
             }
 
             @Override

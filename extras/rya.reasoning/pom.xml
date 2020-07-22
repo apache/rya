@@ -58,7 +58,7 @@ under the License.
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-minicluster</artifactId>
             <!-- TODO: RYA-193 -->
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -77,6 +77,7 @@ under the License.
         <dependency>
             <groupId>org.eclipse.rdf4j</groupId>
             <artifactId>rdf4j-runtime</artifactId>
+            <type>pom</type>
         </dependency>
 
         <dependency>
@@ -84,10 +85,16 @@ under the License.
             <artifactId>mrunit</artifactId>
             <classifier>hadoop2</classifier>
             <scope>test</scope>
+            <!-- project pom contains exclusions for powermock -->
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-junit4</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -19,10 +19,7 @@ package org.apache.rya.accumulo.documentIndex;
  * under the License.
  */
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.primitives.Bytes;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -39,9 +36,10 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.RyaTableMutationsFactory;
+import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
@@ -61,7 +59,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.primitives.Bytes;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 
 public class DocumentIndexIntersectingIteratorTest {
@@ -1777,8 +1777,8 @@ public class DocumentIndexIntersectingIteratorTest {
         System.out.println(spList1);
         System.out.println(spList2);
 
-        RyaType rt1 = RdfToRyaConversions.convertValue(spList1.get(2).getObjectVar().getValue());
-        RyaType rt2 = RdfToRyaConversions.convertValue(spList2.get(2).getObjectVar().getValue());
+        RyaValue rt1 = RdfToRyaConversions.convertValue(spList1.get(2).getObjectVar().getValue());
+        RyaValue rt2 = RdfToRyaConversions.convertValue(spList2.get(2).getObjectVar().getValue());
 
         RyaIRI predURI1 = (RyaIRI) RdfToRyaConversions.convertValue(spList1.get(0).getPredicateVar().getValue());
         RyaIRI predURI2 = (RyaIRI) RdfToRyaConversions.convertValue(spList1.get(1).getPredicateVar().getValue());

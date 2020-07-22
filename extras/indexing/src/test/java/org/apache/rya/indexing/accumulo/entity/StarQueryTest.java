@@ -18,13 +18,11 @@
  */
 package org.apache.rya.indexing.accumulo.entity;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
+import com.google.common.primitives.Bytes;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.documentIndex.TextColumn;
-import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
@@ -42,8 +40,9 @@ import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.common.collect.Sets;
-import com.google.common.primitives.Bytes;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class StarQueryTest {
 
@@ -204,7 +203,7 @@ public class StarQueryTest {
                Assert.assertTrue(tc1[i].equals(tc3[i]));
            } else {
                Assert.assertEquals(tc3[i].getColumnFamily(), new Text("uri:cf3"));
-               RyaType objType = RdfToRyaConversions.convertValue(v2);
+               RyaValue objType = RdfToRyaConversions.convertValue(v2);
                byte[][] b1 = null;
                 b1 = RyaContext.getInstance().serializeType(objType);
                byte[] b2 = Bytes.concat("object".getBytes(),

@@ -18,21 +18,21 @@
  */
 package org.apache.rya.indexing.entity.storage.mongo;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.rya.api.domain.RyaIRI;
 import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaValue;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.storage.mongo.key.MongoDbSafeKey;
 import org.bson.Document;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Converts between {@link Entity} and {@link Document}.
@@ -66,7 +66,7 @@ public class EntityDocumentConverter implements DocumentConverter<Entity> {
                 .forEach((propertyNameUri, property) -> {
                     final String propertyName = property.getName().getData();
                     final String encodedPropertyName = MongoDbSafeKey.encodeKey(propertyName);
-                    final RyaType value = property.getValue();
+                    final RyaValue value = property.getValue();
                     typePropertiesDoc.append(encodedPropertyName,  ryaTypeConverter.toDocument(value));
                 });
             propertiesDoc.append(typeId.getData(), typePropertiesDoc);

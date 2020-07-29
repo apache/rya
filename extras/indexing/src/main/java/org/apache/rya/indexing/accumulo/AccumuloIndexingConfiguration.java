@@ -18,10 +18,8 @@
  */
 package org.apache.rya.indexing.accumulo;
 
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
-
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AbstractAccumuloRdfConfigurationBuilder;
@@ -35,8 +33,9 @@ import org.apache.rya.indexing.external.PrecomputedJoinIndexer;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataOptimizer;
 import org.eclipse.rdf4j.sail.Sail;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * This class is an extension of the AccumuloRdfConfiguration object used to to
@@ -399,38 +398,27 @@ public class AccumuloIndexingConfiguration extends AccumuloRdfConfiguration {
             Preconditions.checkNotNull(props);
             try {
                 final AccumuloIndexingConfigBuilder builder = new AccumuloIndexingConfigBuilder() //
-                        .setAuths(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_AUTHS, "")) //
-                        .setRyaPrefix(
-                                props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_RYA_PREFIX, "rya_"))//
-                        .setVisibilities(
-                                props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_VISIBILITIES, ""))
-                        .setUseInference(getBoolean(
-                                props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_INFERENCE, "false")))//
-                        .setDisplayQueryPlan(getBoolean(props
-                                .getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_DISPLAY_QUERY_PLAN, "true")))//
-                        .setAccumuloUser(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_USER)) //
-                        .setAccumuloInstance(
-                                props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_INSTANCE))//
-                        .setAccumuloZooKeepers(
-                                props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_ZOOKEEPERS))//
-                        .setAccumuloPassword(
-                                props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_PASSWORD))//
-                        .setUseMockAccumulo(getBoolean(
-                                props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_MOCK_ACCUMULO, "false")))//
-                        .setUseAccumuloPrefixHashing(getBoolean(
-                                props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_PREFIX_HASHING, "false")))//
-                        .setUseCompositeCardinality(getBoolean(
-                                props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_COUNT_STATS, "false")))//
-                        .setUseJoinSelectivity(getBoolean(props
-                                .getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_JOIN_SELECTIVITY, "false")))//
-                        .setUseAccumuloFreetextIndex(getBoolean(props.getProperty(USE_FREETEXT, "false")))//
-                        .setUseAccumuloTemporalIndex(getBoolean(props.getProperty(USE_TEMPORAL, "false")))//
-                        .setUseAccumuloEntityIndex(getBoolean(props.getProperty(USE_ENTITY, "false")))//
-                        .setAccumuloFreeTextPredicates(StringUtils.split(props.getProperty(FREETEXT_PREDICATES), ","))//
-                        .setAccumuloTemporalPredicates(StringUtils.split(props.getProperty(TEMPORAL_PREDICATES), ","))//
-                        .setUsePcj(getBoolean(props.getProperty(USE_PCJ, "false")))//
-                        .setUseOptimalPcj(getBoolean(props.getProperty(USE_OPTIMAL_PCJ, "false")))//
-                        .setPcjTables(StringUtils.split(props.getProperty(PCJ_TABLES), ","))//
+                        .setUseMockAccumulo(getBoolean(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_MOCK_ACCUMULO, "false")))
+                        .setRyaPrefix(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_RYA_PREFIX, "rya_"))
+                        .setAuths(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_AUTHS, ""))
+                        .setVisibilities(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_VISIBILITIES, ""))
+                        .setUseInference(getBoolean(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_INFERENCE, "false")))
+                        .setDisplayQueryPlan(getBoolean(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_DISPLAY_QUERY_PLAN, "true")))
+                        .setAccumuloUser(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_USER))
+                        .setAccumuloInstance(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_INSTANCE))
+                        .setAccumuloZooKeepers(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_ZOOKEEPERS))
+                        .setAccumuloPassword(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_PASSWORD))
+                        .setUseAccumuloPrefixHashing(getBoolean(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_PREFIX_HASHING, "false")))
+                        .setUseCompositeCardinality(getBoolean(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_COUNT_STATS, "false")))
+                        .setUseJoinSelectivity(getBoolean(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_JOIN_SELECTIVITY, "false")))
+                        .setUseAccumuloFreetextIndex(getBoolean(props.getProperty(USE_FREETEXT, "false")))
+                        .setUseAccumuloTemporalIndex(getBoolean(props.getProperty(USE_TEMPORAL, "false")))
+                        .setUseAccumuloEntityIndex(getBoolean(props.getProperty(USE_ENTITY, "false")))
+                        .setAccumuloFreeTextPredicates(StringUtils.split(props.getProperty(FREETEXT_PREDICATES), ","))
+                        .setAccumuloTemporalPredicates(StringUtils.split(props.getProperty(TEMPORAL_PREDICATES), ","))
+                        .setUsePcj(getBoolean(props.getProperty(USE_PCJ, "false")))
+                        .setUseOptimalPcj(getBoolean(props.getProperty(USE_OPTIMAL_PCJ, "false")))
+                        .setPcjTables(StringUtils.split(props.getProperty(PCJ_TABLES), ","))
                         .setPcjUpdaterFluoAppName(props.getProperty(FLUO_APP_NAME))
                         .setUseStatementMetadata(getBoolean(props.getProperty(USE_STATEMENT_METADATA)))
                         .setStatementMetadataProperties(getPropURIFromStrings(StringUtils.split(props.getProperty(STATEMENT_METADATA_PROPERTIES), ",")));

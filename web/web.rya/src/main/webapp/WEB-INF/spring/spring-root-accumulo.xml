@@ -20,21 +20,20 @@ under the License.
 -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
-				http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
-				http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+                http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+                http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd">
 
-    <bean id="environmentProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-        <property name="location" value="classpath:environment.properties"/>
-    </bean>
+    <util:properties id="properties" location="classpath:accumulo.properties"/>
+    <context:property-placeholder properties-ref="properties"/>
 
-	<context:component-scan base-package="org.apache.cloud.rdf.web.sail" />
+    <context:component-scan base-package="org.apache.cloud.rdf.web.sail"/>
 
-	<import resource="spring-security.xml"/>	
-	<import resource="spring-accumulo.xml"/>
+    <import resource="spring-accumulo.xml"/>
+	<import resource="spring-security.xml"/>
 
 	<bean id="inferenceEngine" class="org.apache.rya.rdftriplestore.inference.InferenceEngine" init-method="init" destroy-method="destroy">
         <property name="ryaDAO" ref="ryaDAO"/>
@@ -55,14 +54,15 @@ under the License.
         <property name="conf" ref="conf"/>
     </bean>
 
-	<bean id="rts" class="org.apache.rya.rdftriplestore.RdfCloudTripleStore">
-        <property name="ryaDAO" ref="ryaDAO"/>
-        <property name="rdfEvalStatsDAO" ref="rdfEvalStatsDAO"/>
-        <property name="inferenceEngine" ref="inferenceEngine"/>
+    <bean id="ryaSail" class="org.apache.rya.rdftriplestore.RdfCloudTripleStore">
         <property name="conf" ref="conf"/>
-	</bean>
+        <property name="ryaDAO" ref="ryaDAO"/>
+        <property name="inferenceEngine" ref="inferenceEngine"/>
+        <property name="rdfEvalStatsDAO" ref="rdfEvalStatsDAO"/>
+    </bean>
 
 	<bean id="sailRepo" class="org.apache.rya.rdftriplestore.RyaSailRepository" init-method="initialize" destroy-method="shutDown">
-        <constructor-arg ref="rts"/>
+        <constructor-arg ref="ryaSail"/>
 	</bean>
+
 </beans>

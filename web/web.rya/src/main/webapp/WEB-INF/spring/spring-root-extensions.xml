@@ -20,86 +20,97 @@ under the License.
 -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:util="http://www.springframework.org/schema/util"
-    xmlns:hdp="http://www.springframework.org/schema/hadoop"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
-				http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
-				http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:hdp="http://www.springframework.org/schema/hadoop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+                http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+                http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd
                 http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd">
 
-    <bean id="environmentProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-        <property name="location" value="classpath:environment.properties"/>
+    <util:properties id="properties" location="classpath:extensions.properties"/>
+    <context:property-placeholder properties-ref="properties"/>
+
+    <context:component-scan base-package="org.apache.cloud.rdf.web.sail"/>
+
+    <import resource="spring-accumulo.xml"/>
+    <import resource="spring-security.xml"/>
+
+    <hdp:configuration id="hadoopConf" properties-location="classpath:extensions.properties"/>
+    <!--
+    <hdp:configuration id="hadoopConf">
+        sc.cloudbase.instancename=${instance.name}
+        sc.cloudbase.zookeepers=${instance.zk}
+        sc.cloudbase.username=${instance.username}
+        sc.cloudbase.password=${instance.password}
+
+        query.printqueryplan=${rya.displayqueryplan}
+
+        sc.freetext.doctable=${sc.freetext.doctable}
+        sc.freetext.termtable=${sc.freetext.termtable}
+        sc.geo.table=${sc.geo.table}
+        sc.geo.predicates=${sc.geo.predicates}
+        sc.geo.numPartitions=${sc.geo.numPartitions}
+        sc.temporal.index=${sc.temporal.index}
+
+        query.usestats=false
+        query.useselectivity=false
+        query.usecompositecard=false
+    </hdp:configuration>
+    -->
+
+    <bean id="indexerSettings" class="org.apache.rya.indexing.accumulo.AccumuloIndexingConfiguration" factory-method="fromProperties">
+        <constructor-arg ref="properties"/>
     </bean>
 
-	<context:component-scan base-package="org.apache.cloud.rdf.web.sail" />
-	
-	<import resource="spring-accumulo.xml"/>
-    <import resource="spring-security.xml"/>    
-  
-  <hdp:configuration id="hadoopConf">
-    sc.cloudbase.instancename=${instance.name}
-    sc.cloudbase.zookeepers=${instance.zk}
-    sc.cloudbase.username=${instance.username}
-    sc.cloudbase.password=${instance.password}
-
-    query.printqueryplan=${rya.displayqueryplan}
-
-    sc.freetext.doctable=${sc.freetext.doctable}
-    sc.freetext.termtable=${sc.freetext.termtable}
-    sc.geo.table=${sc.geo.table}
-    sc.geo.predicates=${sc.geo.predicates}
-    sc.geo.numPartitions=${sc.geo.numPartitions}
-    sc.temporal.index=${sc.temporal.index}
-    
-    query.usestats=false
-    query.useselectivity=false
-    query.usecompositecard=false
-  </hdp:configuration>  
-
-<!-- inference Engine is disabled -->  
-<!-- 
-	<bean id="inferenceEngine" class="org.apache.rya.rdftriplestore.inference.InferenceEngine" init-method="init" destroy-method="destroy">
+    <bean id="inferenceEngine" class="org.apache.rya.rdftriplestore.inference.InferenceEngine" init-method="init" destroy-method="destroy">
         <property name="ryaDAO" ref="ryaDAO"/>
-        <property name="conf" ref="conf"/>
-	</bean>
-    
-    <bean id="prospectTableName" class="org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO" factory-method="getProspectTableName">
-        <constructor-arg ref="conf"/>
+        <property name="conf" ref="indexerSettings"/>
     </bean>
-    
+
+    <bean id="prospectTableName" class="org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO" factory-method="getProspectTableName">
+        <constructor-arg ref="indexerSettings"/>
+    </bean>
+
     <bean id="prospectorService" class="org.apache.rya.prospector.service.ProspectorService">
         <constructor-arg ref="connector"/>
         <constructor-arg ref="prospectTableName"/>
     </bean>
-    
-    <bean id="rdfEvalStatsDAO" class="org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO">
+
+    <bean id="rdfEvalStatsDAO" class="org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO" init-method="init" destroy-method="destroy">
         <property name="prospectorService" ref="prospectorService"/>
-        <property name="conf" ref="conf"/>
+        <property name="conf" ref="indexerSettings"/>
     </bean>
- -->
- 
-	<bean id="ryaSail" class="org.apache.rya.rdftriplestore.RdfCloudTripleStore">
+
+    <bean id="selectEvalDAO" class="org.apache.rya.joinselect.AccumuloSelectivityEvalDAO" init-method="init" destroy-method="destroy">
+        <property name="conf" ref="indexerSettings"/>
+        <property name="connector" ref="connector"/>
+        <property name="rdfEvalDAO" ref="rdfEvalStatsDAO"/>
+    </bean>
+
+    <bean id="ryaSail" class="org.apache.rya.rdftriplestore.RdfCloudTripleStore">
+        <property name="conf" ref="indexerSettings"/>
         <property name="ryaDAO" ref="ryaDAO"/>
-<!-- 
-        <property name="rdfEvalStatsDAO" ref="rdfEvalStatsDAO"/>
         <property name="inferenceEngine" ref="inferenceEngine"/>
- -->
-         <property name="conf" ref="conf"/>
-	</bean>
-
-    <bean id="indexerSettings" class="org.apache.rya.indexing.accumulo.AccumuloIndexerSettings">
-        <constructor-arg ref="hadoopConf"/>
+        <property name="rdfEvalStatsDAO" ref="rdfEvalStatsDAO"/>
+        <property name="selectEvalDAO" ref="selectEvalDAO"/>
     </bean>
 
-    <bean id="ryaIndexingSail" class="org.apache.rya.indexing.accumulo.RyaIndexingSail">
-        <constructor-arg ref="hadoopConf"/>
-        <constructor-arg ref="ryaSail"/>
+    <!--
+    <bean id="ryaIndexingSail" class="org.apache.rya.sail.config.RyaSailFactory" factory-method="getInstance">
         <constructor-arg ref="indexerSettings"/>
     </bean>
+    -->
 
+    <!--
     <bean id="indexingSailRepo" class="org.eclipse.rdf4j.repository.sail.SailRepository" init-method="initialize" destroy-method="shutDown">
         <constructor-arg ref="ryaIndexingSail"/>
     </bean>
+    -->
+
+    <bean id="indexingSailRepo" class="org.apache.rya.rdftriplestore.RyaSailRepository" init-method="initialize" destroy-method="shutDown">
+        <constructor-arg ref="ryaSail"/>
+    </bean>
+
 </beans>

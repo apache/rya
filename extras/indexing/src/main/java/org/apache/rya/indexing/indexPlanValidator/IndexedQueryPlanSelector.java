@@ -1,4 +1,4 @@
-package org.apache.rya.indexing.IndexPlanValidator;
+package org.apache.rya.indexing.indexPlanValidator;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,11 +23,7 @@ import java.util.Iterator;
 
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
-public interface ExternalIndexMatcher {
-    
-    
-    public Iterator<TupleExpr> getIndexedTuples();
-   
-    
-
+public interface IndexedQueryPlanSelector {
+    public TupleExpr getThreshholdQueryPlan(Iterator<TupleExpr> tupleList, double threshhold,
+            double indexWeight, double commonVarWeight, double dirProdWeight);
 }

@@ -69,9 +69,11 @@ under the License.
         <module>web</module>
     </modules>
     <properties>
-        <org.eclipse.rdf4j.version>3.2.2</org.eclipse.rdf4j.version>
+        <org.eclipse.rdf4j.version>3.4.4</org.eclipse.rdf4j.version>
 
-        <accumulo.version>1.9.3</accumulo.version>
+        <jackson.version>2.10.4</jackson.version> <!-- https://rdf4j.org/release-notes/3.3.0/ -->
+
+        <accumulo.version>1.10.0</accumulo.version>
         <hadoop.version>2.9.2</hadoop.version>
         
         <zookeeper.version>3.4.14</zookeeper.version>
@@ -110,7 +112,7 @@ under the License.
         <spring.hadoop.version>1.0.2.RELEASE</spring.hadoop.version> <!-- Newest: 2.2.1.RELEASE -->
         <spring.shell.version>1.1.0.RELEASE</spring.shell.version> <!-- Newest: 1.1.0.RELEASE -->
 
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
         <mrunit.version>1.1.0</mrunit.version>
         <slf4j.version>1.7.26</slf4j.version>
         <mockito.all.version>1.10.19</mockito.all.version>
@@ -152,7 +154,7 @@ under the License.
             <id>geoindexing</id>
             <properties>
                 <geomesa.version>1.3.0-m1</geomesa.version> <!-- Newest: 1.3.0-m1 -->
-                <geowave.version>0.9.3</geowave.version> <!-- Newest: 0.9.3 -->
+                <geowave.version>0.9.3</geowave.version> <!-- Newest: 1.1.0 -->
                 <jts.version>1.13</jts.version>
             </properties>
             <dependencyManagement>
@@ -222,7 +224,7 @@ under the License.
                     <dependency>
                         <groupId>com.vividsolutions</groupId>
                         <artifactId>jts</artifactId>
-                        <version>1.13</version>
+                        <version>${jts.version}</version>
                     </dependency>
                 </dependencies>
             </dependencyManagement>

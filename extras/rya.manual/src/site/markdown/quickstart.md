@@ -25,8 +25,8 @@ This tutorial will outline the steps needed to get quickly started with the Apac
 
 ## Prerequisites
 
-* Columnar Store (Accumulo)
-* Apache Rya code (Git: git://git.apache.org/incubator-rya.git)
+* Columnar Store (Accumulo or MongoDB) The tutorial will go forward using Accumulo
+* Apache Rya code (Git: https://gitbox.apache.org/repos/asf?p=rya.git or https://github.com/apache/rya.git)
 * Maven 3.0 +
 
 ## Building from Source

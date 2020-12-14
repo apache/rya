@@ -31,21 +31,21 @@ in the artifact `rya.shell-<version>-bin.tar.gz`.
 To install, simply extract the archive to the desired output directory
 
 ``` sh
-tar xzvf rya.shell-3.2.11-incubating-bin.tar.gz
+tar xzvf rya.shell-<version>-bin.tar.gz
 ```
 
 You can optionally install the Rya Shell by adding its `bin` directory to your 
 shell's `PATH`.
 
 ``` sh
-$ echo "PATH=$PATH:path/to/rya.shell-3.2.11-incubating/bin" >> ~/.bash_profile
+$ echo "PATH=$PATH:path/to/rya.shell-<version>/bin" >> ~/.bash_profile
 ```
 
 ## Launching, Exiting and Help
 
 ```
 # Launch the shell
-$ cd rya.shell-3.2.11-incubating-bin
+$ cd rya.shell-<version>-bin
 $ bin/rya
 
 # Or, if you added the rya shell to your path, you can just type:
@@ -59,7 +59,7 @@ $ rya
 |_|  \_\__, |\__,_| |_____/|_| |_|\___|_|_|
         __/ |                              
        |___/                               
-3.2.11-incubating
+<version>
 
 Welcome to the Rya Shell.
 
@@ -162,14 +162,14 @@ It is possible to script the Rya Shell by writing multiple commands to a text
 file and then load them into the shell with the `script` command:
 
 ```
-rya> script --file rya.shell-3.2.11-incubating/examples/example.script
+rya> script --file rya.shell-<version>/examples/example.script
 ```
 
 ## Logs
 
-Logging for the rya shell is written to the `rya.shell-3.2.11-incubating/logs`
+Logging for the rya shell is written to the `rya.shell-<version>/logs`
 directory.  Configuration of the logging is controlled by the 
-`rya.shell-3.2.11-incubating/conf/log4j.properties` file.
+`rya.shell-<version>/conf/log4j.properties` file.
 
 ## Creating a Rya Instance
 
@@ -303,7 +303,7 @@ The `print-instance-details` command displays the configuration of the currently
 rya/myAccumuloInstance:rya_> print-instance-details
 General Metadata:
   Instance Name: rya_
-  RYA Version: 3.2.11-incubating
+  RYA Version: <version>
   Users: myUserName
 Secondary Indicies:
   Entity Centric Index:

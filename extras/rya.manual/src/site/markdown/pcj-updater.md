@@ -257,12 +257,12 @@ fluo.yarn.worker.num.cores     | Defines the number of CPUs that should be alloc
 
 The RYA PCJ Updater Fluo App jar is in a special uber jar that contains a subset of dependencies.
 This jar is represented by the maven coordinate 
-`org.apache.rya:rya.pcj.fluo.app:3.2.11-incubating:fluo-app` and when Rya is 
+`org.apache.rya:rya.pcj.fluo.app:<version>:fluo-app` and when Rya is 
 built from source, it can be found here:
-`rya/extras/rya.pcj.fluo/pcj.fluo.app/target/rya.pcj.fluo.app-3.2.11-incubating-fluo-app.jar`.
+`rya/extras/rya.pcj.fluo/pcj.fluo.app/target/rya.pcj.fluo.app-<version>-fluo-app.jar`.
 
 The Rya fluo-app jar needs to be copied to Fluo here: 
-`fluo-1.0.0-incubating/apps/rya_pcj_updater/lib/rya.pcj.fluo.app-3.2.11-incubating-fluo-app.jar`
+`fluo-1.0.0-incubating/apps/rya_pcj_updater/lib/rya.pcj.fluo.app-<version>-fluo-app.jar`
 
 
 ### 6. Initialize the Rya PCJ Updater Fluo App
@@ -297,7 +297,7 @@ $ rya
 |_|  \_\__, |\__,_| |_____/|_| |_|\___|_|_|
         __/ |
        |___/
-3.2.11-incubating
+<version>
 
 Welcome to the Rya Shell.
 

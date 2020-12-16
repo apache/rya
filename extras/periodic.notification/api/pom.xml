@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya.periodic.notification.parent</artifactId>
-        <version>4.0.1-incubating-SNAPSHOT</version>
+        <version>4.0.1</version>
     </parent>
 
     <artifactId>rya.periodic.notification.api</artifactId>

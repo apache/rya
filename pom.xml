@@ -27,7 +27,7 @@ under the License.
 
     <groupId>org.apache.rya</groupId>
     <artifactId>rya-project</artifactId>
-    <version>4.0.1</version>
+    <version>4.1.0-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
@@ -1486,7 +1486,7 @@ under the License.
     <scm>
         <connection>scm:git:https://gitbox.apache.org/repos/asf/rya.git</connection>
         <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/rya.git</developerConnection>
-        <tag>rya-4.0.1-rc1</tag>
+        <tag>HEAD</tag>
         <url>https://gitbox.apache.org/repos/asf?p=rya.git</url>
     </scm>
 </project>

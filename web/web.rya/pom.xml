@@ -23,7 +23,7 @@ under the License.
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya.web</artifactId>
-        <version>4.0.1</version>
+        <version>4.1.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>web.rya</artifactId>

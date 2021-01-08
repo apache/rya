@@ -41,6 +41,18 @@ Once Vagrant is installed, starting up the Rya-Example-Box is fairly straightfor
 
 1. Download the [Rya-Example-Box Vagrantfile] to the custom directory.  Note that it must be named `Vagrantfile` with no extension.
 
+1. Optionally, if you downloaded and built Rya, copy built Rya libraries from your project into the custom directory. If not, Vagrant will attempt to download from the public repository when building the VM. The following files can be copied or linked (ln -s file destination).
+
+        extras/indexingExample/target/rya.indexing.example-*-distribution.zip
+        extras/vagrantExample/target/rya.vagrant.example-*.jar
+        web/web.rya/target/web.rya.war
+
+The last one must be renamed to include the version, for example:  web.rya-4.0.1.war
+
+1. Modify the Vagrantfile so the RYA_EXAMPLE_VERSION matches the version in your files or in the public repository.  It may already match the current version, but verify it since it is a pre-release guess.  This is around line 56.  For example:
+
+    export RYA_EXAMPLE_VERSION=4.0.1
+
 1. Open a DOS prompt (Windows) or Terminal (Mac/Linux), change to the custom directory, and issue the command `vagrant up`.  Note that it may take up to 30 minutes to download, install, and configure Rya and all of the components.
 
 ### Verification
@@ -89,6 +101,11 @@ RDF4J Workbench requires a set of "transformations" for listing Rya in the RDF4J
 
 
 If these files do note exists, open the vagrant file and look for the line `echo "Downloading Rya"`. Try working through those commands manually on your Vagrant VM.
+
+#### java.io.FileNotFoundException: class path resource [environment.properties] cannot be opened because it does not exist
+This file is missing:
+    /var/lib/tomcat9/webapps/web.rya/WEB-INF/classes/environment.properties
+It is created by the Vagrantfile.  It may be overwritten if the webapp is redeployed.  Run `vagrant up --provision` .
 
 #### Other useful commands
 

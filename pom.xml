@@ -27,7 +27,7 @@ under the License.
 
     <groupId>org.apache.rya</groupId>
     <artifactId>rya-project</artifactId>
-    <version>4.0.1-incubating-SNAPSHOT</version>
+    <version>4.1.0-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
@@ -47,9 +47,9 @@ under the License.
     <mailingLists>
         <mailingList>
             <name>Dev</name>
-            <subscribe>dev-subscribe@rya.incubator.apache.org</subscribe>
-            <unsubscribe>dev-unsubscribe@rya.incubator.apache.org</unsubscribe>
-            <post>dev@rya.incubator.apache.org</post>
+            <subscribe>dev-subscribe@rya.apache.org</subscribe>
+            <unsubscribe>dev-unsubscribe@rya.apache.org</unsubscribe>
+            <post>dev@rya.apache.org</post>
             <archive>http://mail-archives.apache.org/mod_mbox/rya-dev</archive>
         </mailingList>
     </mailingLists>
@@ -1550,9 +1550,9 @@ under the License.
     </reporting>
 
     <scm>
-        <connection>scm:git:git://git.apache.org/incubator-rya.git</connection>
-        <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-rya.git</developerConnection>
+        <connection>scm:git:https://gitbox.apache.org/repos/asf/rya.git</connection>
+        <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/rya.git</developerConnection>
         <tag>HEAD</tag>
-        <url>https://git-wip-us.apache.org/repos/asf?p=incubator-rya.git</url>
+        <url>https://gitbox.apache.org/repos/asf?p=rya.git</url>
     </scm>
 </project>

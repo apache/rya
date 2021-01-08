@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya.geoindexing</artifactId>
-        <version>4.0.1-incubating-SNAPSHOT</version>
+        <version>4.1.0-SNAPSHOT</version>
     </parent>
     <artifactId>rya.geo.mongo</artifactId>
     <name>Apache Rya Geo Indexing using MongoDB</name>

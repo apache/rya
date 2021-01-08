@@ -125,13 +125,13 @@ Name the file "quickstart-statements.nt" and use a text editor to write the foll
 Use the ```rya.kafka.connect.client``` to write the file's contents to the topic we just made.
 
 ```
-java -jar rya.kafka.connect.client-4.0.0-incubating-shaded.jar write -f quickstart-statements.nt -t statements
+java -jar rya.kafka.connect.client-<version>-shaded.jar write -f quickstart-statements.nt -t statements
 ```
  
 You may verify the statements were written by using the read command.
 
 ```
-java -jar rya.kafka.connect.client-4.0.0-incubating-shaded.jar read -t statements
+java -jar rya.kafka.connect.client-<version>-shaded.jar read -t statements
 ```
 At this point you need to decide whether you are going to use an Accumulo or 
 MongoDB backed instance of Rya. The following steps are pretty much the same
@@ -148,7 +148,7 @@ cluster. To do this, you'll need to use the Rya Shell. Here's roughly what an
 installation session should look like.
 
 ```
-java -jar rya.shell-4.0.0-incubating-shaded.jar
+java -jar rya.shell-<version>-shaded.jar
 
  _____                _____ _          _ _
 |  __ \              / ____| |        | | |
@@ -158,7 +158,7 @@ java -jar rya.shell-4.0.0-incubating-shaded.jar
 |_|  \_\__, |\__,_| |_____/|_| |_|\___|_|_|
         __/ |
        |___/
-4.0.0-incubating
+<version>
 
 Welcome to the Rya Shell.
 
@@ -224,7 +224,7 @@ Install the shaded jar that contains the Accumulo Rya Sink connector.
 
 ```
 mkdir confluent-4.1.0/share/java/kafka-connect-rya-accumulo
-cp rya.kafka.connect.accumulo-4.0.0-incubating-shaded.jar confluent-4.1.0/share/java/kafka-connect-rya-accumulo
+cp rya.kafka.connect.accumulo-<version>-shaded.jar confluent-4.1.0/share/java/kafka-connect-rya-accumulo
 ```
 
 Then we need to configure the connector to read from the "statements" topic,
@@ -300,7 +300,7 @@ Mongo database. To do this, you'll need to use the Rya Shell. Here's roughly
 what an installation session should look like.
 
 ```
-[root@localhost ~]# java -jar rya.shell-4.0.0-incubating-SNAPSHOT-shaded.jar
+[root@localhost ~]# java -jar rya.shell-<version>-shaded.jar
  _____                _____ _          _ _
 |  __ \              / ____| |        | | |
 | |__) |   _  __ _  | (___ | |__   ___| | |
@@ -309,7 +309,7 @@ what an installation session should look like.
 |_|  \_\__, |\__,_| |_____/|_| |_|\___|_|_|
         __/ |
        |___/
-4.0.0-incubating-SNAPSHOT
+<version>
 
 Welcome to the Rya Shell.
 
@@ -371,7 +371,7 @@ Install the shaded jar that contains the Mongo Rya Sink connector.
 
 ```
 mkdir confluent-4.1.0/share/java/kafka-connect-rya-mongo
-cp rya.kafka.connect.mongo-4.0.0-incubating-shaded.jar confluent-4.1.0/share/java/kafka-connect-rya-mongo
+cp rya.kafka.connect.mongo-<version>-shaded.jar confluent-4.1.0/share/java/kafka-connect-rya-mongo
 ```
 
 Then we need to configure the connector to read from the "statements" topic,

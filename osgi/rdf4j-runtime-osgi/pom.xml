@@ -133,7 +133,7 @@ under the License.
             </snapshots>
             <id>bndrepo</id>
             <name>aQute BND Repo</name>
-            <url>http://www.aqute.biz/repo</url>
+            <url>https://www.aqute.biz/repo</url>
         </repository>
     </repositories>
 </project>

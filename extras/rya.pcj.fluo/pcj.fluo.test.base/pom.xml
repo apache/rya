@@ -22,7 +22,7 @@ under the License.
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya.pcj.fluo.parent</artifactId>
-        <version>4.0.1-incubating-SNAPSHOT</version>
+        <version>4.1.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>rya.pcj.fluo.test.base</artifactId>

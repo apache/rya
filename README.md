@@ -49,8 +49,8 @@ This tutorial will outline the steps needed to get quickly started with the Rya 
 
 ### Prerequisites
 
-* Columnar Store (either Accumulo) The tutorial will go forward using Accumulo
-* Rya code (Git: git://git.apache.org/incubator-rya.git)
+* Columnar Store (either Accumulo or MongoDB) The tutorial will go forward using Accumulo
+* Rya code (Git: https://gitbox.apache.org/repos/asf?p=rya.git or https://github.com/apache/rya.git)
 * Maven 3.0 +
 
 ### Building from Source
@@ -339,7 +339,7 @@ public class QueryDataServletRun {
 Compile and run this code above, changing the url that your Rdf War is running at.
 
 
-[Apache Rya]: http://rya.incubator.apache.org/ 
+[Apache Rya]: http://rya.apache.org/ 
 [Accumulo]: https://accumulo.apache.org/
 [ZooKeeper]: https://zookeeper.apache.org/
 [Hadoop]: http://hadoop.apache.org/

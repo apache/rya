@@ -118,10 +118,10 @@ Copy the RPM to the CentOS 7 machine the Query Manager will be installed on.
 Install it using the following command:
 
 ```
-yum install -y rya.streams.query-manager-3.2.12-incubating.noarch.rpm
+yum install -y rya.streams.query-manager-<version>.noarch.rpm
 ```
 
-It will install the program to **/opt/rya-streams-query-manager-3.2.12**. Follow
+It will install the program to **/opt/rya-streams-query-manager-<version>**. Follow
 the directions that are in the README.txt file within that directory to finish
 configuration.
 
@@ -140,7 +140,7 @@ We assume Kafka is running on the local machine using the standard Kafka port
 of 9092. Issue the following command:
 
 ```
-java -jar rya.streams.client-3.2.12-incubating-SNAPSHOT-shaded.jar add-query \
+java -jar rya.streams.client-<version>-shaded.jar add-query \
     -i localhost -p 9092 -r rya-streams-quick-start -a true \
     -q "SELECT * WHERE { ?person <urn:talksTo> ?employee .?employee <urn:worksAt> ?business }"
 ```
@@ -148,7 +148,7 @@ The Query Manager should eventually see that this query was registered and
 start a Rya Streams job that will begin processing it using any Visibility
 Statements that have been loaded into Rya Streams. If no results are observed
 in step 6, then verify the Query Manager is working properly. Its logs can be
-found in **/opt/rya-streams-query-manager-3.2.12/logs**.
+found in **/opt/rya-streams-query-manager-<version>/logs**.
 
 ### Step 4: Start watching for results ###
 
@@ -156,7 +156,7 @@ We need to fetch the Query ID of the query we want to watch. This can be looked
 up by issuing the following command:
 
 ```
-java -jar rya.streams.client-3.2.12-incubating-SNAPSHOT-shaded.jar list-queries \
+java -jar rya.streams.client-<version>-shaded.jar list-queries \
     -i localhost -p 9092 -r rya-streams-quick-start"
 ```
 
@@ -173,7 +173,7 @@ need to use the Query ID **8dd689ee-9d16-4aa7-91c0-667cdb3ed81a**. Start
 watching the Stream Query's output using the following command:
 
 ```
-java -jar rya.streams.client-3.2.12-incubating-SNAPSHOT-shaded.jar stream-results \
+java -jar rya.streams.client-<version>-shaded.jar stream-results \
     -i localhost -p 9092 -r rya-streams-quick-start" -q 8dd689ee-9d16-4aa7-91c0-667cdb3ed81a
 ```
 
@@ -198,7 +198,7 @@ visibilities when we load the statements. Load the file using the following
 command:
 
 ```
-java -jar rya.streams.client-3.2.12-incubating-SNAPSHOT-shaded.jar load-statements \
+java -jar rya.streams.client-<version>-shaded.jar load-statements \
     -i localhost -p 9092 -r rya-streams-quick-start" -v "" -f ./quick-start-data.nt
 ```
 

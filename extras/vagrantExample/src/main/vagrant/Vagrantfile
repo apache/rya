@@ -33,9 +33,7 @@
 
 Vagrant.configure(2) do |config|
 
-  config.vm.box = "ubuntu/trusty64"
-  config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
-
+  config.vm.box = "bento/ubuntu-18.04"
   config.vm.provider "virtualbox" do |vb|
     vb.name = "rya-example-box"
     vb.memory = "4096"
@@ -46,57 +44,40 @@ Vagrant.configure(2) do |config|
   config.vm.hostname = "rya-example-box"
 
   config.vm.provision "shell", inline: <<-SHELL
-
-    ###set -x  ## turn on command echo with expanded variables
+    set -x  ## turn on command echo with expanded variables
     # List of dependency versions
-    export ACCUMULO_VERSION=1.6.5
-    ###export ACCUMULO_VERSION=1.7.1
+    export ACCUMULO_VERSION=1.6.6
     export HADOOP_VERSION=2.7.2
-    export RYA_EXAMPLE_VERSION=4.0.0-incubating-SNAPSHOT
-    # TODO: Eventually this version of the Rya distribution will be on maven...and then we can use the following instead
-    #export RYA_EXAMPLE_VERSION=4.0.0-incubating
-    export RDF4J_VERSION=2.3.1
-    export ZOOKEEPER_VERSION=3.4.5-cdh4.5.0
-
-    mavenRepoUrl=http://repo1.maven.org/maven2/
-
+    ### IMPORTANT:  Verify this exists in the Maven repos.  As you know, I am writing this before it exists.
+    export RYA_EXAMPLE_VERSION=4.0.1
+    export RDF4J_VERSION=2.5.5
+    export ZOOKEEPER_VERSION=3.4.5-cdh5.16.1
+    mavenRepoUrl=https://repo1.maven.org/maven2/
     echo "Updating host file with permanent ip"
     sudo sed -i 's/127.0.1.1/192.168.33.10/' /etc/hosts
     cat >> /etc/hosts <<EOF
-192.168.33.10 zoo1 zoo2 zoo3
+127.0.0.1     localhost
+192.168.33.10 zoo1 zoo2 zoo3 leader1
 EOF
-
     sudo -E apt-get -qq update
-
     echo "Installing Java installer..."
-    sudo -E add-apt-repository ppa:webupd8team/java || exit $?
-    sudo -E apt-get -qq update || exit $?
-    echo debconf shared/accepted-oracle-license-v1-1 select true | \
-      sudo -E /usr/bin/debconf-set-selections
-    echo debconf shared/accepted-oracle-license-v1-1 seen true | \
-      sudo -E /usr/bin/debconf-set-selections
-    sudo mkdir --parents /var/cache/oracle-jdk8-installer || exit $?
-    echo verbose=off >> /var/cache/oracle-jdk8-installer/wgetrc || exit $?
-
-    echo "Installing Java..."
-    sudo -E apt-get -qq install -y oracle-java8-installer || exit $?
-    sudo ln --force -s /usr/lib/jvm/java-8-oracle/ /usr/lib/jvm/default-java
-
+    # if you want dev tools like javac, change this to openjdk-8-jdk-headless 
+    sudo -E apt-get install -y openjdk-8-jre || exit $?
+    
     echo "Installing Tomcat..."
-    sudo -E apt-get install -y tomcat7  || exit $?
-
+    sudo useradd -r -m -U -d /opt/tomcat -s /bin/false tomcat
+    sudo -E apt-get install -y tomcat9  || exit $?
+    sudo usermod -a -G tomcat vagrant
     echo "Installing Unzip..."
     apt-get install unzip || exit $?
-
     echo "Setting up environment..."
-    export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+    export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
     export HADOOP_HOME=/home/vagrant/hadoop-${HADOOP_VERSION}
     export ZOOKEEPER_HOME=/home/vagrant/zookeeper-${ZOOKEEPER_VERSION}
     export ZOO_LOG_DIR=${ZOOKEEPER_HOME}/logs/
     export ACCUMULO_HOME=/home/vagrant/accumulo-${ACCUMULO_VERSION}
     export PATHADD=$JAVA_HOME/bin:$ZOOKEEPER_HOME/bin:$ACCUMULO_HOME/bin:$HADOOP_HOME/bin
     export PATH=$PATH:$PATHADD
-
     export HADOOP_PREFIX="$HADOOP_HOME"
     export HADOOP_CONF_DIR="$HADOOP_PREFIX/etc/hadoop"
     export ACCUMULO_LOG_DIR=$ACCUMULO_HOME/logs
@@ -110,14 +91,12 @@ EOF
     # Shell environment includes Accumulo resources.
     ACCUMULO_RC=/home/vagrant/.accumulo_rc.sh
     cat > ${ACCUMULO_RC}  <<EOF
-
         export JAVA_HOME=\'$JAVA_HOME\'
         export HADOOP_HOME=\'$HADOOP_HOME\'
         export ZOOKEEPER_HOME=\'$ZOOKEEPER_HOME\'
         export ZOO_LOG_DIR=\'$ZOO_LOG_DIR\'
         export ACCUMULO_HOME=\'$ACCUMULO_HOME\'
         export PATH=\\$PATH:$PATHADD
-
         export HADOOP_PREFIX=\'$HADOOP_PREFIX\'
         export HADOOP_CONF_DIR=\'$HADOOP_CONF_DIR\'
         export ACCUMULO_LOG_DIR=\'$ACCUMULO_LOG_DIR\'
@@ -133,9 +112,7 @@ EOF
         function ryaps() { ps -ef | grep java | tr ' ' '\\n' | egrep '^org\\.apache|^tracer|^master|^monitor|^tserver|^gc' | sed '/\\.Main/ N ; s/\\n/ /' ; }
 EOF
     source ${ACCUMULO_RC} || exit 151
-
     # include it at the beginning of both shell configuration files.
-
     for BASHRC in /home/vagrant/.bashrc /home/vagrant/.bash_profile ;
     do touch ${BASHRC} ;
         cat - ${BASHRC} > ${BASHRC}.new <<EOF  && mv ${BASHRC}.new ${BASHRC} || exit 152
@@ -145,7 +122,6 @@ EOF
     echo "Acquiring and Extracting ..."
     
     function echoerr() { printf "%s\n" "$*" >&2; }
-
     function download {
       ### curl --fail treat http status >= 400 as an error. --location follow redirects status>=300
       curl --silent --show-error --fail --location "$@"
@@ -174,7 +150,6 @@ EOF
             fi
         done
     }
-
     echo "- Hadoop"
     hadoopUrl=https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz
     if [[ ! -d ${HADOOP_HOME} ]] ; then 
@@ -182,15 +157,13 @@ EOF
         download $hadoopUrl \
         | tar -zxC /home/vagrant || exit 101
     fi
-
     echo "- Zookeeper"
-    zookeeperUrl=http://archive-primary.cloudera.com/cdh4/cdh/4/zookeeper-${ZOOKEEPER_VERSION}.tar.gz
+    zookeeperUrl=http://archive.cloudera.com/cdh5/cdh/5/zookeeper-${ZOOKEEPER_VERSION}.tar.gz
     if [[ ! -d ${ZOOKEEPER_HOME} ]] ; then
         echo "Downloading $zookeeperUrl"
         download $zookeeperUrl \
         | tar -zxC /home/vagrant || exit 102
     fi
-
     echo "- Accumulo"
     accumuloUrl=https://archive.apache.org/dist/accumulo/${ACCUMULO_VERSION}/accumulo-${ACCUMULO_VERSION}-bin.tar.gz
     if [[ ! -d ${ACCUMULO_HOME} ]] ; then
@@ -198,7 +171,6 @@ EOF
         download $accumuloUrl \
         | tar -zxC /home/vagrant || exit 103
     fi
-
     echo "Configuring Zookeeper..."
     sudo mkdir --parents /var/zookeeper
     sudo chown vagrant:vagrant /var/zookeeper
@@ -208,15 +180,12 @@ EOF
     # Conflicts with Accumulo and maybe Zookeeper
     sudo rm --force ${HADOOP_HOME}/share/hadoop/common/lib/slf4j-api-1.7.10.jar
     sudo rm --force ${HADOOP_HOME}/share/hadoop/common/lib/slf4j-log4j12-1.7.10.jar
-
     # Assure logs are creatable and writeable
     sudo mkdir --parents ${ZOO_LOG_DIR}
     sudo touch "${ZOO_LOG_DIR}/zookeeper.out"
     sudo chmod -R a+wX  ${ZOO_LOG_DIR}
-
     echo "Running Zookeeper..."
     sudo -E ${ZOOKEEPER_HOME}/bin/zkServer.sh start
-
     echo "Configuring Accumulo..."
     cp ${ACCUMULO_HOME}/conf/examples/1GB/standalone/* ${ACCUMULO_HOME}/conf/
     rm --force ${ACCUMULO_HOME}/conf/accumulo-site.xml
@@ -271,7 +240,6 @@ EOF
     cat > ${ACCUMULO_HOME}/conf/masters <<EOF
 rya-example-box
 EOF
-
     cat > ${ACCUMULO_HOME}/conf/slaves <<EOF
 rya-example-box
 EOF
@@ -280,97 +248,116 @@ EOF
     mkdir --parents /data/accumulo/lib/ext
     
     sudo chmod -R a+rwX ${ACCUMULO_HOME}/logs/
-
     echo "Starting Accumulo..."
     echo "Init will fail during a re-provision, but you can ignore it:  'FATAL: It appears the directories [...] were previously initialized.'"
     echo "Also, you may see an indefinitely repeating: 'Waiting for accumulo to be initialized' which means Accumulo won't start."
     echo "Either issue can be resolved by removing the directory: 'sudo rm -r /data/accumulo' then re-provision. Warning: this will erase all Rya/Accumulo data."
     ${ACCUMULO_HOME}/bin/accumulo init --instance-name dev --password root
     ${ACCUMULO_HOME}/bin/start-all.sh  || exit 107
-
     sudo chmod -R a+rwX ${ACCUMULO_HOME}/logs/
-
     echo 'Done!'
-
+    # --------------------
     echo "Installing RDF4J Server"
-    # creating log dir rdf4j-http-server-${RDF4J_VERSION}
-    sudo mkdir --parents /usr/share/tomcat7/.RDF4J
-    sudo chown -R tomcat7:tomcat7 /usr/share/tomcat7
-    sudo ln --force -s /usr/share/tomcat7/.RDF4J/Server/logs /var/log/tomcat7/rdf4j-server
-    rdf4jwar=/var/lib/tomcat7/webapps/rdf4j-server.war
+    # this is the rdf4j data dir.  It might need to be registered with tomcat to write there.
+    export rdf4jServerBase=/opt/tomcat/
+    sudo install -d -o tomcat -m u=rwx,go=rx ${rdf4jServerBase}
+    sudo -u tomcat mkdir --parents ${rdf4jServerBase}/server/logs
+    sudo -u tomcat mkdir --parents ${rdf4jServerBase}/.RDF4J/server/logs
+    # tomcat v9 requires explicit permissions to the file system.
+    sudo mkdir --parents          /etc/systemd/system/tomcat9.service.d
+    cat <<EOF | sudo tee --append /etc/systemd/system/tomcat9.service.d/logging-allow.conf
+[Service]
+ReadWritePaths=${rdf4jServerBase}
+EOF
+    echo 'Restarting Tomcat (or starting)'
+    sudo -E systemctl daemon-reload     || exit 1080
+    sudo -E systemctl enable tomcat9    || exit 1081
+    sudo -E systemctl restart tomcat9   || exit 1082
+    rdf4jwar=/var/lib/tomcat9/webapps/rdf4j-server.war
     if [[ ! -s $rdf4jwar ]] ; then
         echo "Downloading RDF4J Server"
         download --output $rdf4jwar ${mavenRepoUrl}org/eclipse/rdf4j/rdf4j-http-server/${RDF4J_VERSION}/rdf4j-http-server-${RDF4J_VERSION}.war || exit 110
     fi
     echo "RDF4J http server deployed at http://rya-example-box:8080/rdf4j-server"
-
+    # --------------------
     echo "Installing RDF4J Workbench"
-    workbench=/var/lib/tomcat7/webapps/rdf4j-workbench.war
+    workbench=/var/lib/tomcat9/webapps/rdf4j-workbench.war
     if [[ ! -s $workbench ]] ; then
         echo "Downloading RDF4J Workbench"
         download --output $workbench ${mavenRepoUrl}org/eclipse/rdf4j/rdf4j-http-workbench/${RDF4J_VERSION}/rdf4j-http-workbench-${RDF4J_VERSION}.war || exit 111
     fi
     echo "RDF4J workbench deployed at http://rya-example-box:8080/rdf4j-workbench"
-
+    # ----------------------
     echo "Installing Rya"
     ryaIndexing=rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution
+    # Place in the vagrant folder from your dev project, example: extras/indexingExample/target/rya.indexing.example-4.0.1-distribution.zip
+    if [[ -s "/vagrant/${ryaIndexing}.zip" ]] ; then
+        echo "Using found local file:  /vagrant/${ryaIndexing}.zip "
+        cp "/vagrant/${ryaIndexing}.zip"  ./
+    fi
     if [[ ! -s ${ryaIndexing}.zip ]] ; then
         echo "Downloading ${ryaIndexing}.zip quietly, this will take some minutes with no output..."
-        download --output ${ryaIndexing}.zip https://www.dropbox.com/s/gruhp3a848k8ryu/${ryaIndexing}.zip?raw=1 || exit 112
-        # TODO: Eventually this version of the Rya distribution will be on maven...and then we can use the following instead
-        #download --output ${ryaIndexing}.zip ${mavenRepoUrl}org/apache/rya/rya.indexing.example/${RYA_EXAMPLE_VERSION}/${ryaIndexing}.zip || exit 112
+        download --output ${ryaIndexing}.zip ${mavenRepoUrl}org/apache/rya/rya.indexing.example/${RYA_EXAMPLE_VERSION}/${ryaIndexing}.zip || exit 112
     fi
     sudo mkdir --parents ${ryaIndexing}
     sudo unzip -q -o ${ryaIndexing}.zip -d ${ryaIndexing}
-
     # before continuing, wait for tomcat to deploy wars:
-    waitForDeploy /var/lib/tomcat7/webapps/rdf4j-workbench/WEB-INF/lib/
-    waitForDeploy /var/lib/tomcat7/webapps/rdf4j-server/WEB-INF/lib/
-
+    waitForDeploy /var/lib/tomcat9/webapps/rdf4j-workbench/WEB-INF/lib/
+    waitForDeploy /var/lib/tomcat9/webapps/rdf4j-server/WEB-INF/lib/
     # soft linking the files doesn't seem to work in tomcat, so we copy them instead :(
-    sudo cp ${ryaIndexing}/dist/lib/* /var/lib/tomcat7/webapps/rdf4j-workbench/WEB-INF/lib/ || exit 113
-    sudo cp ${ryaIndexing}/dist/lib/* /var/lib/tomcat7/webapps/rdf4j-server/WEB-INF/lib/    || exit 114
-
-    # These are older libs that breaks tomcat 7
-    sudo rm --force /var/lib/tomcat7/webapps/rdf4j-workbench/WEB-INF/lib/servlet-api-2.5.jar
-    sudo rm --force /var/lib/tomcat7/webapps/rdf4j-workbench/WEB-INF/lib/jsp-api-2.1.jar
-    sudo rm --force /var/lib/tomcat7/webapps/rdf4j-server/WEB-INF/lib/servlet-api-2.5.jar
-    sudo rm --force /var/lib/tomcat7/webapps/rdf4j-server/WEB-INF/lib/jsp-api-2.1.jar
-
-    sudo chown -R tomcat7:tomcat7 /var/lib/tomcat7/webapps/rdf4j-workbench/WEB-INF/lib/
-    sudo chown -R tomcat7:tomcat7 /var/lib/tomcat7/webapps/rdf4j-server/WEB-INF/lib/
-
+    sudo -u tomcat cp ${ryaIndexing}/dist/lib/* /var/lib/tomcat9/webapps/rdf4j-workbench/WEB-INF/lib/ || exit 113
+    sudo -u tomcat cp ${ryaIndexing}/dist/lib/* /var/lib/tomcat9/webapps/rdf4j-server/WEB-INF/lib/    || exit 114
+    # These are older libs that break tomcat and rdf4j that come with Rya above.
+    sudo rm --force /var/lib/tomcat9/webapps/rdf4j-workbench/WEB-INF/lib/servlet-api-2.5.jar
+    sudo rm --force /var/lib/tomcat9/webapps/rdf4j-workbench/WEB-INF/lib/jsp-api-2.1.jar
+    s=/var/lib/tomcat9/webapps/rdf4j-server/WEB-INF/lib/
+    sudo rm --force $s/servlet-api-2.5.jar   $s/lib/jsp-api-2.1.jar
+    sudo find "$s" -name 'spring-*-3.*.jar' -exec sudo rm --force {} +
+    sudo rm $s/spring-aop-4.2.1.RELEASE.jar $s/rdf4j-http-server-spring-2.3.1.jar
+    sudo rm --force  $s/slf4j-log4j12-1.7.25.jar   $s/slf4j-api-1.7.25.jar  $s/jcabi-log-0.14.jar   $s/jcl-over-slf4j-1.7.25.jar   $s/minlog-1.3.0.jar   $s/commons-logging-1.1.1.jar   $s/log4j-1.2.16.jar
+    sudo chown -R tomcat:tomcat /var/lib/tomcat9/webapps/rdf4j-workbench/WEB-INF/lib/
+    sudo chown -R tomcat:tomcat /var/lib/tomcat9/webapps/rdf4j-server/WEB-INF/lib/
+    # ----------------------
     echo "Downloading and installing new templates for RDF4J WorkBench"
     ryaVagrant=rya.vagrant.example-${RYA_EXAMPLE_VERSION}
+    # Place in the vagrant folder from your dev project: extras/vagrantExample/target/rya.vagrant.example-*.jar 
+    if [[ -s "/vagrant/${ryaVagrant}.jar" ]] ; then
+        echo "Using found local file:  /vagrant/${ryaVagrant}.jar "
+        cp "/vagrant/${ryaVagrant}.jar"  ./
+    fi
     if [[ ! -s ${ryaVagrant}.jar ]] ; then
         echo "Downloading ${ryaVagrant}.jar"
-        download --output ${ryaVagrant}.jar https://www.dropbox.com/s/p07u42et9rui3x7/${ryaVagrant}.jar?raw=1 || exit 120
-        # TODO: Eventually this version of the Rya distribution will be on maven...and then we can use the following instead
-        #download --output ${ryaVagrant}.jar ${mavenRepoUrl}org/apache/rya/rya.vagrant.example/${RYA_EXAMPLE_VERSION}/${ryaVagrant}.jar || exit 120
+        download --output ${ryaVagrant}.jar ${mavenRepoUrl}org/apache/rya/rya.vagrant.example/${RYA_EXAMPLE_VERSION}/${ryaVagrant}.jar || exit 120
     fi
     sudo mkdir --parents ${ryaVagrant}
     sudo unzip -q -o ${ryaVagrant}.jar -d ${ryaVagrant}
-    sudo cp ${ryaVagrant}/*.xsl /var/lib/tomcat7/webapps/rdf4j-workbench/transformations/
-    sudo chown tomcat7:tomcat7 /var/lib/tomcat7/webapps/rdf4j-workbench/transformations/*
-
+    waitForDeploy /var/lib/tomcat9/webapps/rdf4j-workbench/transformations
+    sudo -u tomcat cp ${ryaVagrant}/*.xsl /var/lib/tomcat9/webapps/rdf4j-workbench/transformations/
+    sudo chown tomcat:tomcat /var/lib/tomcat9/webapps/rdf4j-workbench/transformations/*
+    # ----------------------
     echo "Deploying Rya Web"
     ryaWar=web.rya-${RYA_EXAMPLE_VERSION}.war
+    # Place in the vagrant folder from your dev project: web/web.rya/target/web.rya.war  rename to add version.
+    if [[ -s "/vagrant/${ryaWar}" ]] ; then
+        echo "Using found local file: /vagrant/${ryaWar} "
+        cp "/vagrant/${ryaWar}"  ./
+    fi
     if [[ ! -s ${ryaWar} ]] ; then
         echo "Downloading ${ryaWar}"
-        download https://www.dropbox.com/s/jrmgfey8ch1vrd6/${ryaWar}?raw=1 --output ${ryaWar} || exit 121
-        # TODO: Eventually this version of the Rya distribution will be on maven...and then we can use the following instead
-        #download ${mavenRepoUrl}org/apache/rya/web.rya/${RYA_EXAMPLE_VERSION}/${ryaWar} --output ${ryaWar} || exit 121
+        ###download https://www.dropbox.com/s/jrmgfey8ch1vrd6/${ryaWar}?raw=1 --output ${ryaWar} || exit 121
+        download ${mavenRepoUrl}org/apache/rya/web.rya/${RYA_EXAMPLE_VERSION}/${ryaWar} --output ${ryaWar} || exit 121
     fi
-    sudo cp ${ryaWar} /var/lib/tomcat7/webapps/web.rya.war
+    # remove this so we can wait for it to be recreated.
+    sudo rm -rf /var/lib/tomcat9/webapps/web.rya/WEB-INF/classes
+    sudo -u tomcat cp    ${ryaWar} /var/lib/tomcat9/webapps/web.rya.war
     # Wait for the war to deploy
-    waitForDeploy /var/lib/tomcat7/webapps/web.rya/WEB-INF/classes/
-
-    # These are older libs that breaks tomcat 7
-    sudo rm --force /var/lib/tomcat7/webapps/web.rya/WEB-INF/lib/servlet-api-2.5*.jar
-    sudo rm --force /var/lib/tomcat7/webapps/web.rya/WEB-INF/lib/jsp-api-2.1.jar
-
+    waitForDeploy /var/lib/tomcat9/webapps/web.rya/WEB-INF/classes/
+    # These are older libs that break tomcat
+    sudo rm --force /var/lib/tomcat9/webapps/web.rya/WEB-INF/lib/servlet-api-2.5*.jar
+    sudo rm --force /var/lib/tomcat9/webapps/web.rya/WEB-INF/lib/jsp-api-2.1.jar
     echo "Modify Rya Web Config"
-    cat > /var/lib/tomcat7/webapps/web.rya/WEB-INF/classes/environment.properties <<EOF
+    sudo chmod -R a+rwX /var/lib/tomcat9/webapps/web.rya/
+    cat > /var/lib/tomcat9/webapps/web.rya/WEB-INF/classes/environment.properties <<EOF
 instance.name=dev
 instance.zk=localhost:2181
 instance.username=root
@@ -378,14 +365,10 @@ instance.password=root
 rya.tableprefix=rya_
 rya.displayqueryplan=true
 EOF
-
     echo "Rya web deployed at http://rya-example-box:8080/web.rya/sparqlQuery.jsp"
-
     # restart tomcat
-    sudo -E service tomcat7 restart
-
+    systemctl restart tomcat9   || exit $?
     echo "Finished and ready to use!"
     echo "You can re-apply these settings without losing data by running the command 'vagrant provision'"
   SHELL
-
 end

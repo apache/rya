@@ -20,19 +20,14 @@ under the License.
 -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
-    xmlns:context="http://www.springframework.org/schema/context"
-    xmlns:oxm="http://www.springframework.org/schema/oxm"
-    xmlns:hdp="http://www.springframework.org/schema/hadoop"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
-                http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
-                http://www.springframework.org/schema/oxm http://www.springframework.org/schema/oxm/spring-oxm-3.0.xsd
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:hdp="http://www.springframework.org/schema/hadoop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
                 http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd">
 
-
-     <hdp:configuration id="hadoopConf">
+    <hdp:configuration id="hadoopConf" properties-location="classpath:environment.properties">
         sc.useMongo=true
-      </hdp:configuration>
+    </hdp:configuration>
 
     <bean id="conf" class="org.apache.rya.mongodb.MongoDBRdfConfiguration">
         <constructor-arg ref="hadoopConf"/>
@@ -44,7 +39,7 @@ under the License.
         <property name="displayQueryPlan" value="${rya.displayqueryplan}"/>
         <property name="useStats" value="false"/>
     </bean>
-    
+
     <bean id="sail" class="org.apache.rya.sail.config.RyaSailFactory" factory-method="getInstance">
         <constructor-arg ref="conf"/>
     </bean>

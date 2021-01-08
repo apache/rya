@@ -69,26 +69,20 @@ public class AccumuloRdfConfigurationBuilder
      * @return AccumumuloRdfConfiguration with properties set
      */
     public static AccumuloRdfConfigurationBuilder fromProperties(Properties props) {
-        AccumuloRdfConfigurationBuilder builder = new AccumuloRdfConfigurationBuilder() //
-                .setAuths(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_AUTHS, "")) //
-                .setRyaPrefix(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_RYA_PREFIX, "rya_"))//
+        AccumuloRdfConfigurationBuilder builder = new AccumuloRdfConfigurationBuilder()
+                .setUseMockAccumulo(getBoolean(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_MOCK_ACCUMULO, "false")))
+                .setAccumuloInstance(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_INSTANCE))
+                .setAccumuloZooKeepers(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_ZOOKEEPERS))
+                .setAccumuloUser(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_USER))
+                .setAccumuloPassword(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_PASSWORD))
+                .setRyaPrefix(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_RYA_PREFIX, "rya_"))
+                .setAuths(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_AUTHS, ""))
                 .setVisibilities(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_VISIBILITIES, ""))
-                .setUseInference(
-                        getBoolean(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_INFERENCE, "false")))//
-                .setDisplayQueryPlan(getBoolean(
-                        props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_DISPLAY_QUERY_PLAN, "true")))//
-                .setAccumuloUser(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_USER)) //
-                .setAccumuloInstance(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_INSTANCE))//
-                .setAccumuloZooKeepers(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_ZOOKEEPERS))//
-                .setAccumuloPassword(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.ACCUMULO_PASSWORD))//
-                .setUseMockAccumulo(getBoolean(
-                        props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_MOCK_ACCUMULO, "false")))//
-                .setUseAccumuloPrefixHashing(getBoolean(
-                        props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_PREFIX_HASHING, "false")))//
-                .setUseCompositeCardinality(
-                        getBoolean(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_COUNT_STATS, "false")))//
-                .setUseJoinSelectivity(getBoolean(
-                        props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_JOIN_SELECTIVITY, "false")));
+                .setUseAccumuloPrefixHashing(getBoolean(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_PREFIX_HASHING, "false")))
+                .setUseInference(getBoolean(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_INFERENCE, "false")))
+                .setDisplayQueryPlan(getBoolean(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_DISPLAY_QUERY_PLAN, "true")))
+                .setUseCompositeCardinality(getBoolean(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_COUNT_STATS, "false")))
+                .setUseJoinSelectivity(getBoolean(props.getProperty(AbstractAccumuloRdfConfigurationBuilder.USE_JOIN_SELECTIVITY, "false")));
         return builder;
     }
 

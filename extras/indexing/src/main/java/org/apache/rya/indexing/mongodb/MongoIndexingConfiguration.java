@@ -18,8 +18,7 @@
  */
 package org.apache.rya.indexing.mongodb;
 
-import java.util.Properties;
-
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -31,7 +30,7 @@ import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRdfConfigurationBuilder;
 import org.eclipse.rdf4j.sail.Sail;
 
-import com.google.common.base.Preconditions;
+import java.util.Properties;
 
 /**
  * This class is an extension of the MongoDBRdfConfiguration object used to to
@@ -269,29 +268,22 @@ public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
         public static MongoIndexingConfiguration fromProperties(final Properties props) {
             try {
                 final MongoDBIndexingConfigBuilder builder = new MongoDBIndexingConfigBuilder() //
-                        .setAuths(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_AUTHS, "")) //
-                        .setRyaPrefix(
-                                props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_RYA_PREFIX, "rya_"))//
+                        .setUseMockMongo(getBoolean(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.USE_MOCK_MONGO, "false")))
+                        .setRyaPrefix(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_RYA_PREFIX, "rya_"))
+                        .setAuths(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_AUTHS, ""))
                         .setVisibilities(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_VISIBILITIES, ""))
-                        .setUseInference(getBoolean(
-                                props.getProperty(AbstractMongoDBRdfConfigurationBuilder.USE_INFERENCE, "false")))//
-                        .setDisplayQueryPlan(getBoolean(props
-                                .getProperty(AbstractMongoDBRdfConfigurationBuilder.USE_DISPLAY_QUERY_PLAN, "true")))//
-                        .setMongoUser(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_USER)) //
-                        .setMongoPassword(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_PASSWORD))//
-                        .setMongoCollectionPrefix(props
-                                .getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_COLLECTION_PREFIX, "rya_"))//
-                        .setMongoDBName(
-                                props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_DB_NAME, "rya_triples"))//
-                        .setMongoHost(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_HOST, "localhost"))//
-                        .setMongoPort(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_PORT,
-                                AbstractMongoDBRdfConfigurationBuilder.DEFAULT_MONGO_PORT))//
-                        .setUseMockMongo(getBoolean(
-                                props.getProperty(AbstractMongoDBRdfConfigurationBuilder.USE_MOCK_MONGO, "false")))//
-                        .setUseMongoFreetextIndex(getBoolean(props.getProperty(USE_FREETEXT, "false")))//
-                        .setUseMongoTemporalIndex(getBoolean(props.getProperty(USE_TEMPORAL, "false")))//
-                        .setUseMongoEntityIndex(getBoolean(props.getProperty(USE_ENTITY, "false")))//
-                        .setMongoFreeTextPredicates(StringUtils.split(props.getProperty(FREETEXT_PREDICATES), ","))//
+                        .setUseInference(getBoolean(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.USE_INFERENCE, "false")))
+                        .setDisplayQueryPlan(getBoolean(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.USE_DISPLAY_QUERY_PLAN, "true")))
+                        .setMongoUser(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_USER))
+                        .setMongoPassword(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_PASSWORD))
+                        .setMongoCollectionPrefix(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_COLLECTION_PREFIX, "rya_"))
+                        .setMongoDBName(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_DB_NAME, "rya_triples"))
+                        .setMongoHost(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_HOST, "localhost"))
+                        .setMongoPort(props.getProperty(AbstractMongoDBRdfConfigurationBuilder.MONGO_PORT, AbstractMongoDBRdfConfigurationBuilder.DEFAULT_MONGO_PORT))
+                        .setUseMongoFreetextIndex(getBoolean(props.getProperty(USE_FREETEXT, "false")))
+                        .setUseMongoTemporalIndex(getBoolean(props.getProperty(USE_TEMPORAL, "false")))
+                        .setUseMongoEntityIndex(getBoolean(props.getProperty(USE_ENTITY, "false")))
+                        .setMongoFreeTextPredicates(StringUtils.split(props.getProperty(FREETEXT_PREDICATES), ","))
                         .setMongoTemporalPredicates(StringUtils.split(props.getProperty(TEMPORAL_PREDICATES), ","));
 
                 return builder.build();

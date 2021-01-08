@@ -19,8 +19,11 @@ package org.apache.rya.accumulo;
  * under the License.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.apache.accumulo.core.client.IteratorSetting;
+import org.apache.accumulo.core.security.Authorizations;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -30,11 +33,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.accumulo.core.client.IteratorSetting;
-import org.apache.accumulo.core.security.Authorizations;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class AccumuloRdfConfigurationTest {
     private static final Logger logger = LoggerFactory.getLogger(AccumuloRdfConfigurationTest.class);
@@ -122,7 +122,7 @@ public class AccumuloRdfConfigurationTest {
 
     @Test
     public void testBuilderFromProperties() throws FileNotFoundException, IOException {
-        String prefix = "rya_";
+        String prefix = "ryatest_";
         String auth = "U";
         String visibility = "U";
         String user = "user";

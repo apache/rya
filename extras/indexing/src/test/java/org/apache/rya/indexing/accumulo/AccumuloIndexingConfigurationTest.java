@@ -18,8 +18,9 @@
  */
 package org.apache.rya.indexing.accumulo;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.apache.accumulo.core.security.Authorizations;
+import org.apache.rya.api.domain.RyaIRI;
+import org.junit.Test;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -29,9 +30,8 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
-import org.apache.accumulo.core.security.Authorizations;
-import org.apache.rya.api.domain.RyaIRI;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class AccumuloIndexingConfigurationTest {
 
@@ -101,7 +101,7 @@ public class AccumuloIndexingConfigurationTest {
 
     @Test
     public void testBuilderFromProperties() throws FileNotFoundException, IOException {
-        String prefix = "rya_";
+        String prefix = "ryatest_";
         String auth = "U";
         String visibility = "U";
         String user = "user";

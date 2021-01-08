@@ -75,7 +75,7 @@ under the License.
                                     <!-- This causes spatial4J to use the full featured JTS libs -->
                                     <!-- avoiding the error: "Unknown Shape definition [POLYGON" -->
                                     <name>SpatialContextFactory</name>
-                                    <value>com.spatial4j.core.context.jts.JtsSpatialContextFactory</value>
+                                    <value>org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory</value>
                                 </property>
                             </properties>
                         </configuration>

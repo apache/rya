@@ -18,16 +18,18 @@
  */
 package org.eclipse.rdf4j.query.algebra.evaluation.function.geosparql;
 
-import java.io.IOException;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.WKTWriter;
+import org.locationtech.spatial4j.context.SpatialContext;
+import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
+import org.locationtech.spatial4j.shape.Shape;
 
-import com.spatial4j.core.context.SpatialContext;
-import com.spatial4j.core.context.jts.JtsSpatialContext;
-import com.spatial4j.core.shape.Shape;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.WKTWriter;
+import java.io.IOException;
 
 /**
  * See https://bitbucket.org/pulquero/sesame-geosparql-jts
+ *
+ * GeoSPARQL standard defined at https://www.ogc.org/standards/geosparql
  */
 public class SpatialSupportInitializer extends SpatialSupport {
 
@@ -51,6 +53,11 @@ public class SpatialSupportInitializer extends SpatialSupport {
 
         public JtsSpatialAlgebra(JtsSpatialContext context) {
             this.context = context;
+        }
+
+        @Override
+        public Shape buffer(Shape s, double distance) {
+            return context.makeShape(context.getGeometryFrom(s).buffer(distance));
         }
 
         @Override
@@ -94,8 +101,8 @@ public class SpatialSupportInitializer extends SpatialSupport {
         }
 
         @Override
-        public boolean equals(Shape s1, Shape s2) {
-            return context.getGeometryFrom(s1).equalsNorm(context.getGeometryFrom(s2));
+        public boolean sfEquals(Shape s1, Shape s2) {
+            return relate(s1, s2, "TFFFTFFFT");
         }
 
         @Override
@@ -151,6 +158,11 @@ public class SpatialSupportInitializer extends SpatialSupport {
             } else {
                 return false;
             }
+        }
+
+        @Override
+        public boolean ehEquals(Shape s1, Shape s2) {
+            return relate(s1, s2, "TFFFTFFFT");
         }
 
         @Override
@@ -221,6 +233,11 @@ public class SpatialSupportInitializer extends SpatialSupport {
         @Override
         public boolean rcc8ntppi(Shape s1, Shape s2) {
             return relate(s1, s2, "TTTFFTFFT");
+        }
+
+        @Override
+        public boolean rcc8eq(Shape s1, Shape s2) {
+            return relate(s1, s2, "TFFFTFFFT");
         }
 
     }

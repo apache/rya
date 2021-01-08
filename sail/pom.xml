@@ -67,6 +67,7 @@ under the License.
         <dependency>
             <groupId>org.eclipse.rdf4j</groupId>
             <artifactId>rdf4j-runtime</artifactId>
+            <type>pom</type>
         </dependency>
 
         <!-- Test -->

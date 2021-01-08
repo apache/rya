@@ -43,7 +43,7 @@
         <dependency>
             <groupId>org.apache.twill</groupId>
             <artifactId>twill-yarn</artifactId>
-            <version>0.12.0</version>
+            <version>${twill.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>

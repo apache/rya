@@ -1,6 +1,7 @@
 org.apache.rya.indexing.pcj.functions.geo.DistanceRdf4J
 org.apache.rya.indexing.pcj.functions.geo.ConvexHullRdf4J
 org.apache.rya.indexing.pcj.functions.geo.BoundaryRdf4J
+org.apache.rya.indexing.pcj.functions.geo.BufferRdf4J
 org.apache.rya.indexing.pcj.functions.geo.EnvelopeRdf4J
 org.apache.rya.indexing.pcj.functions.geo.UnionRdf4J
 org.apache.rya.indexing.pcj.functions.geo.IntersectionRdf4J
@@ -14,6 +15,7 @@ org.apache.rya.indexing.pcj.functions.geo.SfCrossesRdf4J
 org.apache.rya.indexing.pcj.functions.geo.SfWithinRdf4J
 org.apache.rya.indexing.pcj.functions.geo.SfContainsRdf4J
 org.apache.rya.indexing.pcj.functions.geo.SfOverlapsRdf4J
+org.apache.rya.indexing.pcj.functions.geo.SfEqualsRdf4J
 org.apache.rya.indexing.pcj.functions.geo.EhDisjointRdf4J
 org.apache.rya.indexing.pcj.functions.geo.EhMeetRdf4J
 org.apache.rya.indexing.pcj.functions.geo.EhOverlapRdf4J
@@ -21,8 +23,10 @@ org.apache.rya.indexing.pcj.functions.geo.EhCoversRdf4J
 org.apache.rya.indexing.pcj.functions.geo.EhCoveredByRdf4J
 org.apache.rya.indexing.pcj.functions.geo.EhInsideRdf4J
 org.apache.rya.indexing.pcj.functions.geo.EhContainsRdf4J
+org.apache.rya.indexing.pcj.functions.geo.EhEqualsRdf4J
 org.apache.rya.indexing.pcj.functions.geo.RCC8DCRdf4J
 org.apache.rya.indexing.pcj.functions.geo.RCC8ECRdf4J
+org.apache.rya.indexing.pcj.functions.geo.RCC8EQRdf4J
 org.apache.rya.indexing.pcj.functions.geo.RCC8PORdf4J
 org.apache.rya.indexing.pcj.functions.geo.RCC8TPPIRdf4J
 org.apache.rya.indexing.pcj.functions.geo.RCC8TPPRdf4J

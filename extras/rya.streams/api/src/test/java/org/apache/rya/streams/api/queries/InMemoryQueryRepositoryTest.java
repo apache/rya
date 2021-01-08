@@ -18,11 +18,11 @@
  */
 package org.apache.rya.streams.api.queries;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
+import org.apache.rya.streams.api.entity.StreamsQuery;
+import org.apache.rya.streams.api.queries.QueryChangeLog.QueryChangeLogException;
+import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -31,12 +31,11 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.rya.streams.api.entity.StreamsQuery;
-import org.apache.rya.streams.api.queries.QueryChangeLog.QueryChangeLogException;
-import org.junit.Test;
-
-import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests the methods of {@link InMemoryQueryRepository}.
@@ -83,7 +82,7 @@ public class InMemoryQueryRepositoryTest {
         final QueryChangeLog changeLog = new InMemoryQueryChangeLog();
         final QueryRepository queries = new InMemoryQueryRepository( changeLog, SCHEDULE );
         try {
-            queries.startAndWait();
+            queries.startAsync();
             // Add some queries and deletes to it.
             final Set<StreamsQuery> expected = new HashSet<>();
             expected.add( queries.add("query 1", true, true) );
@@ -98,10 +97,10 @@ public class InMemoryQueryRepositoryTest {
                 final Set<StreamsQuery> stored = initializedQueries.list();
                 assertEquals(expected, stored);
             } finally {
-                queries.stop();
+                queries.stopAsync();
             }
         } finally {
-            queries.stop();
+            queries.stopAsync();
         }
     }
 
@@ -160,7 +159,7 @@ public class InMemoryQueryRepositoryTest {
         // Setup a totally in memory QueryRepository.
         final QueryRepository queries = new InMemoryQueryRepository( new InMemoryQueryChangeLog(), SCHEDULE );
         try {
-            queries.startAndWait();
+            queries.startAsync();
 
             // Add a query to it.
             final StreamsQuery query = queries.add("query 1", true, false);
@@ -179,7 +178,7 @@ public class InMemoryQueryRepositoryTest {
 
             queries.add("query 2", true, false);
         } finally {
-            queries.stop();
+            queries.stopAsync();
         }
     }
 
@@ -191,8 +190,8 @@ public class InMemoryQueryRepositoryTest {
         final QueryRepository queries2 = new InMemoryQueryRepository( changeLog, SCHEDULE );
 
         try {
-            queries.startAndWait();
-            queries2.startAndWait();
+            queries.startAsync();
+            queries2.startAsync();
 
             //show listener on repo that query was added to is being notified of the new query.
             final CountDownLatch repo1Latch = new CountDownLatch(1);
@@ -226,8 +225,8 @@ public class InMemoryQueryRepositoryTest {
             assertTrue(repo2Latch.await(5, TimeUnit.SECONDS));
         } catch(final InterruptedException e ) {
         } finally {
-            queries.stop();
-            queries2.stop();
+            queries.stopAsync();
+            queries2.stopAsync();
         }
     }
 

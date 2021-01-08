@@ -42,12 +42,10 @@ under the License.
         <dependency>
             <groupId>com.vividsolutions</groupId>
             <artifactId>jts</artifactId>
-            <version>1.13</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.rdf4j</groupId>
             <artifactId>rdf4j-queryalgebra-geosparql</artifactId>
-            <version>${org.eclipse.rdf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.rdf4j</groupId>
@@ -77,7 +75,7 @@ under the License.
                                     <!-- This causes spatial4J to use the full featured JTS libs -->
                                     <!-- avoiding the error: "Unknown Shape definition [POLYGON" -->
                                     <name>SpatialContextFactory</name>
-                                    <value>com.spatial4j.core.context.jts.JtsSpatialContextFactory</value>
+                                    <value>org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory</value>
                                 </property>
                             </properties>
                         </configuration>

@@ -77,12 +77,12 @@
 
         <dependency>
             <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
+            <artifactId>guava</artifactId> <!-- Twill runtime requires 11.0 < guava < 14.0. Rename the package in the maven-shade-plugin -->
         </dependency>
         <dependency>
             <groupId>org.apache.twill</groupId>
             <artifactId>twill-api</artifactId>
-            <version>0.12.0</version>
+            <version>${twill.version}</version>
         </dependency>
 
         <!-- Mark Accumulo Hadoop and Zookeeper as provided dependencies -->
@@ -165,6 +165,15 @@
                                     <exclude>commons-logging:commons-logging</exclude>
                                     <exclude>org.slf4j:slf4j-log4j12</exclude>
                                     <exclude>log4j:log4j</exclude>
+
+                                    <!-- exclude signed jar that probably isn't needed anyway -->
+                                    <!-- Causes: org.codehaus.mojo:animal-sniffer-maven-plugin:1.16:check failed: Invalid signature file digest for Manifest main attributes -->
+                                    <exclude>org.locationtech.spatial4j:spatial4j</exclude>
+
+                                    <!-- https://rdf4j.org/release-notes/3.3.0/ -->
+                                    <exclude>com.fasterxml.jackson.core:jackson-annotations</exclude>
+                                    <exclude>com.fasterxml.jackson.core:jackson-core</exclude>
+                                    <exclude>com.fasterxml.jackson.core:jackson-databind</exclude>
                                 </excludes>
                             </artifactSet>
                         </configuration>

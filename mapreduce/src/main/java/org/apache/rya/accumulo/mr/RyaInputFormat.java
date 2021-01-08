@@ -19,27 +19,28 @@ package org.apache.rya.accumulo.mr;
  * under the License.
  */
 
-import java.io.IOException;
-import java.util.Map.Entry;
-
+import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.mapreduce.AbstractInputFormat;
 import org.apache.accumulo.core.client.mapreduce.RangeInputSplit;
+import org.apache.accumulo.core.client.mapreduce.lib.impl.InputConfigurator;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map.Entry;
 
 /**
  * Subclass of {@link AbstractInputFormat} for reading
@@ -75,6 +76,20 @@ public class RyaInputFormat extends AbstractInputFormat<Text, RyaStatementWritab
     public class RyaStatementRecordReader extends AbstractRecordReader<Text, RyaStatementWritable> {
         private RyaTripleContext ryaContext;
         private TABLE_LAYOUT tableLayout;
+
+        /**
+         * Extracts Iterators settings from the context to be used by RecordReader.
+         *
+         * @param context
+         *          the Hadoop context for the configured job
+         * @param tableName
+         *          the table name for which the scanner is configured
+         * @return List of iterator settings for given table
+         */
+        @Override
+        protected List<IteratorSetting> contextIterators(TaskAttemptContext context, String tableName) {
+            return InputConfigurator.getIterators(CLASS, context.getConfiguration());
+        }
 
         @Override
         protected void setupIterators(TaskAttemptContext context, Scanner scanner, String tableName,

@@ -69,38 +69,40 @@ under the License.
         <module>web</module>
     </modules>
     <properties>
-        <org.eclipse.rdf4j.version>2.3.1</org.eclipse.rdf4j.version> <!-- Newest: 2.3.1 -->
+        <org.eclipse.rdf4j.version>3.4.4</org.eclipse.rdf4j.version>
 
-        <accumulo.version>1.6.4</accumulo.version> <!-- Newest: 1.7.0 -->
-        <hadoop.version>2.5.0</hadoop.version> <!-- Newest: 2.7.1 -->
+        <jackson.version>2.10.4</jackson.version> <!-- https://rdf4j.org/release-notes/3.3.0/ -->
+
+        <accumulo.version>1.10.0</accumulo.version>
+        <hadoop.version>2.9.2</hadoop.version>
         
-        <zookeeper.version>3.4.6</zookeeper.version>
+        <zookeeper.version>3.4.14</zookeeper.version>
 
-        <pig.version>0.9.2</pig.version> <!-- Newest: 0.15.0 -->
+        <pig.version>0.15.0</pig.version>
 
-        <lucene.version>5.2.1</lucene.version> <!-- Newest: 5.3.1 -->
-        <joda-time.version>2.1</joda-time.version> <!-- Newest: 2.9.1 -->
+        <lucene.version>5.3.1</lucene.version>
+        <joda-time.version>2.9.1</joda-time.version>
 
         <mongodb.version>3.10.2</mongodb.version>
         <embed.mongo.version>2.2.0</embed.mongo.version>
 
-        <tinkerpop.version>3.2.2</tinkerpop.version> <!-- Newest: Apache 3.2.2 -->
+        <tinkerpop.version>3.2.2</tinkerpop.version>
 
-        <commons.lang.version>2.6</commons.lang.version> <!-- Newest: 2.6 -->
-        <commons.codec.version>1.10</commons.codec.version> <!-- Newest: 1.10 -->
-        <commons.pool.version>1.6</commons.pool.version> <!-- Newest: 1.6 -->
+        <commons.lang.version>2.6</commons.lang.version>
+        <commons.codec.version>1.10</commons.codec.version>
+        <commons.pool.version>1.6</commons.pool.version>
         <commons.io.version>2.5</commons.io.version>
         
-        <gmaven.version>1.3</gmaven.version> <!-- Newest: 1.5 -->
+        <gmaven.version>1.5</gmaven.version>
 
-        <guava.version>14.0.1</guava.version> <!-- Newest: 18.0 -->
+        <guava.version>18.0</guava.version>
         <gson.version>2.8.1</gson.version>
 
-        <httpcomponents.httpclient.version>4.5.2</httpcomponents.httpclient.version> <!-- Newest: 4.5.3 -->
-        <httpcomponents.httpcore.version>4.4.4</httpcomponents.httpcore.version> <!-- Newest: 4.4.6 -->
+        <httpcomponents.httpclient.version>4.5.10</httpcomponents.httpclient.version> <!-- Matching RDF4J -->
+        <httpcomponents.httpcore.version>4.4.12</httpcomponents.httpcore.version> <!-- Matching RDF4J -->
 
         <karaf.version>2.2.11</karaf.version> <!-- Newest: 4.0.3 -->
-        <mango.version>1.2.0</mango.version> <!-- Newest: 1.4.0 -->
+        <mango.version>1.4.0</mango.version> <!-- Newest: 1.4.0 -->
         <antlr-runtime.version>3.4</antlr-runtime.version> <!-- Newest: 3.5.2 -->
         <ehcache.version>1.7.2</ehcache.version> <!-- Newest: 2.6.11 -->
         <hamcrest.version>1.3</hamcrest.version> <!-- Newest: 1.3 -->
@@ -110,11 +112,12 @@ under the License.
         <spring.hadoop.version>1.0.2.RELEASE</spring.hadoop.version> <!-- Newest: 2.2.1.RELEASE -->
         <spring.shell.version>1.1.0.RELEASE</spring.shell.version> <!-- Newest: 1.1.0.RELEASE -->
 
-        <junit.version>4.12</junit.version> <!-- Newest: 4.12 -->
-        <mockito.version>1.10.19</mockito.version> <!-- Newest: 1.10.19 -->
-        <mrunit.version>1.1.0</mrunit.version> <!-- Newest: 1.1.0 -->
-        <slf4j.version>1.7.25</slf4j.version> <!-- Newest: 1.7.13 -->
-        <powermock.version>1.6.1</powermock.version>
+        <junit.version>4.13.1</junit.version>
+        <mrunit.version>1.1.0</mrunit.version>
+        <slf4j.version>1.7.26</slf4j.version>
+        <mockito.all.version>1.10.19</mockito.all.version>
+        <mockito.core.version>2.28.2</mockito.core.version>
+        <powermock.version>2.0.2</powermock.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -122,15 +125,17 @@ under the License.
         <!-- the maven-release-plugin makes this recommendation, due to plugin bugs -->
         <maven.min-version>3.0.4</maven.min-version>
         
-        <fluo.version>1.0.0-incubating</fluo.version>
+        <fluo.version>1.2.0</fluo.version>
 
         <plexus.version>3.0.8</plexus.version>
-        <thrift.version>0.9.1</thrift.version>
+        <thrift.version>0.9.3</thrift.version>
         <commons.cli.version>1.2</commons.cli.version>
         <jcommander.version>1.60</jcommander.version> <!--  geowave declares a 1.48 dependency and does not support a version higher than 1.60 -->
         <twitter4jstream.version>4.0.1</twitter4jstream.version>
 
         <jmh.version>1.13</jmh.version>
+
+        <twill.version>0.14.0</twill.version>
 
         <jsr305.version>1.3.9-1</jsr305.version>
         <jcip.version>1.0-1</jcip.version>
@@ -147,9 +152,10 @@ under the License.
     <profiles>
         <profile>
             <id>geoindexing</id>
+            <!--<activation><activeByDefault>true</activeByDefault></activation>-->
             <properties>
                 <geomesa.version>1.3.0-m1</geomesa.version> <!-- Newest: 1.3.0-m1 -->
-                <geowave.version>0.9.3</geowave.version> <!-- Newest: 0.9.3 -->
+                <geowave.version>0.9.3</geowave.version> <!-- Newest: 1.1.0 -->
                 <jts.version>1.13</jts.version>
             </properties>
             <dependencyManagement>
@@ -219,7 +225,7 @@ under the License.
                     <dependency>
                         <groupId>com.vividsolutions</groupId>
                         <artifactId>jts</artifactId>
-                        <version>1.13</version>
+                        <version>${jts.version}</version>
                     </dependency>
                 </dependencies>
             </dependencyManagement>
@@ -247,7 +253,7 @@ under the License.
                 </repository>
                 <repository>
                     <id>LocationTech - Third Party</id>
-                    <url>https://repo.eclipse.org/content/repositories/thirdparty/</url>
+                    <url>https://repo.eclipse.org/content/repositories/locationtech-thirdparty/</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>
@@ -355,6 +361,20 @@ under the License.
             </reporting>
         </profile>
     </profiles>
+
+    <repositories>
+        <repository>
+            <!-- For RDF4J Snapshots -->
+            <id>oss.sonatype.org-snapshot</id>
+            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
     
     <dependencyManagement>
         <dependencies>
@@ -558,7 +578,7 @@ under the License.
                 <groupId>org.apache.rya</groupId>
                 <artifactId>rya.kafka.connect.mongo</artifactId>
                 <version>${project.version}</version>
-	    </dependency>
+            </dependency>
             <dependency>
                 <groupId>org.apache.accumulo</groupId>
                 <artifactId>accumulo-core</artifactId>
@@ -571,8 +591,10 @@ under the License.
             </dependency>
             <dependency>
                 <groupId>org.eclipse.rdf4j</groupId>
-                <artifactId>rdf4j-runtime</artifactId>
+                <artifactId>rdf4j-bom</artifactId>
                 <version>${org.eclipse.rdf4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.rdf4j</groupId>
@@ -604,7 +626,6 @@ under the License.
                 <artifactId>rdf4j-queryresultio-text</artifactId>
                 <version>${org.eclipse.rdf4j.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>org.eclipse.rdf4j</groupId>
                 <artifactId>rdf4j-rio-api</artifactId>
@@ -649,6 +670,12 @@ under the License.
                 <groupId>org.eclipse.rdf4j</groupId>
                 <artifactId>rdf4j-queryrender</artifactId>
                 <version>${org.eclipse.rdf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-runtime</artifactId>
+                <version>${org.eclipse.rdf4j.version}</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.rdf4j</groupId>
@@ -1001,7 +1028,13 @@ under the License.
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-all</artifactId>
-                <version>${mockito.version}</version>
+                <version>${mockito.all.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.core.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -1019,9 +1052,37 @@ under the License.
                 <exclusions>
                     <exclusion>
                         <groupId>org.powermock</groupId>
+                        <artifactId>powermock-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.powermock</groupId>
+                        <artifactId>powermock-all</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.powermock</groupId>
                         <artifactId>powermock-module-junit4</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.powermock</groupId>
+                        <artifactId>powermock-api-mockito</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.powermock</groupId>
+                        <artifactId>powermock-api-mockito2</artifactId>
+                    </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-core</artifactId>
+                <version>${powermock.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-all</artifactId>
+                <version>${powermock.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.powermock</groupId>
@@ -1029,7 +1090,13 @@ under the License.
                 <version>${powermock.version}</version>
                 <scope>test</scope>
             </dependency>
-            
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-api-mockito2</artifactId>
+                <version>${powermock.version}</version>
+                <scope>test</scope>
+            </dependency>
+
             <!-- JMH Benchmarking tool dependencies. -->
             <dependency>
                 <groupId>org.openjdk.jmh</groupId>
@@ -1131,11 +1198,11 @@ under the License.
                     </configuration>
                 </plugin>
 
-                <!-- Fail a build if it uses any Java features introduced after 1.7. -->
+                <!-- Fail a build if it uses any Java features introduced after 1.8 -->
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>animal-sniffer-maven-plugin</artifactId>
-                    <version>1.15</version>
+                    <version>1.16</version>
                     <configuration>
                         <signature>
                             <groupId>org.codehaus.mojo.signature</groupId>

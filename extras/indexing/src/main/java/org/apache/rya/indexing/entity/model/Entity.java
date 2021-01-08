@@ -18,7 +18,20 @@
  */
 package org.apache.rya.indexing.entity.model;
 
-import static java.util.Objects.requireNonNull;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
+import org.apache.log4j.Logger;
+import org.apache.rya.api.domain.RyaIRI;
+import org.apache.rya.indexing.entity.storage.EntityStorage;
+import org.apache.rya.indexing.smarturi.SmartUriAdapter;
+import org.apache.rya.indexing.smarturi.SmartUriException;
+import org.eclipse.rdf4j.model.IRI;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,21 +41,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.apache.http.annotation.Immutable;
-import org.apache.log4j.Logger;
-import org.apache.rya.api.domain.RyaIRI;
-import org.apache.rya.indexing.entity.storage.EntityStorage;
-import org.apache.rya.indexing.smarturi.SmartUriAdapter;
-import org.apache.rya.indexing.smarturi.SmartUriException;
-import org.eclipse.rdf4j.model.IRI;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import edu.umd.cs.findbugs.annotations.Nullable;
+import static java.util.Objects.requireNonNull;
 
 /**
  * An {@link Entity} is a named concept that has at least one defined structure
@@ -74,7 +73,7 @@ import edu.umd.cs.findbugs.annotations.Nullable;
  * the {@link Type}, but nothing has explicitly indicated it is of  that Type.
  * Once something has done so, it is an explicitly typed Entity.
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @DefaultAnnotation(NonNull.class)
 public class Entity {
     private static final Logger log = Logger.getLogger(Entity.class);

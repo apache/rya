@@ -35,7 +35,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.indexing.IndexPlanValidator.IndexPlanValidator;
+import org.apache.rya.indexing.indexPlanValidator.IndexPlanValidator;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
 import org.apache.rya.indexing.external.tupleSet.AccumuloIndexSet;

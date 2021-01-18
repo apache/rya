@@ -1,4 +1,4 @@
-package org.apache.rya.indexing.IndexPlanValidator;
+package org.apache.rya.indexing.indexPlanValidator;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -8,9 +8,9 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,14 +19,13 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * under the License.
  */
 
-import java.util.Iterator;
 
-import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import java.util.List;
 
-public interface IndexTupleGenerator {
-    
-    
-    public Iterator<TupleExpr> getPlans(Iterator<TupleExpr> indexPlans);
-    
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+
+public interface IndexListPruner {
+
+    public List<ExternalTupleSet> getRelevantIndices(List<ExternalTupleSet> indexList);
 
 }

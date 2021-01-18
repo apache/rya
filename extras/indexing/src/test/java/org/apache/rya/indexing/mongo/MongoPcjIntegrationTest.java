@@ -24,7 +24,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.rya.indexing.IndexPlanValidator.IndexPlanValidator;
+import org.apache.rya.indexing.indexPlanValidator.IndexPlanValidator;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.PcjIntegrationTestingUtil;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;

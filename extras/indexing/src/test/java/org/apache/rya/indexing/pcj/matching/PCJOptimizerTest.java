@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.indexing.IndexPlanValidator.IndexedExecutionPlanGenerator;
+import org.apache.rya.indexing.indexPlanValidator.IndexedExecutionPlanGenerator;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
 import org.apache.rya.indexing.mongodb.pcj.MongoPcjIndexSetProvider;

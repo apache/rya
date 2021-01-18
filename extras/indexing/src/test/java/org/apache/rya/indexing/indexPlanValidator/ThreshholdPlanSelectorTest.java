@@ -1,4 +1,4 @@
-package org.apache.rya.indexing.IndexPlanValidator;
+package org.apache.rya.indexing.indexPlanValidator;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

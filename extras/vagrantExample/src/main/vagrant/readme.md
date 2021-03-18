@@ -111,7 +111,7 @@ It is created by the Vagrantfile.  It may be overwritten if the webapp is redepl
 
 Below is a list of other useful commands on the VMs
 
-#####*Log into the VM*
+##### *Log into the VM*
 
 1. Go to the folder containing "vagrantfile", run: 
         `cd extras/vagrantExample/src/main/vagrant/`
@@ -120,7 +120,7 @@ Below is a list of other useful commands on the VMs
 Alternatively: 
 1. Log into the vm (run: `ssh vagrant@rya-example-box` with pass: `vagrant`)
 
-#####*Running as Root*
+##### *Running as Root*
 
 Most start and stop scripts require running as root with variables, like %HADOOP_PREFIX% assigned.
 
@@ -135,20 +135,20 @@ Alternatively:
 2. Enter thecommand with parameters after the "#" prompt.
 2. Exit when done (run: `exit` )
 
-#####*Restart Tomcat*
+##### *Restart Tomcat*
 
 1. Login into the VM, see above.
 2. Restart tomcat, run: 
         `sudo -E service tomcat7 restart`
  
-#####*Restart Accumulo*
+##### *Restart Accumulo*
 
 1. Login into the VM, see above.
 2. Stop Accumulo (run: `sudo -E /home/vagrant/accumulo-1.6.5/bin/stop-all.sh`)
  * If `stop-all` doesn't complete, hit `ctrl-c` once and you should see `Initiating forced shutdown in 15 seconds`.  Wait 15 seconds.
 1. Start Accumulo (run: `sudo -E /home/vagrant/accumulo-1.6.5/bin/start-all.sh`)
 
-#####*Test and Restart Zookeeper*
+##### *Test and Restart Zookeeper*
 
 1. Log into the vm, see above.
 2. Ping Zookeeper, run: 

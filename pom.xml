@@ -125,7 +125,7 @@ under the License.
         <fluo.version>1.0.0-incubating</fluo.version>
 
         <plexus.version>3.0.8</plexus.version>
-        <thrift.version>0.9.1</thrift.version>
+        <thrift.version>0.14.0</thrift.version>
         <commons.cli.version>1.2</commons.cli.version>
         <jcommander.version>1.60</jcommander.version> <!--  geowave declares a 1.48 dependency and does not support a version higher than 1.60 -->
         <twitter4jstream.version>4.0.1</twitter4jstream.version>

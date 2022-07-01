@@ -134,7 +134,7 @@ under the License.
 
         <jsr305.version>1.3.9-1</jsr305.version>
         <jcip.version>1.0-1</jcip.version>
-        <kafka.version>0.10.0.1</kafka.version>
+        <kafka.version>0.10.2.2</kafka.version>
         <kryo.version>3.0.3</kryo.version>
         <jcabi-manifeses.version>1.1</jcabi-manifeses.version>
         
